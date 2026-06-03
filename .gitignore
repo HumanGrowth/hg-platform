@@ -1,0 +1,57 @@
+# ─── OS ───
+.DS_Store
+Thumbs.db
+
+# ─── Editor ───
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+
+# ─── Env / secrets ───
+.env
+.env.*
+!.env.example
+
+# ─── Python ───
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+dist/
+build/
+
+# ─── uv ───
+.uv/
+
+# ─── Node ───
+node_modules/
+.pnpm-store/
+*.tsbuildinfo
+.next/
+out/
+.turbo/
+
+# ─── Logs ───
+*.log
+logs/
+npm-debug.log*
+pnpm-debug.log*
+
+# ─── Docker ───
+.docker/
+
+# ─── Local data ───
+data/
+uploads/
+*.sqlite
+*.db
