@@ -26,9 +26,20 @@ class Base(DeclarativeBase):
 
 
 def get_db() -> Generator[Session, None, None]:
-    """FastAPI dependency that yields a transactional session."""
+    """FastAPI dependency that yields a transactional session.
+
+    Abre una transacción explícita (``BEGIN``) antes de ceder la sesión:
+    las políticas RLS y ``SET LOCAL app.current_org_id`` requieren estar
+    dentro de una transacción para tener efecto y auto-limpiarse al
+    commit/rollback.
+    """
     db = SessionLocal()
     try:
+        db.begin()  # asegura transacción abierta para SET LOCAL
         yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
