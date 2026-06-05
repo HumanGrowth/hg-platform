@@ -9,8 +9,13 @@ from sqlalchemy import engine_from_config, pool
 from hg.config import get_settings
 from hg.db import Base
 
-# Importar aquí todos los models para que Alembic los registre:
-# from hg.modules.identity import models as identity_models  # noqa: F401
+# Import all models so Alembic registers them in metadata
+import hg.modules.ai.models  # noqa: F401
+import hg.modules.analytics.models  # noqa: F401
+import hg.modules.identity.invitations  # noqa: F401
+import hg.modules.identity.models  # noqa: F401
+import hg.modules.learning.models  # noqa: F401
+import hg.modules.people.models  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

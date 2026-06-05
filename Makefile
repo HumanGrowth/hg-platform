@@ -52,8 +52,8 @@ lint-backend: ## Lint backend (ruff + mypy)
 lint-frontend: ## Lint frontend
 	cd apps/frontend && pnpm lint
 
-seed: ## Seed inicial de DB
-	docker compose exec backend uv run python -m hg.scripts.seed
+seed: ## Seed datos de demo
+	docker compose exec backend python -m hg.scripts.seed
 
 clean: ## Limpiar volúmenes y artefactos
 	docker compose down -v

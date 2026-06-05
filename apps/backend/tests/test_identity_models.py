@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from uuid import uuid4
 
 import pytest
 from sqlalchemy import select
@@ -18,15 +19,16 @@ from hg.modules.identity.models import (
 )
 
 
-def _make_org(db: Session, *, slug: str, name: str = "Acme") -> Organization:
-    org = Organization(name=name, slug=slug, tier=OrgTier.B)
+def _make_org(db: Session, *, slug: str | None = None, name: str = "Acme") -> Organization:
+    # Slug único por defecto: la DB es compartida y puede tener datos de seed.
+    org = Organization(name=name, slug=slug or f"t-{uuid4().hex[:10]}", tier=OrgTier.B)
     db.add(org)
     db.flush()
     return org
 
 
 def test_insert_and_read_back_org_user_session(db: Session) -> None:
-    org = _make_org(db, slug="acme")
+    org = _make_org(db)
 
     user = User(
         org_id=org.id,
@@ -68,7 +70,7 @@ def test_insert_and_read_back_org_user_session(db: Session) -> None:
 
 
 def test_org_defaults(db: Session) -> None:
-    org = Organization(name="Defaults Inc", slug="defaults")
+    org = Organization(name="Defaults Inc", slug=f"t-{uuid4().hex[:10]}")
     db.add(org)
     db.flush()
     db.refresh(org)
@@ -81,8 +83,8 @@ def test_org_defaults(db: Session) -> None:
 
 
 def test_same_email_different_orgs_allowed(db: Session) -> None:
-    org_a = _make_org(db, slug="org-a")
-    org_b = _make_org(db, slug="org-b")
+    org_a = _make_org(db)
+    org_b = _make_org(db)
 
     db.add(
         User(
@@ -105,7 +107,7 @@ def test_same_email_different_orgs_allowed(db: Session) -> None:
 
 
 def test_same_email_same_org_rejected(db: Session) -> None:
-    org = _make_org(db, slug="org-c")
+    org = _make_org(db)
     db.add(
         User(
             org_id=org.id,

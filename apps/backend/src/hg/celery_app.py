@@ -12,6 +12,7 @@ celery_app = Celery(
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
     include=[
+        "hg.modules.identity.tasks",
         "hg.modules.notifications.tasks",
         "hg.modules.learning.tasks",
         "hg.modules.analytics.tasks",
