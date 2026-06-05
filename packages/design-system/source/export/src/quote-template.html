@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Human Growth — Pull Quote</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <template id="__bundler_thumbnail">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+      <rect width="200" height="200" fill="#FDF5E6"/>
+      <text x="40" y="80" font-family="Georgia, serif" font-size="120" font-style="italic" fill="#1A140F">"</text>
+      <rect x="42" y="120" width="116" height="3" fill="#FF4500"/>
+      <rect x="42" y="135" width="80" height="3" fill="#1A140F" opacity="0.4"/>
+      <circle cx="48" cy="160" r="8" fill="#FFB48A"/>
+    </svg>
+  </template>
+  <style>
+    :root {
+      --orange-200: #FFB48A; --orange-500: #FF4500;
+      --cream-100: #FDF5E6;
+      --warm-400: #8A7765; --warm-600: #5C4A3F; --warm-900: #1A140F;
+    }
+    html, body { margin: 0; padding: 0; background: #888; font-family: 'Manrope', system-ui, sans-serif; color: var(--warm-900); }
+
+    .page {
+      width: 1080px; height: 1080px;
+      background: var(--cream-100);
+      box-sizing: border-box;
+      padding: 96px 96px 88px;
+      display: flex; flex-direction: column;
+      position: relative;
+      page-break-after: always; break-after: page;
+    }
+    .page:last-child { page-break-after: auto; }
+
+    .corner-mark {
+      position: absolute; top: 48px; right: 56px;
+      font-size: 18px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--warm-400);
+    }
+    .corner-mark .accent { color: var(--orange-500); }
+
+    .eyebrow {
+      font-size: 22px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--orange-500);
+      margin-bottom: 36px;
+    }
+
+    .quote-mark {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: 220px; line-height: 0.7;
+      color: var(--orange-500); opacity: 0.85;
+      margin-bottom: -32px; margin-left: -8px;
+    }
+
+    .quote {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: 62px; line-height: 1.15;
+      letter-spacing: -0.01em;
+      color: var(--warm-900);
+      text-wrap: balance;
+      margin: 0;
+    }
+    .quote em { font-style: italic; }
+
+    .attribution {
+      margin-top: auto;
+      display: flex; align-items: center; gap: 18px;
+    }
+    .avatar {
+      width: 64px; height: 64px; border-radius: 9999px;
+      background: var(--orange-200); color: var(--warm-900);
+      font-weight: 700; font-size: 22px;
+      display: flex; align-items: center; justify-content: center;
+      flex: none;
+    }
+    .name { font-weight: 700; font-size: 22px; color: var(--warm-900); }
+    .role { font-size: 18px; color: var(--warm-600); margin-top: 4px; }
+
+    /* PAGE 2 — dark variant */
+    .page.dark { background: #13100D; }
+    .page.dark .quote { color: #F5EBD6; }
+    .page.dark .name  { color: #F5EBD6; }
+    .page.dark .role  { color: #B8A799; }
+    .page.dark .corner-mark { color: #B8A799; }
+  </style>
+</head>
+<body>
+
+<!-- PAGE 1 — Light pull quote -->
+<div class="page" data-screen-label="01 — Pull quote (light)">
+  <div class="corner-mark"><span class="accent">HG</span> &nbsp;·&nbsp; PULL QUOTE</div>
+
+  <div class="eyebrow">WHY WE BUILT THIS</div>
+  <div class="quote-mark">"</div>
+  <p class="quote">
+    Most growth happens <em>between</em> the lessons — in the brief you write right after, the question you ask the next morning, the thing you ship that you would not have shipped.
+  </p>
+
+  <div class="attribution">
+    <div class="avatar">PN</div>
+    <div>
+      <div class="name">Priya Narayanan</div>
+      <div class="role">Co-founder · ex-Director PM, Figma</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2 — Dark variant -->
+<div class="page dark" data-screen-label="02 — Pull quote (dark)">
+  <div class="corner-mark"><span class="accent">HG</span> &nbsp;·&nbsp; PULL QUOTE · DARK</div>
+
+  <div class="eyebrow">WHY WE BUILT THIS</div>
+  <div class="quote-mark">"</div>
+  <p class="quote">
+    Most growth happens <em>between</em> the lessons — in the brief you write right after, the question you ask the next morning, the thing you ship that you would not have shipped.
+  </p>
+
+  <div class="attribution">
+    <div class="avatar">PN</div>
+    <div>
+      <div class="name">Priya Narayanan</div>
+      <div class="role">Co-founder · ex-Director PM, Figma</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

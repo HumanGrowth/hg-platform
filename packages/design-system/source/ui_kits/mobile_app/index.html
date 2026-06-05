@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Human Growth — Mobile</title>
+  <link rel="stylesheet" href="../../colors_and_type.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    html, body { background: var(--cream-200); margin: 0; }
+    .stage {
+      min-height: 100vh; padding: 48px 24px;
+      display: flex; gap: 28px; flex-wrap: wrap; justify-content: center; align-items: flex-start;
+    }
+    .phone-cap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .phone-cap .label {
+      font-family: var(--font-display); font-size: 22px;
+      text-transform: uppercase; letter-spacing: -0.01em;
+      color: var(--warm-900); white-space: nowrap;
+    }
+    .phone-cap .sub {
+      font-size: 13px; color: var(--warm-600); margin-top: -10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body data-screen-label="Mobile app — three screens">
+  <div id="app"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="ios-frame.jsx"></script>
+  <script type="text/babel" src="Home.jsx"></script>
+  <script type="text/babel" src="Lesson.jsx"></script>
+  <script type="text/babel" src="Wallet.jsx"></script>
+
+  <script type="text/babel">
+    function App() {
+      return (
+        <div className="stage">
+          <div className="phone-cap">
+            <IOSDevice><MobileHome /></IOSDevice>
+            <div className="label">Home</div>
+            <div className="sub">Daily lesson, this week, in progress</div>
+          </div>
+          <div className="phone-cap">
+            <IOSDevice><MobileLesson /></IOSDevice>
+            <div className="label">Lesson</div>
+            <div className="sub">Reading view + exercise prompt</div>
+          </div>
+          <div className="phone-cap">
+            <IOSDevice><MobileWallet /></IOSDevice>
+            <div className="label">Wallet</div>
+            <div className="sub">Earned, in progress, locked</div>
+          </div>
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+  </script>
+</body>
+</html>
