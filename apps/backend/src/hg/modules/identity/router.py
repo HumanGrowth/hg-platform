@@ -10,12 +10,13 @@ from sqlalchemy.orm import Session
 
 from hg.core.deps import get_current_user, get_db_as_superadmin
 from hg.modules.identity import service
-from hg.modules.identity.models import User
+from hg.modules.identity.models import Organization, User
 from hg.modules.identity.schemas import (
     AcceptInviteRequest,
     InviteInfoResponse,
     LoginRequest,
     LogoutRequest,
+    MeResponse,
     RefreshRequest,
     TokenResponse,
     UserOut,
@@ -54,9 +55,16 @@ def logout(
     service.logout(db, refresh_token=body.refresh_token)
 
 
-@router.get("/me", response_model=UserOut)
-def me(user: User = Depends(get_current_user)) -> UserOut:
-    return UserOut.model_validate(user)
+@router.get("/me", response_model=MeResponse)
+def me(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_as_superadmin),
+) -> MeResponse:
+    org = db.get(Organization, user.org_id)
+    return MeResponse(
+        **UserOut.model_validate(user).model_dump(),
+        org_name=org.name if org else "",
+    )
 
 
 @router.get("/invite-info", response_model=InviteInfoResponse)

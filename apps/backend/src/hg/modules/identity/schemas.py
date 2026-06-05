@@ -33,6 +33,12 @@ class TokenResponse(BaseModel):
     user: UserOut
 
 
+class MeResponse(UserOut):
+    """UserOut + nombre de la org del usuario (para el header de perfil)."""
+
+    org_name: str
+
+
 class LoginRequest(BaseModel):
     email: Email
     password: str
