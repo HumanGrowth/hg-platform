@@ -10,6 +10,11 @@ export interface User {
   career_level: CareerLevel | null;
 }
 
+/** /api/v1/auth/me = User + org_name. */
+export interface Me extends User {
+  org_name: string;
+}
+
 /** Lo que las API routes de Next devuelven al cliente (sin refresh token). */
 export interface AuthResult {
   user: User;

@@ -1,7 +1,7 @@
 import axios, { type AxiosInstance } from "axios";
 
 import { useAuthStore } from "@/lib/auth-store";
-import type { AuthResult, InviteInfo, Org, User } from "@/lib/types";
+import type { AuthResult, InviteInfo, Me, Org } from "@/lib/types";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
@@ -70,8 +70,8 @@ backend.interceptors.response.use(
   },
 );
 
-export const apiMe = async (): Promise<User> => {
-  const res = await backend.get<User>("/api/v1/auth/me");
+export const apiMe = async (): Promise<Me> => {
+  const res = await backend.get<Me>("/api/v1/auth/me");
   return res.data;
 };
 

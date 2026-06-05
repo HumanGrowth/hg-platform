@@ -216,7 +216,7 @@ Cada componente con `cva` (class-variance-authority), accesible (focus visible, 
 - [ ] Mobile responsive <768px = single column
 - [ ] Commit: `feat(FE-04): app shell + home dashboard with 6-pillar grid`
 
-## TASK FE-05 · Biblioteca de carrera + perfil · `[ ]`
+## TASK FE-05 · Biblioteca de carrera + perfil · `[x]` ✅
 
 **5.1 · `/library`** (kanban B2-09):
 - Filtros laterales: por pilar (chips multi-select), por nivel (L1..L4b chips).
@@ -329,7 +329,7 @@ Al terminar reportá:
 | FE-02 | Componentes base (shadcn + DS) | ✅ | high |
 | FE-03 | Auth flow | ✅ | high |
 | FE-04 | App shell + home dashboard | ✅ | high |
-| FE-05 | Biblioteca + perfil | `[ ]` | medium |
+| FE-05 | Biblioteca + perfil | ✅ | medium |
 | FE-06 | Admin panel | `[ ]` | high |
 | FE-07 | Verificación e2e | `[ ]` | medium |
 | FE-08 | Documentación | `[ ]` | low |
