@@ -159,7 +159,7 @@ Cada componente con `cva` (class-variance-authority), accesible (focus visible, 
 - [ ] `pnpm typecheck` sin errores
 - [ ] Commit: `feat(FE-02): base UI primitives with HG design tokens`
 
-## TASK FE-03 · Auth: login + accept-invite + me · `[ ]`
+## TASK FE-03 · Auth: login + accept-invite + me · `[x]` ✅
 
 **3.1 · Cliente API tipado** en `apps/frontend/src/lib/api.ts` (extender lo que ya hay):
 - Funciones: `apiLogin(email, password, orgSlug?)`, `apiAcceptInvite(token, password, fullName)`, `apiRefresh(refreshToken)`, `apiMe(accessToken)`, `apiLogout(refreshToken)`.
@@ -327,7 +327,7 @@ Al terminar reportá:
 |---|---|---|---|
 | FE-01 | Integrar DS al monorepo | ✅ | medium |
 | FE-02 | Componentes base (shadcn + DS) | ✅ | high |
-| FE-03 | Auth flow | `[ ]` | high |
+| FE-03 | Auth flow | ✅ | high |
 | FE-04 | App shell + home dashboard | `[ ]` | high |
 | FE-05 | Biblioteca + perfil | `[ ]` | medium |
 | FE-06 | Admin panel | `[ ]` | high |

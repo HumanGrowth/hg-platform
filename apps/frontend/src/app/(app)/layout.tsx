@@ -1,12 +1,13 @@
 import { BetaBanner } from "@/components/BetaBanner";
+import { SessionGate } from "@/components/SessionGate";
 
-// App shell — el top nav completo se agrega en FE-04. El BetaBanner vive acá
-// (grupo (app)) y NO en (auth), por decisión de DEC-03 pendiente.
+// App shell. El top nav completo se agrega en FE-04. El BetaBanner vive acá
+// (grupo (app)) y NO en (auth). SessionGate rehidrata el access token y gatea.
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <BetaBanner />
-      {children}
+      <SessionGate>{children}</SessionGate>
     </div>
   );
 }
