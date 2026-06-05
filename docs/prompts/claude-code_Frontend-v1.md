@@ -187,7 +187,7 @@ Cada componente con `cva` (class-variance-authority), accesible (focus visible, 
 - [ ] Tests Vitest mínimos: `apiLogin` mock + form validation
 - [ ] Commit: `feat(FE-03): auth flow (login, accept-invite, refresh, logout)`
 
-## TASK FE-04 · App shell + home dashboard · `[ ]`
+## TASK FE-04 · App shell + home dashboard · `[x]` ✅
 
 **4.1 · App shell** `app/(app)/layout.tsx`:
 - Top nav: logo color (h-8) izq, links centro ("Inicio", "Biblioteca", "Mi perfil"), avatar+menú der.
@@ -328,7 +328,7 @@ Al terminar reportá:
 | FE-01 | Integrar DS al monorepo | ✅ | medium |
 | FE-02 | Componentes base (shadcn + DS) | ✅ | high |
 | FE-03 | Auth flow | ✅ | high |
-| FE-04 | App shell + home dashboard | `[ ]` | high |
+| FE-04 | App shell + home dashboard | ✅ | high |
 | FE-05 | Biblioteca + perfil | `[ ]` | medium |
 | FE-06 | Admin panel | `[ ]` | high |
 | FE-07 | Verificación e2e | `[ ]` | medium |
