@@ -235,7 +235,7 @@ Cada componente con `cva` (class-variance-authority), accesible (focus visible, 
 - [ ] Datos reales de `/api/v1/auth/me` (no mockeados client-side)
 - [ ] Commit: `feat(FE-05): library + learning profile pages`
 
-## TASK FE-06 · Admin panel (HG superadmin) · `[ ]`
+## TASK FE-06 · Admin panel (HG superadmin) · `[x]` ✅
 
 **6.1 · Route group `(admin)`** con sidebar admin propio. Solo si `user.role === "superadmin"`.
 
@@ -330,7 +330,7 @@ Al terminar reportá:
 | FE-03 | Auth flow | ✅ | high |
 | FE-04 | App shell + home dashboard | ✅ | high |
 | FE-05 | Biblioteca + perfil | ✅ | medium |
-| FE-06 | Admin panel | `[ ]` | high |
+| FE-06 | Admin panel | ✅ | high |
 | FE-07 | Verificación e2e | `[ ]` | medium |
 | FE-08 | Documentación | `[ ]` | low |
 

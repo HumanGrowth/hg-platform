@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Anton, Instrument_Serif, JetBrains_Mono, Manrope } from "next/font/google";
 
+import { Toaster } from "@/components/Toaster";
+
 import "./globals.css";
 
 const anton = Anton({ subsets: ["latin"], weight: "400", variable: "--font-display" });
@@ -37,7 +39,10 @@ export default function RootLayout({
       lang="es"
       className={`${anton.variable} ${manrope.variable} ${serif.variable} ${mono.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }
