@@ -257,7 +257,7 @@ Cada componente con `cva` (class-variance-authority), accesible (focus visible, 
 - [ ] Invitación muestra `invite_url` copiable; abrir en incognito y completar accept-invite funciona
 - [ ] Commit: `feat(FE-06): HG superadmin panel (orgs + invitations)`
 
-## TASK FE-07 · Verificación end-to-end · `[ ]`
+## TASK FE-07 · Verificación end-to-end · `[x]` ✅
 
 1. **Flujo completo manual:**
    - Login como superadmin → crear org "Test Co" con 5 licencias → invitar `test@test.com`
@@ -331,7 +331,7 @@ Al terminar reportá:
 | FE-04 | App shell + home dashboard | ✅ | high |
 | FE-05 | Biblioteca + perfil | ✅ | medium |
 | FE-06 | Admin panel | ✅ | high |
-| FE-07 | Verificación e2e | `[ ]` | medium |
+| FE-07 | Verificación e2e | ✅ | medium |
 | FE-08 | Documentación | `[ ]` | low |
 
 > Estados: `[ ]` pending · `🟧` in progress · `✅` done · `🚫` blocked (con nota)
