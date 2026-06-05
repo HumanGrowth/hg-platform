@@ -134,6 +134,32 @@ def logout(db: Session, *, refresh_token: str) -> None:
         session.revoked_at = _now()
 
 
+def invitation_info(db: Session, *, token: str) -> dict:
+    """Vista read-only de una invitación por token (no la consume)."""
+    invitation = db.execute(
+        select(Invitation).where(Invitation.token_hash == hash_opaque_token(token))
+    ).scalar_one_or_none()
+    if invitation is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="invitation not found")
+
+    org = db.get(Organization, invitation.org_id)
+    if invitation.revoked_at is not None:
+        status_str = "revoked"
+    elif invitation.accepted_at is not None:
+        status_str = "accepted"
+    elif invitation.expires_at <= _now():
+        status_str = "expired"
+    else:
+        status_str = "pending"
+
+    return {
+        "email": invitation.email,
+        "role": invitation.role,
+        "org_name": org.name if org else "",
+        "status": status_str,
+    }
+
+
 def accept_invite(
     db: Session, *, token: str, password: str, full_name: str
 ) -> tuple[User, str, str]:

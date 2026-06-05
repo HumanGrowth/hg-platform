@@ -123,3 +123,13 @@ class InvitationOut(BaseModel):
     accepted_at: datetime | None
     revoked_at: datetime | None
     created_at: datetime
+
+
+class InviteInfoResponse(BaseModel):
+    """Vista pública (read-only) de una invitación por token, para precargar la
+    pantalla de accept-invite. No consume la invitación ni filtra el hash."""
+
+    email: str
+    role: UserRole
+    org_name: str
+    status: str  # pending | accepted | revoked | expired

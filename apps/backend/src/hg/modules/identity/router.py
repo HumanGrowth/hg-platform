@@ -5,7 +5,7 @@ Endpoints públicos: login, refresh, accept-invite (NO existe /register).
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from hg.core.deps import get_current_user, get_db_as_superadmin
@@ -13,6 +13,7 @@ from hg.modules.identity import service
 from hg.modules.identity.models import User
 from hg.modules.identity.schemas import (
     AcceptInviteRequest,
+    InviteInfoResponse,
     LoginRequest,
     LogoutRequest,
     RefreshRequest,
@@ -56,6 +57,14 @@ def logout(
 @router.get("/me", response_model=UserOut)
 def me(user: User = Depends(get_current_user)) -> UserOut:
     return UserOut.model_validate(user)
+
+
+@router.get("/invite-info", response_model=InviteInfoResponse)
+def invite_info(
+    token: str = Query(min_length=1),
+    db: Session = Depends(get_db_as_superadmin),
+) -> InviteInfoResponse:
+    return InviteInfoResponse.model_validate(service.invitation_info(db, token=token))
 
 
 @router.post("/accept-invite", response_model=TokenResponse)
