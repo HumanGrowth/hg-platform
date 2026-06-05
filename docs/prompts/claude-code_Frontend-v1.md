@@ -34,7 +34,7 @@ Si la sesión se compacta (`/compact`) o se reinicia, reanudás así:
 
 ## 📌 Estado al iniciar (actualizar antes del run)
 
-- Último commit firme: `885c18e — feat(FE-01): integrate Human Growth design system tokens` (sobre rama `feat/B1-03-04-identity-rls`)
+- Último commit firme: `3a9d166 — chore(FE-07)`; FE-01..FE-08 cerradas. Rama `feat/B1-03-04-identity-rls`.
 - Backend Capa 1 + RLS productivos (B1-03, B1-04 cerrados).
 - Auth + RBAC + invitaciones (B1-06, B1-07) — endpoints en `/api/v1/auth/*` y `/api/v1/admin/*`. JWT con claims `sub, org_id, role, type`.
 - Frontend hoy es solo la landing placeholder con los 6 pilares en `apps/frontend/src/app/page.tsx`.
@@ -281,7 +281,7 @@ Cada componente con `cva` (class-variance-authority), accesible (focus visible, 
 - [ ] 5+ screenshots en `docs/screenshots/frontend-v1/`
 - [ ] Commit: `chore(FE-07): manual e2e verification + v1 screenshots`
 
-## TASK FE-08 · Documentación · `[ ]`
+## TASK FE-08 · Documentación · `[x]` ✅
 
 1. **ADR-0003 · Adopción del DS beta como direction v1**
    - Path: `docs/adrs/ADR-0003-design-system-beta-as-v1.md`
@@ -332,6 +332,6 @@ Al terminar reportá:
 | FE-05 | Biblioteca + perfil | ✅ | medium |
 | FE-06 | Admin panel | ✅ | high |
 | FE-07 | Verificación e2e | ✅ | medium |
-| FE-08 | Documentación | `[ ]` | low |
+| FE-08 | Documentación | ✅ | low |
 
 > Estados: `[ ]` pending · `🟧` in progress · `✅` done · `🚫` blocked (con nota)

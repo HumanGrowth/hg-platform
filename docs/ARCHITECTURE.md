@@ -160,6 +160,52 @@ sequenceDiagram
 - `B1-06b_enable_rls_on_invitations.py` — RLS sobre `invitations` + grants a
   `hg_superadmin`/`hg_app`.
 
+## Frontend v1 (FE-01 → FE-08)
+
+Next.js 14 (App Router) + TypeScript + Tailwind + el **design system beta**
+adoptado como direction v1 (ver [ADR-0003](adrs/ADR-0003-design-system-beta-as-v1.md)).
+
+### Stack
+
+- Next.js 14 App Router · React 18 · TypeScript estricto.
+- Tailwind con tokens del DS · `next/font` (Anton/Manrope/Instrument Serif/JetBrains Mono).
+- Zustand (auth en memoria) · react-hook-form + zod · axios · Recharts · lucide-react.
+- Tests: Vitest + Testing Library.
+
+### Integración del DS (tokens-based)
+
+- Fuente: `packages/design-system/source/` (copia del beta).
+- Tokens operativos: `apps/frontend/src/app/globals.css` (`:root` + dark) y
+  `apps/frontend/tailwind.config.ts`. Los componentes usan tokens semánticos
+  (`bg`, `fg`, `border`, `orange-*`, pillars), nunca hex hardcodeado.
+- **Swap a DEC-03 final:** editar esos 2 archivos (+ `next/font` si cambian las
+  fuentes, + reemplazar `source/`). No se tocan componentes. Quitar `BetaBanner`.
+
+### Páginas
+
+| Ruta | Grupo | Estado |
+|---|---|---|
+| `/login`, `/accept-invite` | `(auth)` | ✅ |
+| `/home` (dashboard 6 dimensiones) | `(app)` | ✅ |
+| `/library` (filtros; grid vacío v1) | `(app)` | ✅ |
+| `/profile` (radar 6 dims, mock scores) | `(app)` | ✅ |
+| `/admin/orgs`, `/admin/orgs/:id` | `(admin)` | ✅ superadmin |
+| `/_kit` (preview de componentes) | — | ✅ |
+| Assessment, lección, mentorías, comunidades | — | ⏳ pendiente (post DEC-01/05) |
+
+### Auth en el cliente
+
+- Access token en **memoria** (Zustand); refresh token en **cookie httpOnly**
+  gestionada por Next API routes `/api/auth/*` (login, refresh, logout,
+  accept-invite). Interceptor axios auto-refresca una vez en 401.
+- `middleware.ts` gatea `(app)`/`(admin)` por presencia de cookie; `SessionGate`
+  rehidrata el access token (refresh-on-load) y valida; `(admin)` además exige
+  rol `superadmin`.
+
+### Pilares (colores DS)
+
+P1 orange-500 · P2 warm-600 · P3 success · P4 warning · P5 info · P6 orange-800.
+
 ## Decisiones bloqueantes activas
 
 | ID | Decisión | Bloquea |
