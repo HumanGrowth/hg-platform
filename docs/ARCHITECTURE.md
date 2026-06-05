@@ -82,6 +82,84 @@ están en estado **DRAFT** hasta firmar DEC-01/02/05/07.
 - `B1-03_layer1_identity.py` — esquema inicial (enums + tablas).
 - `B1-04_enable_rls_multi_tenancy.py` — roles + RLS + políticas.
 
+## Auth & RBAC (DEV-06/07)
+
+Autenticación JWT (access + refresh) + registro por invitación (sin
+self-service; ver [ADR-0002](adrs/ADR-0002-invitation-based-registration.md)).
+
+### Endpoints
+
+| Método | Ruta | Auth | Rol |
+|---|---|---|---|
+| POST | `/api/v1/auth/login` | pública | — |
+| POST | `/api/v1/auth/refresh` | pública | — |
+| POST | `/api/v1/auth/accept-invite` | pública | — |
+| POST | `/api/v1/auth/logout` | refresh token | — |
+| GET | `/api/v1/auth/me` | Bearer | cualquiera |
+| POST | `/api/v1/admin/orgs` | Bearer | superadmin |
+| GET | `/api/v1/admin/orgs` | Bearer | superadmin |
+| POST | `/api/v1/admin/orgs/{id}/invite` | Bearer | superadmin · admin (su org) |
+| GET | `/api/v1/admin/orgs/{id}/invitations` | Bearer | superadmin · admin (su org) |
+| DELETE | `/api/v1/admin/invitations/{id}` | Bearer | superadmin · admin (su org) |
+
+### Tokens y roles de DB
+
+- **JWT claims:** `sub` (user_id), `org_id`, `role`, `type` (access|refresh),
+  `iat`, `exp`, `jti`. Sin PII adicional.
+- **Refresh tokens** se persisten **hasheados** (SHA-256) en
+  `user_sessions.refresh_token_hash`. Login = nueva session; refresh = rota
+  (revoca la vieja, crea una nueva); logout = `revoked_at`.
+- **Rol de DB por request** (`SET LOCAL ROLE`): autenticado tenant-scoped →
+  `hg_app` (RLS activo) + `app.current_org_id` del JWT; flujos sin sesión /
+  cross-tenant (login, refresh, accept-invite, admin) → `hg_superadmin`
+  (BYPASSRLS) + RBAC + checks de org. Ver
+  [ADR-0001](adrs/ADR-0001-uuid-and-rls.md).
+- **RBAC:** dependency `require_role(*roles)` valida `current_user.role`.
+
+### Flujos
+
+**Login**
+
+```mermaid
+sequenceDiagram
+  Client->>API: POST /auth/login {email, password, org_slug?}
+  API->>DB: (hg_superadmin) buscar user por email (+org_slug)
+  API->>API: verify_password (bcrypt)
+  API->>DB: crear UserSession (refresh hasheado), set last_login_at
+  API-->>Client: {access_token, refresh_token, user}
+```
+
+**Refresh (rotación)**
+
+```mermaid
+sequenceDiagram
+  Client->>API: POST /auth/refresh {refresh_token}
+  API->>API: decode JWT (type=refresh)
+  API->>DB: buscar session por sha256(token); validar no revocada/expirada
+  API->>DB: revocar session vieja + crear session nueva
+  API-->>Client: {access_token, refresh_token (nuevo), user}
+```
+
+**Accept-invite**
+
+```mermaid
+sequenceDiagram
+  Admin->>API: POST /admin/orgs/{id}/invite {email, role}
+  API->>DB: crear Invitation (token hasheado, exp 7d)
+  API-->>Admin: {invite_token (1 sola vez), invite_url, expires_at}
+  Note over Invitee: recibe link (email stub en MVP)
+  Invitee->>API: POST /auth/accept-invite {token, password, full_name}
+  API->>DB: validar invitación (no revocada/usada/expirada) + licencias
+  API->>DB: crear User, licenses_used++, marcar accepted_at
+  API-->>Invitee: {access_token, refresh_token, user}
+```
+
+### Migraciones
+
+- `B1-06_add_invitations_table.py` — tabla `invitations`.
+- `B1-06b_enable_rls_on_invitations.py` — RLS sobre `invitations` + grants a
+  `hg_superadmin`/`hg_app`.
+
 ## Decisiones bloqueantes activas
 
 | ID | Decisión | Bloquea |
