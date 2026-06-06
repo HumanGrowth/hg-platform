@@ -2,18 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===========================================================================
+   Human Growth design tokens (DS beta v1 — pending DEC-03).
+   Fuente: packages/design-system/source/colors_and_type.css
+   Las font-family vars (--font-*) las inyecta next/font en <html> (layout.tsx).
+   =========================================================================== */
 :root {
-  /* Placeholders — definir tokens finales tras DEC-03 (identidad visual) */
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
+  /* COLOR — brand */
+  --orange-50: #fff1e8;
+  --orange-100: #ffd9c2;
+  --orange-200: #ffb48a;
+  --orange-300: #ff8a52;
+  --orange-400: #ff6a26;
+  --orange-500: #ff4500;
+  --orange-600: #e63e00;
+  --orange-700: #b33000;
+  --orange-800: #7a2100;
+  --orange-900: #4a1400;
+
+  /* COLOR — warm neutrals (cream -> ink) */
+  --cream-50: #fffcf6;
+  --cream-100: #fdf5e6;
+  --cream-200: #f8edd4;
+  --cream-300: #f0e0bd;
+  --cream-400: #e2cda0;
+  --warm-300: #b8a799;
+  --warm-400: #8a7765;
+  --warm-500: #6b5949;
+  --warm-600: #5c4a3f;
+  --warm-700: #3d3027;
+  --warm-800: #2a2018;
+  --warm-900: #1a140f;
+
+  /* COLOR — semantic */
+  --success: #1f7a4d;
+  --success-bg: #dff0e5;
+  --warning: #b8741a;
+  --warning-bg: #fbe9cc;
+  --danger: #b83a1a;
+  --danger-bg: #fadad2;
+  --info: #2a5f7a;
+  --info-bg: #dce9ef;
+
+  /* COLOR — semantic tokens (light default) */
+  --bg: var(--cream-100);
+  --bg-raised: var(--cream-50);
+  --bg-sunken: var(--cream-200);
+  --bg-inverse: var(--warm-900);
+  --fg: var(--warm-900);
+  --fg-muted: var(--warm-600);
+  --fg-subtle: var(--warm-400);
+  --fg-inverse: var(--cream-100);
+  --border: rgba(26, 20, 15, 0.12);
+  --border-strong: rgba(26, 20, 15, 0.24);
+  --border-focus: var(--orange-500);
+  --accent: var(--orange-500);
+  --accent-fg: #ffffff;
+  --accent-hover: var(--orange-600);
+  --accent-press: var(--orange-700);
+
+  /* MOTION */
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-state: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+
+  /* LAYOUT */
+  --container-app: 1440px;
+  --nav-height: 64px;
 }
 
-html,
-body {
-  height: 100%;
+[data-theme="dark"] {
+  --bg: #13100d;
+  --bg-raised: #1f1a14;
+  --bg-sunken: #0c0a08;
+  --bg-inverse: var(--cream-100);
+  --fg: #f5ebd6;
+  --fg-muted: #b8a799;
+  --fg-subtle: #8a7765;
+  --fg-inverse: var(--warm-900);
+  --border: rgba(245, 235, 214, 0.1);
+  --border-strong: rgba(245, 235, 214, 0.22);
+  --accent-fg: #1a140f;
 }
 
-body {
-  @apply bg-white text-slate-900 antialiased;
-  font-family: var(--font-inter), system-ui, sans-serif;
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body), system-ui, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--orange-200);
+    color: var(--warm-900);
+  }
 }

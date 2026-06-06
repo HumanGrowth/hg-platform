@@ -1,9 +1,27 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Anton, Instrument_Serif, JetBrains_Mono, Manrope } from "next/font/google";
+
+import { Toaster } from "@/components/Toaster";
 
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const anton = Anton({ subsets: ["latin"], weight: "400", variable: "--font-display" });
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
+});
+const serif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-serif",
+});
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
   title: "Human Growth",
@@ -17,8 +35,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={inter.variable}>
-      <body>{children}</body>
+    <html
+      lang="es"
+      className={`${anton.variable} ${manrope.variable} ${serif.variable} ${mono.variable}`}
+    >
+      <body>
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

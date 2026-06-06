@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Human Growth — Social Kit</title>
+  <link rel="stylesheet" href="colors_and_type.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; height: 100%; background: #2A2018; }
+
+    /* ---------- Faceted ring (reusable motif) ---------- */
+    .ring {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      display: inline-block;
+    }
+    .ring svg { width: 100%; height: 100%; display: block; }
+
+    /* ---------- Quote typography (the social-kit hero treatment) ---------- */
+    .quote-serif {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-weight: 400;
+      letter-spacing: -0.015em;
+      text-wrap: balance;
+      margin: 0;
+    }
+    .quote-serif .mark {
+      font-style: italic;
+      font-family: var(--font-serif);
+      display: inline-block;
+      transform: translateY(0.15em);
+      line-height: 0;
+      color: var(--orange-500);
+    }
+    .quote-display {
+      font-family: var(--font-display);
+      text-transform: uppercase;
+      letter-spacing: -0.015em;
+      line-height: 0.94;
+      margin: 0;
+      text-wrap: balance;
+    }
+
+    .meta {
+      font-family: var(--font-body);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 14px;
+    }
+
+    /* ---------- Wordmark (typed, not from SVG so it crisps at any size) ---------- */
+    .wordmark {
+      font-family: var(--font-display);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    /* ---------- Shared artboard surface base ---------- */
+    .art {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    /* ---------- Paper-grain texture (subtle, applied to "editorial" surfaces) ---------- */
+    .grain::after {
+      content: "";
+      position: absolute; inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(rgba(26,20,15,0.045) 1px, transparent 1px),
+        radial-gradient(rgba(26,20,15,0.035) 1px, transparent 1px);
+      background-size: 3px 3px, 7px 7px;
+      background-position: 0 0, 1px 2px;
+      mix-blend-mode: multiply;
+      opacity: 0.7;
+    }
+    .grain-light::after { background-image:
+        radial-gradient(rgba(245,235,214,0.06) 1px, transparent 1px),
+        radial-gradient(rgba(245,235,214,0.04) 1px, transparent 1px); mix-blend-mode: screen; }
+
+    /* Quote opening mark (giant serif open-quote, sits behind the text) */
+    .openquote {
+      font-family: var(--font-serif);
+      font-style: italic;
+      line-height: 0.8;
+      color: var(--orange-500);
+      position: absolute;
+      user-select: none;
+    }
+
+    /* faceted divider (horizontal row of triangles) */
+    .divider {
+      display: flex;
+      gap: 0;
+      align-items: flex-end;
+      height: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       Reusable faceted-ring SVG (defs only — referenced by use)
+       ============================================================ -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <!-- 36-segment faceted ring, drawn at unit radius 100 -->
+      <g id="hgRing">
+        <g transform="translate(100,100)">
+          <!-- 36 triangles arranged radially -->
+          <g id="hgRingTris"></g>
+        </g>
+      </g>
+    </defs>
+  </svg>
+  <script>
+    // Build the ring once into <defs> so artboards can <use> it.
+    (function buildRing() {
+      const NS = 'http://www.w3.org/2000/svg';
+      const host = document.getElementById('hgRingTris');
+      host.setAttribute('fill', 'currentColor');
+      const N = 36;
+      for (let i = 0; i < N; i++) {
+        const tri = document.createElementNS(NS, 'polygon');
+        // unit ring: outer 92, inner tip 70, half-width at base 4.5
+        tri.setAttribute('points', '0,-92 5,-70 -5,-70');
+        tri.setAttribute('transform', `rotate(${(360 / N) * i})`);
+        tri.setAttribute('fill', 'currentColor');
+        host.appendChild(tri);
+      }
+    })();
+  </script>
+
+  <!-- ============================================================
+       The Design Canvas itself
+       ============================================================ -->
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="social-kit-artboards.jsx"></script>
+  <script type="text/babel">
+    const { useState } = React;
+    const { DesignCanvas, DCSection, DCArtboard } = window;
+    const A = window.SocialArtboards;
+
+    function App() {
+      return (
+        <DesignCanvas
+          title="Human Growth — Social Kit"
+          subtitle="Drag · scroll to zoom · double-click any artboard for full-screen"
+          background="#2A2018"
+        >
+          <DCSection id="banners" title="LinkedIn / X banners" subtitle="1584 × 396 — LinkedIn cover safe area in mind">
+            <DCArtboard id="li-dark"    label="LinkedIn banner — Coffee"  width={1584} height={396}><A.LinkedInDark /></DCArtboard>
+            <DCArtboard id="li-cream"   label="LinkedIn banner — Cream"   width={1584} height={396}><A.LinkedInCream /></DCArtboard>
+            <DCArtboard id="li-orange"  label="LinkedIn banner — Orange"  width={1584} height={396}><A.LinkedInOrange /></DCArtboard>
+            <DCArtboard id="x-header"   label="X / Twitter header"        width={1500} height={500}><A.XHeader /></DCArtboard>
+          </DCSection>
+
+          <DCSection id="posts" title="Feed posts" subtitle="1080 × 1080 — Instagram / LinkedIn / Facebook square">
+            <DCArtboard id="sq-serif"   label="Square — Serif quote"      width={1080} height={1080}><A.SquareSerif /></DCArtboard>
+            <DCArtboard id="sq-display" label="Square — Anton display"    width={1080} height={1080}><A.SquareDisplay /></DCArtboard>
+            <DCArtboard id="sq-dark"    label="Square — Coffee"           width={1080} height={1080}><A.SquareDark /></DCArtboard>
+          </DCSection>
+
+          <DCSection id="stories" title="Stories / Reels" subtitle="1080 × 1920 — Instagram / TikTok vertical">
+            <DCArtboard id="st-serif"   label="Story — Serif"             width={1080} height={1920}><A.StorySerif /></DCArtboard>
+            <DCArtboard id="st-poster"  label="Story — Poster"            width={1080} height={1920}><A.StoryPoster /></DCArtboard>
+          </DCSection>
+
+          <DCSection id="avatars" title="Profile avatars" subtitle="400 × 400 — squares; round mask applied by host">
+            <DCArtboard id="av-orange"  label="Avatar — Orange ring"      width={400} height={400}><A.AvatarOrange /></DCArtboard>
+            <DCArtboard id="av-ink"     label="Avatar — Ink ring"         width={400} height={400}><A.AvatarInk /></DCArtboard>
+            <DCArtboard id="av-mono"    label="Avatar — Monogram"         width={400} height={400}><A.AvatarMono /></DCArtboard>
+          </DCSection>
+        </DesignCanvas>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

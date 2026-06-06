@@ -1,0 +1,221 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); }
+  .card { padding: 24px; width: 100%; box-sizing: border-box; }
+
+  /* Faceted ring = real Human Growth logo, cropped to ring only */
+  .hg-ring {
+    width: 156px; height: 124px;
+    overflow: hidden; position: relative;
+    margin: 0 auto;
+  }
+  .hg-ring img {
+    width: 156px; height: auto; display: block;
+    margin-top: -2px;
+  }
+  .hg-ring.progress img { filter: saturate(0.55) brightness(1.08); }
+  .hg-ring.locked   img { filter: grayscale(0.95) brightness(1.05) opacity(0.55); }
+
+  /* Award ribbon — cream banner, ink title, thin trim lines, chevron-cut tails */
+  .ribbon {
+    position: absolute;
+    left: 50%; top: 54%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    width: 178px;
+    height: 36px;
+    filter: drop-shadow(0 3px 4px rgba(26,20,15,0.16));
+  }
+  .ribbon .body {
+    position: absolute; inset: 0;
+    background: var(--cream-50);
+    color: var(--warm-900);
+    clip-path: polygon(
+      0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%,
+      0 100%, 14px 50%
+    );
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    padding: 0 14px;
+  }
+  /* Trim lines on the ribbon (top + bottom) */
+  .ribbon .trim {
+    position: absolute; left: 0; right: 0;
+    height: 2px;
+    background: var(--orange-500);
+    clip-path: polygon(
+      0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%,
+      0 100%, 14px 50%
+    );
+  }
+  .ribbon .trim.top    { top: 4px; }
+  .ribbon .trim.bottom { bottom: 4px; }
+
+  /* State variants — trim + text color only; body stays cream */
+  .ribbon.earned   .body { color: var(--warm-900); }
+  .ribbon.earned   .trim { background: var(--orange-500); }
+
+  .ribbon.progress .body { color: var(--warm-800); }
+  .ribbon.progress .trim { background: var(--warm-500); }
+
+  .ribbon.locked   .body { color: var(--warm-500); background: var(--cream-100); }
+  .ribbon.locked   .trim { background: var(--warm-400); opacity: 0.6; }
+
+  .badge-tile {
+    background: var(--cream-50);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+  }
+  .badge-tile.locked { opacity: 0.66; }
+  .ring-wrap {
+    position: relative;
+    height: 124px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .skill-chip {
+    font-size: 11px; font-weight: 600;
+    padding: 3px 8px; border-radius: 4px;
+    background: var(--cream-200); color: var(--warm-700);
+    white-space: nowrap;
+  }
+  .lvl-pip { display: inline-block; width: 6px; height: 6px; border-radius: 9999px; margin-right: 3px; }
+
+  .tile-eyebrow {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--fg-muted);
+  }
+  .status-pill {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    padding: 3px 8px; border-radius: 4px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch">
+
+    <!-- EARNED -->
+    <div class="badge-tile">
+      <div class="tile-eyebrow">
+        <span>Writing &nbsp;·&nbsp; <span style="color:var(--warm-900)"><span class="lvl-pip" style="background:var(--orange-500)"></span><span class="lvl-pip" style="background:var(--orange-500)"></span><span class="lvl-pip" style="background:var(--cream-300)"></span> LVL 2 / 3</span></span>
+        <span class="status-pill" style="background:var(--orange-500);color:#fff">Earned</span>
+      </div>
+
+      <div class="ring-wrap">
+        <div class="hg-ring earned"><img src="../assets/logo-color.svg" alt=""></div>
+        <div class="ribbon earned">
+          <div class="trim top"></div>
+          <div class="body">PR Briefs</div>
+          <div class="trim bottom"></div>
+        </div>
+      </div>
+
+      <p style="font-size:13px;line-height:1.45;color:var(--warm-700);margin:0;text-align:center">
+        Crisp, reviewer-first writing — briefs reviewers actually read.
+      </p>
+
+      <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
+        <span class="skill-chip">Framing</span>
+        <span class="skill-chip">PR structure</span>
+        <span class="skill-chip">Concision</span>
+      </div>
+
+      <div style="margin-top:auto;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-size:11px;color:var(--fg-muted);font-family:var(--font-mono);white-space:nowrap">14 MAR 2026</span>
+        <span style="font-size:12px;font-weight:600;color:var(--orange-700);border-bottom:1px solid var(--orange-700);padding-bottom:1px">Share →</span>
+      </div>
+    </div>
+
+    <!-- IN PROGRESS -->
+    <div class="badge-tile">
+      <div class="tile-eyebrow">
+        <span>Product &nbsp;·&nbsp; <span style="color:var(--warm-900)"><span class="lvl-pip" style="background:var(--orange-300)"></span><span class="lvl-pip" style="background:var(--cream-300)"></span><span class="lvl-pip" style="background:var(--cream-300)"></span> Pursuing LVL 1</span></span>
+        <span class="status-pill" style="background:var(--orange-200);color:var(--orange-700)">42%</span>
+      </div>
+
+      <div class="ring-wrap">
+        <div class="hg-ring progress"><img src="../assets/logo-color.svg" alt=""></div>
+        <div class="ribbon progress">
+          <div class="trim top"></div>
+          <div class="body">Hiring Rubrics</div>
+          <div class="trim bottom"></div>
+        </div>
+      </div>
+
+      <p style="font-size:13px;line-height:1.45;color:var(--warm-700);margin:0;text-align:center">
+        Calibration that survives the third interview.
+      </p>
+
+      <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
+        <span class="skill-chip">Signals</span>
+        <span class="skill-chip" style="background:var(--orange-200);color:var(--orange-700)">Reframing (now)</span>
+        <span class="skill-chip" style="opacity:0.55">+ 2 more</span>
+      </div>
+
+      <div style="margin-top:auto;padding-top:8px;border-top:1px solid var(--border)">
+        <div style="height:4px;background:var(--cream-200);border-radius:2px;overflow:hidden">
+          <div style="width:42%;height:100%;background:var(--orange-500)"></div>
+        </div>
+        <div style="margin-top:6px;display:flex;justify-content:space-between;font-size:11px;color:var(--fg-muted)">
+          <span style="font-family:var(--font-mono)">3 of 7 lessons</span>
+          <span>Next: <strong style="color:var(--warm-900);font-weight:600">Re-scoping</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOCKED -->
+    <div class="badge-tile locked">
+      <div class="tile-eyebrow">
+        <span>Design &nbsp;·&nbsp; <span style="color:var(--warm-900)"><span class="lvl-pip" style="background:var(--cream-300)"></span><span class="lvl-pip" style="background:var(--cream-300)"></span><span class="lvl-pip" style="background:var(--cream-300)"></span> 3 levels available</span></span>
+        <span class="status-pill" style="background:var(--cream-300);color:var(--warm-600)">Locked</span>
+      </div>
+
+      <div class="ring-wrap">
+        <div class="hg-ring locked"><img src="../assets/logo-black.svg" alt=""></div>
+        <div class="ribbon locked">
+          <div class="trim top"></div>
+          <div class="body">Design Crit</div>
+          <div class="trim bottom"></div>
+        </div>
+      </div>
+
+      <p style="font-size:13px;line-height:1.45;color:var(--warm-700);margin:0;text-align:center">
+        Visual systems, interaction patterns, design crit.
+      </p>
+
+      <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
+        <span class="skill-chip">Type scales</span>
+        <span class="skill-chip">Crit</span>
+        <span class="skill-chip">+ 4 more</span>
+      </div>
+
+      <div style="margin-top:auto;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--fg-muted);display:flex;align-items:center;gap:6px">
+        <span style="display:inline-block;width:10px;height:11px;border-radius:2px;border:1.5px solid var(--warm-400);position:relative;flex:none">
+          <span style="position:absolute;left:1px;top:-4px;width:4px;height:5px;border:1.5px solid var(--warm-400);border-bottom:0;border-radius:3px 3px 0 0"></span>
+        </span>
+        <span>Earn <strong style="color:var(--warm-900);font-weight:600">Product LVL 1</strong> to unlock</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="eyebrow" style="margin-top:18px">BADGES &nbsp;·&nbsp; HUMAN GROWTH RING + RIBBON TITLE &nbsp;·&nbsp; CATEGORY · LEVEL · SKILLS · CRITERIA</div>
+
+</div>
+</body></html>

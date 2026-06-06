@@ -1,22 +1,30 @@
 # syntax=docker/dockerfile:1.7
 # ─── Etapa 1: deps ─────────────────────────────────────────────────
-FROM node:20-alpine AS deps
-RUN corepack enable
+FROM node:22-alpine AS deps
+RUN npm install -g pnpm@9 --prefer-online
 WORKDIR /app
-COPY package.json ./
-RUN pnpm install --no-frozen-lockfile
+# Copy manifests and lockfile before source for layer caching
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/frontend/package.json ./apps/frontend/
+COPY packages/shared-types/package.json ./packages/shared-types/
+RUN pnpm install --frozen-lockfile --filter @hg/frontend...
 
 # ─── Etapa 2: builder ──────────────────────────────────────────────
-FROM node:20-alpine AS builder
-RUN corepack enable
+FROM node:22-alpine AS builder
+RUN npm install -g pnpm@9 --prefer-online
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY --from=deps /app/apps/frontend/node_modules ./apps/frontend/node_modules
+# El lockfile debe estar en /app para que Next detecte el workspace root acá y
+# genere el standalone en apps/frontend/ (si falta, server.js queda en la raíz).
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY apps/frontend ./apps/frontend
+COPY packages ./packages
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN pnpm build
+RUN pnpm --filter @hg/frontend build
 
 # ─── Etapa 3: runtime ──────────────────────────────────────────────
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
@@ -25,14 +33,16 @@ ENV NODE_ENV=production \
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/apps/frontend/public ./apps/frontend/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/static ./apps/frontend/.next/static
 
 USER nextjs
 EXPOSE 3000
 
+# 127.0.0.1 (no localhost): Next bindea IPv4 0.0.0.0; localhost resuelve a [::1]
+# y el healthcheck fallaría. /login devuelve 200 directo (evita el 307 de /).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/login || exit 1
 
-CMD ["node", "server.js"]
+CMD ["node", "apps/frontend/server.js"]

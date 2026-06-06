@@ -73,10 +73,23 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "C4", "SIM", "RUF"]
-ignore = ["E501"]
+# UP042: usamos deliberadamente `class X(str, enum.Enum)` (no StrEnum) por
+# compatibilidad/consistencia con los Enum de SQLAlchemy en todo el dominio.
+ignore = ["E501", "UP042"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]
+
+[tool.ruff.lint.flake8-bugbear]
+# Llamadas idiomáticas de FastAPI en defaults de argumentos (patrón obligatorio
+# del framework) — no son el antipatrón que B008 busca.
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Header",
+    "hg.core.deps.require_role",
+    "hg.core.auth_middleware.require_role",
+]
 
 # ─── Pytest ───
 [tool.pytest.ini_options]

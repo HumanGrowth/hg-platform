@@ -1,0 +1,304 @@
+/* ===========================================================================
+   HUMAN GROWTH — Design Tokens + Semantic Styles
+   ---------------------------------------------------------------------------
+   Importing this file:
+     <link rel="stylesheet" href="colors_and_type.css">
+     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+   =========================================================================== */
+
+:root {
+  /* -------------------------------------------------------------------------
+     COLOR — brand
+     ------------------------------------------------------------------------- */
+  --orange-50:  #FFF1E8;
+  --orange-100: #FFD9C2;
+  --orange-200: #FFB48A;
+  --orange-300: #FF8A52;
+  --orange-400: #FF6A26;
+  --orange-500: #FF4500;  /* Brand primary — straight from logo */
+  --orange-600: #E63E00;  /* Hover */
+  --orange-700: #B33000;  /* Press / earned-badge text */
+  --orange-800: #7A2100;  /* Deep accent */
+  --orange-900: #4A1400;
+
+  /* -------------------------------------------------------------------------
+     COLOR — warm neutrals (cream → ink). NO cool grays anywhere.
+     ------------------------------------------------------------------------- */
+  --cream-50:   #FFFCF6;  /* lifted surface */
+  --cream-100:  #FDF5E6;  /* DEFAULT canvas — logo background */
+  --cream-200:  #F8EDD4;
+  --cream-300:  #F0E0BD;
+  --cream-400:  #E2CDA0;
+
+  --warm-300:   #B8A799;
+  --warm-400:   #8A7765;
+  --warm-500:   #6B5949;
+  --warm-600:   #5C4A3F;
+  --warm-700:   #3D3027;
+  --warm-800:   #2A2018;
+  --warm-900:   #1A140F;  /* INK — warm near-black */
+
+  /* -------------------------------------------------------------------------
+     COLOR — semantic
+     ------------------------------------------------------------------------- */
+  --success:    #1F7A4D;   /* warm forest */
+  --success-bg: #DFF0E5;
+  --warning:    #B8741A;   /* amber that lives next to orange without clashing */
+  --warning-bg: #FBE9CC;
+  --danger:     #B83A1A;   /* terracotta */
+  --danger-bg:  #FADAD2;
+  --info:       #2A5F7A;   /* warm teal-ink */
+  --info-bg:    #DCE9EF;
+
+  /* -------------------------------------------------------------------------
+     COLOR — semantic tokens (light theme default)
+     ------------------------------------------------------------------------- */
+  --bg:         var(--cream-100);
+  --bg-raised: var(--cream-50);
+  --bg-sunken: var(--cream-200);
+  --bg-inverse: var(--warm-900);
+
+  --fg:         var(--warm-900);   /* Ink */
+  --fg-muted:   var(--warm-600);
+  --fg-subtle:  var(--warm-400);
+  --fg-inverse: var(--cream-100);
+
+  --border:        rgba(26, 20, 15, 0.12);
+  --border-strong: rgba(26, 20, 15, 0.24);
+  --border-focus:  var(--orange-500);
+
+  --accent:    var(--orange-500);
+  --accent-fg: #FFFFFF;
+  --accent-hover: var(--orange-600);
+  --accent-press: var(--orange-700);
+
+  /* -------------------------------------------------------------------------
+     TYPOGRAPHY
+     ------------------------------------------------------------------------- */
+  --font-display: 'Anton', 'Bebas Neue', 'Impact', sans-serif;
+  --font-body:    'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif:   'Instrument Serif', 'Source Serif 4', Georgia, serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* Type scale */
+  --text-micro: 0.75rem;   /* 12 */
+  --text-xs:    0.8125rem; /* 13 */
+  --text-sm:    0.875rem;  /* 14 */
+  --text-base:  1rem;      /* 16 */
+  --text-md:    1.125rem;  /* 18 */
+  --text-lg:    1.25rem;   /* 20 */
+  --text-xl:    1.5rem;    /* 24 */
+  --text-2xl:   1.75rem;   /* 28 */
+  --text-3xl:   2.25rem;   /* 36 */
+  --text-4xl:   3rem;      /* 48 */
+  --text-5xl:   4rem;      /* 64 */
+  --text-6xl:   5.5rem;    /* 88 — hero display */
+
+  --leading-tight: 0.95;
+  --leading-snug:  1.15;
+  --leading-base:  1.55;
+  --leading-loose: 1.75;
+
+  --tracking-tight:  -0.02em;
+  --tracking-normal: 0;
+  --tracking-meta:   0.08em;   /* uppercase metadata */
+  --tracking-wide:   0.16em;
+
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semi:    600;
+  --weight-bold:    700;
+
+  /* -------------------------------------------------------------------------
+     SPACING (4px base unit)
+     ------------------------------------------------------------------------- */
+  --space-0:  0;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* -------------------------------------------------------------------------
+     RADII — sharp by default
+     ------------------------------------------------------------------------- */
+  --radius-none: 0;
+  --radius-sm:   4px;
+  --radius-md:   8px;    /* buttons / inputs / chips */
+  --radius-lg:   12px;   /* cards / panels */
+  --radius-xl:   16px;   /* sheets / modals */
+  --radius-2xl:  24px;
+  --radius-full: 9999px; /* avatars only */
+
+  /* -------------------------------------------------------------------------
+     SHADOWS — warm-ink tinted, restrained
+     ------------------------------------------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(26, 20, 15, 0.06);
+  --shadow-md: 0 6px 16px -4px rgba(26, 20, 15, 0.08), 0 2px 4px rgba(26, 20, 15, 0.04);
+  --shadow-lg: 0 24px 48px -12px rgba(26, 20, 15, 0.18);
+  --shadow-focus: 0 0 0 3px rgba(255, 69, 0, 0.32);
+
+  /* -------------------------------------------------------------------------
+     MOTION
+     ------------------------------------------------------------------------- */
+  --ease-out:   cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-state: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast:   120ms;
+  --dur-base:   200ms;
+  --dur-slow:   320ms;
+  --dur-page:   600ms;
+
+  /* -------------------------------------------------------------------------
+     LAYOUT
+     ------------------------------------------------------------------------- */
+  --container-marketing: 1280px;
+  --container-app:       1440px;
+  --container-prose:     720px;
+  --nav-height:          64px;
+}
+
+/* ============================================================================
+   DARK THEME — apply by adding `data-theme="dark"` on <html> or any container
+   ============================================================================ */
+[data-theme="dark"] {
+  --bg:         #13100D;
+  --bg-raised:  #1F1A14;
+  --bg-sunken:  #0C0A08;
+  --bg-inverse: var(--cream-100);
+
+  --fg:         #F5EBD6;
+  --fg-muted:   #B8A799;
+  --fg-subtle:  #8A7765;
+  --fg-inverse: var(--warm-900);
+
+  --border:        rgba(245, 235, 214, 0.10);
+  --border-strong: rgba(245, 235, 214, 0.22);
+
+  --accent-fg: #1A140F;
+}
+
+/* ============================================================================
+   BASE — element-level defaults
+   ============================================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: var(--orange-200); color: var(--warm-900); }
+
+/* ============================================================================
+   SEMANTIC TYPE — H1 → small, p, code, label, eyebrow, etc.
+   ============================================================================ */
+
+/* Display — heavy condensed, ALL CAPS */
+.display, .display-1, .display-2, .display-3 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-regular); /* Anton is single-weight, heavy */
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  color: var(--fg);
+  margin: 0;
+}
+.display-1 { font-size: var(--text-6xl); }  /* 88 — hero */
+.display-2 { font-size: var(--text-5xl); }  /* 64 — page hero */
+.display-3 { font-size: var(--text-4xl); }  /* 48 — section starter */
+
+/* H1–H4 — body family, sentence case */
+h1, .h1, h2, .h2, h3, .h3, h4, .h4 {
+  font-family: var(--font-body);
+  color: var(--fg);
+  margin: 0;
+  text-wrap: pretty;
+}
+h1, .h1 { font-size: var(--text-3xl); font-weight: var(--weight-bold);  line-height: var(--leading-snug);  letter-spacing: var(--tracking-tight); }
+h2, .h2 { font-size: var(--text-2xl); font-weight: var(--weight-bold);  line-height: var(--leading-snug);  letter-spacing: var(--tracking-tight); }
+h3, .h3 { font-size: var(--text-xl);  font-weight: var(--weight-semi);  line-height: var(--leading-snug); }
+h4, .h4 { font-size: var(--text-md);  font-weight: var(--weight-semi);  line-height: var(--leading-snug); }
+
+/* Body */
+p, .body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-base);
+  color: var(--fg);
+  margin: 0;
+  text-wrap: pretty;
+}
+.body-lg { font-size: var(--text-md);  line-height: var(--leading-base); }
+.body-sm { font-size: var(--text-sm);  line-height: var(--leading-base); color: var(--fg-muted); }
+.body-xs { font-size: var(--text-xs);  line-height: var(--leading-snug); color: var(--fg-muted); }
+
+/* Editorial serif accent */
+.serif, .editorial {
+  font-family: var(--font-serif);
+  font-weight: var(--weight-regular);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.serif-italic { font-family: var(--font-serif); font-style: italic; }
+
+/* Uppercase metadata / eyebrow / chip text */
+.eyebrow, .meta, .overline {
+  font-family: var(--font-body);
+  font-size: var(--text-micro);
+  font-weight: var(--weight-semi);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-meta);
+  color: var(--fg-muted);
+}
+.eyebrow.eyebrow-accent { color: var(--accent); }
+
+/* Code */
+code, kbd, .mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  background: var(--bg-sunken);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  color: var(--fg);
+}
+
+/* Links — never orange in body copy */
+a { color: var(--fg); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color var(--dur-fast) var(--ease-state); }
+a:hover { border-bottom-color: currentColor; }
+a.accent { color: var(--accent); }
+
+/* Horizontal rule — faceted accent (not just a line) */
+hr.facets {
+  border: 0;
+  height: 8px;
+  background-image:
+    linear-gradient(45deg, var(--orange-500) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--orange-500) 25%, transparent 25%);
+  background-size: 12px 8px;
+  background-position: 0 0, 0 0;
+  margin: var(--space-12) 0;
+}
+
+/* Numeric — Anton, ink */
+.numeric, .stat {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+}

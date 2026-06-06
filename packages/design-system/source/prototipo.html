@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Human Growth — Prototipo de producto</title>
+  <link rel="stylesheet" href="colors_and_type.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; height: 100%; }
+    #root { height: 100vh; }
+    *::-webkit-scrollbar { width: 10px; height: 10px; }
+    *::-webkit-scrollbar-thumb { background: var(--warm-300); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+    *::-webkit-scrollbar-track { background: transparent; }
+  </style>
+</head>
+<body data-screen-label="Human Growth — Prototipo">
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <!-- charts + controls (provide RadarChart, AreaChart, Sparkline, RingMark, Eyebrow, Segmented…) -->
+  <script type="text/babel" src="dashboard-charts.jsx"></script>
+  <script type="text/babel" src="dashboard-controls.jsx"></script>
+
+  <!-- product modules -->
+  <script type="text/babel" src="hg-icons.jsx"></script>
+  <script type="text/babel" src="hg-data.jsx"></script>
+  <script type="text/babel" src="hg-shared.jsx"></script>
+  <script type="text/babel" src="hg-landing.jsx"></script>
+  <script type="text/babel" src="hg-appshell.jsx"></script>
+  <script type="text/babel" src="hg-catalog.jsx"></script>
+  <script type="text/babel" src="hg-assessment.jsx"></script>
+  <script type="text/babel" src="hg-profile.jsx"></script>
+  <script type="text/babel" src="hg-leader.jsx"></script>
+  <script type="text/babel" src="hg-app.jsx"></script>
+</body>
+</html>
