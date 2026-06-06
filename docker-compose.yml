@@ -72,6 +72,14 @@ services:
       CELERY_BROKER_URL: redis://redis:6379/1
       CELERY_RESULT_BACKEND: redis://redis:6379/2
     command: ["celery", "-A", "hg.celery_app", "worker", "--loglevel=info", "--concurrency=2"]
+    # Healthcheck propio de celery (el worker no sirve HTTP, así que el del
+    # backend heredado no aplica).
+    healthcheck:
+      test: ["CMD", "celery", "-A", "hg.celery_app", "inspect", "ping", "-t", "5"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     depends_on:
       backend:
         condition: service_started
@@ -80,12 +88,13 @@ services:
 
   frontend:
     build:
-      context: ./apps/frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/frontend/Dockerfile
     container_name: hg-frontend
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000   # desde el browser
+      API_BASE_URL_INTERNAL: http://backend:8000         # desde las Next API routes (red docker)
       AUTH_URL: http://localhost:3000
       AUTH_SECRET: ${AUTH_SECRET:-change_me}
     ports:
