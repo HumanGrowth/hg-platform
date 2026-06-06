@@ -1,0 +1,25 @@
+# Dependency stores
+node_modules
+apps/frontend/node_modules
+apps/backend/.venv
+
+# Build outputs
+apps/frontend/.next
+apps/frontend/out
+
+# Dev tooling artifacts
+.turbo
+**/.DS_Store
+**/__pycache__
+**/*.pyc
+
+# Secrets and local config
+.env
+.env.*
+*.local
+
+# Repo metadata
+.git
+README.md
+docs
+infra

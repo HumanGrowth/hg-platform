@@ -1,3 +1,15 @@
 packages:
   - "apps/frontend"
   - "packages/*"
+
+allowBuilds:
+  core-js: true
+  esbuild: true
+  protobufjs: true
+  unrs-resolver: true
+
+onlyBuiltDependencies:
+  - core-js
+  - esbuild
+  - protobufjs
+  - unrs-resolver
