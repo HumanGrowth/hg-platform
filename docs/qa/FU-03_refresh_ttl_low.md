@@ -53,6 +53,17 @@ Screenshot revoked: `docs/screenshots/frontend-v1/08-revoked-redirect-login.png`
 
 ## Issues abiertos (no se resuelven en FU-03)
 
+### ✅ ISSUE-1 — RESUELTO (fix/ISSUE-1-session-expired-toast)
+
+**Resuelto.** El interceptor de `lib/api.ts`, ante refresh fallido, ahora hace
+`clear()` + toast "Sesión expirada — iniciá sesión otra vez." + redirect duro a
+`/login?reason=expired` (full reload limpia Zustand). La página de login relee
+`?reason=expired` y re-muestra el toast tras el reload. Cubierto por un test en
+`api.test.ts` (clear + redirect) y verificado en browser (screenshot
+`docs/screenshots/frontend-v1/10-issue1-session-expired.png`).
+
+<details><summary>Descripción original del issue</summary>
+
 ### ISSUE-1 — La SPA no redirige a `/login` ni togglea toast cuando el refresh falla mid-sesión
 - **Dónde:** `apps/frontend/src/lib/api.ts`, interceptor de respuesta de `backend`.
   En el `catch` del refresh fallido sólo hace `useAuthStore.getState().clear()`.
@@ -65,6 +76,8 @@ Screenshot revoked: `docs/screenshots/frontend-v1/08-revoked-redirect-login.png`
   push desde un punto con acceso al router). Cubre revoked + backend-down con un toast
   consistente.
 - **Severidad:** media (UX; no hay fuga de datos — la sesión efectivamente termina).
+
+</details>
 
 ## Conclusión
 

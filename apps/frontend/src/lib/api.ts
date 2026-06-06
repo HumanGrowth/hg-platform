@@ -1,6 +1,7 @@
 import axios, { type AxiosInstance } from "axios";
 
 import { useAuthStore } from "@/lib/auth-store";
+import { toast } from "@/lib/toast-store";
 import type { AdminUser, AuthResult, InviteInfo, Me, Org, PaginatedUsers } from "@/lib/types";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
@@ -63,7 +64,16 @@ backend.interceptors.response.use(
         original.headers = { ...original.headers, Authorization: `Bearer ${session.accessToken}` };
         return backend(original);
       } catch {
+        // Refresh falló (token revocado/expirado o backend caído): terminar la
+        // sesión con feedback y un redirect duro a /login (full reload limpia
+        // el estado en memoria de Zustand). Cierra ISSUE-1 (ver FU-03).
         useAuthStore.getState().clear();
+        // Toast best-effort en la página actual + redirect duro con ?reason para
+        // que /login lo vuelva a mostrar tras el full reload (que limpia Zustand).
+        toast("Sesión expirada — iniciá sesión otra vez.", "danger");
+        if (typeof window !== "undefined") {
+          window.location.href = "/login?reason=expired";
+        }
       }
     }
     return Promise.reject(error);
