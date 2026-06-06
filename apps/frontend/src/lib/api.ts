@@ -1,7 +1,7 @@
 import axios, { type AxiosInstance } from "axios";
 
 import { useAuthStore } from "@/lib/auth-store";
-import type { AuthResult, InviteInfo, Me, Org } from "@/lib/types";
+import type { AdminUser, AuthResult, InviteInfo, Me, Org, PaginatedUsers } from "@/lib/types";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
@@ -112,4 +112,20 @@ export const apiListInvites = async (orgId: string, status?: string) => {
 
 export const apiRevokeInvite = async (invitationId: string): Promise<void> => {
   await backend.delete(`/api/v1/admin/invitations/${invitationId}`);
+};
+
+export const apiListOrgUsers = async (
+  orgId: string,
+  params?: { status?: string; role?: string; page?: number; page_size?: number },
+): Promise<PaginatedUsers> => {
+  const res = await backend.get(`/api/v1/admin/orgs/${orgId}/users`, { params });
+  return res.data as PaginatedUsers;
+};
+
+export const apiUpdateUser = async (
+  userId: string,
+  payload: Partial<Pick<AdminUser, "is_active" | "role" | "manager_id" | "career_level">>,
+): Promise<AdminUser> => {
+  const res = await backend.patch(`/api/v1/admin/users/${userId}`, payload);
+  return res.data as AdminUser;
 };

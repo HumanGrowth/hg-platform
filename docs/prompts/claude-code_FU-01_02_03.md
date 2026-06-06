@@ -154,7 +154,7 @@ curl -fsS -c /tmp/c.txt -H 'Content-Type: application/json' \
 
 ---
 
-## TASK FU-02 · Backend endpoint users por org + cierre tab Usuarios admin · `[ ]`
+## TASK FU-02 · Backend endpoint users por org + cierre tab Usuarios admin · `[x]` ✅
 
 **Problema:** el tab "Usuarios" en `/admin/orgs/:id` quedó como placeholder porque el backend no expone listado de users por org ni operaciones admin sobre users. Bloquea cierre 100% de B4-08.
 
@@ -365,7 +365,7 @@ Reportá al final:
 | ID | Subject | Status | Effort sugerido |
 |---|---|---|---|
 | FU-01 | Fix Docker frontend (Dockerfile + env var) | ✅ | medium |
-| FU-02 | Endpoint users por org + tab Usuarios admin | `[ ]` | high |
+| FU-02 | Endpoint users por org + tab Usuarios admin | ✅ | high |
 | FU-03 | QA manual refresh TTL bajo | `[ ]` | medium |
 
 > Estados: `[ ]` pending · `🟧` in progress · `✅` done · `🚫` blocked (con nota)

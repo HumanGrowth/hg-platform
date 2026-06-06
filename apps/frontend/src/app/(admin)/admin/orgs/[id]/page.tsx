@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 
+import { OrgUsersTab } from "@/components/admin/OrgUsersTab";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -127,9 +128,7 @@ export default function AdminOrgDetailPage() {
         </TabsList>
 
         <TabsContent value="usuarios">
-          <Card className="py-12 text-center text-sm text-fg-muted">
-            El listado de usuarios por organización llega con su endpoint dedicado.
-          </Card>
+          <OrgUsersTab org={org} onMutated={loadOrg} />
         </TabsContent>
 
         <TabsContent value="invitaciones">

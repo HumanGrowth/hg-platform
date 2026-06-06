@@ -42,6 +42,26 @@ export interface Org {
   created_at: string;
 }
 
+export interface AdminUser {
+  id: string;
+  email: string;
+  full_name: string;
+  role: UserRole;
+  career_level: CareerLevel | null;
+  is_active: boolean;
+  last_login_at: string | null;
+  last_active_at: string | null;
+  manager_id: string | null;
+  created_at: string;
+}
+
+export interface PaginatedUsers {
+  items: AdminUser[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
 export interface Invitation {
   id: string;
   email: string;

@@ -305,3 +305,117 @@ def list_invitations(
             Invitation.expires_at <= now,
         )
     return list(db.execute(stmt.order_by(Invitation.created_at.desc())).scalars().all())
+
+
+# ─────────────────────────── Admin: users ───────────────────────────
+
+
+def _assert_same_org_or_superadmin(actor: User, org_id: UUID) -> None:
+    if actor.role is not UserRole.superadmin and actor.org_id != org_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="cannot access another organization"
+        )
+
+
+def list_org_users(
+    db: Session,
+    *,
+    org_id: UUID,
+    actor: User,
+    status_filter: str,
+    role: UserRole | None,
+    page: int,
+    page_size: int,
+) -> tuple[list[User], int]:
+    _assert_same_org_or_superadmin(actor, org_id)
+
+    filters = [User.org_id == org_id]
+    if status_filter == "active":
+        filters.append(User.is_active.is_(True))
+    elif status_filter == "inactive":
+        filters.append(User.is_active.is_(False))
+    if role is not None:
+        filters.append(User.role == role)
+
+    total = db.execute(select(func.count()).select_from(User).where(*filters)).scalar_one()
+    items = (
+        db.execute(
+            select(User)
+            .where(*filters)
+            .order_by(User.created_at.desc())
+            .limit(page_size)
+            .offset((page - 1) * page_size)
+        )
+        .scalars()
+        .all()
+    )
+    return list(items), total
+
+
+def update_user(db: Session, *, user_id: UUID, actor: User, payload: dict) -> User:
+    target = db.get(User, user_id)
+    if target is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+    _assert_same_org_or_superadmin(actor, target.org_id)
+
+    new_role: UserRole | None = payload.get("role")
+    new_active: bool | None = payload.get("is_active")
+    new_manager: UUID | None = payload.get("manager_id")
+
+    # No podés cambiar tu propio rol.
+    if new_role is not None and target.id == actor.id and new_role != target.role:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="cannot change your own role"
+        )
+
+    # No desactivar / degradar al último superadmin activo.
+    losing_superadmin = target.role is UserRole.superadmin and (
+        new_active is False or (new_role is not None and new_role is not UserRole.superadmin)
+    )
+    if losing_superadmin:
+        others = db.execute(
+            select(func.count())
+            .select_from(User)
+            .where(
+                User.role == UserRole.superadmin,
+                User.is_active.is_(True),
+                User.id != target.id,
+            )
+        ).scalar_one()
+        if others == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="cannot remove the last superadmin"
+            )
+
+    # manager_id debe pertenecer a la misma org.
+    if new_manager is not None:
+        manager = db.get(User, new_manager)
+        if manager is None or manager.org_id != target.org_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="manager must belong to the same organization",
+            )
+        target.manager_id = new_manager
+
+    # Contabilidad de licencias en cambios de is_active.
+    if new_active is not None and new_active != target.is_active:
+        org = db.get(Organization, target.org_id)
+        if new_active is True:
+            if org is not None and org.licenses_used >= org.licenses_total:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail="no licenses available"
+                )
+            if org is not None:
+                org.licenses_used += 1
+        else:
+            if org is not None and org.licenses_used > 0:
+                org.licenses_used -= 1
+        target.is_active = new_active
+
+    if new_role is not None:
+        target.role = new_role
+    if "career_level" in payload and payload["career_level"] is not None:
+        target.career_level = payload["career_level"]
+
+    db.flush()
+    return target

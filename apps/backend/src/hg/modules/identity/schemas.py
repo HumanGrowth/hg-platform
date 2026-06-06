@@ -139,3 +139,37 @@ class InviteInfoResponse(BaseModel):
     role: UserRole
     org_name: str
     status: str  # pending | accepted | revoked | expired
+
+
+# ─────────────────────────── Admin: users ───────────────────────────
+
+
+class AdminUserOut(BaseModel):
+    """Vista de usuario para el panel admin (más campos que UserOut)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    email: str
+    full_name: str
+    role: UserRole
+    career_level: CareerLevel | None
+    is_active: bool
+    last_login_at: datetime | None
+    last_active_at: datetime | None
+    manager_id: UUID | None
+    created_at: datetime
+
+
+class UserAdminUpdate(BaseModel):
+    is_active: bool | None = None
+    role: UserRole | None = None
+    manager_id: UUID | None = None
+    career_level: CareerLevel | None = None
+
+
+class PaginatedUsers(BaseModel):
+    items: list[AdminUserOut]
+    total: int
+    page: int
+    page_size: int

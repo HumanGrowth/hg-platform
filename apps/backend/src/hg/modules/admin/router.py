@@ -7,6 +7,7 @@ puede hacer el superadmin o un admin de la propia org.
 """
 from __future__ import annotations
 
+from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -14,14 +15,17 @@ from sqlalchemy.orm import Session
 
 from hg.core.deps import get_db_as_superadmin, require_role
 from hg.modules.identity import service
-from hg.modules.identity.models import User
+from hg.modules.identity.models import User, UserRole
 from hg.modules.identity.schemas import (
+    AdminUserOut,
     CreateOrgRequest,
     InvitationOut,
     InviteRequest,
     InviteResponse,
     OrgListResponse,
     OrgOut,
+    PaginatedUsers,
+    UserAdminUpdate,
 )
 
 router = APIRouter()
@@ -91,3 +95,46 @@ def revoke_invitation(
     actor: User = Depends(require_role("superadmin", "admin")),
 ) -> None:
     service.revoke_invitation(db, invitation_id=invitation_id, actor=actor)
+
+
+@router.get("/orgs/{org_id}/users", response_model=PaginatedUsers)
+def list_org_users(
+    org_id: UUID,
+    status_filter: Literal["active", "inactive", "all"] = Query(default="all", alias="status"),
+    role: UserRole | None = Query(default=None),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=50, ge=1, le=200),
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role("superadmin", "admin")),
+) -> PaginatedUsers:
+    """Lista users de una org. Admin sólo puede listar su propia org."""
+    items, total = service.list_org_users(
+        db,
+        org_id=org_id,
+        actor=actor,
+        status_filter=status_filter,
+        role=role,
+        page=page,
+        page_size=page_size,
+    )
+    return PaginatedUsers(
+        items=[AdminUserOut.model_validate(u) for u in items],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.patch("/users/{user_id}", response_model=AdminUserOut)
+def update_user(
+    user_id: UUID,
+    payload: UserAdminUpdate,
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role("superadmin", "admin")),
+) -> AdminUserOut:
+    """Admin de la misma org modifica; superadmin cualquiera. Reglas de
+    licencias, cross-org, último superadmin y self-role en el service."""
+    user = service.update_user(
+        db, user_id=user_id, actor=actor, payload=payload.model_dump(exclude_unset=True)
+    )
+    return AdminUserOut.model_validate(user)
