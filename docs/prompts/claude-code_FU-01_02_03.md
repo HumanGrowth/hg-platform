@@ -34,7 +34,7 @@ Si la sesión se compacta (`/compact`) o reinicia:
 
 ## 📌 Estado al iniciar
 
-- Último commit: `60c549c` (docs ADR-0003). Rama `feat/B1-03-04-identity-rls`. **No mergeada a main** todavía.
+- Último commit: `da1b331` (FU-02). FU-01/02/03 cerradas. Rama `feat/B1-03-04-identity-rls`. Stack docker 5/5 healthy.
 - Stack local en `pnpm dev :3000` funciona end-to-end (login/admin/invite verificado Día 4).
 - Stack en `docker compose up` **NO funciona**: contenedor `hg-frontend` en crash-loop.
 - Backend OK en Docker (`hg-backend`, `hg-worker`, `hg-postgres`, `hg-redis` saludables).
@@ -288,7 +288,7 @@ export const apiUpdateUser = async (userId: string, payload: Partial<User>) => {
 
 ---
 
-## TASK FU-03 · QA manual del refresh con TTL bajo · `[ ]`
+## TASK FU-03 · QA manual del refresh con TTL bajo · `[x]` ✅
 
 **Objetivo:** verificar end-to-end en navegador real que el ciclo refresh funciona cuando el access token expira mid-sesión.
 
@@ -366,6 +366,6 @@ Reportá al final:
 |---|---|---|---|
 | FU-01 | Fix Docker frontend (Dockerfile + env var) | ✅ | medium |
 | FU-02 | Endpoint users por org + tab Usuarios admin | ✅ | high |
-| FU-03 | QA manual refresh TTL bajo | `[ ]` | medium |
+| FU-03 | QA manual refresh TTL bajo | ✅ | medium |
 
 > Estados: `[ ]` pending · `🟧` in progress · `✅` done · `🚫` blocked (con nota)
