@@ -66,6 +66,11 @@ jobs:
       - name: Ruff lint
         run: uv run ruff check src tests
 
+      - name: Apply migrations
+        # Crea tablas + enums + roles RLS (hg_app / hg_superadmin) que los tests
+        # necesitan; sin esto pytest corre contra una DB vacía.
+        run: uv run alembic upgrade head
+
       - name: Pytest
         run: uv run pytest --cov=hg --cov-report=term-missing
 
@@ -90,7 +95,8 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          cache-dependency-path: apps/frontend/pnpm-lock.yaml
+          # El lockfile vive en la raíz del monorepo, no en apps/frontend.
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
@@ -124,8 +130,11 @@ jobs:
           tags: hg-backend:ci
 
       - name: Build frontend image
+        # Contexto = raíz del monorepo: el Dockerfile copia el workspace
+        # (pnpm-lock, packages/*) para resolver deps y generar el standalone.
         uses: docker/build-push-action@v6
         with:
-          context: ./apps/frontend
+          context: .
+          file: apps/frontend/Dockerfile
           push: false
           tags: hg-frontend:ci
