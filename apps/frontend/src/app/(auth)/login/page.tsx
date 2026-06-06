@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 
@@ -12,14 +12,24 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { Input, Label } from "@/components/ui/input";
 import { ApiError, apiLogin } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
+import { toast } from "@/lib/toast-store";
 import { loginSchema, type LoginValues as FormValues } from "@/lib/validation";
 
 const schema = loginSchema;
 
-export default function LoginPage() {
+function LoginInner() {
   const router = useRouter();
+  const params = useSearchParams();
   const setSession = useAuthStore((s) => s.setSession);
   const [formError, setFormError] = React.useState<string | null>(null);
+
+  // Tras una sesión expirada el interceptor redirige con ?reason=expired:
+  // mostramos el toast acá porque el full reload limpió el del momento.
+  React.useEffect(() => {
+    if (params.get("reason") === "expired") {
+      toast("Sesión expirada — iniciá sesión otra vez.", "danger");
+    }
+  }, [params]);
   const {
     register,
     handleSubmit,
@@ -99,5 +109,13 @@ export default function LoginPage() {
         </button>
       </form>
     </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <LoginInner />
+    </React.Suspense>
   );
 }
