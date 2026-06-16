@@ -75,3 +75,47 @@ export interface Invitation {
   revoked_at: string | null;
   created_at: string;
 }
+
+// ─────────────── Catálogo PMM (B2-06 / B2-09) ───────────────
+// Nota: `CourseLevel` (L1..L6 del catálogo PMM) es distinto del `CareerLevel`
+// del usuario (L1..L4b), para no colisionar con el enum de identity.
+
+export interface CareerPath {
+  id: string;
+  code: "P1" | "P2" | "P3" | "P4" | "P5" | "P6";
+  name: string;
+  description: string | null;
+  order_index: number;
+}
+
+export type CourseLevel = "L1" | "L2" | "L3" | "L4" | "L5" | "L6";
+export type CompetencyCode = "C1" | "C2" | "C3" | "C4" | "C5";
+export type CourseTrack =
+  | "competency"
+  | "foundation_ai"
+  | "foundation_eth"
+  | "foundation_specifics";
+
+export interface Course {
+  id: string;
+  career_path_id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  thumbnail_url: string | null;
+  hls_master_url: string | null;
+  duration_seconds: number;
+  career_level: CourseLevel;
+  competency_code: CompetencyCode | null;
+  track: CourseTrack;
+  is_active: boolean;
+}
+
+export interface CourseFilters {
+  level?: CourseLevel;
+  competency?: CompetencyCode;
+  track?: CourseTrack;
+  q?: string;
+  limit?: number;
+  offset?: number;
+}
