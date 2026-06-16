@@ -1,9 +1,8 @@
 # Frontend v2 — capture checklist
 
-> ⚠️ **Pendiente de captura.** Las imágenes no se generaron en el entorno de
-> desarrollo del agente (sin Docker/Postgres locales para el backend, y las
-> pantallas autenticadas requieren sesión). Capturar manualmente tras el deploy
-> o levantando el stack (`make up`) + login.
+> ✅ **Capturadas (2026-06-16).** 11/11 PNG generadas con Playwright + Chromium
+> contra el build v2 (`next start -p 3001`) + backend local (`:8000`), login
+> `collab1@acme.test`. Para regenerarlas, ver "Cómo capturar" abajo.
 
 ## Cómo capturar
 
