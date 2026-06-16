@@ -1,9 +1,14 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Human Growth design tokens (DS beta v1 — pending DEC-03).
- * Fuente: packages/design-system/source/colors_and_type.css
+ * Human Growth design tokens — Marketing palette v1 (confirmada por Andrés, Jun 15).
+ * Fuente: docs/prompts/claude-code_Frontend-v2_marketing_nav_radar.md
  * Swap a identidad final = editar estos valores + globals.css, no los componentes.
+ *
+ * Los tokens semánticos (bg/fg/border) se mantienen wired a CSS variables — toda la
+ * app v1 (6 páginas DS-beta) los consume; remapear su valor en globals.css basta.
+ * Las claves *-500 / *-700 / *-900 / cream-300 son aliases de compat para clases
+ * legacy que aún referencian la escala vieja (orange-500 ×25, cream-300, warm-900…).
  */
 const config: Config = {
   darkMode: ["class", '[data-theme="dark"]'],
@@ -11,39 +16,46 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        orange: {
-          50: "#FFF1E8",
-          100: "#FFD9C2",
-          200: "#FFB48A",
-          300: "#FF8A52",
-          400: "#FF6A26",
-          500: "#FF4500", // brand primary
-          600: "#E63E00", // hover
-          700: "#B33000", // press / earned-badge text
-          800: "#7A2100", // deep accent (pillar P6)
-          900: "#4A1400",
+        // Foundation (neutrales)
+        ink: {
+          900: "#1A1A1A", // texto principal
+          800: "#2A2826", // texto profundo / warm ink
         },
-        cream: {
-          50: "#FFFCF6", // lifted surface
-          100: "#FDF5E6", // DEFAULT canvas
-          200: "#F8EDD4",
-          300: "#F0E0BD",
-          400: "#E2CDA0",
+        slate: {
+          900: "#2C3E50", // azul-gris profundo (alternativo)
         },
         warm: {
-          300: "#B8A799",
-          400: "#8A7765",
-          500: "#6B5949",
-          600: "#5C4A3F",
-          700: "#3D3027",
-          800: "#2A2018",
-          900: "#1A140F", // ink
+          600: "#6B7061", // gris cálido
+          500: "#8E8E8E", // gris medio
+          700: "#2A2826", // alias legacy → ink-800
+          900: "#1A1A1A", // alias legacy → ink-900
         },
-        success: { DEFAULT: "#1F7A4D", bg: "#DFF0E5" },
-        warning: { DEFAULT: "#B8741A", bg: "#FBE9CC" },
+        cream: {
+          50: "#FFFFFF", // blanco puro
+          100: "#FAF3E8", // cream base
+          200: "#F0EDE6", // cream claro
+          300: "#E4DACB", // alias legacy (cream derivado)
+        },
+        // Paleta marca
+        gold: { DEFAULT: "#C8A76E" }, // dorado caqui (acentos calidad/logro)
+        forest: { DEFAULT: "#4A7A54" }, // verde bosque (crecimiento)
+        orange: {
+          DEFAULT: "#E8530A", // CTA principal
+          50: "#FFF1E8",
+          100: "#FFD9C2",
+          500: "#E8530A", // alias legacy = brand
+          600: "#C8470A", // hover (-10%)
+          700: "#A03B08", // press (-20%)
+          800: "#A03B08", // alias legacy
+        },
+        amber: { DEFAULT: "#E8A030" }, // ámbar (warning, badges)
+        sage: { DEFAULT: "#A8C4A0" }, // verde salvia (acentos suaves, success ligero)
+        // Semánticos
+        success: { DEFAULT: "#4A7A54", bg: "#E6F0E8" },
+        warning: { DEFAULT: "#E8A030", bg: "#FBE9CC" },
         danger: { DEFAULT: "#B83A1A", bg: "#FADAD2" },
-        info: { DEFAULT: "#2A5F7A", bg: "#DCE9EF" },
-        // Semantic tokens wired to CSS variables (theme-aware).
+        info: { DEFAULT: "#2C3E50", bg: "#DCE3EB" },
+        // Semantic tokens wired to CSS variables (theme-aware) — preservados.
         bg: {
           DEFAULT: "var(--bg)",
           raised: "var(--bg-raised)",
@@ -61,21 +73,35 @@ const config: Config = {
           strong: "var(--border-strong)",
           focus: "var(--border-focus)",
         },
-        // 6 pillars (DS-aligned).
+        // 6 pilares (alineados a la lógica del Marco Teórico).
         pillar: {
-          p1: "#FF4500", // Carrera e Impacto — orange-500
-          p2: "#5C4A3F", // Propósito — warm-600
-          p3: "#1F7A4D", // Relaciones — success
-          p4: "#B8741A", // Salud — warning
-          p5: "#2A5F7A", // Paz Interior — info
-          p6: "#7A2100", // Estabilidad — orange-800
+          p1: "#E8530A", // Carrera — orange
+          p2: "#C8A76E", // Propósito — gold
+          p3: "#4A7A54", // Relaciones — forest
+          p4: "#A8C4A0", // Salud — sage
+          p5: "#2C3E50", // Paz interior — slate
+          p6: "#6B7061", // Estabilidad — warm
         },
       },
       fontFamily: {
-        display: ["var(--font-display)", "Anton", "Impact", "sans-serif"],
-        sans: ["var(--font-body)", "Manrope", "system-ui", "sans-serif"],
-        serif: ["var(--font-serif)", "Instrument Serif", "Georgia", "serif"],
-        mono: ["var(--font-mono)", "JetBrains Mono", "ui-monospace", "monospace"],
+        display: [
+          "var(--font-display-1)", // Anton
+          "var(--font-display-2)", // Poppins
+          "Bebas Neue",
+          "Impact",
+          "system-ui",
+          "sans-serif",
+        ],
+        sans: [
+          "var(--font-body-1)", // Manrope
+          "var(--font-body-2)", // Lato
+          "system-ui",
+          "-apple-system",
+          "Segoe UI",
+          "sans-serif",
+        ],
+        serif: ["var(--font-serif)", "Source Serif 4", "Georgia", "serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "SF Mono", "monospace"],
       },
       fontSize: {
         micro: ["0.75rem", { lineHeight: "1.15" }], // 12
@@ -132,7 +158,7 @@ const config: Config = {
         sm: "0 1px 2px rgba(26, 20, 15, 0.06)",
         md: "0 6px 16px -4px rgba(26, 20, 15, 0.08), 0 2px 4px rgba(26, 20, 15, 0.04)",
         lg: "0 24px 48px -12px rgba(26, 20, 15, 0.18)",
-        focus: "0 0 0 3px rgba(255, 69, 0, 0.32)",
+        focus: "0 0 0 3px rgba(232, 83, 10, 0.32)",
       },
       transitionTimingFunction: {
         out: "cubic-bezier(0.32, 0.72, 0, 1)", // Apple-ish entries

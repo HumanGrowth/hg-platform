@@ -29,3 +29,12 @@ export const inviteSchema = z.object({
   role: z.enum(["admin", "manager", "collaborator"]),
 });
 export type InviteValues = z.infer<typeof inviteSchema>;
+
+export const contactSchema = z.object({
+  name: z.string().min(1, "Ingresá tu nombre"),
+  email: z.string().min(1, "Ingresá tu email").email("Email inválido"),
+  company: z.string().min(1, "Ingresá tu empresa"),
+  role: z.enum(["RRHH", "Líder", "IT", "Otro"]).optional().or(z.literal("")),
+  message: z.string().max(2000).optional().or(z.literal("")),
+});
+export type ContactValues = z.infer<typeof contactSchema>;

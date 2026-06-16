@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { Building2 } from "lucide-react";
+import { ArrowLeft, Building2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -32,6 +32,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </Link>
                 </nav>
               </div>
+              <Link
+                href="/home"
+                className="mt-auto flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg-muted hover:bg-bg-sunken hover:text-fg"
+              >
+                <ArrowLeft size={16} strokeWidth={1.75} />
+                Volver a colaborador
+              </Link>
             </aside>
             <div className="flex-1">{children}</div>
           </div>

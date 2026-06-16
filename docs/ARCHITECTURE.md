@@ -206,6 +206,58 @@ adoptado como direction v1 (ver [ADR-0003](adrs/ADR-0003-design-system-beta-as-v
 
 P1 orange-500 · P2 warm-600 · P3 success · P4 warning · P5 info · P6 orange-800.
 
+## Frontend v2 (FE-v2-01 → FE-v2-10)
+
+Sitio de marketing público + paleta marketing v1 + nav adaptativa + Radar +
+shells de onboarding. Ver [ADR-0006](adrs/ADR-0006-marketing-palette-v1-and-adaptive-nav.md).
+
+### Paleta + fuentes v1
+
+- Paleta marketing v1 en `tailwind.config.ts`: foundation (`ink`/`slate`/`warm`/
+  `cream`), marca (`gold`/`forest`/`orange`/`amber`/`sage`), semánticos, `pillar.p1–p6`.
+- Tokens semánticos (`bg`/`fg`/`border`) siguen wired a CSS vars; sólo se remapeó
+  su valor en `globals.css`. Aliases de compat para clases legacy de la app v1.
+- Fuentes (`next/font`): **Anton → Poppins** (display), **Manrope → Lato** (body),
+  Instrument Serif (serif), JetBrains Mono (mono).
+- Pilares v1: P1 orange · P2 gold · P3 forest · P4 sage · P5 slate · P6 warm.
+
+### Route groups
+
+`(marketing)` · `(auth)` · `(app)` · `(admin)` · `(onboarding)`. `/` es landing
+público; `middleware.ts` redirige a `/home` si hay sesión.
+
+### Nav adaptativa (4 destinos)
+
+| Destino | Ruta | Icono |
+|---|---|---|
+| Inicio | `/home` | Home |
+| Mi Ruta | `/path` (Biblioteca como sub-vista) | Route |
+| Mi Radar | `/radar` (+ `/radar/[pillar]`) | Hexagon |
+| Perfil | `/profile` | User |
+
+`SideNav` (desktop, colapsable 240/64, localStorage) · `BottomNav` (mobile, 4 ítems)
+· `TopBar` (avatar, logout, toggle admin para superadmin).
+
+### Componentes Radar
+
+- `Radar` (Recharts): 3 estados (`empty`/`filling`/`complete`), 3 tamaños
+  (`mini` 120 / `medium` 300 / `large` 440), labels interactivos → `/radar/[code]`.
+- `MiniRadar`: 120×120 sin etiquetas (Home + sidebar).
+
+### Páginas v2
+
+| Ruta | Grupo | Estado |
+|---|---|---|
+| `/`, `/paths`, `/for-teams`, `/pricing`, `/contacto` | `(marketing)` | ✅ público |
+| `/path`, `/radar`, `/radar/[pillar]` | `(app)` | ✅ |
+| `/onboarding/welcome`, `/onboarding/scenario/[index]`, `/onboarding/result` | `(onboarding)` | ✅ shells (sin scoring) |
+
+### Backend — contact inquiries
+
+Módulo `marketing`: `POST /api/v1/contact/inquiry` (público) + `GET
+/api/v1/admin/contact/inquiries` (superadmin). Tabla `contact_inquiries` sin
+`org_id`/RLS (leads). Migración B1-13. Email real (Resend) pendiente en B3-05.
+
 ## Decisiones bloqueantes activas
 
 | ID | Decisión | Bloquea |
