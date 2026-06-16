@@ -139,3 +139,27 @@ export const apiUpdateUser = async (
   const res = await backend.patch(`/api/v1/admin/users/${userId}`, payload);
   return res.data as AdminUser;
 };
+
+// ─────────────── Marketing (público, sin auth) ───────────────
+
+export interface ContactInquiryPayload {
+  name: string;
+  email: string;
+  company?: string;
+  role?: string;
+  message?: string;
+  source?: string;
+}
+
+/** Lead del sitio público: POST directo al backend (endpoint sin auth). */
+export const apiSubmitInquiry = async (payload: ContactInquiryPayload): Promise<void> => {
+  const res = await fetch(`${BACKEND}/api/v1/contact/inquiry`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new ApiError(data?.detail ?? "request failed", res.status);
+  }
+};
