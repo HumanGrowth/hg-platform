@@ -12,10 +12,24 @@ import { useAuthStore } from "@/lib/auth-store";
  * Si no hay sesión válida, redirige a /login. El middleware ya bloqueó la ruta
  * por presencia de cookie; esto valida de verdad y carga el user.
  */
-export function SessionGate({ children }: { children: React.ReactNode }) {
+export function SessionGate({
+  children,
+  requireOnboarding = false,
+}: {
+  children: React.ReactNode;
+  /** Si el user tiene `has_completed_onboarding === false`, redirige al flujo. */
+  requireOnboarding?: boolean;
+}) {
   const router = useRouter();
-  const { accessToken, hydrating, setSession, clear } = useAuthStore();
+  const { accessToken, hydrating, setSession, clear, user } = useAuthStore();
   const [ready, setReady] = React.useState(Boolean(accessToken));
+
+  // Gatea onboarding sólo si el backend dice explícitamente que falta.
+  React.useEffect(() => {
+    if (ready && requireOnboarding && user?.has_completed_onboarding === false) {
+      router.replace("/onboarding/welcome" as never);
+    }
+  }, [ready, requireOnboarding, user, router]);
 
   React.useEffect(() => {
     if (accessToken) {

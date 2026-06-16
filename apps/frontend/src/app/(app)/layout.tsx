@@ -10,7 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <BetaBanner />
-      <SessionGate>
+      <SessionGate requireOnboarding>
         <div className="flex h-screen">
           <SideNav className="hidden md:flex" />
           <div className="flex min-w-0 flex-1 flex-col">

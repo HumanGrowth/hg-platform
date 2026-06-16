@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 const REFRESH_COOKIE = "hg_refresh";
 
 // Rutas autenticadas (route groups (app)/(admin) no aparecen en la URL).
-const PROTECTED = ["/home", "/library", "/profile", "/path", "/radar", "/admin"];
+const PROTECTED = ["/home", "/library", "/profile", "/path", "/radar", "/onboarding", "/admin"];
 const AUTH_PAGES = ["/login", "/accept-invite"];
 
 export function middleware(req: NextRequest) {
@@ -44,6 +44,7 @@ export const config = {
     "/profile/:path*",
     "/path/:path*",
     "/radar/:path*",
+    "/onboarding/:path*",
     "/admin/:path*",
     "/login",
   ],
