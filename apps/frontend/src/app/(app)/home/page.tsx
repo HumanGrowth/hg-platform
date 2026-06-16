@@ -5,6 +5,7 @@ import type { Route } from "next";
 import Link from "next/link";
 
 import { EmptyRing } from "@/components/EmptyRing";
+import { MiniRadar } from "@/components/radar/MiniRadar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -44,6 +45,22 @@ export default function HomePage() {
           Continuar
           <ArrowRight size={18} strokeWidth={1.75} />
         </Button>
+      </Card>
+
+      {/* Mini radar */}
+      <Card className="mt-4 flex items-center gap-5 bg-bg-raised">
+        <MiniRadar values={{ P1: 72, P2: 48, P3: 65, P4: 38, P5: 55, P6: 60 }} />
+        <div>
+          <Eyebrow>Tu radar</Eyebrow>
+          <h2 className="mt-1 font-sans text-lg font-semibold text-fg">Vista rápida</h2>
+          <Link
+            href={"/radar" as Route}
+            className="mt-1 inline-flex items-center gap-1 font-sans text-sm font-semibold text-orange-700"
+          >
+            Ver radar completo
+            <ArrowRight size={16} strokeWidth={1.75} />
+          </Link>
+        </div>
       </Card>
 
       {/* 6 dimensiones */}
