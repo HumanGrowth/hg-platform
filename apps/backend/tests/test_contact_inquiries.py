@@ -1,6 +1,8 @@
 """Marketing contact inquiries (FE-v2-06): public POST + superadmin GET."""
 from __future__ import annotations
 
+import logging
+
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, select
 
@@ -44,6 +46,20 @@ def test_submit_inquiry_public_no_auth(client: TestClient) -> None:
         s.close()
     finally:
         _cleanup([VALID["email"]])
+
+
+def test_submit_inquiry_with_info_logging(client: TestClient, caplog) -> None:
+    """Regresión: el log.info no debe colisionar con atributos reservados de
+    LogRecord (p.ej. `name`). Sin INFO habilitado el log se saltea y el bug se
+    esconde; acá lo forzamos para que la línea de log se ejecute de verdad."""
+    payload = {"name": "Log Probe", "email": "logprobe@x.test", "source": "test-log"}
+    try:
+        with caplog.at_level(logging.INFO, logger="hg.marketing"):
+            res = client.post("/api/v1/contact/inquiry", json=payload)
+        assert res.status_code == 201, res.text
+        assert any("contact.inquiry" in r.getMessage() for r in caplog.records)
+    finally:
+        _cleanup([payload["email"]])
 
 
 def test_submit_inquiry_minimal_fields(client: TestClient) -> None:

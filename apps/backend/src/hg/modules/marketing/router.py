@@ -49,9 +49,11 @@ def submit_inquiry(
     db.add(inquiry)
     db.flush()
     # Email stub a Jorge + Roberto (log a stdout por ahora). Resend se conecta en B3-05.
+    # Nota: las claves de `extra` no pueden colisionar con atributos de LogRecord
+    # (p.ej. `name`), o logging lanza KeyError al nivel INFO. Por eso `lead_name`.
     log.info(
         "contact.inquiry",
-        extra={"name": payload.name, "email": payload.email, "company": payload.company},
+        extra={"lead_name": payload.name, "email": payload.email, "company": payload.company},
     )
     return {"ok": True}
 
