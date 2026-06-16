@@ -3,60 +3,53 @@
 @tailwind utilities;
 
 /* ===========================================================================
-   Human Growth design tokens (DS beta v1 — pending DEC-03).
-   Fuente: packages/design-system/source/colors_and_type.css
-   Las font-family vars (--font-*) las inyecta next/font en <html> (layout.tsx).
+   Human Growth design tokens — Marketing palette v1 (Andrés, Jun 15).
+   Fuente: docs/prompts/claude-code_Frontend-v2_marketing_nav_radar.md
+   Las font-family vars (--font-*-N) las inyecta next/font en <html> (layout.tsx).
    =========================================================================== */
 :root {
-  /* COLOR — brand */
-  --orange-50: #fff1e8;
-  --orange-100: #ffd9c2;
-  --orange-200: #ffb48a;
-  --orange-300: #ff8a52;
-  --orange-400: #ff6a26;
-  --orange-500: #ff4500;
-  --orange-600: #e63e00;
-  --orange-700: #b33000;
-  --orange-800: #7a2100;
-  --orange-900: #4a1400;
+  /* COLOR — foundation (neutrales) */
+  --ink-900: #1a1a1a; /* texto principal */
+  --ink-800: #2a2826; /* warm ink */
+  --slate-900: #2c3e50;
+  --warm-600: #6b7061;
+  --warm-500: #8e8e8e;
+  --cream-50: #ffffff;
+  --cream-100: #faf3e8; /* canvas base */
+  --cream-200: #f0ede6;
 
-  /* COLOR — warm neutrals (cream -> ink) */
-  --cream-50: #fffcf6;
-  --cream-100: #fdf5e6;
-  --cream-200: #f8edd4;
-  --cream-300: #f0e0bd;
-  --cream-400: #e2cda0;
-  --warm-300: #b8a799;
-  --warm-400: #8a7765;
-  --warm-500: #6b5949;
-  --warm-600: #5c4a3f;
-  --warm-700: #3d3027;
-  --warm-800: #2a2018;
-  --warm-900: #1a140f;
+  /* COLOR — marca */
+  --gold: #c8a76e;
+  --forest: #4a7a54;
+  --orange: #e8530a; /* CTA */
+  --orange-600: #c8470a; /* hover */
+  --orange-700: #a03b08; /* press */
+  --amber: #e8a030;
+  --sage: #a8c4a0;
 
   /* COLOR — semantic */
-  --success: #1f7a4d;
-  --success-bg: #dff0e5;
-  --warning: #b8741a;
+  --success: #4a7a54;
+  --success-bg: #e6f0e8;
+  --warning: #e8a030;
   --warning-bg: #fbe9cc;
   --danger: #b83a1a;
   --danger-bg: #fadad2;
-  --info: #2a5f7a;
-  --info-bg: #dce9ef;
+  --info: #2c3e50;
+  --info-bg: #dce3eb;
 
   /* COLOR — semantic tokens (light default) */
   --bg: var(--cream-100);
   --bg-raised: var(--cream-50);
   --bg-sunken: var(--cream-200);
-  --bg-inverse: var(--warm-900);
-  --fg: var(--warm-900);
+  --bg-inverse: var(--ink-900);
+  --fg: var(--ink-900);
   --fg-muted: var(--warm-600);
-  --fg-subtle: var(--warm-400);
+  --fg-subtle: var(--warm-500);
   --fg-inverse: var(--cream-100);
-  --border: rgba(26, 20, 15, 0.12);
-  --border-strong: rgba(26, 20, 15, 0.24);
-  --border-focus: var(--orange-500);
-  --accent: var(--orange-500);
+  --border: rgba(26, 26, 26, 0.12);
+  --border-strong: rgba(26, 26, 26, 0.24);
+  --border-focus: var(--orange);
+  --accent: var(--orange);
   --accent-fg: #ffffff;
   --accent-hover: var(--orange-600);
   --accent-press: var(--orange-700);
@@ -74,17 +67,17 @@
 }
 
 [data-theme="dark"] {
-  --bg: #13100d;
-  --bg-raised: #1f1a14;
-  --bg-sunken: #0c0a08;
+  --bg: #1a1816;
+  --bg-raised: #242120;
+  --bg-sunken: #100f0e;
   --bg-inverse: var(--cream-100);
-  --fg: #f5ebd6;
-  --fg-muted: #b8a799;
-  --fg-subtle: #8a7765;
-  --fg-inverse: var(--warm-900);
-  --border: rgba(245, 235, 214, 0.1);
-  --border-strong: rgba(245, 235, 214, 0.22);
-  --accent-fg: #1a140f;
+  --fg: #faf3e8;
+  --fg-muted: #b3b0a8;
+  --fg-subtle: #8e8e8e;
+  --fg-inverse: var(--ink-900);
+  --border: rgba(250, 243, 232, 0.1);
+  --border-strong: rgba(250, 243, 232, 0.22);
+  --accent-fg: #1a1a1a;
 }
 
 @layer base {
@@ -95,13 +88,13 @@
   body {
     background: var(--bg);
     color: var(--fg);
-    font-family: var(--font-body), system-ui, sans-serif;
+    font-family: var(--font-body-1), system-ui, sans-serif;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
   ::selection {
-    background: var(--orange-200);
-    color: var(--warm-900);
+    background: #ffd9c2;
+    color: var(--ink-900);
   }
 }

@@ -68,17 +68,17 @@ export default function ProfilePage() {
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData} outerRadius="72%">
-                <PolarGrid stroke="rgba(26,20,15,0.12)" />
+                <PolarGrid stroke="rgba(26,26,26,0.12)" />
                 <PolarAngleAxis
                   dataKey="axis"
-                  tick={{ fill: "#5C4A3F", fontSize: 12, fontWeight: 600 }}
+                  tick={{ fill: "#6B7061", fontSize: 12, fontWeight: 600 }}
                 />
                 <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar
                   name="score"
                   dataKey="score"
-                  stroke="#FF4500"
-                  fill="#FF4500"
+                  stroke="#E8530A"
+                  fill="#E8530A"
                   fillOpacity={0.25}
                 />
               </RadarChart>
