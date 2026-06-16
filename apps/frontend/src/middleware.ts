@@ -26,10 +26,16 @@ export function middleware(req: NextRequest) {
     url.pathname = "/home";
     return NextResponse.redirect(url);
   }
+  // La landing pública "/" lleva al usuario autenticado directo a su app.
+  if (pathname === "/" && hasSession) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/home";
+    return NextResponse.redirect(url);
+  }
   void isAuthPage;
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/home/:path*", "/library/:path*", "/profile/:path*", "/admin/:path*", "/login"],
+  matcher: ["/", "/home/:path*", "/library/:path*", "/profile/:path*", "/admin/:path*", "/login"],
 };

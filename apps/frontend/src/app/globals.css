@@ -98,3 +98,42 @@
     color: var(--ink-900);
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Semantic typography utilities (porteadas del lovable; vars remapeadas a v1).
+   Mantenidas como clases para legibilidad en los componentes de marketing.
+   --------------------------------------------------------------------------- */
+@layer components {
+  .display {
+    font-family: var(--font-display-1), var(--font-display-2), system-ui, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+    color: var(--fg);
+  }
+  .eyebrow {
+    font-family: var(--font-body-1), system-ui, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-muted);
+  }
+  .eyebrow-accent {
+    color: var(--orange);
+  }
+  .body-sm {
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--fg-muted);
+  }
+  .body-xs {
+    font-size: 0.8125rem;
+    line-height: 1.15;
+    color: var(--fg-muted);
+  }
+  .serif-italic {
+    font-family: var(--font-serif), Georgia, serif;
+    font-style: italic;
+  }
+}
