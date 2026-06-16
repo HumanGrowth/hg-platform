@@ -1,7 +1,10 @@
 import Features from "@/components/marketing/Features";
 import Hero from "@/components/marketing/Hero";
 import LogoCloud from "@/components/marketing/LogoCloud";
+import MentorStrip from "@/components/marketing/MentorStrip";
 import { FeaturedPaths } from "@/components/marketing/PathCard";
+import PricingTable from "@/components/marketing/PricingTable";
+import Quote from "@/components/marketing/Quote";
 
 export const metadata = {
   title: "Human Growth — Crecé integralmente",
@@ -16,7 +19,9 @@ export default function LandingPage() {
       <LogoCloud />
       <Features />
       <FeaturedPaths />
-      {/* MentorStrip · Quote · Pricing se agregan en FE-v2-05 */}
+      <MentorStrip />
+      <Quote />
+      <PricingTable />
     </>
   );
 }
