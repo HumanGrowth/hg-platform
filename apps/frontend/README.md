@@ -1,6 +1,8 @@
 # HG Frontend — Next.js 14
 
-App Router de la plataforma Human Growth (v1).
+App Router de la plataforma Human Growth. Marketing público (v2) + app (colaborador)
++ panel admin. Paleta marketing v1 y nav adaptativa: ver
+`docs/adrs/ADR-0006-marketing-palette-v1-and-adaptive-nav.md`.
 
 ## Stack
 - Next.js 14 (App Router) + TypeScript estricto
@@ -26,14 +28,15 @@ Configurable vía `NEXT_PUBLIC_API_BASE_URL` (browser) y `API_BASE_URL_INTERNAL`
 > ⚠️ Corré el dev en **:3000**. El backend solo permite CORS desde `:3000`, así
 > que las llamadas directas browser→backend (`/me`, admin) fallan en otros puertos.
 
-## Design system (v1 — pending DEC-03)
-- Fuente: `packages/design-system/source/` (copia del DS beta). Leé su `README.md`
-  para voice/tone y "what we never do".
+## Design system (paleta marketing v1 — pending DEC-03)
+- Paleta marketing v1 (firmada Jun 15): foundation `ink`/`slate`/`warm`/`cream`,
+  marca `gold`/`forest`/`orange`/`amber`/`sage`, `pillar.p1–p6`.
 - Tokens operativos: `src/app/globals.css` (`:root` + `[data-theme="dark"]`) y
   `tailwind.config.ts`. Los componentes usan tokens semánticos, **no hex**.
-- **Swap a la identidad final:** editar esos 2 archivos (+ `next/font` en
-  `layout.tsx` si cambian fuentes) y reemplazar `source/`. No se tocan componentes.
-  Ver `docs/adrs/ADR-0003-design-system-beta-as-v1.md`.
+- Fuentes (`next/font` en `layout.tsx`): Anton→Poppins (display), Manrope→Lato
+  (body), Instrument Serif, JetBrains Mono.
+- **Swap a la identidad final:** editar esos 2 archivos (+ `next/font` si cambian
+  fuentes). No se tocan componentes. Ver `docs/adrs/ADR-0006-...md` (sucede a 0003).
 - Preview de componentes en `/_kit`.
 
 ## Reglas de voz (resumen del DS — respetarlas)
@@ -42,32 +45,35 @@ Configurable vía `NEXT_PUBLIC_API_BASE_URL` (browser) y `API_BASE_URL_INTERNAL`
 - Números como numerales ("5 lecciones"), tiempo "20 min". `·` `→` `—` permitidos.
 
 ## Reglas visuales (no negociables)
-- Canvas cream `#FDF5E6` (**nunca** `#fff`). Ink `#1A140F` (**nunca** `#000`). Primary `#FF4500`.
-- Radii sharp (8 botones / 12 cards / 16 modales). Borders 1px warm-ink low-alpha.
+- Canvas cream `#FAF3E8` (**nunca** `#fff`). Ink `#1A1A1A` (**nunca** `#000`). Primary `#E8530A`.
+- Radii sharp (8 botones / 12 cards / 16 modales). Borders 1px ink low-alpha.
 - Sin glassmorphism (salvo nav glass on scroll), sin gradients purple/blue, sin illustration hand-drawn.
 
 ## Estructura
 ```
 src/
 ├── app/
-│   ├── layout.tsx            # Root: next/font (4 familias) + Toaster
-│   ├── page.tsx              # redirige a /home
-│   ├── globals.css           # tokens DS (:root) + base
+│   ├── layout.tsx            # Root: next/font (6 familias) + Toaster
+│   ├── globals.css           # tokens (:root) + base + utilidades .display/.eyebrow
+│   ├── (marketing)/          # landing /, /paths, /for-teams, /pricing, /contacto (+ Nav/Footer)
 │   ├── (auth)/               # login, accept-invite (+ layout centrado)
-│   ├── (app)/                # home, library, profile (+ shell: BetaBanner, SessionGate, TopNav)
+│   ├── (app)/                # home, library, path, radar(+[pillar]), profile (+ SideNav/TopBar/BottomNav)
 │   ├── (admin)/              # admin/orgs, admin/orgs/[id] (AdminGate: superadmin)
+│   ├── (onboarding)/         # onboarding/welcome, /scenario/[index], /result (full-screen cinematográfico)
 │   ├── api/auth/             # route handlers: login, refresh, logout, accept-invite (cookie httpOnly)
 │   └── %5Fkit/               # /_kit — preview de componentes
 ├── components/
 │   ├── ui/                   # primitives (button, input, card, badge, avatar, chip, dialog, tabs, progress, eyebrow, display)
-│   ├── BetaBanner / Toaster / TopNav / SessionGate / AdminGate / EmptyRing
+│   ├── marketing/            # Nav, Hero, LogoCloud, Features, PathCard, PathsCatalog, MentorStrip, Quote, PricingTable, Footer, ContactForm
+│   ├── nav/                  # SideNav, BottomNav, TopBar, items
+│   ├── radar/                # Radar (3 estados), MiniRadar, RadarView
+│   ├── BetaBanner / Toaster / SessionGate / AdminGate / EmptyRing
 ├── lib/
 │   ├── api.ts                # cliente (Next routes + backend), interceptor auto-refresh
-│   ├── server-api.ts         # helpers server-side + cookie httpOnly
-│   ├── auth-store.ts         # Zustand (access token en memoria)
-│   ├── validation.ts         # schemas zod
-│   ├── pillars.ts · types.ts · toast-store.ts · utils.ts
-└── middleware.ts             # gating de rutas por sesión
+│   ├── i18n.ts · locales/    # stub i18n (t() + getCopy), trees es/en
+│   ├── onboarding-store.ts   # Zustand efímero (respuestas onboarding)
+│   ├── auth-store.ts · validation.ts · pillars.ts · types.ts · toast-store.ts · utils.ts
+└── middleware.ts             # gating de rutas por sesión + redirect "/" → /home con sesión
 ```
 
 ## Auth (resumen)
