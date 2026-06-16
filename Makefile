@@ -55,6 +55,9 @@ lint-frontend: ## Lint frontend
 seed: ## Seed datos de demo
 	docker compose exec backend python -m hg.scripts.seed
 
+seed-catalog: ## Seed del catálogo PMM (6 paths + cursos desde manifests)
+	docker compose exec backend python -m hg.scripts.seed_catalog
+
 clean: ## Limpiar volúmenes y artefactos
 	docker compose down -v
 	rm -rf apps/frontend/.next apps/frontend/node_modules
