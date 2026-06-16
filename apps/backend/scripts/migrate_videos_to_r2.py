@@ -157,8 +157,9 @@ def _transcode_hls(src: Path, out_dir: Path) -> None:
         [
             "ffmpeg", "-y", "-i", str(src),
             "-filter_complex",
+            # concatenación explícita: es un único valor de filter_complex.
             "[0:v]split=3[v1][v2][v3];[v1]scale=854:480[v1out];"
-            "[v2]scale=1280:720[v2out];[v3]scale=1920:1080[v3out]",
+            + "[v2]scale=1280:720[v2out];[v3]scale=1920:1080[v3out]",
             "-map", "[v1out]", "-c:v:0", "libx264", "-b:v:0", "800k",
             "-map", "[v2out]", "-c:v:1", "libx264", "-b:v:1", "1500k",
             "-map", "[v3out]", "-c:v:2", "libx264", "-b:v:2", "4000k",
