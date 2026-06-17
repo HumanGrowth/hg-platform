@@ -305,6 +305,35 @@ Competencias/Foundations (loading/error/empty). `/path` consume `GET /api/v1/pat
 `apiListCoursesForPath`. Tipo `CourseLevel` (L1..L6) distinto de `CareerLevel` del
 usuario.
 
+## Catálogo — Reproducción y progreso (B2-07)
+
+Ver [ADR-0008](adrs/ADR-0008-video-player-hls-and-progress-tracking.md).
+
+### Modelo `course_progress` (RLS por org)
+
+Un row por `(user_id, course_id)`: `last_position_seconds`, `watch_pct`,
+`is_completed`, `first_played_at`, `last_played_at`, `completed_at`. RLS
+`tenant_isolation` (ENABLE + FORCE) por `org_id`, como `users`/`user_sessions`.
+Migración **B2-02** (reemplaza el draft de B1-03). Enrollment y
+UserLearningProfile siguen draft (B2-08).
+
+### Endpoints (auth, RLS por org)
+
+| Método | Ruta | Notas |
+|---|---|---|
+| GET | `/api/v1/courses/{slug}` | curso + progreso del usuario (`null` si nunca lo abrió); 404 inactivo |
+| POST | `/api/v1/courses/{slug}/progress` | upsert `{position_seconds, watch_pct}`; `is_completed` al `watch_pct>=80`; `completed_at` inmutable |
+
+Corren bajo `hg_app` + contexto de org (RLS), no `hg_superadmin`.
+
+### Reproductor
+
+`VideoPlayer` (HLS.js, fallback nativo Safari) con controles custom del DS:
+play/seek/volumen/velocidad/calidad/fullscreen + teclado. `useThrottledProgress`
+guarda cada **5s** (+ flush inmediato en saltos >10pt y flush final en
+`pagehide`). Umbral de completion **80%** (placeholder pedagógico hasta B3-03).
+Ruta `/library/[slug]` con diálogo de reanudación.
+
 ## Decisiones bloqueantes activas
 
 | ID | Decisión | Bloquea |

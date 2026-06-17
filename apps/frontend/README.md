@@ -92,3 +92,10 @@ invitación (ver `docs/adrs/ADR-0002`).
   del `CareerLevel` del usuario), `CompetencyCode`, `CourseTrack`.
 - `components/library/CourseCard.tsx` + `components/path/PathLanes.tsx`.
 - Ver `docs/adrs/ADR-0007` y la sección "Catálogo PMM" de `docs/ARCHITECTURE.md`.
+
+### Reproductor (B2-07)
+- Ruta `/library/[slug]`: detalle del curso + `VideoPlayer` (HLS.js, dep
+  `hls.js`) con controles custom del DS + teclado.
+- `apiGetCourse(slug)` / `apiSaveProgress(slug, payload)`; `useThrottledProgress`
+  guarda progreso cada 5s. Reanudación + marca completo al 80%.
+- Ver `docs/adrs/ADR-0008`.
