@@ -7,7 +7,10 @@ import type {
   AuthResult,
   CareerPath,
   Course,
+  CourseDetail,
   CourseFilters,
+  CourseProgress,
+  CourseProgressPayload,
   InviteInfo,
   Me,
   Org,
@@ -194,4 +197,17 @@ export const apiListCoursesForPath = async (
 ): Promise<{ items: Course[]; total: number }> => {
   const res = await backend.get(`/api/v1/paths/${pathCode}/courses`, { params: filters });
   return res.data as { items: Course[]; total: number };
+};
+
+export const apiGetCourse = async (slug: string): Promise<CourseDetail> => {
+  const res = await backend.get<CourseDetail>(`/api/v1/courses/${slug}`);
+  return res.data;
+};
+
+export const apiSaveProgress = async (
+  slug: string,
+  payload: CourseProgressPayload,
+): Promise<CourseProgress> => {
+  const res = await backend.post<CourseProgress>(`/api/v1/courses/${slug}/progress`, payload);
+  return res.data;
 };

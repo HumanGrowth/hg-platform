@@ -2,20 +2,21 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { Play } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";
 import type { Course } from "@/lib/types";
 import { formatDuration } from "@/lib/utils";
 
-export function CourseCard({ course, onClick }: { course: Course; onClick?: () => void }) {
+export function CourseCard({ course }: { course: Course }) {
   const [imgOk, setImgOk] = React.useState(true);
   const showImg = Boolean(course.thumbnail_url) && imgOk;
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <Link
+      href={`/library/${course.slug}` as Route}
       className="group flex flex-col overflow-hidden rounded-lg border border-border bg-bg-raised text-left transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange"
     >
       <div className="relative aspect-video w-full bg-bg-sunken">
@@ -42,6 +43,6 @@ export function CourseCard({ course, onClick }: { course: Course; onClick?: () =
           {course.competency_code && <Badge>{course.competency_code}</Badge>}
         </div>
       </div>
-    </button>
+    </Link>
   );
 }

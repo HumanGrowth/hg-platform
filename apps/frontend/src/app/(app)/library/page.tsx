@@ -10,7 +10,6 @@ import { Chip } from "@/components/ui/chip";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { apiListCourses } from "@/lib/api";
-import { toast } from "@/lib/toast-store";
 import type { CompetencyCode, Course, CourseLevel } from "@/lib/types";
 
 const LEVELS: CourseLevel[] = ["L1", "L2", "L3", "L4", "L5", "L6"];
@@ -142,11 +141,7 @@ export default function LibraryPage() {
           {status === "ok" && courses.length > 0 && (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {courses.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  course={course}
-                  onClick={() => toast("Reproductor próximamente (B2-07)")}
-                />
+                <CourseCard key={course.id} course={course} />
               ))}
             </div>
           )}

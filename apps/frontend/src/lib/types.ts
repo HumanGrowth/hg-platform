@@ -119,3 +119,19 @@ export interface CourseFilters {
   limit?: number;
   offset?: number;
 }
+
+export interface CourseProgress {
+  last_position_seconds: number;
+  watch_pct: number;
+  is_completed: boolean;
+  completed_at: string | null;
+}
+
+export interface CourseDetail extends Course {
+  progress: CourseProgress | null;
+}
+
+export interface CourseProgressPayload {
+  position_seconds: number;
+  watch_pct: number;
+}
