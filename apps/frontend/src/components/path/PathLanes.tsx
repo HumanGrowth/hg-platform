@@ -6,7 +6,6 @@ import * as React from "react";
 import { CourseCard } from "@/components/library/CourseCard";
 import { apiListCoursesForPath, apiListPaths } from "@/lib/api";
 import { PILLARS } from "@/lib/pillars";
-import { toast } from "@/lib/toast-store";
 import type { CareerPath, Course } from "@/lib/types";
 
 const DOT: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id, p.dot]));
@@ -82,11 +81,7 @@ export function PathLanes() {
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {courses.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  course={course}
-                  onClick={() => toast("Reproductor próximamente (B2-07)")}
-                />
+                <CourseCard key={course.id} course={course} />
               ))}
             </div>
           )}
