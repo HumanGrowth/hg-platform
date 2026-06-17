@@ -6,8 +6,8 @@
     "competency_code": "C2",
     "track": "competency",
     "duration_seconds": 148,
-    "hls_master_url": "https://c852df31c41a75e6d2c3061a3a24c1bf.r2.cloudflarestorage.com/videos/L1/C2/l1-c2-l1-p2-002/master.m3u8",
-    "thumbnail_url": "https://c852df31c41a75e6d2c3061a3a24c1bf.r2.cloudflarestorage.com/videos/L1/C2/l1-c2-l1-p2-002/thumbnail.jpg",
+    "hls_master_url": "https://cdn.humangrowth.io/videos/L1/C2/l1-c2-l1-p2-002/master.m3u8",
+    "thumbnail_url": "https://cdn.humangrowth.io/videos/L1/C2/l1-c2-l1-p2-002/thumbnail.jpg",
     "video_url": null,
     "order_index": 1,
     "is_active": true
@@ -19,8 +19,8 @@
     "competency_code": "C1",
     "track": "competency",
     "duration_seconds": 136,
-    "hls_master_url": "https://c852df31c41a75e6d2c3061a3a24c1bf.r2.cloudflarestorage.com/videos/L1/C1/l1-c1-l1-p1-002/master.m3u8",
-    "thumbnail_url": "https://c852df31c41a75e6d2c3061a3a24c1bf.r2.cloudflarestorage.com/videos/L1/C1/l1-c1-l1-p1-002/thumbnail.jpg",
+    "hls_master_url": "https://cdn.humangrowth.io/videos/L1/C1/l1-c1-l1-p1-002/master.m3u8",
+    "thumbnail_url": "https://cdn.humangrowth.io/videos/L1/C1/l1-c1-l1-p1-002/thumbnail.jpg",
     "video_url": null,
     "order_index": 1,
     "is_active": true
@@ -32,8 +32,8 @@
     "competency_code": "C1",
     "track": "competency",
     "duration_seconds": 148,
-    "hls_master_url": "https://c852df31c41a75e6d2c3061a3a24c1bf.r2.cloudflarestorage.com/videos/L1/C1/l1-c1-l1-p1-001/master.m3u8",
-    "thumbnail_url": "https://c852df31c41a75e6d2c3061a3a24c1bf.r2.cloudflarestorage.com/videos/L1/C1/l1-c1-l1-p1-001/thumbnail.jpg",
+    "hls_master_url": "https://cdn.humangrowth.io/videos/L1/C1/l1-c1-l1-p1-001/master.m3u8",
+    "thumbnail_url": "https://cdn.humangrowth.io/videos/L1/C1/l1-c1-l1-p1-001/thumbnail.jpg",
     "video_url": null,
     "order_index": 2,
     "is_active": true
