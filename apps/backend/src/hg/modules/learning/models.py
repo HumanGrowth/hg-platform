@@ -140,9 +140,13 @@ class Enrollment(Base):
 
 
 class CourseProgress(Base):
-    """# ⚠️ DRAFT — depende de B2-08. Per-user video watch progress (Celery).
+    """Progreso de visualización de un usuario en un curso.
 
-    En metadata pero NO la crea la migración B2-01; se materializa en B2-08."""
+    Un row por (user_id, course_id). Se inserta al primer play y se actualiza
+    en cada heartbeat. ``is_completed=True`` cuando ``watch_pct >= 80`` (umbral
+    fijo del MVP — revisable cuando los coaches firmen criterios pedagógicos).
+    Por usuario x org → RLS estándar (tenant_isolation).
+    """
 
     __tablename__ = "course_progress"
     __table_args__ = (UniqueConstraint("user_id", "course_id", name="uq_progress_user_course"),)
@@ -155,15 +159,18 @@ class CourseProgress(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     course_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    last_position_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     watch_pct: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
-    last_position_sec: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    # Marked completed when watch_pct >= 0.80
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    is_completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    first_played_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    last_played_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     course: Mapped[Course] = relationship("Course", back_populates="progress_records", lazy="raise")
 
