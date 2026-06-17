@@ -2,7 +2,17 @@ import axios, { type AxiosInstance } from "axios";
 
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
-import type { AdminUser, AuthResult, InviteInfo, Me, Org, PaginatedUsers } from "@/lib/types";
+import type {
+  AdminUser,
+  AuthResult,
+  CareerPath,
+  Course,
+  CourseFilters,
+  InviteInfo,
+  Me,
+  Org,
+  PaginatedUsers,
+} from "@/lib/types";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
@@ -162,4 +172,26 @@ export const apiSubmitInquiry = async (payload: ContactInquiryPayload): Promise<
     const data = await res.json().catch(() => null);
     throw new ApiError(data?.detail ?? "request failed", res.status);
   }
+};
+
+// ─────────────── Catálogo PMM (paths + courses, auth Bearer) ───────────────
+
+export const apiListPaths = async (): Promise<CareerPath[]> => {
+  const res = await backend.get<CareerPath[]>("/api/v1/paths");
+  return res.data;
+};
+
+export const apiListCourses = async (
+  filters?: CourseFilters,
+): Promise<{ items: Course[]; total: number }> => {
+  const res = await backend.get("/api/v1/courses", { params: filters });
+  return res.data as { items: Course[]; total: number };
+};
+
+export const apiListCoursesForPath = async (
+  pathCode: string,
+  filters?: Omit<CourseFilters, "track">,
+): Promise<{ items: Course[]; total: number }> => {
+  const res = await backend.get(`/api/v1/paths/${pathCode}/courses`, { params: filters });
+  return res.data as { items: Course[]; total: number };
 };

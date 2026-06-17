@@ -258,6 +258,53 @@ Módulo `marketing`: `POST /api/v1/contact/inquiry` (público) + `GET
 /api/v1/admin/contact/inquiries` (superadmin). Tabla `contact_inquiries` sin
 `org_id`/RLS (leads). Migración B1-13. Email real (Resend) pendiente en B3-05.
 
+## Catálogo PMM (B1-09 + B2-06)
+
+Ver [ADR-0007](adrs/ADR-0007-catalog-model-pmm-as-p1-subset.md). El catálogo del
+Drive es PMM v3 y cubre sólo el pilar **P1 Carrera**; los otros 5 pilares aún no
+tienen video.
+
+### Modelo (módulo `learning`, **global**, sin RLS)
+
+- `CareerPath` — los 6 pilares del Marco Teórico (`code` P1..P6).
+- `Course` — bajo P1, sub-clasificado por `career_level` (enum `career_level_pmm`
+  L1..L6), `competency_code` (C1..C5, null para foundations) y `track`
+  (`competency` | `foundation_ai` | `foundation_eth` | `foundation_specifics`).
+  Campos de media: `video_url` (null), `hls_master_url` (.m3u8), `thumbnail_url`,
+  `duration_seconds`. Único por `slug`.
+- `Enrollment`/`CourseProgress`/`UserLearningProfile`: **draft hasta B2-08**.
+- Migración **B2-01** crea `career_paths` + `courses` (+ enums, grants a
+  `hg_app`/`hg_superadmin`) y extiende `users.career_level` con L5/L6.
+
+### Endpoints (auth, `Cache-Control: public, max-age=60`)
+
+| Método | Ruta | Notas |
+|---|---|---|
+| GET | `/api/v1/paths` | 6 paths ordenados por `order_index` |
+| GET | `/api/v1/paths/{code}` | 404 si no existe |
+| GET | `/api/v1/paths/{code}/courses` | filtros `level`, `competency` |
+| GET | `/api/v1/courses` | filtros `level`, `competency`, `track`, `q` (ILIKE título) |
+
+### Estructura del Drive → flujo de migración
+
+Raíz `1F-_Imak…` → carpetas de nivel (L1/L2/L3 "Done"). Cada nivel → carpetas de
+competencia (`P1..P5` → `C1..C5`) o foundation (`FND - AI/ETH/Specifics`) →
+MP4 (a veces anidados en "1. Video Creation").
+
+`scripts/migrate_videos_to_r2.py` recorre el Drive (API), transcodea a HLS +
+thumbnail con ffmpeg, sube a R2 y escribe `scripts/manifest/{L1,L2,L3}.json`
+(idempotente, `--dry-run` sin creds R2). `hg.scripts.seed_catalog` (`make
+seed-catalog`) upserta los 6 paths + cursos desde los manifests bajo P1. Hoy sólo
+L1 tiene renders (C1/C2); L2/L3 pendientes de producción.
+
+### Frontend
+
+`/library` consume `GET /api/v1/courses` con filtros nivel/competencia + switch
+Competencias/Foundations (loading/error/empty). `/path` consume `GET /api/v1/paths`
++ top-3 cursos por carril. Cliente: `apiListPaths`, `apiListCourses`,
+`apiListCoursesForPath`. Tipo `CourseLevel` (L1..L6) distinto de `CareerLevel` del
+usuario.
+
 ## Decisiones bloqueantes activas
 
 | ID | Decisión | Bloquea |

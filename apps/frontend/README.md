@@ -81,3 +81,14 @@ Access token en memoria (Zustand); refresh token en cookie **httpOnly** gestiona
 por `/api/auth/*`. `middleware.ts` gatea por cookie; `SessionGate` rehidrata el
 access token; `(admin)` exige rol `superadmin`. Sin self-service de orgs — solo
 invitación (ver `docs/adrs/ADR-0002`).
+
+## Catálogo (B2-09)
+`/library` y `/path` consumen el catálogo PMM real (no mock):
+- Cliente en `lib/api.ts`: `apiListPaths()`, `apiListCourses(filters)`,
+  `apiListCoursesForPath(code, filters)`.
+- Endpoints: `GET /api/v1/paths`, `/paths/{code}`, `/paths/{code}/courses`,
+  `/courses` (filtros `level`/`competency`/`track`/`q`).
+- Tipos en `types.ts`: `CareerPath`, `Course`, `CourseLevel` (L1..L6, **distinto**
+  del `CareerLevel` del usuario), `CompetencyCode`, `CourseTrack`.
+- `components/library/CourseCard.tsx` + `components/path/PathLanes.tsx`.
+- Ver `docs/adrs/ADR-0007` y la sección "Catálogo PMM" de `docs/ARCHITECTURE.md`.

@@ -1,23 +1,20 @@
-"""Learning models: CareerPath, Course, Enrollment, CourseProgress, UserLearningProfile.
+"""Learning models — catálogo de cursos PMM v3 + perfiles de aprendizaje.
 
-⚠️ DRAFT — generado adelantando trabajo. Depende de:
-  - DEC-01 (algoritmo de scoring)
-  - DEC-02 (reglas de recomendación de path)
-  - DEC-05 (contenido de escenarios situacionales)
-  - DEC-07 (criterio de pilar completado)
-
-Revisar y firmar contra el doc final de decisiones antes de generar la
-migración productiva. Hoy se incluyen en metadata para que Alembic los
-detecte, pero NO deberían ejecutarse cambios destructivos hasta validar.
+Schema productivo. El catálogo es **global al producto** (no multi-tenant):
+los cursos son contenido HG, no por organización. Por eso `CareerPath` y
+`Course` no llevan `org_id` ni RLS. `Enrollment`, `CourseProgress` y
+`UserLearningProfile` SÍ son por usuario/org y se mantienen draft hasta B2-08.
 """
 from __future__ import annotations
 
+import enum
 import uuid
 from datetime import datetime
 
 from sqlalchemy import (
     Boolean,
     DateTime,
+    Enum,
     Float,
     ForeignKey,
     Integer,
@@ -29,6 +26,30 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hg.db import Base
+
+
+class CareerLevel(str, enum.Enum):
+    L1 = "L1"  # Foundation (Junior)
+    L2 = "L2"  # Developing (Coordinator/Analyst)
+    L3 = "L3"  # Applying (Senior)
+    L4 = "L4"  # Enabling (Lead/Supervisor)
+    L5 = "L5"  # Advising (Manager/Sr.Manager)
+    L6 = "L6"  # Directing (Director)
+
+
+class CompetencyCode(str, enum.Enum):
+    C1 = "C1"  # Adaptabilidad y Aprendizaje
+    C2 = "C2"  # Excelencia Operativa y Colaboración
+    C3 = "C3"  # Expertise y Pensamiento Estratégico
+    C4 = "C4"  # Comunicación e Influencia
+    C5 = "C5"  # Inteligencia Emocional y Social
+
+
+class CourseTrack(str, enum.Enum):
+    competency = "competency"  # Course típico (C1..C5 x L1..L6)
+    foundation_ai = "foundation_ai"  # FND - AI literacy
+    foundation_eth = "foundation_eth"  # FND - Ethics
+    foundation_specifics = "foundation_specifics"  # FND - Specifics
 
 
 class CareerPath(Base):
@@ -59,12 +80,28 @@ class Course(Base):
         UUID(as_uuid=True), ForeignKey("career_paths.id", ondelete="CASCADE"), nullable=False, index=True
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
+    slug: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     description: Mapped[str | None] = mapped_column(String(2000))
-    video_url: Mapped[str] = mapped_column(String(2048), nullable=False)  # Cloudflare R2 HLS
+    # video_url nullable hasta migrar el MP4 original; el player usa hls_master_url.
+    video_url: Mapped[str | None] = mapped_column(String(2048))
+    hls_master_url: Mapped[str | None] = mapped_column(String(2048))  # .m3u8
     thumbnail_url: Mapped[str | None] = mapped_column(String(2048))
     duration_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     order_index: Mapped[int] = mapped_column(Integer, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Sub-clasificación PMM v3 (todo el catálogo vive bajo P1 Carrera por ahora).
+    career_level: Mapped[CareerLevel] = mapped_column(
+        Enum(CareerLevel, name="career_level_pmm"), nullable=False, index=True
+    )
+    competency_code: Mapped[CompetencyCode | None] = mapped_column(
+        Enum(CompetencyCode, name="competency_code"), nullable=True, index=True
+    )
+    track: Mapped[CourseTrack] = mapped_column(
+        Enum(CourseTrack, name="course_track"),
+        nullable=False,
+        default=CourseTrack.competency,
+        index=True,
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     career_path: Mapped[CareerPath] = relationship("CareerPath", back_populates="courses", lazy="raise")
@@ -74,7 +111,9 @@ class Course(Base):
 
 
 class Enrollment(Base):
-    """User enrolled (or assigned) to a career path."""
+    """# ⚠️ DRAFT — depende de B2-08. User enrolled (or assigned) to a career path.
+
+    En metadata pero NO la crea la migración B2-01; se materializa en B2-08."""
 
     __tablename__ = "enrollments"
     __table_args__ = (UniqueConstraint("user_id", "career_path_id", name="uq_enrollment_user_path"),)
@@ -101,7 +140,9 @@ class Enrollment(Base):
 
 
 class CourseProgress(Base):
-    """Per-user video watch progress. Updated asynchronously via Celery."""
+    """# ⚠️ DRAFT — depende de B2-08. Per-user video watch progress (Celery).
+
+    En metadata pero NO la crea la migración B2-01; se materializa en B2-08."""
 
     __tablename__ = "course_progress"
     __table_args__ = (UniqueConstraint("user_id", "course_id", name="uq_progress_user_course"),)
@@ -128,7 +169,9 @@ class CourseProgress(Base):
 
 
 class UserLearningProfile(Base):
-    """Aggregated learning state for a user: pillar scores + current path."""
+    """# ⚠️ DRAFT — depende de B2-08. Aggregated learning state per user.
+
+    En metadata pero NO la crea la migración B2-01; se materializa en B2-08."""
 
     __tablename__ = "user_learning_profiles"
 
