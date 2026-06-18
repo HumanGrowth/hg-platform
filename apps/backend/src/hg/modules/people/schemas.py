@@ -45,3 +45,32 @@ class TeamMemberDetailOut(TeamMemberOut):
     courses_in_progress_list: list[CourseProgressDetailOut]  # top 10 recientes
     courses_completed_list: list[CourseProgressDetailOut]  # top 10 recientes
     pillar_completion_rate: dict[str, float]  # {"P1": 0.25, ...}
+
+
+class PillarMetric(BaseModel):
+    completion_rate: float
+    active_users: int
+    total_courses_started: int
+
+
+class TopPerformerOut(BaseModel):
+    user_id: UUID
+    full_name: str
+    courses_completed: int
+
+
+class OrgMetricsOut(BaseModel):
+    # Adopción
+    total_licenses: int
+    active_licenses: int  # users con last_active en últimos 30d
+    adoption_rate: float
+    # Engagement
+    avg_watch_minutes_per_user: float
+    total_courses_completed: int
+    completion_rate_global: float  # completados / iniciados
+    # Por pilar / nivel
+    by_pillar: dict[str, PillarMetric]
+    by_career_level: dict[str, int]
+    # Top + inactivos
+    top_performers: list[TopPerformerOut]
+    inactive_users_count: int

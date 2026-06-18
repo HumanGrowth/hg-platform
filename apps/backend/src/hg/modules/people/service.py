@@ -77,6 +77,33 @@ def activity_by_users(db: Session, user_ids: list[UUID]) -> dict[UUID, ActivityA
     return aggs
 
 
+def org_pillar_metrics(
+    db: Session, user_ids: list[UUID]
+) -> dict[UUID, tuple[int, int, int]]:
+    """Por career_path_id (de los cursos): (started, completed, active_users_30d).
+
+    started = progress con watch_pct>0; active_users = usuarios distintos con
+    last_played_at en la ventana de 30d.
+    """
+    if not user_ids:
+        return {}
+    cutoff = now_utc() - timedelta(days=ACTIVE_WINDOW_DAYS)
+    rows = db.execute(
+        select(
+            Course.career_path_id,
+            func.count().filter(CourseProgress.watch_pct > 0),
+            func.count().filter(CourseProgress.is_completed.is_(True)),
+            func.count(func.distinct(CourseProgress.user_id)).filter(
+                CourseProgress.last_played_at >= cutoff
+            ),
+        )
+        .join(Course, Course.id == CourseProgress.course_id)
+        .where(CourseProgress.user_id.in_(user_ids))
+        .group_by(Course.career_path_id)
+    ).all()
+    return {pid: (int(started), int(completed), int(active)) for pid, started, completed, active in rows}
+
+
 def pillar_completion_rate(db: Session, user_id: UUID) -> dict[str, float]:
     """Por cada pilar P1..P6: cursos completados del path / cursos activos del path.
 

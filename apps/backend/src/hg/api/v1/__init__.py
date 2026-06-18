@@ -8,6 +8,7 @@ from hg.modules.identity.router import router as identity_router
 from hg.modules.learning.router import router as learning_router
 from hg.modules.marketing.router import admin_router as marketing_admin_router
 from hg.modules.marketing.router import public_router as marketing_public_router
+from hg.modules.people.router import admin_router as people_admin_router
 from hg.modules.people.router import manager_router
 
 router = APIRouter()
@@ -27,3 +28,5 @@ router.include_router(marketing_admin_router, prefix="/admin", tags=["marketing"
 router.include_router(learning_router, tags=["catalog"])
 # Manager: /manager/me/team + /manager/users/{id}/... (B4-A)
 router.include_router(manager_router, prefix="/manager", tags=["manager"])
+# RRHH: /admin/org/metrics + /admin/org/users/export.csv (B4-A)
+router.include_router(people_admin_router, prefix="/admin", tags=["admin"])

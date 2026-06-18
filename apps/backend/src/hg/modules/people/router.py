@@ -5,13 +5,17 @@
 """
 from __future__ import annotations
 
+import csv
+import io
+from collections import Counter
+from datetime import timedelta
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from hg.core.deps import get_current_user
+from hg.core.deps import get_current_user, get_db_as_superadmin, require_role
 from hg.db import get_db
 from hg.modules.identity.models import User, UserRole
 from hg.modules.learning import enrollments_service
@@ -20,13 +24,24 @@ from hg.modules.learning.models import CareerPath, Course, CourseProgress, Enrol
 from hg.modules.learning.schemas import EnrollmentIn, EnrollmentOut
 from hg.modules.people.schemas import (
     CourseProgressDetailOut,
+    OrgMetricsOut,
+    PillarMetric,
     TeamMemberDetailOut,
     TeamMemberOut,
     TeamResponse,
+    TopPerformerOut,
 )
-from hg.modules.people.service import ActivityAgg, activity_by_users, pillar_completion_rate
+from hg.modules.people.service import (
+    ACTIVE_WINDOW_DAYS,
+    ActivityAgg,
+    activity_by_users,
+    now_utc,
+    org_pillar_metrics,
+    pillar_completion_rate,
+)
 
 manager_router = APIRouter()
+admin_router = APIRouter()
 
 _ADMIN_ROLES = (UserRole.admin, UserRole.superadmin)
 
@@ -218,3 +233,109 @@ def unassign_path_from_user(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="invalid career_path_code"
         ) from exc
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ─────────────────────────── RRHH / Org metrics ───────────────────────────
+# Corren bajo hg_superadmin (BYPASSRLS) con filtro explícito por org, para que
+# superadmin pueda inspeccionar cualquier org via ?org_id=. Admin → su propia org.
+
+_CSV_HEADERS = [
+    "email", "full_name", "role", "manager_email", "career_level",
+    "active_enrollments", "courses_in_progress", "courses_completed",
+    "last_active_at", "total_watch_minutes",
+]
+
+
+def _resolve_org(current_user: User, org_id: UUID | None) -> UUID:
+    if current_user.role == UserRole.superadmin and org_id is not None:
+        return org_id
+    return current_user.org_id
+
+
+@admin_router.get("/org/metrics", response_model=OrgMetricsOut)
+def org_metrics(
+    org_id: UUID | None = Query(None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    current_user: User = Depends(require_role("admin", "superadmin")),
+) -> OrgMetricsOut:
+    target_org = _resolve_org(current_user, org_id)
+    users = list(db.scalars(select(User).where(User.org_id == target_org)).all())
+    uids = [u.id for u in users]
+    aggs = activity_by_users(db, uids)
+    total = len(users)
+    cutoff30 = now_utc() - timedelta(days=ACTIVE_WINDOW_DAYS)
+
+    active = sum(
+        1
+        for u in users
+        if (la := aggs[u.id].last_active_at) is not None and la >= cutoff30
+    )
+    inactive = sum(1 for u in users if aggs[u.id].is_inactive)
+    total_completed = sum(aggs[u.id].courses_completed for u in users)
+    total_started = sum(
+        aggs[u.id].courses_in_progress + aggs[u.id].courses_completed for u in users
+    )
+    total_watch = sum(aggs[u.id].total_watch_minutes for u in users)
+
+    pillar_raw = org_pillar_metrics(db, uids)
+    by_pillar: dict[str, PillarMetric] = {}
+    for path in db.scalars(select(CareerPath).order_by(CareerPath.order_index)).all():
+        started, completed, active_u = pillar_raw.get(path.id, (0, 0, 0))
+        by_pillar[path.code] = PillarMetric(
+            completion_rate=round(completed / started, 4) if started else 0.0,
+            active_users=active_u,
+            total_courses_started=started,
+        )
+
+    by_level = Counter(u.career_level.value for u in users if u.career_level)
+    top = sorted(users, key=lambda u: aggs[u.id].courses_completed, reverse=True)
+    top_performers = [
+        TopPerformerOut(user_id=u.id, full_name=u.full_name, courses_completed=aggs[u.id].courses_completed)
+        for u in top[:5]
+        if aggs[u.id].courses_completed > 0
+    ]
+
+    return OrgMetricsOut(
+        total_licenses=total,
+        active_licenses=active,
+        adoption_rate=round(active / total, 4) if total else 0.0,
+        avg_watch_minutes_per_user=round(total_watch / total, 2) if total else 0.0,
+        total_courses_completed=total_completed,
+        completion_rate_global=round(total_completed / total_started, 4) if total_started else 0.0,
+        by_pillar=by_pillar,
+        by_career_level=dict(by_level),
+        top_performers=top_performers,
+        inactive_users_count=inactive,
+    )
+
+
+@admin_router.get("/org/users/export.csv")
+def export_users_csv(
+    org_id: UUID | None = Query(None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    current_user: User = Depends(require_role("admin", "superadmin")),
+) -> Response:
+    target_org = _resolve_org(current_user, org_id)
+    users = list(db.scalars(select(User).where(User.org_id == target_org)).all())
+    aggs = activity_by_users(db, [u.id for u in users])
+    by_id = {u.id: u for u in users}
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(_CSV_HEADERS)
+    for u in users:
+        mgr = by_id.get(u.manager_id) if u.manager_id else None
+        a = aggs[u.id]
+        writer.writerow([
+            u.email, u.full_name, u.role.value,
+            mgr.email if mgr else "",
+            u.career_level.value if u.career_level else "",
+            a.active_enrollments, a.courses_in_progress, a.courses_completed,
+            a.last_active_at.isoformat() if a.last_active_at else "",
+            a.total_watch_minutes,
+        ])
+    return Response(
+        content=buf.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=users.csv"},
+    )
