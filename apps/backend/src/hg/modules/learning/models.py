@@ -111,9 +111,13 @@ class Course(Base):
 
 
 class Enrollment(Base):
-    """# ⚠️ DRAFT — depende de B2-08. User enrolled (or assigned) to a career path.
+    """Usuario inscrito (o asignado) a un CareerPath.
 
-    En metadata pero NO la crea la migración B2-01; se materializa en B2-08."""
+    Permite múltiples enrollments activos por usuario (un usuario puede estar
+    siguiendo P1 y P2 simultáneamente). Asignación manual por manager / admin /
+    superadmin. Cuando llegue B2-05 (recomendación automática), se inserta
+    también con ``assigned_by_user_id=NULL`` y ``source='auto'``. RLS por org.
+    """
 
     __tablename__ = "enrollments"
     __table_args__ = (UniqueConstraint("user_id", "career_path_id", name="uq_enrollment_user_path"),)
@@ -126,12 +130,16 @@ class Enrollment(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     career_path_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("career_paths.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True), ForeignKey("career_paths.id", ondelete="CASCADE"), nullable=False, index=True
     )
     assigned_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
     )
-    enrolled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    source: Mapped[str] = mapped_column(String(20), nullable=False, default="manual")  # manual | auto
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
+    enrolled_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     career_path: Mapped[CareerPath] = relationship(
