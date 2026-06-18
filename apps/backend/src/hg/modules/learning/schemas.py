@@ -57,3 +57,23 @@ class CourseDetailOut(CourseOut):
 class CourseProgressIn(BaseModel):
     position_seconds: int = Field(ge=0)
     watch_pct: float = Field(ge=0.0, le=100.0)
+
+
+class EnrollmentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    user_id: UUID
+    career_path_id: UUID
+    career_path_code: str  # P1..P6 (denormalizado)
+    career_path_name: str
+    assigned_by_user_id: UUID | None
+    assigned_by_name: str | None  # NULL si auto / asignador borrado
+    source: str
+    is_active: bool
+    enrolled_at: datetime
+    completed_at: datetime | None
+
+
+class EnrollmentIn(BaseModel):
+    career_path_code: str  # P1..P6 — más usable que pasar UUID
