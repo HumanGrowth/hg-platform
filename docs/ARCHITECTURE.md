@@ -364,6 +364,28 @@ para adopción. Completion por pilar = cursos completados del path / cursos acti
 del path. **Sin Celery beat**: se agrega en B3-05 (Resend) + snapshot materializado
 en B4-07. Los scores por pilar quedan placeholder hasta el motor B2-02/03.
 
+## Frontend Manager + RRHH (B4-B)
+
+100% frontend sobre los endpoints B4-A.
+
+- **Nav adaptativa por rol** (`components/nav/items.ts`): `navItemsForRole` +
+  `bottomNavItemsForRole`. "Mi equipo" (`/team`) sólo para manager/admin/superadmin;
+  BottomNav mantiene máximo 4 (manager → Perfil pasa al menú del avatar).
+- **`/team`** (`(app)`): dashboard del manager — `apiGetMyTeam` con filtros
+  (Todos/Solo inactivos) + sort (nombre/última actividad/completion) + paginación;
+  alerta de inactivos. `TeamMemberCard` + `formatRelativeTime`.
+- **`/team/[id]`**: detalle del reporte — barras de completion por pilar
+  (`bg-pillar-pN`), paths asignados con unenroll (confirm Dialog), listas de cursos,
+  placeholder de assessments. `AssignPathDialog` (grid 6 pilares) para asignar.
+- **`/admin/org`** (`(admin)`): dashboard RRHH — KPIs (adopción/completion/activos/
+  inactivos), heat strip por pilar, distribución por nivel, top performers, y
+  descarga CSV (`apiExportOrgUsersCsv`: fetch + Bearer + blob). Item "Dashboard org"
+  en el sidebar admin.
+- **CSV con auth**: el endpoint requiere Bearer, así que el download usa `fetch` +
+  `blob` + `<a download>` (no link directo).
+- ⚠️ `AdminGate` es superadmin-only; exponer `/admin/org` a org-admins (que el
+  backend ya permite) requiere un gate por-ruta — follow-up.
+
 ## Decisiones bloqueantes activas
 
 | ID | Decisión | Bloquea |

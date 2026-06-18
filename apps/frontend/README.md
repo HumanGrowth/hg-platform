@@ -99,3 +99,12 @@ invitación (ver `docs/adrs/ADR-0002`).
 - `apiGetCourse(slug)` / `apiSaveProgress(slug, payload)`; `useThrottledProgress`
   guarda progreso cada 5s. Reanudación + marca completo al 80%.
 - Ver `docs/adrs/ADR-0008`.
+
+### Manager & RRHH (B4-B)
+- Rutas: `/team` (dashboard manager), `/team/[id]` (detalle + asignar paths),
+  `/admin/org` (RRHH KPIs + CSV). Nav adaptativa por rol ("Mi equipo" para
+  manager/admin/superadmin).
+- Consume `/api/v1/manager/*` y `/api/v1/admin/org/*` (cliente: `apiGetMyTeam`,
+  `apiGetTeamMemberDetail`, `apiAssignPath`, `apiUnassignPath`, `apiGetOrgMetrics`,
+  `apiExportOrgUsersCsv`). `AssignPathDialog` + `formatRelativeTime`.
+- Ver ADR-0009 y la sección "Manager & RRHH" de `docs/ARCHITECTURE.md`.
