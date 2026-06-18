@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { ArrowLeft, Building2 } from "lucide-react";
+import { ArrowLeft, Building2, LineChart } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -23,6 +23,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <div>
                 <Eyebrow className="mb-3">Panel HG</Eyebrow>
                 <nav className="flex flex-col gap-1">
+                  <Link
+                    href={"/admin/org" as Route}
+                    className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
+                  >
+                    <LineChart size={16} strokeWidth={1.75} />
+                    Dashboard org
+                  </Link>
                   <Link
                     href={"/admin/orgs" as Route}
                     className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
