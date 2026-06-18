@@ -94,17 +94,10 @@ def _enrollment_out(db: Session, e: Enrollment) -> EnrollmentOut:
 
 def _team_members(db: Session, current_user: User) -> list[User]:
     """Reportes que el usuario puede ver. Admin/superadmin → toda la org;
-    manager → reportes directos. Sin reportes y no admin → 403."""
+    cualquier otro → sus reportes directos (lista vacía si no tiene)."""
     if current_user.role in _ADMIN_ROLES:
         return list(db.scalars(select(User).where(User.id != current_user.id)).all())
-    reports = list(
-        db.scalars(select(User).where(User.manager_id == current_user.id)).all()
-    )
-    if not reports:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="no direct reports"
-        )
-    return reports
+    return list(db.scalars(select(User).where(User.manager_id == current_user.id)).all())
 
 
 @manager_router.get("/me/team", response_model=TeamResponse)
