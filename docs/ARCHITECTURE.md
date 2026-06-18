@@ -334,6 +334,36 @@ guarda cada **5s** (+ flush inmediato en saltos >10pt y flush final en
 `pagehide`). Umbral de completion **80%** (placeholder pedagógico hasta B3-03).
 Ruta `/library/[slug]` con diálogo de reanudación.
 
+## Manager & RRHH (B4-A)
+
+Ver [ADR-0009](adrs/ADR-0009-manager-rrhh-on-demand-aggregations.md). 100% backend
+(el frontend lo hace B4-B).
+
+### Modelo `Enrollment` (RLS por org)
+
+`user → CareerPath` asignado. 1 usuario → N paths activos (`source` manual|auto,
+`is_active`). Migración **B2-03** (reemplaza el draft de B1-03) + RLS
+`tenant_isolation`. Asignación manual por manager/admin/superadmin.
+
+### Endpoints
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| GET | `/api/v1/manager/me/team` | reportes directos; admin/superadmin → toda la org |
+| GET | `/api/v1/manager/users/{id}/detail` | reporte directo o admin/superadmin |
+| POST | `/api/v1/manager/users/{id}/enroll` | idem (asigna path; 422 si code inválido) |
+| DELETE | `/api/v1/manager/users/{id}/enroll/{path_code}` | idem (soft delete) |
+| GET | `/api/v1/admin/org/metrics` | admin (su org) · superadmin (`?org_id=`) |
+| GET | `/api/v1/admin/org/users/export.csv` | idem (CSV para Excel) |
+
+### Cálculo on-demand
+
+Actividad y completion se agregan en cada request desde `course_progress` +
+`enrollments` (ADR-0009). `last_played_at > now-7d` = activo; `> now-30d` cuenta
+para adopción. Completion por pilar = cursos completados del path / cursos activos
+del path. **Sin Celery beat**: se agrega en B3-05 (Resend) + snapshot materializado
+en B4-07. Los scores por pilar quedan placeholder hasta el motor B2-02/03.
+
 ## Decisiones bloqueantes activas
 
 | ID | Decisión | Bloquea |
