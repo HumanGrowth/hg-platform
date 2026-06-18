@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, Info, Plus, X } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
+import { AssignPathDialog } from "@/components/team/AssignPathDialog";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
@@ -24,6 +25,7 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
   const [status, setStatus] = React.useState<"loading" | "error" | "notfound" | "ok">("loading");
   const [data, setData] = React.useState<TeamMemberDetail | null>(null);
   const [confirmCode, setConfirmCode] = React.useState<string | null>(null);
+  const [assignOpen, setAssignOpen] = React.useState(false);
 
   const load = React.useCallback(async () => {
     setStatus("loading");
@@ -156,7 +158,7 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
           )}
           <button
             type="button"
-            onClick={() => toast("Modal de asignación — B4-B-05")}
+            onClick={() => setAssignOpen(true)}
             className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2 font-sans text-sm font-semibold text-fg hover:bg-bg-sunken"
           >
             <Plus size={16} strokeWidth={2} />
@@ -229,6 +231,15 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
           </button>
         </div>
       </Dialog>
+
+      <AssignPathDialog
+        open={assignOpen}
+        onClose={() => setAssignOpen(false)}
+        userId={id}
+        userName={data.full_name}
+        alreadyAssignedCodes={activeEnrollments.map((e) => e.career_path_code)}
+        onAssigned={() => void load()}
+      />
     </div>
   );
 }
