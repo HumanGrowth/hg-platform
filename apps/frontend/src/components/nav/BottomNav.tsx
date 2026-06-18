@@ -4,12 +4,15 @@ import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
 
-import { NAV_ITEMS, isActive } from "./items";
+import { bottomNavItemsForRole, isActive } from "./items";
 
 export function BottomNav({ className }: { className?: string }) {
   const pathname = usePathname();
+  const role = useAuthStore((s) => s.user?.role);
+  const items = bottomNavItemsForRole(role);
   return (
     <nav
       className={cn(
@@ -17,7 +20,7 @@ export function BottomNav({ className }: { className?: string }) {
         className,
       )}
     >
-      {NAV_ITEMS.map((item) => {
+      {items.map((item) => {
         const active = isActive(pathname, item.href);
         const Icon = item.icon;
         return (

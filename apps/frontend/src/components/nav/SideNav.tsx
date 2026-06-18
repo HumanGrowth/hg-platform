@@ -6,14 +6,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 
+import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
 
-import { NAV_ITEMS, isActive } from "./items";
+import { isActive, navItemsForRole } from "./items";
 
 const STORAGE_KEY = "hg_sidenav_collapsed";
 
 export function SideNav({ className }: { className?: string }) {
   const pathname = usePathname();
+  const role = useAuthStore((s) => s.user?.role);
+  const items = navItemsForRole(role);
   const [collapsed, setCollapsed] = React.useState(false);
 
   React.useEffect(() => {
@@ -46,7 +49,7 @@ export function SideNav({ className }: { className?: string }) {
           />
         </Link>
         <nav className="flex flex-col gap-1">
-          {NAV_ITEMS.map((item) => {
+          {items.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = item.icon;
             return (
