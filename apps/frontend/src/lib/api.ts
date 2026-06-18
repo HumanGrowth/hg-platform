@@ -11,10 +11,15 @@ import type {
   CourseFilters,
   CourseProgress,
   CourseProgressPayload,
+  Enrollment,
   InviteInfo,
   Me,
   Org,
+  OrgMetrics,
   PaginatedUsers,
+  TeamFilters,
+  TeamMemberDetail,
+  TeamResponse,
 } from "@/lib/types";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
@@ -210,4 +215,56 @@ export const apiSaveProgress = async (
 ): Promise<CourseProgress> => {
   const res = await backend.post<CourseProgress>(`/api/v1/courses/${slug}/progress`, payload);
   return res.data;
+};
+
+// ─────────────── Manager & RRHH (B4-B) ───────────────
+
+export const apiGetMyTeam = async (filters?: TeamFilters): Promise<TeamResponse> => {
+  const res = await backend.get<TeamResponse>("/api/v1/manager/me/team", { params: filters });
+  return res.data;
+};
+
+export const apiGetTeamMemberDetail = async (userId: string): Promise<TeamMemberDetail> => {
+  const res = await backend.get<TeamMemberDetail>(`/api/v1/manager/users/${userId}/detail`);
+  return res.data;
+};
+
+export const apiAssignPath = async (userId: string, pathCode: string): Promise<Enrollment> => {
+  const res = await backend.post<Enrollment>(`/api/v1/manager/users/${userId}/enroll`, {
+    career_path_code: pathCode,
+  });
+  return res.data;
+};
+
+export const apiUnassignPath = async (userId: string, pathCode: string): Promise<void> => {
+  await backend.delete(`/api/v1/manager/users/${userId}/enroll/${pathCode}`);
+};
+
+export const apiGetOrgMetrics = async (orgId?: string): Promise<OrgMetrics> => {
+  const res = await backend.get<OrgMetrics>("/api/v1/admin/org/metrics", {
+    params: orgId ? { org_id: orgId } : undefined,
+  });
+  return res.data;
+};
+
+/**
+ * Descarga el CSV de usuarios de la org. El endpoint requiere auth Bearer, así
+ * que usamos fetch + blob (no <a download> directo) y disparamos el download.
+ */
+export const apiExportOrgUsersCsv = async (orgId?: string): Promise<void> => {
+  const token = useAuthStore.getState().accessToken;
+  const url = `${BACKEND}/api/v1/admin/org/users/export.csv${orgId ? `?org_id=${orgId}` : ""}`;
+  const res = await fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+  if (!res.ok) throw new ApiError("export failed", res.status);
+  const blob = await res.blob();
+  const href = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = "org-users.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(href);
 };
