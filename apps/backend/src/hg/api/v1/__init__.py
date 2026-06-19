@@ -9,7 +9,7 @@ from hg.modules.learning.router import router as learning_router
 from hg.modules.marketing.router import admin_router as marketing_admin_router
 from hg.modules.marketing.router import public_router as marketing_public_router
 from hg.modules.people.router import admin_router as people_admin_router
-from hg.modules.people.router import manager_router
+from hg.modules.people.router import manager_router, me_router
 
 router = APIRouter()
 
@@ -30,3 +30,5 @@ router.include_router(learning_router, tags=["catalog"])
 router.include_router(manager_router, prefix="/manager", tags=["manager"])
 # RRHH: /admin/org/metrics + /admin/org/users/export.csv (B4-A)
 router.include_router(people_admin_router, prefix="/admin", tags=["admin"])
+# Home colaborador: /me/home dashboard agregado (B3-04)
+router.include_router(me_router, prefix="/me", tags=["home"])

@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from hg.modules.learning.schemas import EnrollmentOut
 
@@ -74,3 +74,45 @@ class OrgMetricsOut(BaseModel):
     # Top + inactivos
     top_performers: list[TopPerformerOut]
     inactive_users_count: int
+
+
+# ─────────────── Home colaborador (B3-04) ───────────────
+
+
+class NextStepOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    course_id: UUID
+    course_slug: str
+    course_title: str
+    pillar_code: str  # "P1".."P6"
+    career_level: str  # "L1".."L6"
+    duration_seconds: int
+    watch_pct: float
+    last_played_at: datetime
+
+
+class RecentActivityItem(BaseModel):
+    course_id: UUID
+    course_slug: str
+    course_title: str
+    pillar_code: str
+    is_completed: bool
+    last_played_at: datetime
+    completed_at: datetime | None
+
+
+class HomeStats(BaseModel):
+    courses_in_progress: int
+    courses_completed: int
+    total_watch_minutes: int
+    month_watch_minutes: int
+    streak_days: int
+
+
+class HomeDashboardOut(BaseModel):
+    next_step: NextStepOut | None
+    active_enrollments: list[EnrollmentOut]
+    pillar_completion_rates: dict[str, float]  # {"P1": 0.33, ...}
+    recent_activity: list[RecentActivityItem]
+    stats: HomeStats
