@@ -15,3 +15,27 @@ export function formatDuration(seconds: number): string {
   const pad = (n: number) => n.toString().padStart(2, "0");
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
+
+const _RTF_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
+  ["year", 31_536_000],
+  ["month", 2_592_000],
+  ["week", 604_800],
+  ["day", 86_400],
+  ["hour", 3_600],
+  ["minute", 60],
+];
+
+/** ISO → tiempo relativo en español. null → "—", < 60s → "ahora". */
+export function formatRelativeTime(iso: string | null): string {
+  if (!iso) return "—";
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "—";
+  const diffMs = then - Date.now();
+  const absSec = Math.abs(diffMs) / 1000;
+  if (absSec < 60) return "ahora";
+  const rtf = new Intl.RelativeTimeFormat("es", { numeric: "auto" });
+  for (const [unit, secs] of _RTF_UNITS) {
+    if (absSec >= secs) return rtf.format(Math.round(diffMs / 1000 / secs), unit);
+  }
+  return "ahora";
+}

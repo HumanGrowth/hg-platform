@@ -135,3 +135,94 @@ export interface CourseProgressPayload {
   position_seconds: number;
   watch_pct: number;
 }
+
+// ─────────────── Manager & RRHH (B4-B) ───────────────
+// career_level se tipa string|null (el enum de usuario ahora incluye L1..L6).
+
+type PillarCodeKey = "P1" | "P2" | "P3" | "P4" | "P5" | "P6";
+
+export interface Enrollment {
+  id: string;
+  user_id: string;
+  career_path_id: string;
+  career_path_code: PillarCodeKey;
+  career_path_name: string;
+  assigned_by_user_id: string | null;
+  assigned_by_name: string | null;
+  source: "manual" | "auto";
+  is_active: boolean;
+  enrolled_at: string;
+  completed_at: string | null;
+}
+
+export interface TeamMember {
+  id: string;
+  full_name: string;
+  email: string;
+  role: UserRole;
+  career_level: string | null;
+  job_title: string | null;
+  last_active_at: string | null;
+  is_inactive: boolean;
+  courses_in_progress: number;
+  courses_completed: number;
+  total_watch_minutes: number;
+  active_enrollments: number;
+}
+
+export interface TeamResponse {
+  items: TeamMember[];
+  total: number;
+  inactive_count: number;
+}
+
+export interface CourseProgressDetail {
+  course_slug: string;
+  course_title: string;
+  career_level: string;
+  competency_code: string | null;
+  watch_pct: number;
+  is_completed: boolean;
+  last_played_at: string;
+}
+
+export interface TeamMemberDetail extends TeamMember {
+  enrollments: Enrollment[];
+  courses_in_progress_list: CourseProgressDetail[];
+  courses_completed_list: CourseProgressDetail[];
+  pillar_completion_rate: Record<PillarCodeKey, number>;
+}
+
+export interface PillarMetric {
+  completion_rate: number;
+  active_users: number;
+  total_courses_started: number;
+}
+
+export interface TopPerformer {
+  user_id: string;
+  full_name: string;
+  courses_completed: number;
+}
+
+export interface OrgMetrics {
+  total_licenses: number;
+  active_licenses: number;
+  adoption_rate: number;
+  avg_watch_minutes_per_user: number;
+  total_courses_completed: number;
+  completion_rate_global: number;
+  by_pillar: Record<PillarCodeKey, PillarMetric>;
+  by_career_level: Record<string, number>;
+  top_performers: TopPerformer[];
+  inactive_users_count: number;
+}
+
+export type TeamSort = "name" | "last_active" | "completion";
+
+export interface TeamFilters {
+  page?: number;
+  page_size?: number;
+  sort?: TeamSort;
+  inactive_only?: boolean;
+}

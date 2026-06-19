@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDuration } from "../utils";
+import { formatDuration, formatRelativeTime } from "../utils";
 
 describe("formatDuration", () => {
   it("formats zero", () => {
@@ -18,5 +18,25 @@ describe("formatDuration", () => {
 
   it("clamps negatives", () => {
     expect(formatDuration(-10)).toBe("0:00");
+  });
+});
+
+describe("formatRelativeTime", () => {
+  it("returns dash for null", () => {
+    expect(formatRelativeTime(null)).toBe("—");
+  });
+
+  it("returns 'ahora' for very recent", () => {
+    expect(formatRelativeTime(new Date().toISOString())).toBe("ahora");
+  });
+
+  it("formats minutes ago", () => {
+    const iso = new Date(Date.now() - 5 * 60_000).toISOString();
+    expect(formatRelativeTime(iso)).toMatch(/minuto/);
+  });
+
+  it("formats days ago", () => {
+    const iso = new Date(Date.now() - 3 * 86_400_000).toISOString();
+    expect(formatRelativeTime(iso)).toMatch(/d[ií]a/);
   });
 });
