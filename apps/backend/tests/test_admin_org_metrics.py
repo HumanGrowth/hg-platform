@@ -35,6 +35,23 @@ def test_org_metrics_superadmin_can_pass_org_id(client, manager_with_reports, fa
     assert res.json()["total_courses_completed"] >= 5  # ve la org de mw, no la suya
 
 
+def test_org_metrics_admin_cannot_inspect_other_org(client, manager_with_reports, factory, auth_headers) -> None:
+    """Un admin que pasa ?org_id de otra org es ignorado: solo ve la suya (FU-12)."""
+    mw = manager_with_reports  # org con 5 cursos completados
+    other_org = factory.make_org()
+    admin = factory.make_user(org=other_org, role=UserRole.admin)
+    res = client.get(
+        "/api/v1/admin/org/metrics",
+        headers=auth_headers(admin),
+        params={"org_id": str(mw.org.id)},
+    )
+    assert res.status_code == 200, res.text
+    body = res.json()
+    # Ve su propia org (solo el admin), no la de mw (que tiene 5 completados).
+    assert body["total_courses_completed"] == 0
+    assert body["total_licenses"] == 1
+
+
 def test_org_metrics_csv_export_has_headers(client, manager_with_reports, factory, auth_headers) -> None:
     mw = manager_with_reports
     admin = factory.make_user(org=mw.org, role=UserRole.admin)
