@@ -3,6 +3,7 @@
 import { Download } from "lucide-react";
 import * as React from "react";
 
+import { OrgAdminGate } from "@/components/OrgAdminGate";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -30,7 +31,7 @@ function Kpi({ value, label, sub }: { value: string; label: string; sub: string 
   );
 }
 
-export default function OrgDashboardPage() {
+function OrgDashboardContent() {
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [m, setM] = React.useState<OrgMetrics | null>(null);
   const [downloading, setDownloading] = React.useState(false);
@@ -174,5 +175,13 @@ export default function OrgDashboardPage() {
         </>
       )}
     </main>
+  );
+}
+
+export default function OrgDashboardPage() {
+  return (
+    <OrgAdminGate>
+      <OrgDashboardContent />
+    </OrgAdminGate>
   );
 }

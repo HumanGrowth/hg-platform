@@ -15,7 +15,7 @@ export function TopBar() {
   const user = useAuthStore((s) => s.user);
   const clear = useAuthStore((s) => s.clear);
   const [menuOpen, setMenuOpen] = React.useState(false);
-  const isSuperadmin = user?.role === "superadmin";
+  const isOrgAdmin = user?.role === "admin" || user?.role === "superadmin";
 
   async function logout() {
     try {
@@ -35,9 +35,9 @@ export function TopBar() {
       </Link>
       <div className="flex-1" />
 
-      {isSuperadmin && (
+      {isOrgAdmin && (
         <Link
-          href={"/admin/orgs" as Route}
+          href={"/admin/org" as Route}
           className="hidden items-center gap-1.5 rounded-md border border-border px-3 py-1.5 font-sans text-sm font-medium text-fg-muted transition-colors hover:bg-bg-sunken hover:text-fg sm:flex"
         >
           <Repeat size={15} strokeWidth={1.75} />
@@ -66,15 +66,15 @@ export function TopBar() {
                 <p className="truncate font-sans text-sm font-semibold text-fg">{user?.full_name}</p>
                 <p className="truncate font-sans text-xs text-fg-muted">{user?.email}</p>
               </div>
-              {isSuperadmin && (
+              {isOrgAdmin && (
                 <Link
-                  href={"/admin/orgs" as Route}
+                  href={"/admin/org" as Route}
                   role="menuitem"
                   onClick={() => setMenuOpen(false)}
                   className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm text-fg hover:bg-bg-sunken"
                 >
                   <ShieldCheck size={16} strokeWidth={1.75} />
-                  Panel de HG
+                  Panel de organización
                 </Link>
               )}
               <button
