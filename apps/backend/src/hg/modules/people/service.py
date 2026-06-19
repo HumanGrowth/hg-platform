@@ -7,7 +7,7 @@ paths asignados. Sin Celery beat — todo se calcula en cada request (ADR-0009).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -17,6 +17,24 @@ from hg.modules.learning.models import CareerPath, Course, CourseProgress, Enrol
 
 INACTIVE_DAYS = 7
 ACTIVE_WINDOW_DAYS = 30
+
+
+def streak_days(activity_dates: set[date], today: date) -> int:
+    """Días consecutivos con actividad terminando hoy o ayer (gap >24h rompe)."""
+    if not activity_dates:
+        return 0
+    ordered = sorted(activity_dates, reverse=True)
+    if ordered[0] not in (today, today - timedelta(days=1)):
+        return 0
+    streak = 1
+    prev = ordered[0]
+    for d in ordered[1:]:
+        if d == prev - timedelta(days=1):
+            streak += 1
+            prev = d
+        else:
+            break
+    return streak
 
 
 def now_utc() -> datetime:

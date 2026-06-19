@@ -12,6 +12,7 @@ import type {
   CourseProgress,
   CourseProgressPayload,
   Enrollment,
+  HomeDashboard,
   InviteInfo,
   Me,
   Org,
@@ -218,6 +219,12 @@ export const apiSaveProgress = async (
 };
 
 // ─────────────── Manager & RRHH (B4-B) ───────────────
+
+/** Dashboard agregado del colaborador (solo su propia data). */
+export const apiGetHomeDashboard = async (): Promise<HomeDashboard> => {
+  const res = await backend.get<HomeDashboard>("/api/v1/me/home");
+  return res.data;
+};
 
 export const apiGetMyTeam = async (filters?: TeamFilters): Promise<TeamResponse> => {
   const res = await backend.get<TeamResponse>("/api/v1/manager/me/team", { params: filters });

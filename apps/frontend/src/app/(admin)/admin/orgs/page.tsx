@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 
+import { SuperadminGate } from "@/components/SuperadminGate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,7 +19,7 @@ import { toast } from "@/lib/toast-store";
 import type { Org } from "@/lib/types";
 import { createOrgSchema, type CreateOrgValues } from "@/lib/validation";
 
-export default function AdminOrgsPage() {
+function AdminOrgsContent() {
   const router = useRouter();
   const [orgs, setOrgs] = React.useState<Org[] | null>(null);
   const [open, setOpen] = React.useState(false);
@@ -167,5 +168,13 @@ export default function AdminOrgsPage() {
         </form>
       </Dialog>
     </main>
+  );
+}
+
+export default function AdminOrgsPage() {
+  return (
+    <SuperadminGate>
+      <AdminOrgsContent />
+    </SuperadminGate>
   );
 }

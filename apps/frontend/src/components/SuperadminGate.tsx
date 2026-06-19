@@ -6,8 +6,9 @@ import * as React from "react";
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
 
-/** Sólo superadmin. Para cualquier otro rol: toast + redirect /home. */
-export function AdminGate({ children }: { children: React.ReactNode }) {
+/** Sólo superadmin (panel global de HG: /admin/orgs). Cualquier otro rol:
+ * toast + redirect a /home. */
+export function SuperadminGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [allowed, setAllowed] = React.useState(false);

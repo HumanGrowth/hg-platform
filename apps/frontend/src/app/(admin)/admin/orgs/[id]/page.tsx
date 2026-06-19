@@ -8,6 +8,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 
 import { OrgUsersTab } from "@/components/admin/OrgUsersTab";
+import { SuperadminGate } from "@/components/SuperadminGate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -37,7 +38,7 @@ const STATUS_BADGE: Record<Status, React.ComponentProps<typeof Badge>["variant"]
   expired: "default",
 };
 
-export default function AdminOrgDetailPage() {
+function AdminOrgDetailContent() {
   const params = useParams<{ id: string }>();
   const orgId = params.id;
   const [org, setOrg] = React.useState<Org | null>(null);
@@ -240,5 +241,13 @@ export default function AdminOrgDetailPage() {
         )}
       </Dialog>
     </main>
+  );
+}
+
+export default function AdminOrgDetailPage() {
+  return (
+    <SuperadminGate>
+      <AdminOrgDetailContent />
+    </SuperadminGate>
   );
 }

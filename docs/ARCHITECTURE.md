@@ -383,8 +383,33 @@ en B4-07. Los scores por pilar quedan placeholder hasta el motor B2-02/03.
   en el sidebar admin.
 - **CSV con auth**: el endpoint requiere Bearer, así que el download usa `fetch` +
   `blob` + `<a download>` (no link directo).
-- ⚠️ `AdminGate` es superadmin-only; exponer `/admin/org` a org-admins (que el
-  backend ya permite) requiere un gate por-ruta — follow-up.
+- `AdminGate` (superadmin-only) → resuelto en FU-12 (ver abajo): split en
+  `SuperadminGate` + `OrgAdminGate`, gate por-página.
+
+## Home del colaborador + org admin gate (B3-04 / FU-12)
+
+Ver [ADR-0010](adrs/ADR-0010-home-dashboard-and-org-admin-gate.md).
+
+### Home agregado (`GET /api/v1/me/home`)
+
+`me_router` (prefijo `/me`, tag `home`), bajo `hg_app` + contexto de org (RLS):
+**solo devuelve la data del usuario autenticado**. Reusa las agregaciones
+on-demand de `people/service` (ADR-0009). Devuelve `next_step` (curso en progreso
+`<80%` más reciente, o `null`), `active_enrollments`, `pillar_completion_rates`
+(`{P1..P6}`, completados/activos del path — **no scores**), `recent_activity`
+(últimos 5) y `stats` (`courses_in_progress/completed`, `total_watch_minutes`,
+`month_watch_minutes`, `streak_days`). `streak_days` = días consecutivos
+terminando hoy o ayer (helper puro). `/home` (`(app)`) consume `apiGetHomeDashboard`
+con loading/error; tarjetas de pilar muestran completion rate.
+
+### Gates por rol (FU-12)
+
+- `SuperadminGate` (ex-`AdminGate`, superadmin-only) → `/admin/orgs`, `/admin/orgs/[id]`.
+- `OrgAdminGate` (admin **o** superadmin) → `/admin/org`.
+- `(admin)/layout.tsx` ya **no** tiene gate global; cada página monta el suyo.
+  Sidebar: "Organizaciones" solo superadmin. TopBar "Modo admin" → `/admin/org`
+  para admin + superadmin. Privacidad cross-org garantizada por backend
+  (`_resolve_org` ignora `?org_id` para no-superadmin).
 
 ## Decisiones bloqueantes activas
 

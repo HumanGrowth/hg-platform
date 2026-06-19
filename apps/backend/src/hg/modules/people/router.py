@@ -12,7 +12,7 @@ from datetime import timedelta
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from hg.core.deps import get_current_user, get_db_as_superadmin, require_role
@@ -24,8 +24,12 @@ from hg.modules.learning.models import CareerPath, Course, CourseProgress, Enrol
 from hg.modules.learning.schemas import EnrollmentIn, EnrollmentOut
 from hg.modules.people.schemas import (
     CourseProgressDetailOut,
+    HomeDashboardOut,
+    HomeStats,
+    NextStepOut,
     OrgMetricsOut,
     PillarMetric,
+    RecentActivityItem,
     TeamMemberDetailOut,
     TeamMemberOut,
     TeamResponse,
@@ -38,10 +42,12 @@ from hg.modules.people.service import (
     now_utc,
     org_pillar_metrics,
     pillar_completion_rate,
+    streak_days,
 )
 
 manager_router = APIRouter()
 admin_router = APIRouter()
+me_router = APIRouter()
 
 _ADMIN_ROLES = (UserRole.admin, UserRole.superadmin)
 
@@ -331,4 +337,101 @@ def export_users_csv(
         content=buf.getvalue(),
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=users.csv"},
+    )
+
+
+# ─────────────────────────── Home colaborador (B3-04) ───────────────────────────
+# /api/v1/me/home — dashboard agregado del usuario autenticado (solo su data, RLS).
+
+
+@me_router.get("/home", response_model=HomeDashboardOut)
+def get_my_home_dashboard(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> HomeDashboardOut:
+    uid = current_user.id
+
+    # next_step: curso en progreso (no completado, <80%) jugado más recientemente.
+    ns = db.execute(
+        select(CourseProgress, Course, CareerPath)
+        .join(Course, Course.id == CourseProgress.course_id)
+        .join(CareerPath, CareerPath.id == Course.career_path_id)
+        .where(
+            CourseProgress.user_id == uid,
+            CourseProgress.is_completed.is_(False),
+            CourseProgress.watch_pct < 80,
+        )
+        .order_by(CourseProgress.last_played_at.desc())
+        .limit(1)
+    ).first()
+    next_step = (
+        NextStepOut(
+            course_id=ns[1].id,
+            course_slug=ns[1].slug,
+            course_title=ns[1].title,
+            pillar_code=ns[2].code,
+            career_level=ns[1].career_level.value,
+            duration_seconds=ns[1].duration_seconds,
+            watch_pct=ns[0].watch_pct,
+            last_played_at=ns[0].last_played_at,
+        )
+        if ns
+        else None
+    )
+
+    # recent_activity: últimos 5 eventos (completados + en progreso).
+    recent_rows = db.execute(
+        select(CourseProgress, Course, CareerPath)
+        .join(Course, Course.id == CourseProgress.course_id)
+        .join(CareerPath, CareerPath.id == Course.career_path_id)
+        .where(CourseProgress.user_id == uid)
+        .order_by(CourseProgress.last_played_at.desc())
+        .limit(5)
+    ).all()
+    recent_activity = [
+        RecentActivityItem(
+            course_id=c.id,
+            course_slug=c.slug,
+            course_title=c.title,
+            pillar_code=p.code,
+            is_completed=cp.is_completed,
+            last_played_at=cp.last_played_at,
+            completed_at=cp.completed_at,
+        )
+        for cp, c, p in recent_rows
+    ]
+
+    # stats
+    agg = activity_by_users(db, [uid])[uid]
+    now = now_utc()
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    month_sec = (
+        db.scalar(
+            select(func.coalesce(func.sum(CourseProgress.last_position_seconds), 0)).where(
+                CourseProgress.user_id == uid, CourseProgress.last_played_at >= month_start
+            )
+        )
+        or 0
+    )
+    played_dates = {
+        d.date()
+        for d in db.scalars(
+            select(CourseProgress.last_played_at).where(CourseProgress.user_id == uid)
+        ).all()
+    }
+    stats = HomeStats(
+        courses_in_progress=agg.courses_in_progress,
+        courses_completed=agg.courses_completed,
+        total_watch_minutes=agg.total_watch_minutes,
+        month_watch_minutes=int(month_sec) // 60,
+        streak_days=streak_days(played_dates, now.date()),
+    )
+
+    enrollments = enrollments_service.list_user_enrollments(db, user_id=uid, active_only=True)
+    return HomeDashboardOut(
+        next_step=next_step,
+        active_enrollments=[_enrollment_out(db, e) for e in enrollments],
+        pillar_completion_rates=pillar_completion_rate(db, uid),
+        recent_activity=recent_activity,
+        stats=stats,
     )
