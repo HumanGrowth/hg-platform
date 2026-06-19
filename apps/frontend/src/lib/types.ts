@@ -218,6 +218,45 @@ export interface OrgMetrics {
   inactive_users_count: number;
 }
 
+// ─────────────── Home colaborador (B3-04) ───────────────
+
+export interface HomeNextStep {
+  course_id: string;
+  course_slug: string;
+  course_title: string;
+  pillar_code: PillarCodeKey;
+  career_level: string;
+  duration_seconds: number;
+  watch_pct: number;
+  last_played_at: string;
+}
+
+export interface HomeRecentActivity {
+  course_id: string;
+  course_slug: string;
+  course_title: string;
+  pillar_code: PillarCodeKey;
+  is_completed: boolean;
+  last_played_at: string;
+  completed_at: string | null;
+}
+
+export interface HomeStats {
+  courses_in_progress: number;
+  courses_completed: number;
+  total_watch_minutes: number;
+  month_watch_minutes: number;
+  streak_days: number;
+}
+
+export interface HomeDashboard {
+  next_step: HomeNextStep | null;
+  active_enrollments: Enrollment[];
+  pillar_completion_rates: Record<PillarCodeKey, number>;
+  recent_activity: HomeRecentActivity[];
+  stats: HomeStats;
+}
+
 export type TeamSort = "name" | "last_active" | "completion";
 
 export interface TeamFilters {
