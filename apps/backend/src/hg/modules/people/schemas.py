@@ -1,7 +1,7 @@
 """Pydantic v2 schemas para Manager & RRHH (B4-A)."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -116,3 +116,67 @@ class HomeDashboardOut(BaseModel):
     pillar_completion_rates: dict[str, float]  # {"P1": 0.33, ...}
     recent_activity: list[RecentActivityItem]
     stats: HomeStats
+
+
+# ─────────────── Widgets dashboard v1 (B4-E) ───────────────
+
+
+class StreakDay(BaseModel):
+    date: date  # ISO YYYY-MM-DD
+    minutes: int
+    has_activity: bool
+
+
+class WeeklyMinutesBar(BaseModel):
+    week_start: date  # lunes de la semana
+    minutes: int
+
+
+class MeWidgetsOut(BaseModel):
+    streak: list[StreakDay]  # 90 días, oldest first
+    weekly_minutes: list[WeeklyMinutesBar]  # 12 semanas, oldest first
+
+
+class TeamActivityCell(BaseModel):
+    user_id: UUID
+    user_full_name: str
+    date: date
+    minutes: int
+
+
+class InactivityBuckets(BaseModel):
+    active: int  # last_active >= now - 1d
+    inactive_1_7d: int
+    inactive_8_14d: int
+    inactive_15_30d: int
+    inactive_gt_30d: int
+    never_active: int  # last_active IS NULL
+
+
+class ManagerWidgetsOut(BaseModel):
+    team_activity: list[TeamActivityCell]  # 30 días x N reportes (solo cells >0)
+    inactivity_buckets: InactivityBuckets
+
+
+class AdoptionMonthPoint(BaseModel):
+    month: str  # "YYYY-MM"
+    active_users: int
+
+
+class OnboardingFunnel(BaseModel):
+    invited: int
+    accepted: int
+    first_login: int
+    first_course: int
+    first_completion: int
+
+
+class MonthlyWatchPoint(BaseModel):
+    month: str  # "YYYY-MM"
+    minutes: int
+
+
+class OrgWidgetsOut(BaseModel):
+    adoption_curve: list[AdoptionMonthPoint]  # 12 meses oldest first
+    onboarding_funnel: OnboardingFunnel
+    monthly_watch: list[MonthlyWatchPoint]  # 12 meses oldest first

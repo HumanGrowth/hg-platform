@@ -11,6 +11,19 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { apiGetMyTeam } from "@/lib/api";
 import type { TeamResponse, TeamSort } from "@/lib/types";
 
+const TeamWidgetsSection = React.lazy(
+  () => import("@/components/widgets/sections/TeamWidgetsSection"),
+);
+
+function TeamWidgetsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="h-56 animate-pulse rounded-lg bg-bg-sunken" />
+      <div className="h-56 animate-pulse rounded-lg bg-bg-sunken" />
+    </div>
+  );
+}
+
 const PAGE_SIZE = 20;
 const SORTS: { value: TeamSort; label: string }[] = [
   { value: "name", label: "Nombre" },
@@ -88,6 +101,13 @@ export default function TeamPage() {
             ))}
           </select>
         </div>
+      </div>
+
+      {/* Vista de equipo — widgets lazy-loaded */}
+      <div className="mt-6">
+        <React.Suspense fallback={<TeamWidgetsSkeleton />}>
+          <TeamWidgetsSection />
+        </React.Suspense>
       </div>
 
       <section className="mt-6">

@@ -22,18 +22,29 @@ from hg.modules.learning import enrollments_service
 from hg.modules.learning.enrollments_service import InvalidPathCodeError
 from hg.modules.learning.models import CareerPath, Course, CourseProgress, Enrollment
 from hg.modules.learning.schemas import EnrollmentIn, EnrollmentOut
+from hg.modules.people import service
 from hg.modules.people.schemas import (
+    AdoptionMonthPoint,
     CourseProgressDetailOut,
     HomeDashboardOut,
     HomeStats,
+    InactivityBuckets,
+    ManagerWidgetsOut,
+    MeWidgetsOut,
+    MonthlyWatchPoint,
     NextStepOut,
+    OnboardingFunnel,
     OrgMetricsOut,
+    OrgWidgetsOut,
     PillarMetric,
     RecentActivityItem,
+    StreakDay,
+    TeamActivityCell,
     TeamMemberDetailOut,
     TeamMemberOut,
     TeamResponse,
     TopPerformerOut,
+    WeeklyMinutesBar,
 )
 from hg.modules.people.service import (
     ACTIVE_WINDOW_DAYS,
@@ -435,3 +446,70 @@ def get_my_home_dashboard(
         recent_activity=recent_activity,
         stats=stats,
     )
+
+
+# ─────────────────────────── Widgets dashboard v1 (B4-E) ───────────────────────────
+# 3 endpoints densos multi-widget (1 round-trip por página). Cache HTTP 60s. ADR-0011.
+
+_WIDGET_CACHE = "private, max-age=60"
+
+
+@me_router.get("/widgets", response_model=MeWidgetsOut)
+def get_my_widgets(
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> MeWidgetsOut:
+    response.headers["Cache-Control"] = _WIDGET_CACHE
+    today = now_utc().date()
+    streak = [
+        StreakDay(date=d, minutes=m, has_activity=m > 0)
+        for d, m in service.streak_heatmap(db, current_user.id, today)
+    ]
+    weekly = [
+        WeeklyMinutesBar(week_start=wk, minutes=m)
+        for wk, m in service.weekly_minutes(db, current_user.id, today)
+    ]
+    return MeWidgetsOut(streak=streak, weekly_minutes=weekly)
+
+
+@manager_router.get("/me/widgets", response_model=ManagerWidgetsOut)
+def get_manager_widgets(
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ManagerWidgetsOut:
+    response.headers["Cache-Control"] = _WIDGET_CACHE
+    members = _team_members(db, current_user)
+    names = {m.id: m.full_name for m in members}
+    member_ids = list(names)
+    today = now_utc().date()
+    cells = [
+        TeamActivityCell(user_id=uid, user_full_name=names[uid], date=d, minutes=m)
+        for uid, d, m in service.team_activity_cells(db, member_ids, today)
+    ]
+    buckets = InactivityBuckets(**service.inactivity_buckets(db, member_ids, now_utc()))
+    return ManagerWidgetsOut(team_activity=cells, inactivity_buckets=buckets)
+
+
+@admin_router.get("/org/widgets", response_model=OrgWidgetsOut)
+def get_org_widgets(
+    response: Response,
+    org_id: UUID | None = Query(None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    current_user: User = Depends(require_role("admin", "superadmin")),
+) -> OrgWidgetsOut:
+    response.headers["Cache-Control"] = _WIDGET_CACHE
+    target_org = _resolve_org(current_user, org_id)
+    user_ids = list(db.scalars(select(User.id).where(User.org_id == target_org)).all())
+    today = now_utc().date()
+    adoption = [
+        AdoptionMonthPoint(month=m, active_users=c)
+        for m, c in service.adoption_curve(db, user_ids, today)
+    ]
+    funnel = OnboardingFunnel(**service.onboarding_funnel(db, target_org, user_ids))
+    watch = [
+        MonthlyWatchPoint(month=m, minutes=mins)
+        for m, mins in service.monthly_watch(db, user_ids, today)
+    ]
+    return OrgWidgetsOut(adoption_curve=adoption, onboarding_funnel=funnel, monthly_watch=watch)

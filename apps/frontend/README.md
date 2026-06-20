@@ -108,3 +108,13 @@ invitación (ver `docs/adrs/ADR-0002`).
   `apiGetTeamMemberDetail`, `apiAssignPath`, `apiUnassignPath`, `apiGetOrgMetrics`,
   `apiExportOrgUsersCsv`). `AssignPathDialog` + `formatRelativeTime`.
 - Ver ADR-0009 y la sección "Manager & RRHH" de `docs/ARCHITECTURE.md`.
+
+### Widgets dashboard v1 (B4-E)
+- 8 widgets (solo Recharts) en `components/widgets/` + `WidgetCard` wrapper, lazy-loaded
+  por sección (`React.lazy` + `Suspense`) en `/home` ("Tu actividad"), `/team`
+  ("Vista de equipo") y `/admin/org` ("Tendencias").
+- Consume `apiGetMeWidgets` / `apiGetManagerWidgets` / `apiGetOrgWidgets`
+  (`/api/v1/{me,manager/me,admin/org}/widgets`). Helpers en `lib/widget-utils.ts`.
+- Accesibilidad WCAG AA: `role="img"` + `aria-labelledby`, `<table>` sr-only,
+  `prefers-reduced-motion`, sin depender sólo del color.
+- Ver `docs/adrs/ADR-0011` y la sección "Widgets dashboard v1" de `docs/ARCHITECTURE.md`.

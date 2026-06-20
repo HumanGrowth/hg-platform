@@ -5,6 +5,20 @@ import * as React from "react";
 
 import { OrgAdminGate } from "@/components/OrgAdminGate";
 import { Card } from "@/components/ui/card";
+
+const OrgWidgetsSection = React.lazy(
+  () => import("@/components/widgets/sections/OrgWidgetsSection"),
+);
+
+function OrgWidgetsSkeleton() {
+  return (
+    <div className="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="h-56 animate-pulse rounded-lg bg-bg-sunken" />
+      <div className="h-56 animate-pulse rounded-lg bg-bg-sunken" />
+      <div className="h-56 animate-pulse rounded-lg bg-bg-sunken" />
+    </div>
+  );
+}
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { apiExportOrgUsersCsv, apiGetOrgMetrics } from "@/lib/api";
@@ -100,6 +114,11 @@ function OrgDashboardContent() {
             <Kpi value={String(m.active_licenses)} label="Activos" sub="últimos 30 días" />
             <Kpi value={String(m.inactive_users_count)} label="Inactivos" sub=">7 días sin actividad" />
           </div>
+
+          {/* Tendencias — widgets lazy-loaded */}
+          <React.Suspense fallback={<OrgWidgetsSkeleton />}>
+            <OrgWidgetsSection />
+          </React.Suspense>
 
           <section className="mt-10">
             <Eyebrow className="mb-3">Completion por pilar</Eyebrow>
