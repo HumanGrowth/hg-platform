@@ -27,12 +27,15 @@ from hg.modules.people.schemas import (
     CourseProgressDetailOut,
     HomeDashboardOut,
     HomeStats,
+    InactivityBuckets,
+    ManagerWidgetsOut,
     MeWidgetsOut,
     NextStepOut,
     OrgMetricsOut,
     PillarMetric,
     RecentActivityItem,
     StreakDay,
+    TeamActivityCell,
     TeamMemberDetailOut,
     TeamMemberOut,
     TeamResponse,
@@ -464,3 +467,22 @@ def get_my_widgets(
         for wk, m in service.weekly_minutes(db, current_user.id, today)
     ]
     return MeWidgetsOut(streak=streak, weekly_minutes=weekly)
+
+
+@manager_router.get("/me/widgets", response_model=ManagerWidgetsOut)
+def get_manager_widgets(
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ManagerWidgetsOut:
+    response.headers["Cache-Control"] = _WIDGET_CACHE
+    members = _team_members(db, current_user)
+    names = {m.id: m.full_name for m in members}
+    member_ids = list(names)
+    today = now_utc().date()
+    cells = [
+        TeamActivityCell(user_id=uid, user_full_name=names[uid], date=d, minutes=m)
+        for uid, d, m in service.team_activity_cells(db, member_ids, today)
+    ]
+    buckets = InactivityBuckets(**service.inactivity_buckets(db, member_ids, now_utc()))
+    return ManagerWidgetsOut(team_activity=cells, inactivity_buckets=buckets)
