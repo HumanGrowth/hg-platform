@@ -411,6 +411,46 @@ con loading/error; tarjetas de pilar muestran completion rate.
   para admin + superadmin. Privacidad cross-org garantizada por backend
   (`_resolve_org` ignora `?org_id` para no-superadmin).
 
+## Widgets dashboard v1 (B4-E)
+
+Ver [ADR-0011](adrs/ADR-0011-dashboard-widgets-v1.md). Fase 1 del doc de propuesta
+de visualizaciones: 8 widgets accionables, on-demand, sin customización.
+
+### Endpoints (cache `private, max-age=60`)
+
+| Método | Ruta | Tag | Devuelve |
+|---|---|---|---|
+| GET | `/api/v1/me/widgets` | home | `streak` (90d) · `weekly_minutes` (12w) |
+| GET | `/api/v1/manager/me/widgets` | manager | `team_activity` (30d, cells >0) · `inactivity_buckets` |
+| GET | `/api/v1/admin/org/widgets` | admin | `adoption_curve` (12m) · `onboarding_funnel` · `monthly_watch` (12m) |
+
+Permisos = páginas existentes (`/me` user vía RLS; manager → reportes directos,
+admin/superadmin → org; `/admin/org/widgets` admin su org, superadmin con `?org_id`).
+Cálculo en Python desde `course_progress`/`enrollments`/`invitations` (UTC), **sin
+migraciones** (helpers en `people/service.py`: `streak_heatmap`, `weekly_minutes`,
+`team_activity_cells`, `inactivity_buckets`, `adoption_curve`, `monthly_watch`,
+`onboarding_funnel`).
+
+### Frontend
+
+- 8 componentes en `components/widgets/` (StreakHeatmap, WeeklyMinutesBar,
+  ProgressRingsByPath, TeamActivityHeatmap, InactivityFunnel, AdoptionCurve,
+  OnboardingFunnelChart, MonthlyWatchBar) + `WidgetCard` wrapper (loading/error/empty)
+  + `WidgetSrTable`. Solo **Recharts**.
+- Secciones lazy-loaded (`React.lazy` + `Suspense`) integradas en `/home`
+  ("Tu actividad"), `/team` ("Vista de equipo") y `/admin/org` ("Tendencias").
+- Helpers en `lib/widget-utils.ts` (`formatMonthShort`, `getStreakSummary`,
+  `widgetColorScale`, `usePrefersReducedMotion`).
+- **Accesibilidad WCAG AA:** cada widget con `role="img"` + `aria-labelledby`,
+  `<table>` sr-only, `prefers-reduced-motion` (hook + safety net en `globals.css`),
+  sin depender sólo del color.
+
+### Roadmap
+
+- **Fase 2:** customización (drag-and-drop con dnd-kit + `user_dashboard_layouts`).
+- **Fase 3 (B4-G):** snapshots materializados (`daily_snapshots`) para escalar las
+  agregaciones más allá de ~500 usuarios/org.
+
 ## Decisiones bloqueantes activas
 
 | ID | Decisión | Bloquea |
