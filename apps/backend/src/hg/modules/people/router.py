@@ -22,18 +22,22 @@ from hg.modules.learning import enrollments_service
 from hg.modules.learning.enrollments_service import InvalidPathCodeError
 from hg.modules.learning.models import CareerPath, Course, CourseProgress, Enrollment
 from hg.modules.learning.schemas import EnrollmentIn, EnrollmentOut
+from hg.modules.people import service
 from hg.modules.people.schemas import (
     CourseProgressDetailOut,
     HomeDashboardOut,
     HomeStats,
+    MeWidgetsOut,
     NextStepOut,
     OrgMetricsOut,
     PillarMetric,
     RecentActivityItem,
+    StreakDay,
     TeamMemberDetailOut,
     TeamMemberOut,
     TeamResponse,
     TopPerformerOut,
+    WeeklyMinutesBar,
 )
 from hg.modules.people.service import (
     ACTIVE_WINDOW_DAYS,
@@ -435,3 +439,28 @@ def get_my_home_dashboard(
         recent_activity=recent_activity,
         stats=stats,
     )
+
+
+# ─────────────────────────── Widgets dashboard v1 (B4-E) ───────────────────────────
+# 3 endpoints densos multi-widget (1 round-trip por página). Cache HTTP 60s. ADR-0011.
+
+_WIDGET_CACHE = "private, max-age=60"
+
+
+@me_router.get("/widgets", response_model=MeWidgetsOut)
+def get_my_widgets(
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> MeWidgetsOut:
+    response.headers["Cache-Control"] = _WIDGET_CACHE
+    today = now_utc().date()
+    streak = [
+        StreakDay(date=d, minutes=m, has_activity=m > 0)
+        for d, m in service.streak_heatmap(db, current_user.id, today)
+    ]
+    weekly = [
+        WeeklyMinutesBar(week_start=wk, minutes=m)
+        for wk, m in service.weekly_minutes(db, current_user.id, today)
+    ]
+    return MeWidgetsOut(streak=streak, weekly_minutes=weekly)
