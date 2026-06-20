@@ -19,6 +19,21 @@ import { PILLARS } from "@/lib/pillars";
 import type { HomeDashboard } from "@/lib/types";
 import { cn, formatRelativeTime } from "@/lib/utils";
 
+const HomeActivitySection = React.lazy(
+  () => import("@/components/widgets/sections/HomeActivitySection"),
+);
+
+function WidgetsSkeleton() {
+  return (
+    <section className="mt-12">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="h-56 animate-pulse rounded-lg bg-bg-sunken" />
+        <div className="h-56 animate-pulse rounded-lg bg-bg-sunken" />
+      </div>
+    </section>
+  );
+}
+
 const pct = (rate: number) => Math.round(rate * 100);
 const pillarBadge = (code: string) =>
   `pillar-${code.toLowerCase()}` as NonNullable<BadgeProps["variant"]>;
@@ -210,6 +225,14 @@ export default function HomePage() {
               })}
             </div>
           </section>
+
+          {/* Tu actividad — widgets lazy-loaded (no agregan peso al critical path) */}
+          <React.Suspense fallback={<WidgetsSkeleton />}>
+            <HomeActivitySection
+              enrollments={data.active_enrollments}
+              pillarCompletionRates={data.pillar_completion_rates}
+            />
+          </React.Suspense>
 
           {/* Actividad reciente */}
           <section className="mt-12">
