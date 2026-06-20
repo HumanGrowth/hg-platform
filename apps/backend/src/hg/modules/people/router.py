@@ -24,14 +24,18 @@ from hg.modules.learning.models import CareerPath, Course, CourseProgress, Enrol
 from hg.modules.learning.schemas import EnrollmentIn, EnrollmentOut
 from hg.modules.people import service
 from hg.modules.people.schemas import (
+    AdoptionMonthPoint,
     CourseProgressDetailOut,
     HomeDashboardOut,
     HomeStats,
     InactivityBuckets,
     ManagerWidgetsOut,
     MeWidgetsOut,
+    MonthlyWatchPoint,
     NextStepOut,
+    OnboardingFunnel,
     OrgMetricsOut,
+    OrgWidgetsOut,
     PillarMetric,
     RecentActivityItem,
     StreakDay,
@@ -486,3 +490,26 @@ def get_manager_widgets(
     ]
     buckets = InactivityBuckets(**service.inactivity_buckets(db, member_ids, now_utc()))
     return ManagerWidgetsOut(team_activity=cells, inactivity_buckets=buckets)
+
+
+@admin_router.get("/org/widgets", response_model=OrgWidgetsOut)
+def get_org_widgets(
+    response: Response,
+    org_id: UUID | None = Query(None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    current_user: User = Depends(require_role("admin", "superadmin")),
+) -> OrgWidgetsOut:
+    response.headers["Cache-Control"] = _WIDGET_CACHE
+    target_org = _resolve_org(current_user, org_id)
+    user_ids = list(db.scalars(select(User.id).where(User.org_id == target_org)).all())
+    today = now_utc().date()
+    adoption = [
+        AdoptionMonthPoint(month=m, active_users=c)
+        for m, c in service.adoption_curve(db, user_ids, today)
+    ]
+    funnel = OnboardingFunnel(**service.onboarding_funnel(db, target_org, user_ids))
+    watch = [
+        MonthlyWatchPoint(month=m, minutes=mins)
+        for m, mins in service.monthly_watch(db, user_ids, today)
+    ]
+    return OrgWidgetsOut(adoption_curve=adoption, onboarding_funnel=funnel, monthly_watch=watch)
