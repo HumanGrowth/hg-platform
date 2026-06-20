@@ -257,6 +257,69 @@ export interface HomeDashboard {
   stats: HomeStats;
 }
 
+// ─────────────── Widgets dashboard v1 (B4-E) ───────────────
+
+export interface StreakDay {
+  date: string;
+  minutes: number;
+  has_activity: boolean;
+}
+
+export interface WeeklyMinutesBar {
+  week_start: string;
+  minutes: number;
+}
+
+export interface MeWidgets {
+  streak: StreakDay[];
+  weekly_minutes: WeeklyMinutesBar[];
+}
+
+export interface TeamActivityCell {
+  user_id: string;
+  user_full_name: string;
+  date: string;
+  minutes: number;
+}
+
+export interface InactivityBuckets {
+  active: number;
+  inactive_1_7d: number;
+  inactive_8_14d: number;
+  inactive_15_30d: number;
+  inactive_gt_30d: number;
+  never_active: number;
+}
+
+export interface ManagerWidgets {
+  team_activity: TeamActivityCell[];
+  inactivity_buckets: InactivityBuckets;
+}
+
+export interface AdoptionMonthPoint {
+  month: string;
+  active_users: number;
+}
+
+export interface OnboardingFunnel {
+  invited: number;
+  accepted: number;
+  first_login: number;
+  first_course: number;
+  first_completion: number;
+}
+
+export interface MonthlyWatchPoint {
+  month: string;
+  minutes: number;
+}
+
+export interface OrgWidgets {
+  adoption_curve: AdoptionMonthPoint[];
+  onboarding_funnel: OnboardingFunnel;
+  monthly_watch: MonthlyWatchPoint[];
+}
+
 export type TeamSort = "name" | "last_active" | "completion";
 
 export interface TeamFilters {

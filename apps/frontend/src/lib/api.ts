@@ -14,9 +14,12 @@ import type {
   Enrollment,
   HomeDashboard,
   InviteInfo,
+  ManagerWidgets,
   Me,
+  MeWidgets,
   Org,
   OrgMetrics,
+  OrgWidgets,
   PaginatedUsers,
   TeamFilters,
   TeamMemberDetail,
@@ -223,6 +226,25 @@ export const apiSaveProgress = async (
 /** Dashboard agregado del colaborador (solo su propia data). */
 export const apiGetHomeDashboard = async (): Promise<HomeDashboard> => {
   const res = await backend.get<HomeDashboard>("/api/v1/me/home");
+  return res.data;
+};
+
+// ─────────────── Widgets dashboard v1 (B4-E) ───────────────
+
+export const apiGetMeWidgets = async (): Promise<MeWidgets> => {
+  const res = await backend.get<MeWidgets>("/api/v1/me/widgets");
+  return res.data;
+};
+
+export const apiGetManagerWidgets = async (): Promise<ManagerWidgets> => {
+  const res = await backend.get<ManagerWidgets>("/api/v1/manager/me/widgets");
+  return res.data;
+};
+
+export const apiGetOrgWidgets = async (orgId?: string): Promise<OrgWidgets> => {
+  const res = await backend.get<OrgWidgets>("/api/v1/admin/org/widgets", {
+    params: orgId ? { org_id: orgId } : undefined,
+  });
   return res.data;
 };
 
