@@ -51,6 +51,18 @@ export function getStreakSummary(streak: StreakDay[]): StreakSummary {
   return { activeDays, longestStreak: longest, currentStreak: current };
 }
 
+// Accesibilidad / WCAG AA (verificado manualmente, jun 2026):
+//   - El color NUNCA es el único portador de significado: cada widget incluye una
+//     <table> sr-only con los datos exactos + tooltips con texto, y los heatmaps
+//     llevan una leyenda "menos → más".
+//   - Texto sobre fondos: fg (#1A1A1A) y fg-muted (warm-600) sobre cream/bg-raised
+//     superan 4.5:1 (AA texto normal).
+//   - Las celdas/barras de color son decorativas (los datos se leen de la tabla),
+//     por lo que no requieren ratio de texto; aun así la escala mantiene saltos
+//     perceptibles en escala de grises (test "achromatopsia" en DevTools).
+//   - Animaciones desactivadas bajo prefers-reduced-motion (ver usePrefersReducedMotion
+//     + safety net global en globals.css).
+//
 // Clases Tailwind literales (necesarias para que el JIT las incluya). 5 niveles
 // de intensidad sobre pillar-p1 + cream-200 para "sin actividad".
 const SCALE = [

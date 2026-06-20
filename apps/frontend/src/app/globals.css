@@ -137,3 +137,17 @@
     font-style: italic;
   }
 }
+
+/* Accesibilidad: respeta prefers-reduced-motion globalmente (B4-E widgets +
+   resto de la app). Recharts se desactiva via isAnimationActive en cada widget;
+   esto cubre cualquier transición/animación CSS restante. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
