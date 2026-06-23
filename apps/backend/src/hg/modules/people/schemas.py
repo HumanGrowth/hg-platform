@@ -45,6 +45,9 @@ class TeamMemberDetailOut(TeamMemberOut):
     courses_in_progress_list: list[CourseProgressDetailOut]  # top 10 recientes
     courses_completed_list: list[CourseProgressDetailOut]  # top 10 recientes
     pillar_completion_rate: dict[str, float]  # {"P1": 0.25, ...}
+    # Estados del assessment (snapshot de UserLearningProfile.pillar_states). El
+    # manager ve estados/vías, NUNCA respuestas item-by-item (privacidad B2-03).
+    assessment_states: dict  # {"P1": {"state":"L3","state_label":...,"source":...}, ...}
 
 
 class PillarMetric(BaseModel):

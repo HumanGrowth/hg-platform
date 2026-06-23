@@ -186,11 +186,21 @@ export interface CourseProgressDetail {
   last_played_at: string;
 }
 
+export interface TeamMemberPillarState {
+  state?: string;
+  state_label?: string;
+  source?: ResultSource;
+  suggested_next_step?: string | null;
+  recaida_detected?: boolean;
+}
+
 export interface TeamMemberDetail extends TeamMember {
   enrollments: Enrollment[];
   courses_in_progress_list: CourseProgressDetail[];
   courses_completed_list: CourseProgressDetail[];
   pillar_completion_rate: Record<PillarCodeKey, number>;
+  // Estados del assessment por pilar (manager ve estados, NO respuestas).
+  assessment_states: Record<string, TeamMemberPillarState>;
 }
 
 export interface PillarMetric {

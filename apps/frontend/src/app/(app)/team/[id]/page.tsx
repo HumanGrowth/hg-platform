@@ -124,6 +124,42 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
           </div>
         </div>
 
+        {/* Estados por pilar (assessment). Manager ve estados/vías, NO respuestas. */}
+        {Object.keys(data.assessment_states ?? {}).length > 0 && (
+          <div className="rounded-lg border border-border bg-bg-raised p-5 lg:col-span-2">
+            <Eyebrow className="mb-4">Estados por pilar</Eyebrow>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {Object.entries(data.assessment_states).map(([code, st]) => (
+                <div key={code} className="rounded-md border border-border bg-cream-50 p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs text-fg-subtle">{code}</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        st.source === "confirmed"
+                          ? "bg-success-bg text-success"
+                          : "bg-cream-200 text-fg-muted"
+                      }`}
+                    >
+                      {st.source === "confirmed" ? "Confirmado" : "Estimación"}
+                    </span>
+                  </div>
+                  <p className="mt-1 font-sans text-sm font-semibold text-fg">
+                    {st.state_label ?? st.state ?? "—"}
+                  </p>
+                  {st.recaida_detected && (
+                    <span className="mt-1 inline-block rounded-full bg-warning-bg px-2 py-0.5 text-xs font-semibold text-warning">
+                      ⚠ Recaída — conversación recomendada
+                    </span>
+                  )}
+                  {st.suggested_next_step && (
+                    <p className="mt-1 text-xs text-fg-muted">{st.suggested_next_step}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Paths asignados */}
         <div className="rounded-lg border border-border bg-bg-raised p-5">
           <Eyebrow className="mb-4">Paths asignados</Eyebrow>
