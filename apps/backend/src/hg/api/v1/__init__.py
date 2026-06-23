@@ -4,6 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from hg.modules.admin.router import router as admin_router
+from hg.modules.assessment.router import router as assessment_router
 from hg.modules.identity.router import router as identity_router
 from hg.modules.learning.router import router as learning_router
 from hg.modules.marketing.router import admin_router as marketing_admin_router
@@ -32,3 +33,5 @@ router.include_router(manager_router, prefix="/manager", tags=["manager"])
 router.include_router(people_admin_router, prefix="/admin", tags=["admin"])
 # Home colaborador: /me/home dashboard agregado (B3-04)
 router.include_router(me_router, prefix="/me", tags=["home"])
+# Motor de assessment: /assessment/sessions, /me/results, ... (B2-02/B2-03)
+router.include_router(assessment_router, prefix="/assessment", tags=["assessment"])
