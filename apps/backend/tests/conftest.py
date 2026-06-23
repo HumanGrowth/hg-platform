@@ -22,6 +22,21 @@ def client() -> TestClient:
     return TestClient(app)
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _seed_assessment_catalog() -> None:
+    """Asegura el catálogo de assessment (9 instrumentos + 57 items) en la DB.
+
+    Global (sin RLS) e idempotente; necesario para los tests del motor de
+    assessment y para la DB limpia de CI."""
+    from hg.scripts.seed_assessment import seed
+
+    s = SessionLocal()
+    try:
+        seed(s)
+    finally:
+        s.close()
+
+
 @pytest.fixture
 def db() -> Generator[Session, None, None]:
     """Transactional session with rollback-per-test isolation.
