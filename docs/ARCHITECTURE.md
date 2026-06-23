@@ -451,6 +451,51 @@ migraciones** (helpers en `people/service.py`: `streak_heatmap`, `weekly_minutes
 - **Fase 3 (B4-G):** snapshots materializados (`daily_snapshots`) para escalar las
   agregaciones más allá de ~500 usuarios/org.
 
+## Motor de assessment (B2-02 / B2-03)
+
+Ver [ADR-0012](adrs/ADR-0012-assessment-engine-mvp.md). Reemplaza los drafts de
+assessment y productiviza `UserLearningProfile` (`pillar_states` JSONB).
+
+### Modelo (`modules/assessment`)
+
+Catálogo global (sin RLS): `AssessmentInstrument` (9), `AssessmentItem` (57),
+`AssessmentItemOption`. Por user (RLS por org): `AssessmentSession`,
+`AssessmentResponse`, `PillarResult`. Snapshot read-optimized:
+`UserLearningProfile.pillar_states`. Migración **B2-04** (6 enums, 7 tablas, RLS
+en las 4 por-user, grants a `hg_app`/`hg_superadmin`).
+
+### Scorers (strategy pattern, 1 por pilar)
+
+`scorers/` con `BaseScorer` + registry `SCORERS[PillarCode]`. Cada pilar tiene su
+estructura propia (umbrales del doc firmado): P1 PMM v3 = MIN(C1..C5) (weakest
+link); P2 MLQ = Presencia/Búsqueda → 4 estados Damon; P3 UCLA+Cacioppo → N1-N4
+(N4 requiere confirmación del user); P4 Prochaska×4 → E1-E5 por dominio + recaída;
+P5 ERQ+AAQ → N1-N4; P6A CD-RISC → Baja/Media/Alta; P6B CFPB → Frágil/Vulnerable/
+Estable. Ítems invertidos: MLQ-5, AAQ-B1, CFPB-B4.
+
+### Endpoints (`/api/v1/assessment`, tag `assessment`)
+
+`POST /sessions`, `GET /sessions/{id}`, `POST /sessions/{id}/respond|finalize|abandon`,
+`GET /me/results`, `POST /me/results/{pillar}/confirm`,
+`POST /admin/users/{id}/reset-retake/{pillar}`. Validaciones de elegibilidad
+(onboarding único, re-take por ventana) en `service.py`. Seed idempotente:
+`python -m hg.scripts.seed_assessment`.
+
+### Frontend (B2-03)
+
+`onboarding/welcome` (inicia `onboarding_short`) → `onboarding/session/[id]`
+(loop `TraditionalForm` adapter) → `onboarding/result/[id]` (radar de estados +
+vías). `onboarding/detail/[pillar]` corre `pillar_detail` (resultado `confirmed`).
+`/home` consume `apiGetMyResults` (radar de estados reales + `PillarStatesGrid`
+con badges de source + CTA detalle/re-evaluar + modal de confirmación N4).
+`/team/[id]` muestra `assessment_states` (manager ve estados/vías, **no**
+respuestas). Helpers en `lib/assessment-utils.ts`.
+
+### Privacidad
+
+Colaborador + coach + manager directo ven estados; nadie expone
+`assessment_responses` al manager. RLS por org en todas las tablas por-user.
+
 ## Decisiones bloqueantes activas
 
 | ID | Decisión | Bloquea |
