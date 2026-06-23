@@ -118,3 +118,15 @@ invitación (ver `docs/adrs/ADR-0002`).
 - Accesibilidad WCAG AA: `role="img"` + `aria-labelledby`, `<table>` sr-only,
   `prefers-reduced-motion`, sin depender sólo del color.
 - Ver `docs/adrs/ADR-0011` y la sección "Widgets dashboard v1" de `docs/ARCHITECTURE.md`.
+
+### Motor de assessment (B2-02/B2-03)
+- Onboarding real: `onboarding/welcome` → `onboarding/session/[id]` (loop
+  `TraditionalForm`) → `onboarding/result/[id]` (radar de estados + vías).
+  `onboarding/detail/[pillar]` para la evaluación confirmada por pilar.
+- `/home` consume `apiGetMyResults` (radar de estados reales + `PillarStatesGrid`
+  con source badge, CTA detalle/re-evaluar y modal de confirmación N4).
+  `/team/[id]` muestra `assessment_states` (estados/vías, nunca respuestas).
+- Tipos + cliente en `lib/api.ts` (`apiStartSession`, `apiRespondItem`,
+  `apiFinalizeSession`, `apiGetMyResults`, `apiConfirmResult`); helpers en
+  `lib/assessment-utils.ts`. Adapter `components/assessment/TraditionalForm.tsx`.
+- Ver `docs/adrs/ADR-0012` y la sección "Motor de assessment" de `docs/ARCHITECTURE.md`.

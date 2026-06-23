@@ -4,6 +4,8 @@ import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
 import type {
   AdminUser,
+  AssessmentPillarCode,
+  AssessmentSession,
   AuthResult,
   CareerPath,
   Course,
@@ -12,6 +14,7 @@ import type {
   CourseProgress,
   CourseProgressPayload,
   Enrollment,
+  FinalizeResult,
   HomeDashboard,
   InviteInfo,
   ManagerWidgets,
@@ -21,6 +24,8 @@ import type {
   OrgMetrics,
   OrgWidgets,
   PaginatedUsers,
+  PillarResult,
+  SessionKind,
   TeamFilters,
   TeamMemberDetail,
   TeamResponse,
@@ -296,4 +301,54 @@ export const apiExportOrgUsersCsv = async (orgId?: string): Promise<void> => {
   a.click();
   a.remove();
   URL.revokeObjectURL(href);
+};
+
+// ─────────────── Assessment engine (B2-03) ───────────────
+
+export const apiStartSession = async (payload: {
+  kind: SessionKind;
+  target_pillar?: AssessmentPillarCode;
+}): Promise<AssessmentSession> => {
+  const res = await backend.post<AssessmentSession>("/api/v1/assessment/sessions", payload);
+  return res.data;
+};
+
+export const apiGetSession = async (id: string): Promise<AssessmentSession> => {
+  const res = await backend.get<AssessmentSession>(`/api/v1/assessment/sessions/${id}`);
+  return res.data;
+};
+
+export const apiRespondItem = async (
+  sessionId: string,
+  payload: {
+    item_id: string;
+    response_value: number;
+    qualitative_text?: string;
+    response_time_ms?: number;
+  },
+): Promise<AssessmentSession> => {
+  const res = await backend.post<AssessmentSession>(
+    `/api/v1/assessment/sessions/${sessionId}/respond`,
+    payload,
+  );
+  return res.data;
+};
+
+export const apiFinalizeSession = async (sessionId: string): Promise<FinalizeResult> => {
+  const res = await backend.post<FinalizeResult>(
+    `/api/v1/assessment/sessions/${sessionId}/finalize`,
+  );
+  return res.data;
+};
+
+export const apiGetMyResults = async (): Promise<{ results: PillarResult[] }> => {
+  const res = await backend.get<{ results: PillarResult[] }>("/api/v1/assessment/me/results");
+  return res.data;
+};
+
+export const apiConfirmResult = async (pillar: AssessmentPillarCode): Promise<PillarResult> => {
+  const res = await backend.post<PillarResult>(
+    `/api/v1/assessment/me/results/${pillar}/confirm`,
+  );
+  return res.data;
 };

@@ -13,10 +13,12 @@ import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Progress } from "@/components/ui/progress";
-import { apiGetHomeDashboard } from "@/lib/api";
+import { PillarStatesGrid } from "@/components/assessment/PillarStatesGrid";
+import { apiGetHomeDashboard, apiGetMyResults } from "@/lib/api";
+import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { PILLARS } from "@/lib/pillars";
-import type { HomeDashboard } from "@/lib/types";
+import type { HomeDashboard, PillarResult } from "@/lib/types";
 import { cn, formatRelativeTime } from "@/lib/utils";
 
 const HomeActivitySection = React.lazy(
@@ -44,25 +46,41 @@ export default function HomePage() {
 
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [data, setData] = React.useState<HomeDashboard | null>(null);
+  const [results, setResults] = React.useState<PillarResult[]>([]);
+
+  const loadResults = React.useCallback(async () => {
+    try {
+      const res = await apiGetMyResults();
+      setResults(res.results);
+    } catch {
+      setResults([]);
+    }
+  }, []);
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      setData(await apiGetHomeDashboard());
+      const [dash] = await Promise.all([apiGetHomeDashboard(), loadResults()]);
+      setData(dash);
       setStatus("ok");
     } catch {
       setStatus("error");
     }
-  }, []);
+  }, [loadResults]);
 
   React.useEffect(() => {
     void load();
   }, [load]);
 
   const rates = data?.pillar_completion_rates;
-  const radarValues = rates
-    ? Object.fromEntries(Object.entries(rates).map(([k, v]) => [k, pct(v)]))
-    : {};
+  // El radar prioriza los estados reales del assessment; si aún no hay, cae a
+  // completion rates (compat pre-assessment).
+  const radarValues =
+    results.length > 0
+      ? radarValuesFromResults(results)
+      : rates
+        ? Object.fromEntries(Object.entries(rates).map(([k, v]) => [k, pct(v)]))
+        : {};
 
   return (
     <main className="mx-auto w-full max-w-app px-6 py-10">
@@ -190,7 +208,10 @@ export default function HomePage() {
             </div>
           </Card>
 
-          {/* 6 dimensiones — completion rate (sin scores) */}
+          {/* Dimensiones: estados reales del assessment si existen; si no, completion rate. */}
+          {results.length > 0 ? (
+            <PillarStatesGrid results={results} onChanged={loadResults} />
+          ) : (
           <section className="mt-12">
             <Eyebrow>Tus 6 dimensiones</Eyebrow>
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -225,6 +246,7 @@ export default function HomePage() {
               })}
             </div>
           </section>
+          )}
 
           {/* Tu actividad — widgets lazy-loaded (no agregan peso al critical path) */}
           <React.Suspense fallback={<WidgetsSkeleton />}>

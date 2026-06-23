@@ -20,7 +20,13 @@ from hg.db import get_db
 from hg.modules.identity.models import User, UserRole
 from hg.modules.learning import enrollments_service
 from hg.modules.learning.enrollments_service import InvalidPathCodeError
-from hg.modules.learning.models import CareerPath, Course, CourseProgress, Enrollment
+from hg.modules.learning.models import (
+    CareerPath,
+    Course,
+    CourseProgress,
+    Enrollment,
+    UserLearningProfile,
+)
 from hg.modules.learning.schemas import EnrollmentIn, EnrollmentOut
 from hg.modules.people import service
 from hg.modules.people.schemas import (
@@ -192,12 +198,17 @@ def get_user_detail(
     enrollments = enrollments_service.list_user_enrollments(
         db, user_id=target.id, active_only=False
     )
+    # Snapshot de estados del assessment (sin exponer respuestas individuales).
+    profile = db.scalar(
+        select(UserLearningProfile).where(UserLearningProfile.user_id == target.id)
+    )
     return TeamMemberDetailOut(
         **base.model_dump(),
         enrollments=[_enrollment_out(db, e) for e in enrollments],
         courses_in_progress_list=_course_progress_list(db, target.id, completed=False),
         courses_completed_list=_course_progress_list(db, target.id, completed=True),
         pillar_completion_rate=pillar_completion_rate(db, target.id),
+        assessment_states=(profile.pillar_states if profile else {}),
     )
 
 
