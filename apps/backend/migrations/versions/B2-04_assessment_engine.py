@@ -68,8 +68,8 @@ def upgrade() -> None:
     for e in (pillar, instrument, rtype, skind, sstatus, rsource):
         e.create(bind, checkfirst=True)
 
-    def pillar_col(**kw):
-        return sa.Column("pillar_code", postgresql.ENUM(name="pillar_code", create_type=False), **kw)
+    def pillar_col(col_name: str = "pillar_code", **kw):
+        return sa.Column(col_name, postgresql.ENUM(name="pillar_code", create_type=False), **kw)
 
     # ── Catálogo global (sin RLS) ──
     op.create_table(
@@ -129,7 +129,7 @@ def upgrade() -> None:
         sa.Column("org_id", sa.UUID(), nullable=False),
         sa.Column("user_id", sa.UUID(), nullable=False),
         sa.Column("kind", postgresql.ENUM(name="session_kind", create_type=False), nullable=False),
-        pillar_col(name="target_pillar", nullable=True),
+        pillar_col("target_pillar", nullable=True),
         sa.Column("status", postgresql.ENUM(name="session_status", create_type=False),
                   server_default=sa.text("'in_progress'"), nullable=False),
         sa.Column("started_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
