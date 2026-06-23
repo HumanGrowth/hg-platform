@@ -328,3 +328,67 @@ export interface TeamFilters {
   sort?: TeamSort;
   inactive_only?: boolean;
 }
+
+// ─────────────── Assessment engine (B2-02/B2-03) ───────────────
+
+export type AssessmentPillarCode = "P1" | "P2" | "P3" | "P4" | "P5" | "P6A" | "P6B";
+export type SessionKind = "onboarding_short" | "pillar_detail";
+export type ResultSource = "preliminary" | "confirmed";
+export type AssessmentResponseType =
+  | "likert_1_5"
+  | "likert_1_7"
+  | "likert_0_4"
+  | "multiple_choice";
+
+export interface AssessmentItemOption {
+  id: string;
+  order_index: number;
+  label: string;
+  value: number;
+}
+
+export interface AssessmentItem {
+  id: string;
+  item_code: string;
+  pillar_code: AssessmentPillarCode;
+  sub_scale: string | null;
+  sub_domain: string | null;
+  response_type: AssessmentResponseType;
+  scale_min: number | null;
+  scale_max: number | null;
+  prompt: string;
+  order_index: number;
+  options: AssessmentItemOption[] | null;
+}
+
+export interface AssessmentSession {
+  id: string;
+  kind: SessionKind;
+  target_pillar: AssessmentPillarCode | null;
+  status: "in_progress" | "completed" | "expired" | "abandoned";
+  started_at: string;
+  expires_at: string;
+  completed_at: string | null;
+  next_item: AssessmentItem | null;
+  total_items: number;
+  answered_items: number;
+}
+
+export interface PillarResult {
+  pillar_code: AssessmentPillarCode;
+  source: ResultSource;
+  state_code: string;
+  state_label: string;
+  sub_scores: Record<string, unknown>;
+  requires_user_confirmation: boolean;
+  user_confirmed_at: string | null;
+  recaida_detected: boolean;
+  suggested_next_step: string | null;
+  derived_at: string;
+  next_retake_eligible_at: string;
+}
+
+export interface FinalizeResult {
+  session_id: string;
+  results: PillarResult[];
+}
