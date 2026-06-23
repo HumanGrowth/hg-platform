@@ -184,9 +184,10 @@ class CourseProgress(Base):
 
 
 class UserLearningProfile(Base):
-    """# ⚠️ DRAFT — depende de B2-08. Aggregated learning state per user.
+    """Snapshot agregado por user del estado actual de los pilares (read-optimized).
 
-    En metadata pero NO la crea la migración B2-01; se materializa en B2-08."""
+    Productivo (B2-02). ``pillar_states`` es un resumen del último ``PillarResult``
+    por pilar; la fuente de verdad histórica vive en ``pillar_results``."""
 
     __tablename__ = "user_learning_profiles"
 
@@ -197,12 +198,15 @@ class UserLearningProfile(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
     )
-    # e.g. {"P1": 0.85, "P2": 0.60, "P3": 0.0, "P4": 0.0, "P5": 0.0, "P6": 0.0}
-    pillar_scores: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
-    current_path_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("career_paths.id", ondelete="SET NULL")
-    )
-    onboarding_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Ejemplo:
+    # {
+    #   "P1": {"state": "L3", "source": "preliminary", "sub_scores": {...}, "derived_at": "..."},
+    #   "P2": {"state": "Direccionado", "source": "confirmed", "sub_scores": {...}, ...},
+    #   ...
+    # }
+    pillar_states: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    onboarding_short_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_assessment_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
