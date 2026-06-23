@@ -79,6 +79,9 @@ ignore = ["E501", "UP042"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]
+# Transcripción literal del doc firmado (es-CR): conserva tipografía con guiones
+# largos/cortos (–, —) y otros caracteres ambiguos para fidelidad al instrumento.
+"src/hg/scripts/seed_assessment.py" = ["RUF001", "RUF002", "RUF003"]
 
 [tool.ruff.lint.flake8-bugbear]
 # Llamadas idiomáticas de FastAPI en defaults de argumentos (patrón obligatorio
