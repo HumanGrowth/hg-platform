@@ -1,11 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { apiSubmitInquiry } from "@/lib/api";
 import { toast } from "@/lib/toast-store";
@@ -39,16 +41,14 @@ export default function ContactForm({ source = "contacto" }: { source?: string }
 
   if (sentTo) {
     return (
-      <div className="bg-cream-50 border border-border rounded-lg p-10 text-center">
-        <h2 className="display text-ink-900 text-3xl mb-3">Gracias, {sentTo}</h2>
-        <p className="text-ink-800 mb-6">Te respondemos en menos de 24 horas.</p>
-        <Link
-          href="/paths"
-          className="inline-block bg-orange text-white px-6 py-3 rounded-md font-semibold hover:bg-orange-600 transition-colors"
-        >
-          Ver rutas mientras tanto →
+      <Card className="text-center py-12">
+        <CheckCircle2 size={48} strokeWidth={1.5} className="text-forest mx-auto mb-4" />
+        <h2 className="display text-2xl text-ink-900 mb-3">¡Gracias por escribirnos!</h2>
+        <p className="text-ink-800 mb-8">Te respondemos en menos de 24 horas.</p>
+        <Link href="/" className="text-orange-700 font-semibold hover:underline">
+          Volver al inicio →
         </Link>
-      </div>
+      </Card>
     );
   }
 
