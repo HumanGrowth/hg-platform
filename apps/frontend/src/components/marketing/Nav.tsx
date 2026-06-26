@@ -42,9 +42,11 @@ export default function Nav() {
           <Link href="/paths" className={linkCls}>
             {t("nav.paths", LANG)}
           </Link>
-          <span className={`${linkCls} opacity-60`}>{t("nav.mentorships", LANG)}</span>
           <Link href="/for-teams" className={linkCls}>
             {t("nav.forTeams", LANG)}
+          </Link>
+          <Link href="/ciencia" className={linkCls}>
+            La Ciencia
           </Link>
           <Link href="/pricing" className={linkCls}>
             {t("nav.pricing", LANG)}
@@ -58,7 +60,7 @@ export default function Nav() {
           {t("nav.login", LANG)}
         </Link>
         <Link
-          href="/login"
+          href="/contacto"
           className="bg-orange text-white border-0 px-[18px] py-2.5 rounded-md font-semibold text-sm cursor-pointer hover:bg-orange-600 transition-colors"
         >
           Conversemos
