@@ -16,10 +16,10 @@ export const es = {
     bodyAfter: " y una que se va.",
     ctaPrimary: "Explorar rutas",
     ctaSecondary: "Para tu empresa",
-    socialProof: "+14,300 profesionales creciendo hoy",
+    socialProof: "Diseñado para profesionales y equipos de LatAm",
   },
   logoCloud: {
-    eyebrow: "EMPRESAS QUE CONFÍAN EN HG",
+    eyebrow: "PRÓXIMOS PARTNERS",
     trustedBy: "Empresas en Costa Rica, Centroamérica y LatAm ya están creciendo con HG.",
   },
   features: {
@@ -61,7 +61,7 @@ export const es = {
     bodyA: "El 28% del talento en LatAm rota cada año. Las empresas invierten en capacitación técnica. El problema casi nunca es técnico. Es que la persona no sabe ",
     bodyEm: "para qué",
     bodyB: " trabaja, no confía en su jefe, o está quemada. Eso se puede medir. Y se puede resolver.",
-    name: "Jorge Salas",
+    name: "Jorge Araya",
     role: "Fundador · HumanGrowth",
   },
   pricing: {
