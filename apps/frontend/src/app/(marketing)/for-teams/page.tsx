@@ -17,10 +17,13 @@ export default function ForTeamsPage() {
     <>
       <section className="max-w-marketing mx-auto px-8 pt-36 pb-16">
         <div className="eyebrow eyebrow-accent mb-6">{c.forTeams.eyebrow}</div>
-        <h1 className="display text-ink-900 m-0 text-[44px] sm:text-[56px] lg:text-7xl max-w-[820px]">
-          {c.forTeams.titleLine1}
-          <br />
-          {c.forTeams.titleLine2}
+        <h1
+          className="display text-ink-900 m-0 text-[44px] sm:text-[56px] lg:text-7xl max-w-[820px]"
+          aria-label={`${c.forTeams.titleLine1} ${c.forTeams.titleLine2}`}
+        >
+          <span aria-hidden>{c.forTeams.titleLine1}</span>
+          <br aria-hidden="true" />
+          <span aria-hidden>{c.forTeams.titleLine2}</span>
         </h1>
         <p className="text-ink-800 text-[18px] leading-[1.5] mt-6 max-w-[620px]">{c.forTeams.body}</p>
         <div className="mt-9 flex gap-3 flex-wrap">

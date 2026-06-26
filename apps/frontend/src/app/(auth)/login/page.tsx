@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -57,7 +58,7 @@ function LoginInner() {
         Human Growth
       </Eyebrow>
       <Display variant="display-3" className="mb-6">
-        Volvé a entrar
+        Bienvenido/a
       </Display>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
@@ -100,6 +101,7 @@ function LoginInner() {
           {isSubmitting ? "Entrando…" : "Iniciar sesión"}
         </Button>
 
+        {/* TODO: reactivar cuando exista flow de recovery (B3-07).
         <button
           type="button"
           className="mt-1 self-start text-sm text-fg-muted underline-offset-2 hover:underline"
@@ -107,7 +109,15 @@ function LoginInner() {
         >
           Olvidé mi contraseña
         </button>
+        */}
       </form>
+
+      <p className="mt-6 text-center text-sm text-fg-muted">
+        ¿No tenés cuenta?{" "}
+        <Link href="/contacto" className="font-semibold text-orange-700 hover:underline">
+          Solicitá unirte
+        </Link>
+      </p>
     </Card>
   );
 }
