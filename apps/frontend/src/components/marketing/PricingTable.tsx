@@ -1,131 +1,71 @@
-"use client";
-
+import { Check } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 
-import { getCopy } from "@/lib/i18n";
+import { Card } from "@/components/ui/card";
 
-type TierStyle = {
-  monthly: number | null;
-  annual?: number;
-  perSeat?: boolean;
-  highlighted?: boolean;
-};
-
-const styles: TierStyle[] = [
-  { monthly: 24, annual: 19 },
-  { monthly: 39, annual: 32, perSeat: true, highlighted: true },
-  { monthly: null },
+const FEATURES = [
+  "Diagnóstico inicial con base científica",
+  "Catálogo de cursos completos",
+  "Biblioteca de contenido HG",
+  "Player de video adaptativo",
+  "Dashboard para manager directo",
+  "Dashboard RRHH con métricas org",
+  "Export CSV de progreso",
+  "Onboarding asistido del equipo",
+  "Soporte LatAm en horario local",
+  "Acceso web + mobile responsive",
+  "Re-takes del assessment (cada 30d)",
+  "Documentación de privacidad y GDPR",
 ];
 
-export default function PricingTable() {
-  const c = getCopy("es");
-  const [annual, setAnnual] = useState(true);
-  const tiers = c.pricing.tiers;
+function FeatureItem({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-2 text-sm text-ink-800">
+      <Check size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-forest" />
+      <span>{children}</span>
+    </div>
+  );
+}
 
+export default function PricingTable() {
   return (
     <section className="max-w-marketing mx-auto px-8 py-32">
       <div className="flex flex-col items-center text-center mb-12">
-        <div className="eyebrow eyebrow-accent mb-4">{c.pricing.eyebrow}</div>
+        <div className="eyebrow eyebrow-accent mb-4">TARIFAS</div>
         <h2 className="display text-ink-900 m-0 max-w-[760px] text-[44px] sm:text-[56px] lg:text-[64px]">
-          {c.pricing.title}
+          Cada empresa es distinta. Vamos a armar tu paquete.
         </h2>
-        <div className="mt-6 inline-flex rounded-md p-[3px]" style={{ background: "var(--cream-200)" }}>
-          {(
-            [
-              [c.pricing.monthly, false],
-              [c.pricing.annual, true],
-            ] as const
-          ).map(([label, val]) => (
-            <button
-              key={String(label)}
-              onClick={() => setAnnual(val)}
-              className="px-4 py-2 text-[13px] font-semibold border-0 cursor-pointer rounded-[6px]"
-              style={{
-                background: annual === val ? "#FFFFFF" : "transparent",
-                color: annual === val ? "var(--ink-900)" : "var(--fg-muted)",
-                boxShadow: annual === val ? "0 1px 2px rgba(26,26,26,0.06)" : "none",
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <p className="text-ink-800 text-[18px] leading-[1.5] mt-6 max-w-[620px]">
+          Sin tarifas fijas todavía. Conversamos contigo para entender tu equipo, definir el alcance
+          y armarte una propuesta a la medida.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {tiers.map((tier, i) => {
-          const s = styles[i];
-          const price = annual ? s.annual ?? null : s.monthly;
-          const h = !!s.highlighted;
-          return (
-            <div
-              key={tier.name}
-              className="rounded-xl p-8 flex flex-col gap-[18px] relative"
-              style={{
-                background: h ? "var(--ink-900)" : "var(--cream-100)",
-                color: h ? "var(--cream-100)" : "var(--ink-900)",
-                border: h ? "none" : "1px solid var(--border)",
-              }}
-            >
-              {h && (
-                <div
-                  className="absolute -top-3 left-6 text-[11px] font-bold uppercase px-2.5 py-1 rounded-sm bg-orange text-white"
-                  style={{ letterSpacing: "0.08em" }}
-                >
-                  {c.pricing.badge}
-                </div>
-              )}
-              <div>
-                <div className="display" style={{ fontSize: 36, lineHeight: 0.95, color: "inherit" }}>
-                  {tier.name}
-                </div>
-                <div className="mt-2 text-sm leading-[1.5]" style={{ color: h ? "#B3B0A8" : "var(--warm-600)" }}>
-                  {tier.tagline}
-                </div>
-              </div>
-              <div
-                className="pt-[18px]"
-                style={{ borderTop: h ? "1px solid rgba(250,243,232,0.15)" : "1px solid var(--border)" }}
-              >
-                {price !== null ? (
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="font-display" style={{ fontSize: 64, lineHeight: 0.9 }}>
-                      ${price}
-                    </span>
-                    <span className="text-sm" style={{ color: h ? "#B3B0A8" : "var(--fg-muted)" }}>
-                      / {s.perSeat ? c.pricing.perSeat : c.pricing.perMonth}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="font-display" style={{ fontSize: 40, lineHeight: 0.95 }}>
-                    {c.pricing.letsTalk}
-                  </div>
-                )}
-              </div>
-              <ul className="list-none p-0 m-0 flex flex-col gap-2.5">
-                {tier.features.map((f) => (
-                  <li key={f} className="flex gap-2.5 items-start text-sm">
-                    <span className="font-bold mt-px" style={{ color: h ? "var(--amber)" : "var(--orange)" }}>
-                      ✓
-                    </span>
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/contacto"
-                className="border-0 px-[22px] py-3.5 rounded-md font-semibold text-[15px] cursor-pointer mt-auto transition-opacity hover:opacity-90 text-center"
-                style={{
-                  background: h ? "var(--orange)" : "var(--ink-900)",
-                  color: h ? "#fff" : "var(--cream-100)",
-                }}
-              >
-                {tier.cta} →
-              </Link>
-            </div>
-          );
-        })}
+      <div className="max-w-[720px] mx-auto">
+        <Card className="bg-bg-raised p-10 border border-border">
+          <div className="eyebrow mb-3">PLAN A LA MEDIDA</div>
+          <h3 className="display text-ink-900 mb-4 text-3xl">Construido contigo</h3>
+          <p className="text-ink-800 mb-8 text-base leading-[1.6]">
+            Elegí qué incluir según el momento de tu equipo. Sin compromisos ocultos.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 mb-10">
+            {FEATURES.map((f) => (
+              <FeatureItem key={f}>{f}</FeatureItem>
+            ))}
+          </div>
+
+          <Link
+            href="/contacto"
+            className="block w-full text-center bg-orange text-white px-8 py-4 rounded-md font-semibold text-base hover:bg-orange-600 transition-colors"
+          >
+            Conversemos →
+          </Link>
+
+          <p className="text-xs text-fg-muted text-center mt-6">
+            Tarifas individuales y por licencia próximamente.
+          </p>
+        </Card>
       </div>
     </section>
   );
