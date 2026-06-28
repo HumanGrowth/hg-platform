@@ -119,10 +119,14 @@ function AdminOrgDetailContent() {
           <span>
             · {org.licenses_used}/{org.licenses_total} licencias · {org.billing_status}
           </span>
+          {org.country ? <span className="text-xs">· {org.country}</span> : null}
+          <span className="text-xs">
+            · Creada {new Date(org.created_at).toLocaleDateString("es")}
+          </span>
         </p>
       ) : null}
 
-      <Tabs defaultValue="invitaciones" className="mt-8">
+      <Tabs defaultValue="usuarios" className="mt-8">
         <TabsList>
           <TabsTrigger value="usuarios">Usuarios</TabsTrigger>
           <TabsTrigger value="invitaciones">Invitaciones</TabsTrigger>
