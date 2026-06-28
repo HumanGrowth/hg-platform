@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from hg.core.deps import get_current_user, get_db_as_superadmin
+from hg.db import get_db
 from hg.modules.identity import service
 from hg.modules.identity.models import Organization, User
 from hg.modules.identity.schemas import (
@@ -17,6 +18,7 @@ from hg.modules.identity.schemas import (
     LoginRequest,
     LogoutRequest,
     MeResponse,
+    MeUpdateRequest,
     RefreshRequest,
     TokenResponse,
     UserOut,
@@ -63,6 +65,28 @@ def me(
     org = db.get(Organization, user.org_id)
     return MeResponse(
         **UserOut.model_validate(user).model_dump(),
+        org_name=org.name if org else "",
+    )
+
+
+@router.patch("/me", response_model=MeResponse)
+def update_me(
+    body: MeUpdateRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> MeResponse:
+    db_user = db.get(User, user.id)
+    if db_user is None:  # pragma: no cover - el token garantiza que existe
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+    db_user.full_name = body.full_name
+    db_user.job_title = body.job_title
+    db.commit()
+    db.refresh(db_user)
+    org = db.get(Organization, db_user.org_id)
+    return MeResponse(
+        **UserOut.model_validate(db_user).model_dump(),
         org_name=org.name if org else "",
     )
 

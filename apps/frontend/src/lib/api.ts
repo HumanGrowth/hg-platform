@@ -112,6 +112,14 @@ export const apiMe = async (): Promise<Me> => {
   return res.data;
 };
 
+export const apiUpdateMe = async (payload: {
+  full_name: string;
+  job_title?: string | null;
+}): Promise<Me> => {
+  const res = await backend.patch<Me>("/api/v1/auth/me", payload);
+  return res.data;
+};
+
 export const apiInviteInfo = async (token: string): Promise<InviteInfo> => {
   const res = await axios.get<InviteInfo>(`${BACKEND}/api/v1/auth/invite-info`, {
     params: { token },
