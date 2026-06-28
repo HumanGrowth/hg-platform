@@ -57,6 +57,14 @@ def logout(
     service.logout(db, refresh_token=body.refresh_token)
 
 
+def _reports_count(db: Session, user_id: object) -> int:
+    from sqlalchemy import func, select
+
+    return int(
+        db.scalar(select(func.count()).select_from(User).where(User.manager_id == user_id)) or 0
+    )
+
+
 @router.get("/me", response_model=MeResponse)
 def me(
     user: User = Depends(get_current_user),
@@ -66,6 +74,7 @@ def me(
     return MeResponse(
         **UserOut.model_validate(user).model_dump(),
         org_name=org.name if org else "",
+        reports_count=_reports_count(db, user.id),
     )
 
 
@@ -88,6 +97,7 @@ def update_me(
     return MeResponse(
         **UserOut.model_validate(db_user).model_dump(),
         org_name=org.name if org else "",
+        reports_count=_reports_count(db, db_user.id),
     )
 
 

@@ -38,6 +38,7 @@ class MeResponse(UserOut):
     """UserOut + nombre de la org del usuario (para el header de perfil)."""
 
     org_name: str
+    reports_count: int = 0
 
 
 class MeUpdateRequest(BaseModel):

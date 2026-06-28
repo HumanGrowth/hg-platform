@@ -30,3 +30,12 @@ def test_update_me_rejects_empty_name(client, factory, auth_headers) -> None:
         "/api/v1/auth/me", headers=auth_headers(user), json={"full_name": ""}
     )
     assert res.status_code == 422
+
+
+def test_me_reports_count(client, manager_with_reports, factory, auth_headers) -> None:
+    mw = manager_with_reports
+    mgr = client.get("/api/v1/auth/me", headers=auth_headers(mw.manager)).json()
+    assert mgr["reports_count"] == 3  # r1 + r2 + r3
+    loner = factory.make_user(org=mw.org)
+    me = client.get("/api/v1/auth/me", headers=auth_headers(loner)).json()
+    assert me["reports_count"] == 0
