@@ -14,6 +14,17 @@ export function StreakHeatmap({ data }: { data: StreakDay[] }) {
   const labelId = React.useId();
   const summaryText = `${summary.activeDays} días activos en los últimos 90 · racha actual ${summary.currentStreak} · racha más larga ${summary.longestStreak}`;
 
+  if (summary.activeDays === 0) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-2 py-8 text-center">
+        <p className="font-sans text-sm font-semibold text-fg">Tu racha empieza hoy</p>
+        <p className="max-w-xs text-xs text-fg-muted">
+          Empezá a usar la plataforma para construir tu racha de días activos.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div role="img" aria-labelledby={labelId} className="flex flex-col gap-2">
       <h3 id={labelId} className="sr-only">

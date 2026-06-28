@@ -19,7 +19,7 @@ import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { PILLARS } from "@/lib/pillars";
 import type { HomeDashboard, PillarResult } from "@/lib/types";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { cn, formatRelativeTime, greetingName } from "@/lib/utils";
 
 const HomeActivitySection = React.lazy(
   () => import("@/components/widgets/sections/HomeActivitySection"),
@@ -42,7 +42,8 @@ const pillarBadge = (code: string) =>
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
-  const firstName = user?.full_name.split(" ")[0] ?? "";
+  const firstName = greetingName(user?.full_name ?? "");
+  const isAdminPlus = user?.role === "admin" || user?.role === "superadmin";
 
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [data, setData] = React.useState<HomeDashboard | null>(null);
@@ -293,11 +294,15 @@ export default function HomePage() {
       )}
 
       <p className="mt-10 text-xs text-fg-subtle">
-        ¿Sos admin de tu organización?{" "}
-        <Link href={"/profile" as Route} className="underline underline-offset-2">
-          Mirá tu perfil
-        </Link>
-        .
+        {isAdminPlus ? (
+          <Link href={"/admin/org" as Route} className="underline underline-offset-2">
+            Ir al panel de tu organización →
+          </Link>
+        ) : (
+          <Link href={"/perfil" as Route} className="underline underline-offset-2">
+            Ver tu perfil y radar completo →
+          </Link>
+        )}
       </p>
     </main>
   );
