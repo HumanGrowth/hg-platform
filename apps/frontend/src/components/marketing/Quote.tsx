@@ -18,7 +18,7 @@ export default function Quote() {
           className="w-12 h-12 rounded-full text-ink-900 font-bold flex items-center justify-center"
           style={{ background: "#FFD9C2" }}
         >
-          JS
+          JA
         </div>
         <div>
           <div className="font-bold">{c.quote.name}</div>

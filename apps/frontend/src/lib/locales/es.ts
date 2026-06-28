@@ -16,10 +16,10 @@ export const es = {
     bodyAfter: " y una que se va.",
     ctaPrimary: "Explorar rutas",
     ctaSecondary: "Para tu empresa",
-    socialProof: "+14,300 profesionales creciendo hoy",
+    socialProof: "Diseñado para profesionales y equipos de LatAm",
   },
   logoCloud: {
-    eyebrow: "EMPRESAS QUE CONFÍAN EN HG",
+    eyebrow: "PRÓXIMOS PARTNERS",
     trustedBy: "Empresas en Costa Rica, Centroamérica y LatAm ya están creciendo con HG.",
   },
   features: {
@@ -61,23 +61,14 @@ export const es = {
     bodyA: "El 28% del talento en LatAm rota cada año. Las empresas invierten en capacitación técnica. El problema casi nunca es técnico. Es que la persona no sabe ",
     bodyEm: "para qué",
     bodyB: " trabaja, no confía en su jefe, o está quemada. Eso se puede medir. Y se puede resolver.",
-    name: "Jorge Salas",
+    name: "Jorge Araya",
     role: "Fundador · HumanGrowth",
   },
   pricing: {
+    // Tarjeta única "a la medida" (polish): se removieron el toggle mensual/anual
+    // y los 3 tiers junto con sus keys.
     eyebrow: "TARIFAS",
-    title: "Paga por uso. No por un catálogo que nadie abre.",
-    monthly: "Mensual",
-    annual: "Anual (ahorra 2 meses)",
-    perSeat: "licencia / mes",
-    perMonth: "mes",
-    letsTalk: "Hablemos",
-    badge: "La mayoría de los equipos elige este",
-    tiers: [
-      { name: "Plan Individual", tagline: "Para el profesional con ganas de crecer.", features: ["Todas las rutas + biblioteca", "Badges verificados", "1 sesión de mentoría por trimestre", "Acceso a charlas en vivo y grabaciones", "Web y móvil"], cta: "Prueba gratis 14 días" },
-      { name: "Plan Equipos", tagline: "Para 5 a 500 personas. Con vista de líder incluida.", features: ["Todo lo del plan Individual", "Dashboard para gerentes: quién crece en qué", "Rutas personalizadas por empresa", "4 sesiones de mentoría / trimestre / licencia", "Notificaciones automáticas al jefe directo", "SSO + integración RRHH"], cta: "Hablar con ventas" },
-      { name: "Plan Enterprise", tagline: "Para +500 personas. Rutas a la medida.", features: ["Todo lo del plan Equipos", "Gerente de cuenta dedicado", "Mentores seleccionados por industria", "Reportes y API", "Cohortes privadas", "Soporte para compras corporativas"], cta: "Hablar con ventas" },
-    ],
+    title: "Cada empresa es distinta. Vamos a armar tu paquete.",
   },
   forTeams: {
     eyebrow: "PARA EQUIPOS",

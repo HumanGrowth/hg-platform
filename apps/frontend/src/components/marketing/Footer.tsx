@@ -1,7 +1,18 @@
+import { Linkedin } from "lucide-react";
 import Image from "next/image";
+import type { Route } from "next";
 import Link from "next/link";
 
 import { getCopy } from "@/lib/i18n";
+
+// Items con destino real; el resto quedan como placeholder visual (sin link).
+const FOOTER_LINKS: Record<string, Route> = {
+  "Rutas de Crecimiento": "/paths",
+  Diagnóstico: "/login",
+  Biblioteca: "/login",
+  Tarifas: "/pricing",
+  Contacto: "/contacto",
+};
 
 export default function Footer() {
   const c = getCopy("es");
@@ -14,16 +25,39 @@ export default function Footer() {
         <div className="col-span-2 md:col-span-1">
           <Image src="/marketing/logo-color.svg" width={200} height={56} className="h-14 w-auto" alt="Human Growth" />
           <p className="body-sm mt-4 max-w-[240px] text-ink-800">{c.footer.tagline}</p>
+          <div className="mt-4 flex items-center gap-4">
+            <a
+              href="https://www.linkedin.com/company/humangrowthlatam"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn Human Growth"
+              className="text-ink-800 hover:text-ink-900"
+            >
+              <Linkedin size={20} strokeWidth={1.75} />
+            </a>
+            <a href="mailto:admin@humangrowth.io" className="text-sm text-ink-800 hover:text-ink-900">
+              admin@humangrowth.io
+            </a>
+          </div>
         </div>
         {c.footer.columns.map((col) => (
           <div key={col.h}>
             <div className="eyebrow mb-3.5">{col.h}</div>
             <ul className="list-none p-0 m-0 flex flex-col gap-2">
-              {col.items.map((it) => (
-                <li key={it}>
-                  <span className="text-sm text-ink-800 cursor-pointer hover:text-ink-900">{it}</span>
-                </li>
-              ))}
+              {col.items.map((it) => {
+                const href = FOOTER_LINKS[it];
+                return (
+                  <li key={it}>
+                    {href ? (
+                      <Link href={href} className="text-sm text-ink-800 hover:text-ink-900">
+                        {it}
+                      </Link>
+                    ) : (
+                      <span className="text-sm text-ink-800">{it}</span>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}

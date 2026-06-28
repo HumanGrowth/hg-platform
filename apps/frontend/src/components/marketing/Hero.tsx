@@ -18,10 +18,11 @@ export default function Hero() {
         <h1
           className="display text-ink-900 m-0"
           style={{ fontSize: "clamp(64px, 9vw, 128px)", lineHeight: 0.9, textWrap: "balance" }}
+          aria-label={`${t("hero.titleLine1", LANG)} ${t("hero.titleLine2", LANG)}`}
         >
-          {t("hero.titleLine1", LANG)}
-          <br />
-          {t("hero.titleLine2", LANG)}
+          <span aria-hidden>{t("hero.titleLine1", LANG)}</span>
+          <br aria-hidden="true" />
+          <span aria-hidden>{t("hero.titleLine2", LANG)}</span>
         </h1>
         <p className="text-[22px] leading-[1.45] max-w-[560px] mt-7 mb-9 text-ink-800">
           {t("hero.bodyBefore", LANG)}
@@ -30,7 +31,7 @@ export default function Hero() {
         </p>
         <div className="flex gap-3 items-center flex-wrap">
           <Link
-            href="/login"
+            href="/contacto"
             className="bg-orange text-white border-0 px-7 py-4 rounded-md font-semibold text-base cursor-pointer whitespace-nowrap hover:bg-orange-600 transition-colors"
           >
             Conversemos →

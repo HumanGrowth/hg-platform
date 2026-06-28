@@ -1,8 +1,10 @@
+import Link from "next/link";
+
 import { getCopy } from "@/lib/i18n";
 
 export type PathStyle = {
-  faces: string[];
-  cohort: number;
+  faces?: string[];
+  cohort?: number;
   dark?: boolean;
 };
 
@@ -15,11 +17,12 @@ export type PathContent = {
 
 export type Path = PathStyle & PathContent;
 
-export function PathCard({ path, cohortLabel }: { path: Path; cohortLabel: string }) {
+export function PathCard({ path, cohortLabel }: { path: Path; cohortLabel?: string }) {
   const dark = !!path.dark;
   return (
-    <div
-      className={`rounded-lg p-6 flex flex-col gap-4 min-h-[320px] cursor-pointer transition-shadow ${
+    <Link
+      href="/paths"
+      className={`rounded-lg p-6 flex flex-col gap-4 min-h-[280px] transition-shadow ${
         dark ? "" : "hover:shadow-md"
       }`}
       style={{
@@ -48,37 +51,34 @@ export function PathCard({ path, cohortLabel }: { path: Path; cohortLabel: strin
       >
         {path.body}
       </p>
-      <div className="flex items-center justify-between">
-        <div className="flex">
-          {path.faces.map((c, i) => (
-            <div
-              key={i}
-              className="w-7 h-7 rounded-full"
-              style={{
-                background: c,
-                border: `2px solid ${dark ? "var(--ink-900)" : "var(--cream-100)"}`,
-                marginLeft: i ? -10 : 0,
-              }}
-            />
-          ))}
+      {path.cohort != null && (
+        <div className="flex items-center justify-between">
+          <div className="flex">
+            {(path.faces ?? []).map((c, i) => (
+              <div
+                key={i}
+                className="w-7 h-7 rounded-full"
+                style={{
+                  background: c,
+                  border: `2px solid ${dark ? "var(--ink-900)" : "var(--cream-100)"}`,
+                  marginLeft: i ? -10 : 0,
+                }}
+              />
+            ))}
+          </div>
+          <span className="font-mono text-xs" style={{ color: dark ? "#B3B0A8" : "var(--fg-muted)" }}>
+            {path.cohort} {cohortLabel}
+          </span>
         </div>
-        <span className="font-mono text-xs" style={{ color: dark ? "#B3B0A8" : "var(--fg-muted)" }}>
-          {path.cohort} {cohortLabel}
-        </span>
-      </div>
-    </div>
+      )}
+    </Link>
   );
 }
 
-const styles: PathStyle[] = [
-  { faces: ["#C8A76E", "#4A7A54", "#A8C4A0"], cohort: 312 },
-  { faces: ["#1A1A1A", "#C8A76E", "#6B7061"], cohort: 184, dark: true },
-  { faces: ["#A8C4A0", "#E8530A", "#2A2826"], cohort: 96 },
-];
+const styles: PathStyle[] = [{}, { dark: true }, {}];
 
 export function FeaturedPaths() {
   const c = getCopy("es");
-  const cohortLabel = c.paths.cohort;
   return (
     <section className="max-w-marketing mx-auto px-8 py-32">
       <div className="flex items-end justify-between mb-12 flex-wrap gap-4">
@@ -87,7 +87,7 @@ export function FeaturedPaths() {
           {c.paths.filters.map((name, i) => (
             <span
               key={name}
-              className="px-3.5 py-2 rounded-full text-[13px] font-medium cursor-pointer"
+              className="px-3.5 py-2 rounded-full text-[13px] font-medium"
               style={{
                 background: i === 0 ? "var(--ink-900)" : "transparent",
                 color: i === 0 ? "var(--cream-100)" : "var(--ink-800)",
@@ -101,7 +101,7 @@ export function FeaturedPaths() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {c.paths.items.map((content, i) => (
-          <PathCard key={content.title} path={{ ...content, ...styles[i] }} cohortLabel={cohortLabel} />
+          <PathCard key={content.title} path={{ ...content, ...styles[i] }} />
         ))}
       </div>
     </section>
