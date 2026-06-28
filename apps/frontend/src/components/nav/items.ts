@@ -1,6 +1,8 @@
-import { Hexagon, Home, Route as RouteIcon, User, Users, type LucideIcon } from "lucide-react";
+import { BookOpen, Home, Menu, Route as RouteIcon, User, Users, type LucideIcon } from "lucide-react";
 
-import type { UserRole } from "@/lib/types";
+import type { User as MeUser, UserRole } from "@/lib/types";
+
+export { Menu };
 
 /** Destinos de navegación del Producto A (colaborador + manager). */
 export interface NavItem {
@@ -13,26 +15,40 @@ export interface NavItem {
 
 const MANAGER_ROLES: UserRole[] = ["manager", "admin", "superadmin"];
 
-export const NAV_ITEMS: NavItem[] = [
+export const SIDE_NAV_ITEMS: NavItem[] = [
   { href: "/home", label: "Inicio", icon: Home },
-  { href: "/path", label: "Mi Ruta", icon: RouteIcon }, // /library vive acá como sub-vista
-  { href: "/radar", label: "Mi Radar", icon: Hexagon },
+  { href: "/path", label: "Mi Ruta", icon: RouteIcon },
+  { href: "/library", label: "Biblioteca", icon: BookOpen },
+  { href: "/perfil", label: "Mi Perfil", icon: User },
   { href: "/team", label: "Mi equipo", icon: Users, roles: MANAGER_ROLES },
-  { href: "/profile", label: "Perfil", icon: User },
 ];
 
-export function navItemsForRole(role: UserRole | undefined): NavItem[] {
-  return NAV_ITEMS.filter((item) => !item.roles || (role !== undefined && item.roles.includes(role)));
+/** BottomNav mobile: 4 ítems fijos + botón "Más" (drawer). */
+export const BOTTOM_NAV_ITEMS_BASE: NavItem[] = [
+  { href: "/home", label: "Inicio", icon: Home },
+  { href: "/path", label: "Mi Ruta", icon: RouteIcon },
+  { href: "/library", label: "Biblioteca", icon: BookOpen },
+  { href: "/perfil", label: "Perfil", icon: User },
+];
+
+export function isManagerRole(role: UserRole | undefined): boolean {
+  return role !== undefined && MANAGER_ROLES.includes(role);
 }
 
-/** BottomNav mobile: máximo 4 ítems. Manager → Perfil pasa al menú del avatar
- * y "Mi equipo" toma su lugar. Colaborador → los 4 de siempre. */
-export function bottomNavItemsForRole(role: UserRole | undefined): NavItem[] {
-  const all = navItemsForRole(role);
-  if (role !== undefined && MANAGER_ROLES.includes(role)) {
-    return all.filter((i) => i.href !== "/profile").slice(0, 4);
-  }
-  return all.slice(0, 4);
+/** "Mi equipo" se oculta si el rol califica pero no tiene reportes (TM-04). */
+export function showTeam(user: Pick<MeUser, "role" | "reports_count"> | null | undefined): boolean {
+  if (!user || !isManagerRole(user.role)) return false;
+  return (user.reports_count ?? 0) > 0;
+}
+
+export function sideNavItemsForRole(
+  user: Pick<MeUser, "role" | "reports_count"> | null | undefined,
+): NavItem[] {
+  return SIDE_NAV_ITEMS.filter((item) => {
+    if (item.href === "/team") return showTeam(user);
+    if (!item.roles) return true;
+    return user?.role !== undefined && item.roles.includes(user.role);
+  });
 }
 
 export function isActive(pathname: string, href: string): boolean {
