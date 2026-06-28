@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Repeat, ShieldCheck } from "lucide-react";
+import { LogOut, ShieldCheck, UserCog } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -35,16 +35,6 @@ export function TopBar() {
       </Link>
       <div className="flex-1" />
 
-      {isOrgAdmin && (
-        <Link
-          href={"/admin/org" as Route}
-          className="hidden items-center gap-1.5 rounded-md border border-border px-3 py-1.5 font-sans text-sm font-medium text-fg-muted transition-colors hover:bg-bg-sunken hover:text-fg sm:flex"
-        >
-          <Repeat size={15} strokeWidth={1.75} />
-          Modo admin
-        </Link>
-      )}
-
       <div className="relative">
         <button
           type="button"
@@ -66,6 +56,17 @@ export function TopBar() {
                 <p className="truncate font-sans text-sm font-semibold text-fg">{user?.full_name}</p>
                 <p className="truncate font-sans text-xs text-fg-muted">{user?.email}</p>
               </div>
+
+              <Link
+                href={"/perfil/editar" as Route}
+                role="menuitem"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm text-fg hover:bg-bg-sunken"
+              >
+                <UserCog size={16} strokeWidth={1.75} />
+                Editar mi información
+              </Link>
+
               {isOrgAdmin && (
                 <Link
                   href={"/admin/org" as Route}
@@ -74,14 +75,17 @@ export function TopBar() {
                   className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm text-fg hover:bg-bg-sunken"
                 >
                   <ShieldCheck size={16} strokeWidth={1.75} />
-                  Panel de organización
+                  Modo admin
                 </Link>
               )}
+
+              <div className="my-1 border-t border-border" />
+
               <button
                 type="button"
                 role="menuitem"
                 onClick={logout}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 font-sans text-sm text-fg hover:bg-bg-sunken"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 font-sans text-sm text-danger hover:bg-bg-sunken"
               >
                 <LogOut size={16} strokeWidth={1.75} />
                 Cerrar sesión
