@@ -10,9 +10,7 @@ import {
   RadarChart,
 } from "recharts";
 
-export type PillarCode = "P1" | "P2" | "P3" | "P4" | "P5" | "P6";
-
-export type RadarValues = Partial<Record<PillarCode, number>>;
+import { PILLAR_LABEL, type PillarCode, type RadarValues } from "./radar-model";
 
 export type RadarState = "empty" | "filling" | "complete";
 export type RadarSize = "mini" | "medium" | "large";
@@ -26,15 +24,6 @@ export interface RadarProps {
 }
 
 const ORDER: PillarCode[] = ["P1", "P2", "P3", "P4", "P5", "P6"];
-
-export const PILLAR_LABEL: Record<PillarCode, string> = {
-  P1: "Carrera",
-  P2: "Propósito",
-  P3: "Relaciones",
-  P4: "Salud",
-  P5: "Paz interior",
-  P6: "Estabilidad",
-};
 
 const SIZE_PX: Record<RadarSize, number> = { mini: 120, medium: 300, large: 440 };
 const FILL_MS = 5200;

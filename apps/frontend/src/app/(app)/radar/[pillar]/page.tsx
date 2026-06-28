@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { PILLAR_LABEL, type PillarCode } from "@/components/radar/Radar";
+import { PILLAR_LABEL, type PillarCode } from "@/components/radar/radar-model";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 

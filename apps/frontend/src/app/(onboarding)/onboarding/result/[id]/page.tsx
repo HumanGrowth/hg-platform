@@ -5,7 +5,8 @@ import Link from "next/link";
 import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
-import { Radar, type RadarValues } from "@/components/radar/Radar";
+import { Radar } from "@/components/radar/Radar";
+import type { RadarValues } from "@/components/radar/radar-model";
 import { apiGetMyResults } from "@/lib/api";
 import { PILLAR_NAMES, radarValuesFromResults } from "@/lib/assessment-utils";
 import type { PillarResult } from "@/lib/types";

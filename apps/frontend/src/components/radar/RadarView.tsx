@@ -4,7 +4,8 @@ import Link from "next/link";
 
 import { PILLARS } from "@/lib/pillars";
 
-import { PILLAR_LABEL, Radar, type PillarCode, type RadarValues } from "./Radar";
+import { Radar } from "./Radar";
+import { PILLAR_LABEL, type PillarCode, type RadarValues } from "./radar-model";
 
 // Valores mock hasta que el motor de assessment (B2-02/B2-03) los provea.
 const MOCK: RadarValues = { P1: 72, P2: 48, P3: 65, P4: 38, P5: 55, P6: 60 };
