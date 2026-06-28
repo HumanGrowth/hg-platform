@@ -5,22 +5,19 @@ import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 
-import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { apiConfirmResult } from "@/lib/api";
-import { PILLAR_NAMES, canRetake, sourceLabel } from "@/lib/assessment-utils";
+import { canRetake, sourceLabel } from "@/lib/assessment-utils";
+import { PILLAR_FULL_LABEL, PILLAR_SHORT_LABEL, pillarBadgeVariant } from "@/lib/pillars";
 import type { AssessmentPillarCode, PillarResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast-store";
 
-// Badge color: P6A/P6B usan el color de P6.
-const pillarBadge = (code: AssessmentPillarCode) => {
-  const base = code.startsWith("P6") ? "p6" : code.toLowerCase();
-  return `pillar-${base}` as NonNullable<BadgeProps["variant"]>;
-};
+const pillarBadge = pillarBadgeVariant;
 // Para el CTA de detalle, P6A/P6B usan su propio código.
 const detailHref = (code: AssessmentPillarCode) => `/onboarding/detail/${code}` as Route;
 
@@ -55,7 +52,7 @@ export function PillarStatesGrid({
         {results.map((r) => (
           <Card key={r.pillar_code} className="flex flex-col gap-3 bg-cream-50">
             <div className="flex items-center justify-between">
-              <Badge variant={pillarBadge(r.pillar_code)}>{r.pillar_code}</Badge>
+              <Badge variant={pillarBadge(r.pillar_code)}>{PILLAR_SHORT_LABEL[r.pillar_code]}</Badge>
               <span
                 className={cn(
                   "rounded-full px-2 py-0.5 text-xs font-semibold",
@@ -68,7 +65,7 @@ export function PillarStatesGrid({
               </span>
             </div>
             <h3 className="font-sans text-md font-semibold text-fg">
-              {PILLAR_NAMES[r.pillar_code]}
+              {PILLAR_FULL_LABEL[r.pillar_code]}
             </h3>
             <p className="font-sans text-sm font-semibold text-orange-700">{r.state_label}</p>
             {r.recaida_detected && (
@@ -117,7 +114,7 @@ export function PillarStatesGrid({
         open={confirming !== null}
         onClose={() => setConfirming(null)}
         title="Confirmá tu nivel"
-        description={confirming ? PILLAR_NAMES[confirming.pillar_code] : undefined}
+        description={confirming ? PILLAR_FULL_LABEL[confirming.pillar_code] : undefined}
       >
         <p className="text-sm text-fg-muted">
           Según tus respuestas tenés una red sólida. El siguiente nivel (Generativo) implica que

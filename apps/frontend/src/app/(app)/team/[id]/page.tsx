@@ -11,13 +11,12 @@ import { Dialog } from "@/components/ui/dialog";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { ApiError, apiGetTeamMemberDetail, apiUnassignPath } from "@/lib/api";
-import { PILLARS } from "@/lib/pillars";
+import { PILLARS, pillarShortName } from "@/lib/pillars";
 import { toast } from "@/lib/toast-store";
 import type { TeamMemberDetail } from "@/lib/types";
 import { formatRelativeTime } from "@/lib/utils";
 
 const PILLAR_CODES = ["P1", "P2", "P3", "P4", "P5", "P6"] as const;
-const PILLAR_NAME: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id, p.name]));
 const PILLAR_DOT: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id, p.dot]));
 
 export default function TeamMemberDetailPage({ params }: { params: { id: string } }) {
@@ -111,7 +110,7 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
               const rate = data.pillar_completion_rate[code] ?? 0;
               return (
                 <div key={code} className="flex items-center gap-3">
-                  <span className="w-6 font-mono text-xs text-fg-subtle">{code}</span>
+                  <span className="w-24 shrink-0 truncate text-xs text-fg-muted">{pillarShortName(code)}</span>
                   <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-bg-sunken">
                     <div className={`h-full rounded-full ${PILLAR_DOT[code]}`} style={{ width: `${rate * 100}%` }} />
                   </div>
@@ -132,7 +131,7 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
               {Object.entries(data.assessment_states).map(([code, st]) => (
                 <div key={code} className="rounded-md border border-border bg-cream-50 p-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs text-fg-subtle">{code}</span>
+                    <span className="text-xs font-semibold text-fg">{pillarShortName(code)}</span>
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                         st.source === "confirmed"
