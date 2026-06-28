@@ -199,7 +199,7 @@ export default function HomePage() {
               <Eyebrow>Tu radar</Eyebrow>
               <h2 className="mt-1 font-sans text-lg font-semibold text-fg">Vista rápida</h2>
               <Link
-                href={"/radar" as Route}
+                href={"/perfil" as Route}
                 className="mt-1 inline-flex items-center gap-1 font-sans text-sm font-semibold text-orange-700"
               >
                 Ver radar completo
