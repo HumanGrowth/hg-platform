@@ -1,15 +1,17 @@
 "use client";
 
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
+import { CourseMeta } from "@/components/learning/CourseMeta";
 import { VideoPlayer } from "@/components/video/VideoPlayer";
-import { Badge } from "@/components/ui/badge";
-import { ApiError, apiGetCourse } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { ApiError, apiGetCourse, apiGetNextCourse, apiSaveProgress } from "@/lib/api";
 import { toast } from "@/lib/toast-store";
-import type { CourseDetail } from "@/lib/types";
+import type { Course, CourseDetail } from "@/lib/types";
 import { useThrottledProgress } from "@/lib/use-throttled-progress";
 import { formatDuration } from "@/lib/utils";
 
@@ -21,6 +23,8 @@ export function CourseDetailView({ slug }: { slug: string }) {
   const [startAt, setStartAt] = React.useState(0);
   const [ready, setReady] = React.useState(false);
   const [completed, setCompleted] = React.useState(false);
+  const [nextCourse, setNextCourse] = React.useState<Course | null>(null);
+  const [marking, setMarking] = React.useState(false);
   const { report, flush } = useThrottledProgress(slug);
 
   const load = React.useCallback(async () => {
@@ -29,6 +33,9 @@ export function CourseDetailView({ slug }: { slug: string }) {
       const c = await apiGetCourse(slug);
       setCourse(c);
       setCompleted(Boolean(c.progress?.is_completed));
+      apiGetNextCourse(slug)
+        .then((r) => setNextCourse(r.next))
+        .catch(() => setNextCourse(null));
       const last = c.progress?.last_position_seconds ?? 0;
       if (last > 5 && !c.progress?.is_completed) {
         setResumeOpen(true);
@@ -60,6 +67,20 @@ export function CourseDetailView({ slug }: { slug: string }) {
       window.removeEventListener("beforeunload", onLeave);
     };
   }, [flush]);
+
+  async function markComplete() {
+    if (!course || completed) return;
+    setMarking(true);
+    try {
+      await apiSaveProgress(slug, { position_seconds: course.duration_seconds, watch_pct: 100 });
+      setCompleted(true);
+      toast("¡Curso completado!", "success");
+    } catch {
+      toast("No pudimos marcar el curso. Probá de nuevo.", "danger");
+    } finally {
+      setMarking(false);
+    }
+  }
 
   if (status === "loading") {
     return (
@@ -125,27 +146,39 @@ export function CourseDetailView({ slug }: { slug: string }) {
               {course.hls_master_url ? "Cargando…" : "Video no disponible"}
             </div>
           )}
-          {course.description && (
-            <p className="max-w-prose text-md leading-relaxed text-fg-muted">{course.description}</p>
-          )}
+          {/* Acciones del player */}
+          <div className="flex flex-col gap-4 border-t border-border pt-5">
+            {completed ? (
+              <div className="flex items-center gap-2 font-sans text-sm font-semibold text-success">
+                <CheckCircle2 size={18} strokeWidth={1.75} />
+                Completado
+              </div>
+            ) : (
+              <Button onClick={markComplete} disabled={marking} className="self-start">
+                {marking ? "Guardando…" : "Marcar como completado"}
+              </Button>
+            )}
+
+            {nextCourse ? (
+              <Link
+                href={`/library/${nextCourse.slug}` as Route}
+                className="flex items-center gap-3 rounded-lg border border-border bg-bg-raised px-4 py-3 transition-colors hover:bg-bg-sunken"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-fg-muted">Siguiente en tu ruta</p>
+                  <p className="truncate font-sans text-sm font-semibold text-fg">
+                    {nextCourse.title}
+                  </p>
+                </div>
+                <ArrowRight size={18} strokeWidth={1.75} className="shrink-0 text-orange-700" />
+              </Link>
+            ) : (
+              <p className="text-sm text-fg-muted">Completaste todos los cursos de esta ruta.</p>
+            )}
+          </div>
         </div>
 
-        <aside className="flex h-fit flex-col gap-4 rounded-lg border border-border bg-bg-raised p-5">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge>{course.career_level}</Badge>
-            {course.competency_code && <Badge>{course.competency_code}</Badge>}
-            <span className="font-mono text-xs text-fg-subtle">
-              {formatDuration(course.duration_seconds)}
-            </span>
-          </div>
-          <h1 className="font-sans text-xl font-semibold text-fg">{course.title}</h1>
-          {completed && (
-            <div className="flex items-center gap-2 font-sans text-sm font-semibold text-success">
-              <CheckCircle2 size={18} strokeWidth={1.75} />
-              Completado
-            </div>
-          )}
-        </aside>
+        <CourseMeta course={course} />
       </div>
 
       {/* Diálogo de reanudación */}

@@ -10,6 +10,7 @@ import type {
   CareerPath,
   Course,
   CourseDetail,
+  NextCourseResponse,
   CourseFilters,
   CourseProgress,
   CourseProgressPayload,
@@ -223,6 +224,11 @@ export const apiListCoursesForPath = async (
 
 export const apiGetCourse = async (slug: string): Promise<CourseDetail> => {
   const res = await backend.get<CourseDetail>(`/api/v1/courses/${slug}`);
+  return res.data;
+};
+
+export const apiGetNextCourse = async (slug: string): Promise<NextCourseResponse> => {
+  const res = await backend.get<NextCourseResponse>(`/api/v1/courses/${slug}/next`);
   return res.data;
 };
 

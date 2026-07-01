@@ -132,6 +132,11 @@ export interface CourseProgress {
 
 export interface CourseDetail extends Course {
   progress: CourseProgress | null;
+  pillar_code?: string | null;
+}
+
+export interface NextCourseResponse {
+  next: Course | null;
 }
 
 export interface CourseProgressPayload {
