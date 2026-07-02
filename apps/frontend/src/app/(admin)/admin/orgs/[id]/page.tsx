@@ -16,6 +16,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Input, Label } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { setActingOrg } from "@/lib/acting-org";
 import { apiCreateInvite, apiListInvites, apiListOrgs, apiRevokeInvite } from "@/lib/api";
@@ -239,15 +240,11 @@ function AdminOrgDetailContent() {
             </div>
             <div>
               <Label htmlFor="role">Rol</Label>
-              <select
-                id="role"
-                {...register("role")}
-                className="h-10 w-full rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-primary focus:outline-none focus:ring-2 focus:ring-hg-amber/40"
-              >
+              <Select id="role" {...register("role")}>
                 <option value="collaborator">collaborator</option>
                 <option value="manager">manager</option>
                 <option value="admin">admin</option>
-              </select>
+              </Select>
             </div>
             <div className="mt-2 flex justify-end gap-3">
               <Button variant="secondary" onClick={() => setOpen(false)}>

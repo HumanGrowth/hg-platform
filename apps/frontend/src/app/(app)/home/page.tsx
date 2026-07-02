@@ -12,6 +12,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { HexIcon } from "@/components/ui/hex-icon";
 import { Progress } from "@/components/ui/progress";
 import { PillarStatesGrid } from "@/components/assessment/PillarStatesGrid";
 import { apiGetHomeDashboard, apiGetMyResults } from "@/lib/api";
@@ -224,7 +225,7 @@ export default function HomePage() {
                 return (
                   <Card key={p.id} className="flex flex-col gap-4 bg-cream-50">
                     <div className="flex items-center justify-between">
-                      <Badge variant={p.badge}>{p.id}</Badge>
+                      <HexIcon pillar={p.id} size={40} />
                       <span className={`h-2 w-2 rounded-full ${p.dot}`} aria-hidden />
                     </div>
                     <h3 className="font-sans text-md font-semibold text-fg">{p.name}</h3>

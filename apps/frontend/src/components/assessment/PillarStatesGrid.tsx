@@ -5,19 +5,18 @@ import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { HexIcon } from "@/components/ui/hex-icon";
 import { apiConfirmResult } from "@/lib/api";
 import { canRetake, sourceLabel } from "@/lib/assessment-utils";
-import { PILLAR_FULL_LABEL, PILLAR_SHORT_LABEL, pillarBadgeVariant } from "@/lib/pillars";
+import { PILLAR_FULL_LABEL, PILLAR_SHORT_LABEL } from "@/lib/pillars";
 import type { AssessmentPillarCode, PillarResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast-store";
 
-const pillarBadge = pillarBadgeVariant;
 // Para el CTA de detalle, P6A/P6B usan su propio código.
 const detailHref = (code: AssessmentPillarCode) => `/onboarding/detail/${code}` as Route;
 
@@ -52,7 +51,12 @@ export function PillarStatesGrid({
         {results.map((r) => (
           <Card key={r.pillar_code} className="flex flex-col gap-3 bg-cream-50">
             <div className="flex items-center justify-between">
-              <Badge variant={pillarBadge(r.pillar_code)}>{PILLAR_SHORT_LABEL[r.pillar_code]}</Badge>
+              <div className="flex items-center gap-2">
+                <HexIcon pillar={r.pillar_code} size={28} />
+                <span className="font-heading text-sm font-semibold text-fg">
+                  {PILLAR_SHORT_LABEL[r.pillar_code]}
+                </span>
+              </div>
               <span
                 className={cn(
                   "rounded-full px-2 py-0.5 text-xs font-semibold",
