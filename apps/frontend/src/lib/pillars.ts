@@ -57,3 +57,24 @@ const SHORT_ALL: Record<string, string> = { ...PILLAR_SHORT_LABEL, P6: "Estabili
 export function pillarShortName(code: string): string {
   return SHORT_ALL[code] ?? code;
 }
+
+// ─────────── Íconos hexagonales por pilar (DS v2 · HexIcon) ───────────
+// PNGs pre-renderizados del Brand Book (hexágono + pictograma por dimensión).
+const PILLAR_ICON_SRC: Record<string, string> = {
+  P1: "/brand/pillars/p1-carrera.png",      // rocket
+  P2: "/brand/pillars/p2-proposito.png",    // star
+  P3: "/brand/pillars/p3-relaciones.png",   // chat
+  P4: "/brand/pillars/p4-salud.png",        // sprout
+  P5: "/brand/pillars/p5-paz-interior.png", // scales
+  P6: "/brand/pillars/p6-estabilidad.png",  // bulb
+};
+
+/** Código base del pilar (P6A/P6B → P6). */
+export function pillarBaseCode(code: string): string {
+  return code.startsWith("P6") ? "P6" : code;
+}
+
+/** Ruta del ícono hexagonal del pilar (acepta P1..P6 y P6A/P6B). */
+export function pillarIconSrc(code: string): string | null {
+  return PILLAR_ICON_SRC[pillarBaseCode(code)] ?? null;
+}

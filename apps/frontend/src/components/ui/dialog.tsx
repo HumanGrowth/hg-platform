@@ -58,7 +58,7 @@ export function Dialog({ open, onClose, title, description, children, className 
             type="button"
             aria-label="Cerrar"
             onClick={onClose}
-            className="rounded-md p-1 text-fg-muted transition-colors hover:bg-bg-sunken hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+            className="rounded-md p-1 text-fg-muted transition-colors hover:bg-bg-sunken hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
           >
             <X size={20} strokeWidth={1.75} />
           </button>

@@ -12,7 +12,7 @@ export default function LogoCloud() {
         style={{ filter: "blur(6px)" }}
       >
         {["ACME", "NOVA", "VÉRTICE", "PRISMA", "ANDINA", "DELTA"].map((name) => (
-          <span key={name} className="font-display text-xl text-ink-800 tracking-tight">
+          <span key={name} className="font-display text-xl text-hg-charcoal tracking-tight">
             {name}
           </span>
         ))}

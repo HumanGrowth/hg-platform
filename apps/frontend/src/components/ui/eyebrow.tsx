@@ -12,7 +12,7 @@ export function Eyebrow({ className, accent = false, ...props }: EyebrowProps) {
     <p
       className={cn(
         "font-sans text-micro font-semibold uppercase tracking-meta",
-        accent ? "text-orange-500" : "text-fg-muted",
+        accent ? "text-hg-orange" : "text-fg-muted",
         className,
       )}
       {...props}

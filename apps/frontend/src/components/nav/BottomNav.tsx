@@ -31,7 +31,7 @@ export function BottomNav({ className }: { className?: string }) {
               href={item.href as Route}
               className={cn(
                 "flex flex-1 flex-col items-center justify-center gap-1 py-2.5 font-sans text-[11px] font-medium transition-colors",
-                active ? "text-orange" : "text-fg-muted",
+                active ? "text-primary" : "text-fg-muted",
               )}
             >
               <Icon size={22} strokeWidth={1.75} />

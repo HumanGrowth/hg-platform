@@ -88,7 +88,7 @@ export default function PerfilEditarPage() {
           <p className="mt-1 text-xs text-fg-muted">Lo asigna tu manager.</p>
         </div>
 
-        <Card className="bg-cream-50">
+        <Card className="bg-surface-card">
           <p className="font-sans text-sm font-semibold text-fg">Contraseña</p>
           <button
             type="button"

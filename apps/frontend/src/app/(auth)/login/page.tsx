@@ -114,7 +114,7 @@ function LoginInner() {
 
       <p className="mt-6 text-center text-sm text-fg-muted">
         ¿No tenés cuenta?{" "}
-        <Link href="/contacto" className="font-semibold text-orange-700 hover:underline">
+        <Link href="/contacto" className="font-semibold text-primary hover:underline">
           Solicitá unirte
         </Link>
       </p>

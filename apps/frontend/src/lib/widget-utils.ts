@@ -66,7 +66,7 @@ export function getStreakSummary(streak: StreakDay[]): StreakSummary {
 // Clases Tailwind literales (necesarias para que el JIT las incluya). 5 niveles
 // de intensidad sobre pillar-p1 + cream-200 para "sin actividad".
 const SCALE = [
-  "bg-cream-200",
+  "bg-surface-sunken",
   "bg-pillar-p1/30",
   "bg-pillar-p1/50",
   "bg-pillar-p1/70",

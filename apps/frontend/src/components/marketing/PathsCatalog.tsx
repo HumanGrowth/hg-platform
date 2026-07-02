@@ -58,8 +58,8 @@ export default function PathsCatalog() {
   const chip = (active: boolean) =>
     `px-3.5 py-2 rounded-full text-[13px] font-medium cursor-pointer transition-colors border ${
       active
-        ? "bg-ink-900 text-cream-100 border-transparent"
-        : "bg-transparent text-ink-800 border-border-strong hover:bg-bg-sunken"
+        ? "bg-hg-ink text-hg-cream border-transparent"
+        : "bg-transparent text-hg-charcoal border-border-strong hover:bg-bg-sunken"
     }`;
 
   return (

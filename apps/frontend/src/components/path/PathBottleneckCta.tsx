@@ -41,9 +41,9 @@ export function PathBottleneckCta() {
   const name = PILLAR_NAME[pillar] ?? pillar;
 
   return (
-    <div className="mb-8 flex flex-col gap-3 rounded-lg border border-orange-100 bg-orange-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mb-8 flex flex-col gap-3 rounded-lg border border-hg-green-100 bg-hg-green-100 p-5 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-start gap-3">
-        <span className={`mt-1.5 h-3 w-3 shrink-0 rounded-full ${DOT[pillar] ?? "bg-orange"}`} />
+        <span className={`mt-1.5 h-3 w-3 shrink-0 rounded-full ${DOT[pillar] ?? "bg-primary"}`} />
         <div>
           <p className="font-sans text-sm font-semibold text-fg">
             Tu prioridad ahora: {name}
@@ -55,7 +55,7 @@ export function PathBottleneckCta() {
       </div>
       <a
         href={`#lane-${pillar}`}
-        className="inline-flex shrink-0 items-center gap-2 self-start rounded-md bg-orange px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-orange-600 sm:self-auto"
+        className="inline-flex shrink-0 items-center gap-2 self-start rounded-md bg-primary px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-primary-hover sm:self-auto"
       >
         Ver cursos
         <ArrowDown size={16} strokeWidth={1.75} />

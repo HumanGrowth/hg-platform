@@ -43,7 +43,7 @@ export function SideNav({ className }: { className?: string }) {
         <Link href="/home" aria-label="Human Growth — inicio" className="flex items-center px-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={collapsed ? "/brand/logo-black.svg" : "/brand/logo-color.svg"}
+            src={collapsed ? "/brand/isotype-dark.png" : "/brand/logo-positive.png"}
             alt="Human Growth"
             className="h-7 w-auto"
           />
@@ -63,7 +63,7 @@ export function SideNav({ className }: { className?: string }) {
                   active ? "bg-bg-sunken text-fg" : "text-fg-muted hover:bg-bg-sunken hover:text-fg",
                 )}
               >
-                <Icon size={20} strokeWidth={1.75} className={active ? "text-orange" : undefined} />
+                <Icon size={20} strokeWidth={1.75} className={active ? "text-primary" : undefined} />
                 {!collapsed && <span>{item.label}</span>}
               </Link>
             );

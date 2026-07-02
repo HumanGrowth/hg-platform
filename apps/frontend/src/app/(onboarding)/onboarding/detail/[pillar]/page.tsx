@@ -70,7 +70,7 @@ export default function PillarDetailPage() {
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col justify-center px-6 py-12">
-      <p className="mb-6 text-center font-sans text-sm font-semibold text-orange-700">
+      <p className="mb-6 text-center font-sans text-sm font-semibold text-primary">
         Evaluación detallada · {PILLAR_NAMES[pillar] ?? pillar}
       </p>
       {status === "loading" && (

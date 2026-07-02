@@ -3,81 +3,164 @@
 @tailwind utilities;
 
 /* ===========================================================================
-   Human Growth design tokens — Marketing palette v1 (Andrés, Jun 15).
-   Fuente: docs/prompts/claude-code_Frontend-v2_marketing_nav_radar.md
-   Las font-family vars (--font-*-N) las inyecta next/font en <html> (layout.tsx).
+   Human Growth · Design System v2 (Jul 2 2026).
+
+   Fuente: HG/Design/Nueva Marca - Brand Book/HumanGrowth Design System/
+   Delta baseline→v2 documentado en: docs/design-system/DS_v2_delta.md
+
+   Diff clave: primary ORANGE → GREEN, accent recae en orange (emphasis words).
+   Dual maintenance: los aliases legacy (--orange, --cream-100, --fg, --bg, ...)
+   siguen presentes durante 1 sprint mientras los callsites migran a los nombres
+   nuevos (hg-*, color-*, text-*, surface-*). Eliminación programada en DS-07.
+
+   Las font-family vars (--font-*) las inyecta next/font en <html> (layout.tsx).
    =========================================================================== */
+
 :root {
-  /* COLOR — foundation (neutrales) */
-  --ink-900: #1a1a1a; /* texto principal */
-  --ink-800: #2a2826; /* warm ink */
-  --slate-900: #2c3e50;
-  --warm-600: #6b7061;
-  --warm-500: #8e8e8e;
-  --cream-50: #ffffff;
-  --cream-100: #faf3e8; /* canvas base */
-  --cream-200: #f0ede6;
+  /* =========================================================================
+     BRAND CORE — hex transcripto verbatim del Brand Book p.05
+     ========================================================================= */
+  --hg-green: #4a7a54;        /* Primary. Logo dot green, banner fields */
+  --hg-amber: #e8a030;        /* Secondary. Logo dot amber, accents, highlights */
+  --hg-orange: #e8530a;       /* Accent. Emphasis words, quote marks */
+  --hg-gold: #c8a76e;         /* Warm metallic. Badges, dividers */
+  --hg-sage: #a8c4a0;         /* Soft green. Backgrounds, illustrations */
 
-  /* COLOR — marca */
-  --gold: #c8a76e;
-  --forest: #4a7a54;
-  --orange: #e8530a; /* CTA */
-  --orange-600: #c8470a; /* hover */
-  --orange-700: #a03b08; /* press */
-  --amber: #e8a030;
-  --sage: #a8c4a0;
+  /* Neutrals */
+  --hg-ink: #1a1a1a;          /* Near-black. Wordmark, primary text */
+  --hg-charcoal: #2a2826;     /* Warm dark. Dark surfaces */
+  --hg-slate: #2c3e50;        /* Blue-slate. Secondary dark, data viz */
+  --hg-olive-gray: #6b7061;   /* Muted olive. Body copy, secondary text */
+  --hg-gray: #8e8e8e;         /* Neutral gray. Tertiary, disabled */
+  --hg-cream: #faf3e8;        /* Warm off-white. Primary light surface */
+  --hg-linen: #f0ede6;        /* Light warm gray. Cards, subtle fills */
+  --hg-white: #ffffff;
 
-  /* COLOR — semantic */
-  --success: #4a7a54;
-  --success-bg: #e6f0e8;
-  --warning: #e8a030;
-  --warning-bg: #fbe9cc;
-  --danger: #b83a1a;
-  --danger-bg: #fadad2;
-  --info: #2c3e50;
-  --info-bg: #dce3eb;
+  /* Tints (only for states/hover, never as new hues) */
+  --hg-green-700: #3c6444;    /* primary hover */
+  --hg-green-100: #e3ebdf;    /* subtle green bg */
+  --hg-amber-600: #ce8a1f;    /* amber hover */
+  --hg-orange-700: #c4440a;   /* accent press */
 
-  /* COLOR — semantic tokens (light default) */
-  --bg: var(--cream-100);
-  --bg-raised: var(--cream-50);
-  --bg-sunken: var(--cream-200);
-  --bg-inverse: var(--ink-900);
-  --fg: var(--ink-900);
-  --fg-muted: var(--warm-600);
-  --fg-subtle: var(--warm-500);
-  --fg-inverse: var(--cream-100);
-  --border: rgba(26, 26, 26, 0.12);
-  --border-strong: rgba(26, 26, 26, 0.24);
-  --border-focus: var(--orange);
-  --accent: var(--orange);
-  --accent-fg: #ffffff;
-  --accent-hover: var(--orange-600);
-  --accent-press: var(--orange-700);
+  /* =========================================================================
+     SEMANTIC ALIASES (DS v2 naming) — link brand to roles
+     ========================================================================= */
+  --color-primary: var(--hg-green);
+  --color-primary-hover: var(--hg-green-700);
+  --color-secondary: var(--hg-amber);
+  --color-secondary-hover: var(--hg-amber-600);
+  --color-accent: var(--hg-orange);
+  --color-accent-hover: var(--hg-orange-700);
 
-  /* MOTION */
-  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
-  --ease-state: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur-fast: 120ms;
-  --dur-base: 200ms;
-  --dur-slow: 320ms;
+  --text-strong: var(--hg-ink);
+  --text-body: var(--hg-olive-gray);
+  --text-muted: var(--hg-gray);
+  --text-on-dark: var(--hg-cream);
+  --text-on-brand: var(--hg-cream);
 
-  /* LAYOUT */
+  --surface-page: var(--hg-cream);
+  --surface-card: var(--hg-white);
+  --surface-sunken: var(--hg-linen);
+  --surface-dark: var(--hg-charcoal);
+  --surface-brand: var(--hg-green);
+
+  --border-subtle: #e4ded2;
+  --border-default: #d8d0c2;
+  --border-strong: var(--hg-olive-gray);
+
+  --focus-ring: var(--hg-amber);
+
+  /* Feedback — Brand Book mapea onto the palette.
+     EXCEPCIÓN (§4.1 delta doc): mantenemos --color-danger propio en rojo puro
+     para no unificar visualmente con el accent orange. */
+  --color-success: var(--hg-green);
+  --color-success-bg: var(--hg-green-100);
+  --color-warning: var(--hg-amber);
+  --color-warning-bg: #fbe9cc;
+  --color-danger: #b83a1a;
+  --color-danger-bg: #fadad2;
+  --color-info: var(--hg-slate);
+  --color-info-bg: #dce3eb;
+
+  /* Feedback (aliases cortos usados por algunos inline styles). */
+  --success: var(--color-success);
+  --success-bg: var(--color-success-bg);
+  --warning: var(--color-warning);
+  --warning-bg: var(--color-warning-bg);
+  --danger: var(--color-danger);
+  --danger-bg: var(--color-danger-bg);
+  --info: var(--color-info);
+  --info-bg: var(--color-info-bg);
+
+  /* Semantic tokens wired to CSS variables (light default).
+     ⚠️ CAMBIO CLAVE: --accent ahora es GREEN (primary), no orange.
+     Componentes que usan bg-accent, text-accent, ring-accent verán el swap. */
+  --bg: var(--surface-page);
+  --bg-raised: var(--surface-card);
+  --bg-sunken: var(--surface-sunken);
+  --bg-inverse: var(--surface-dark);
+  --fg: var(--text-strong);
+  --fg-muted: var(--text-body);
+  --fg-subtle: var(--text-muted);
+  --fg-inverse: var(--text-on-dark);
+  --border: var(--border-subtle);
+  --border-strong: var(--border-strong);
+  --border-focus: var(--focus-ring);
+  --accent: var(--color-primary);            /* 🔴 SWAP: green (era orange) */
+  --accent-fg: var(--hg-white);
+  --accent-hover: var(--color-primary-hover);
+  --accent-press: var(--hg-green-700);
+
+  /* =========================================================================
+     MOTION — DS v2 curves + durations
+     ========================================================================= */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-state: var(--ease-in-out);          /* legacy alias */
+  --dur-fast: 140ms;
+  --dur-base: 220ms;
+  --dur-slow: 380ms;
+
+  /* =========================================================================
+     LAYOUT
+     ========================================================================= */
   --container-app: 1440px;
+  --container-lg: 1200px;
+  --container-md: 960px;
+  --container-sm: 640px;
   --nav-height: 64px;
+  --gutter: 1.5rem;
+
+  /* =========================================================================
+     SHADOWS — warm-tinted (rgba 42,40,38 vs baseline cool 26,20,15)
+     ========================================================================= */
+  --shadow-xs: 0 1px 2px rgba(42, 40, 38, 0.06);
+  --shadow-sm: 0 2px 6px rgba(42, 40, 38, 0.08);
+  --shadow-md: 0 6px 18px rgba(42, 40, 38, 0.10);
+  --shadow-lg: 0 16px 40px rgba(42, 40, 38, 0.14);
+  --shadow-focus: 0 0 0 3px rgba(232, 160, 48, 0.45);
 }
 
 [data-theme="dark"] {
   --bg: #1a1816;
   --bg-raised: #242120;
   --bg-sunken: #100f0e;
-  --bg-inverse: var(--cream-100);
-  --fg: #faf3e8;
+  --bg-inverse: var(--hg-cream);
+  --fg: var(--hg-cream);
   --fg-muted: #b3b0a8;
-  --fg-subtle: #8e8e8e;
-  --fg-inverse: var(--ink-900);
+  --fg-subtle: var(--hg-gray);
+  --fg-inverse: var(--hg-ink);
   --border: rgba(250, 243, 232, 0.1);
   --border-strong: rgba(250, 243, 232, 0.22);
-  --accent-fg: #1a1a1a;
+  --accent-fg: var(--hg-ink);
+
+  --surface-page: #1a1816;
+  --surface-card: #242120;
+  --surface-sunken: #100f0e;
+  --text-strong: var(--hg-cream);
+  --text-body: #b3b0a8;
+  --text-muted: var(--hg-gray);
+  --border-subtle: rgba(250, 243, 232, 0.1);
 }
 
 @layer base {
@@ -88,49 +171,56 @@
   body {
     background: var(--bg);
     color: var(--fg);
-    font-family: var(--font-body-1), system-ui, sans-serif;
-    line-height: 1.55;
+    font-family: var(--font-body), system-ui, sans-serif;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
   ::selection {
-    background: #ffd9c2;
-    color: var(--ink-900);
+    background: var(--hg-green-100);
+    color: var(--hg-ink);
   }
 }
 
 /* ---------------------------------------------------------------------------
-   Semantic typography utilities (porteadas del lovable; vars remapeadas a v1).
-   Mantenidas como clases para legibilidad en los componentes de marketing.
+   Semantic typography utilities (DS v2 alineadas al Brand Book).
+   Poppins pasa a tier dedicado para headings/UI (--font-heading).
+   Anton solo para display + eyebrows agresivos.
    --------------------------------------------------------------------------- */
 @layer components {
   .display {
-    font-family: var(--font-display-1), var(--font-display-2), system-ui, sans-serif;
+    font-family: var(--font-display), "Arial Narrow", sans-serif;
     text-transform: uppercase;
+    letter-spacing: -0.01em;
+    line-height: 1.02;
+    color: var(--text-strong);
+  }
+  .heading {
+    font-family: var(--font-heading), "Segoe UI", sans-serif;
     letter-spacing: -0.02em;
-    line-height: 0.95;
-    color: var(--fg);
+    line-height: 1.15;
+    color: var(--text-strong);
   }
   .eyebrow {
-    font-family: var(--font-body-1), system-ui, sans-serif;
+    font-family: var(--font-heading), "Segoe UI", sans-serif;
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--fg-muted);
+    color: var(--text-body);
   }
   .eyebrow-accent {
-    color: var(--orange);
+    color: var(--color-accent);
   }
   .body-sm {
     font-size: 0.875rem;
-    line-height: 1.55;
-    color: var(--fg-muted);
+    line-height: 1.5;
+    color: var(--text-body);
   }
   .body-xs {
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     line-height: 1.15;
-    color: var(--fg-muted);
+    color: var(--text-body);
   }
   .serif-italic {
     font-family: var(--font-serif), Georgia, serif;
@@ -138,9 +228,7 @@
   }
 }
 
-/* Accesibilidad: respeta prefers-reduced-motion globalmente (B4-E widgets +
-   resto de la app). Recharts se desactiva via isAnimationActive en cada widget;
-   esto cubre cualquier transición/animación CSS restante. */
+/* Accesibilidad: respeta prefers-reduced-motion globalmente. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
