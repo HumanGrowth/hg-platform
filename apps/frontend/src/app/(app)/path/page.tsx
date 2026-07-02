@@ -1,3 +1,4 @@
+import { PathBottleneckCta } from "@/components/path/PathBottleneckCta";
 import { PathLanes } from "@/components/path/PathLanes";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -14,6 +15,7 @@ export default function PathPage() {
       <p className="mb-8 max-w-prose text-fg-muted">
         Cada carril agrupa tus cursos por dimensión. Empezá por la que más lo necesita.
       </p>
+      <PathBottleneckCta />
       <PathLanes />
     </div>
   );
