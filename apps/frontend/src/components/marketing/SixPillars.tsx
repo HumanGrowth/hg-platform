@@ -1,3 +1,5 @@
+import { HexIcon } from "@/components/ui/hex-icon";
+
 const PILLARS = [
   { code: "P1", dot: "bg-pillar-p1", name: "Carrera e impacto", body: "Crecé profesionalmente con un mapa claro de tu próximo paso." },
   { code: "P2", dot: "bg-pillar-p2", name: "Propósito y significado", body: "Conectá tu trabajo con algo que de verdad te importa." },
@@ -24,10 +26,7 @@ export default function SixPillars() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {PILLARS.map((p) => (
             <div key={p.code} className="bg-cream-100 border border-border rounded-lg p-7 flex flex-col gap-3">
-              <div className="flex items-center gap-2.5">
-                <span className={`h-2.5 w-2.5 rounded-full ${p.dot}`} aria-hidden />
-                <span className="font-mono text-xs text-ink-800">{p.code}</span>
-              </div>
+              <HexIcon pillar={p.code} size={48} />
               <h3 className="display text-ink-900 text-2xl m-0">{p.name}</h3>
               <p className="text-ink-800 text-base leading-[1.5]">{p.body}</p>
             </div>

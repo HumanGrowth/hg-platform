@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { OrgAdminGate } from "@/components/OrgAdminGate";
 import { Card } from "@/components/ui/card";
+import { StatCard } from "@/components/ui/stat-card";
 
 const OrgWidgetsSection = React.lazy(
   () => import("@/components/widgets/sections/OrgWidgetsSection"),
@@ -35,15 +36,7 @@ function pct(v: number): string {
   return `${Math.round(v * 100)}%`;
 }
 
-function Kpi({ value, label, sub }: { value: string; label: string; sub: string }) {
-  return (
-    <Card className="flex flex-col gap-1 bg-bg-raised">
-      <span className="font-display text-4xl text-fg">{value}</span>
-      <span className="font-sans text-sm font-semibold text-fg">{label}</span>
-      <span className="text-xs text-fg-muted">{sub}</span>
-    </Card>
-  );
-}
+const Kpi = StatCard;
 
 function OrgDashboardContent() {
   const acting = useActingOrg();

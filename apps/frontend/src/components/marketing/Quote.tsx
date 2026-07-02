@@ -1,3 +1,4 @@
+import { QuoteMark } from "@/components/ui/brand";
 import { getCopy } from "@/lib/i18n";
 
 export default function Quote() {
@@ -5,6 +6,7 @@ export default function Quote() {
   return (
     <section className="max-w-[960px] mx-auto px-8 py-32 text-left">
       <div className="eyebrow eyebrow-accent mb-7">{c.quote.eyebrow}</div>
+      <QuoteMark size={72} tone="amber" className="mb-6" />
       <div
         className="font-serif text-ink-900"
         style={{ fontSize: "clamp(34px, 5vw, 56px)", lineHeight: 1.1, letterSpacing: "-0.01em", textWrap: "balance" }}
