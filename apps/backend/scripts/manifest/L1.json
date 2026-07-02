@@ -1,7 +1,8 @@
 [
   {
     "slug": "l1-c2-l1-p2-002",
-    "title": "L1-P2-002",
+    "title": "Colaborar para entregar: lo básico del trabajo en equipo",
+    "description": "Coordinar con otros, pedir ayuda a tiempo y cumplir tus compromisos para que el equipo avance.",
     "career_level": "L1",
     "competency_code": "C2",
     "track": "competency",
@@ -14,7 +15,8 @@
   },
   {
     "slug": "l1-c1-l1-p1-002",
-    "title": "L1-P1-002",
+    "title": "Aprender haciendo: convertí los errores en progreso",
+    "description": "Rutinas simples para extraer aprendizaje de cada tarea y mejorar semana a semana.",
     "career_level": "L1",
     "competency_code": "C1",
     "track": "competency",
@@ -27,7 +29,8 @@
   },
   {
     "slug": "l1-c1-l1-p1-001",
-    "title": "L1-P1-001",
+    "title": "Adaptarte al cambio: primeros pasos",
+    "description": "Cómo recibir lo nuevo sin frenarte: mentalidad de aprendizaje para el día a día.",
     "career_level": "L1",
     "competency_code": "C1",
     "track": "competency",

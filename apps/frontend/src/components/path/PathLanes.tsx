@@ -7,6 +7,7 @@ import { CourseCard } from "@/components/library/CourseCard";
 import { apiListCoursesForPath, apiListPaths } from "@/lib/api";
 import { PILLARS } from "@/lib/pillars";
 import type { CareerPath, Course } from "@/lib/types";
+import { isFixtureCourse } from "@/lib/utils";
 
 const DOT: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id, p.dot]));
 
@@ -26,7 +27,7 @@ export function PathLanes() {
       const lanes = await Promise.all(
         paths.map(async (path) => {
           const { items } = await apiListCoursesForPath(path.code, { limit: 3 });
-          return { path, courses: items };
+          return { path, courses: items.filter((c) => !isFixtureCourse(c.slug)) };
         }),
       );
       setLanes(lanes);

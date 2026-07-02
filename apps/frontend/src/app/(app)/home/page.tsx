@@ -19,7 +19,7 @@ import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { PILLARS, pillarBadgeVariant, pillarShortName } from "@/lib/pillars";
 import type { HomeDashboard, PillarResult } from "@/lib/types";
-import { cn, formatRelativeTime, greetingName } from "@/lib/utils";
+import { cn, formatRelativeTime, greetingName, isFixtureCourse } from "@/lib/utils";
 
 const HomeActivitySection = React.lazy(
   () => import("@/components/widgets/sections/HomeActivitySection"),
@@ -61,7 +61,11 @@ export default function HomePage() {
     setStatus("loading");
     try {
       const [dash] = await Promise.all([apiGetHomeDashboard(), loadResults()]);
-      setData(dash);
+      // Ocultar cursos-fixture (seed-w-*, cp-complete) de la actividad reciente.
+      setData({
+        ...dash,
+        recent_activity: dash.recent_activity.filter((a) => !isFixtureCourse(a.course_slug)),
+      });
       setStatus("ok");
     } catch {
       setStatus("error");

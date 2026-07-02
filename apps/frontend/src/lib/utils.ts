@@ -53,3 +53,12 @@ export function greetingName(fullName: string): string {
     .filter((t) => t && !/^\d+$/.test(t) && !GENERIC.test(t));
   return tokens[0] ?? "";
 }
+
+// Cursos que son fixtures de seed/test: existen en la DB (los usan widgets y
+// tests) pero no deben aparecer en la UI (biblioteca, ruta, actividad).
+const FIXTURE_SLUG = /^(seed-w-|cp-complete$)/;
+
+/** ¿Es un curso-fixture (seed-w-*, cp-complete) que hay que ocultar de la UI? */
+export function isFixtureCourse(slug: string): boolean {
+  return FIXTURE_SLUG.test(slug);
+}
