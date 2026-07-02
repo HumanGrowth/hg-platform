@@ -24,6 +24,7 @@ class UserOut(BaseModel):
     role: UserRole
     org_id: UUID
     career_level: CareerLevel | None = None
+    job_title: str | None = None
 
 
 class TokenResponse(BaseModel):
@@ -37,6 +38,14 @@ class MeResponse(UserOut):
     """UserOut + nombre de la org del usuario (para el header de perfil)."""
 
     org_name: str
+    reports_count: int = 0
+
+
+class MeUpdateRequest(BaseModel):
+    """Campos que el usuario puede editar de su propio perfil (app-polish-05)."""
+
+    full_name: str = Field(min_length=1, max_length=255)
+    job_title: str | None = Field(default=None, max_length=120)
 
 
 class LoginRequest(BaseModel):

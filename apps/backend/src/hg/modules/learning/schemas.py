@@ -52,6 +52,13 @@ class CourseDetailOut(CourseOut):
     """Curso + progreso del usuario actual (None si nunca lo abrió)."""
 
     progress: CourseProgressOut | None = None
+    pillar_code: str | None = None  # código del path (P1..P6) para la metadata del player
+
+
+class NextCourseOut(BaseModel):
+    """Siguiente curso del path (o null si es el último)."""
+
+    next: CourseOut | None = None
 
 
 class CourseProgressIn(BaseModel):

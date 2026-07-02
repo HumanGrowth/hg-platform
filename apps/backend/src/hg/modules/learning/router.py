@@ -25,6 +25,7 @@ from hg.modules.learning.schemas import (
     CourseOut,
     CourseProgressIn,
     CourseProgressOut,
+    NextCourseOut,
 )
 
 COMPLETION_THRESHOLD = 80.0
@@ -145,10 +146,32 @@ def get_course_detail(
             CourseProgress.user_id == current_user.id,
         )
     )
+    path = db.get(CareerPath, course.career_path_id)
     return CourseDetailOut(
         **CourseOut.model_validate(course).model_dump(),
         progress=CourseProgressOut.model_validate(prog) if prog else None,
+        pillar_code=path.code if path else None,
     )
+
+
+@router.get("/courses/{slug}/next", response_model=NextCourseOut)
+def get_next_course(
+    slug: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> NextCourseOut:
+    course = _active_course_or_404(db, slug)
+    nxt = db.scalar(
+        select(Course)
+        .where(
+            Course.career_path_id == course.career_path_id,
+            Course.is_active.is_(True),
+            Course.order_index > course.order_index,
+        )
+        .order_by(Course.order_index)
+        .limit(1)
+    )
+    return NextCourseOut(next=CourseOut.model_validate(nxt) if nxt else None)
 
 
 @router.post("/courses/{slug}/progress", response_model=CourseProgressOut)

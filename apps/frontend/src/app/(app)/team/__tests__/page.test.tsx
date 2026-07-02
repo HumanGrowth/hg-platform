@@ -55,6 +55,6 @@ describe("TeamPage", () => {
   it("shows empty state when no reports", async () => {
     getTeam.mockResolvedValue({ items: [], total: 0, inactive_count: 0 });
     render(<TeamPage />);
-    expect(await screen.findByText(/Aún no tenés reportes directos/)).toBeTruthy();
+    expect(await screen.findByText(/Aún no tenés personas a tu cargo/)).toBeTruthy();
   });
 });

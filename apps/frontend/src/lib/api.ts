@@ -10,6 +10,7 @@ import type {
   CareerPath,
   Course,
   CourseDetail,
+  NextCourseResponse,
   CourseFilters,
   CourseProgress,
   CourseProgressPayload,
@@ -109,6 +110,14 @@ backend.interceptors.response.use(
 
 export const apiMe = async (): Promise<Me> => {
   const res = await backend.get<Me>("/api/v1/auth/me");
+  return res.data;
+};
+
+export const apiUpdateMe = async (payload: {
+  full_name: string;
+  job_title?: string | null;
+}): Promise<Me> => {
+  const res = await backend.patch<Me>("/api/v1/auth/me", payload);
   return res.data;
 };
 
@@ -215,6 +224,11 @@ export const apiListCoursesForPath = async (
 
 export const apiGetCourse = async (slug: string): Promise<CourseDetail> => {
   const res = await backend.get<CourseDetail>(`/api/v1/courses/${slug}`);
+  return res.data;
+};
+
+export const apiGetNextCourse = async (slug: string): Promise<NextCourseResponse> => {
+  const res = await backend.get<NextCourseResponse>(`/api/v1/courses/${slug}/next`);
   return res.data;
 };
 

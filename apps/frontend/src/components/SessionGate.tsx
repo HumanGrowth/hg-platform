@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
-import { apiRefresh } from "@/lib/api";
+import { apiMe, apiRefresh } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 
 /**
@@ -53,6 +53,22 @@ export function SessionGate({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Enriquecer el user con datos completos de /me (reports_count, job_title,
+  // org_name) que el login/refresh (UserOut) no traen.
+  React.useEffect(() => {
+    if (!accessToken) return;
+    let active = true;
+    apiMe()
+      .then((me) => {
+        if (active) setSession(me, accessToken);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken]);
 
   if (!ready || hydrating) {
     return (

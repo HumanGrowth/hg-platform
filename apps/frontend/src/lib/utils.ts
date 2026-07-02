@@ -39,3 +39,26 @@ export function formatRelativeTime(iso: string | null): string {
   }
   return "ahora";
 }
+
+/**
+ * Nombre para saludar. Los nombres seed tipo "Acme Corp Collaborator 1" no dan
+ * un buen primer token; descartamos números sueltos y roles genéricos. Si no
+ * queda nada útil, devolvemos "" (el saludo cae a "Hola" sin nombre).
+ */
+export function greetingName(fullName: string): string {
+  const GENERIC = /^(collaborator|colaborador|manager|admin|corp|inc|ltd|sa|srl)$/i;
+  const tokens = fullName
+    .trim()
+    .split(/\s+/)
+    .filter((t) => t && !/^\d+$/.test(t) && !GENERIC.test(t));
+  return tokens[0] ?? "";
+}
+
+// Cursos que son fixtures de seed/test: existen en la DB (los usan widgets y
+// tests) pero no deben aparecer en la UI (biblioteca, ruta, actividad).
+const FIXTURE_SLUG = /^(seed-w-|cp-complete$)/;
+
+/** ¿Es un curso-fixture (seed-w-*, cp-complete) que hay que ocultar de la UI? */
+export function isFixtureCourse(slug: string): boolean {
+  return FIXTURE_SLUG.test(slug);
+}

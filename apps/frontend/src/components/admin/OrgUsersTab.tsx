@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { Label } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
 import { apiListOrgUsers, apiUpdateUser } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
@@ -28,6 +28,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
   const [statusF, setStatusF] = React.useState("all");
   const [roleF, setRoleF] = React.useState("");
   const [page, setPage] = React.useState(1);
+  const [query, setQuery] = React.useState("");
   const [menuFor, setMenuFor] = React.useState<string | null>(null);
   const [roleModal, setRoleModal] = React.useState<AdminUser | null>(null);
   const [mgrModal, setMgrModal] = React.useState<AdminUser | null>(null);
@@ -52,6 +53,15 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
   }, [data]);
 
   const noLicenses = !!org && org.licenses_used >= org.licenses_total;
+
+  const visibleItems = React.useMemo(() => {
+    const items = data?.items ?? [];
+    const q = query.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(
+      (u) => u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q),
+    );
+  }, [data, query]);
 
   async function mutate(userId: string, payload: Partial<AdminUser>, ok: string) {
     try {
@@ -114,6 +124,13 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
             </option>
           ))}
         </select>
+        <Input
+          type="search"
+          placeholder="Buscar por nombre o email…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="h-9 max-w-xs"
+        />
       </div>
 
       <Card className="overflow-visible p-0">
@@ -130,7 +147,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
             </tr>
           </thead>
           <tbody>
-            {data?.items.map((u) => (
+            {visibleItems.map((u) => (
               <tr key={u.id} className="border-b border-border last:border-0">
                 <td className="px-5 py-3">
                   <div className="font-sans text-sm font-semibold text-fg">{u.full_name}</div>
@@ -144,7 +161,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
                   {u.manager_id ? (nameById.get(u.manager_id) ?? "—") : "—"}
                 </td>
                 <td className="px-5 py-3 font-mono text-xs text-fg-muted">
-                  {fmtDate(u.last_active_at)}
+                  {u.last_active_at ? fmtDate(u.last_active_at) : "Nunca"}
                 </td>
                 <td className="px-5 py-3">
                   <Badge variant={u.is_active ? "success" : "default"}>
@@ -215,7 +232,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
             ))}
           </tbody>
         </table>
-        {data && data.items.length === 0 ? (
+        {data && visibleItems.length === 0 ? (
           <p className="px-5 py-12 text-center text-sm text-fg-muted">
             No hay usuarios con estos filtros.
           </p>

@@ -7,7 +7,7 @@ import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
 import { MiniRadar } from "@/components/radar/MiniRadar";
-import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
@@ -17,9 +17,9 @@ import { PillarStatesGrid } from "@/components/assessment/PillarStatesGrid";
 import { apiGetHomeDashboard, apiGetMyResults } from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
-import { PILLARS } from "@/lib/pillars";
+import { PILLARS, pillarBadgeVariant, pillarShortName } from "@/lib/pillars";
 import type { HomeDashboard, PillarResult } from "@/lib/types";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { cn, formatRelativeTime, greetingName, isFixtureCourse } from "@/lib/utils";
 
 const HomeActivitySection = React.lazy(
   () => import("@/components/widgets/sections/HomeActivitySection"),
@@ -37,12 +37,12 @@ function WidgetsSkeleton() {
 }
 
 const pct = (rate: number) => Math.round(rate * 100);
-const pillarBadge = (code: string) =>
-  `pillar-${code.toLowerCase()}` as NonNullable<BadgeProps["variant"]>;
+const pillarBadge = pillarBadgeVariant;
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
-  const firstName = user?.full_name.split(" ")[0] ?? "";
+  const firstName = greetingName(user?.full_name ?? "");
+  const isAdminPlus = user?.role === "admin" || user?.role === "superadmin";
 
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [data, setData] = React.useState<HomeDashboard | null>(null);
@@ -61,7 +61,11 @@ export default function HomePage() {
     setStatus("loading");
     try {
       const [dash] = await Promise.all([apiGetHomeDashboard(), loadResults()]);
-      setData(dash);
+      // Ocultar cursos-fixture (seed-w-*, cp-complete) de la actividad reciente.
+      setData({
+        ...dash,
+        recent_activity: dash.recent_activity.filter((a) => !isFixtureCourse(a.course_slug)),
+      });
       setStatus("ok");
     } catch {
       setStatus("error");
@@ -149,7 +153,7 @@ export default function HomePage() {
                   <Eyebrow>Tu próximo paso</Eyebrow>
                   <div className="mt-1 flex items-center gap-2">
                     <Badge variant={pillarBadge(data.next_step.pillar_code)}>
-                      {data.next_step.pillar_code}
+                      {pillarShortName(data.next_step.pillar_code)}
                     </Badge>
                     <h2 className="truncate font-sans text-xl font-semibold text-fg">
                       {data.next_step.course_title}
@@ -199,7 +203,7 @@ export default function HomePage() {
               <Eyebrow>Tu radar</Eyebrow>
               <h2 className="mt-1 font-sans text-lg font-semibold text-fg">Vista rápida</h2>
               <Link
-                href={"/radar" as Route}
+                href={"/perfil" as Route}
                 className="mt-1 inline-flex items-center gap-1 font-sans text-sm font-semibold text-orange-700"
               >
                 Ver radar completo
@@ -271,7 +275,7 @@ export default function HomePage() {
                       href={`/library/${a.course_slug}` as Route}
                       className="flex items-center gap-3 rounded-lg border border-border bg-cream-50 px-4 py-3 transition-colors hover:bg-bg-raised"
                     >
-                      <Badge variant={pillarBadge(a.pillar_code)}>{a.pillar_code}</Badge>
+                      <Badge variant={pillarBadge(a.pillar_code)}>{pillarShortName(a.pillar_code)}</Badge>
                       <span className="min-w-0 flex-1 truncate font-sans text-sm font-medium text-fg">
                         {a.course_title}
                       </span>
@@ -293,11 +297,15 @@ export default function HomePage() {
       )}
 
       <p className="mt-10 text-xs text-fg-subtle">
-        ¿Sos admin de tu organización?{" "}
-        <Link href={"/profile" as Route} className="underline underline-offset-2">
-          Mirá tu perfil
-        </Link>
-        .
+        {isAdminPlus ? (
+          <Link href={"/admin/org" as Route} className="underline underline-offset-2">
+            Ir al panel de tu organización →
+          </Link>
+        ) : (
+          <Link href={"/perfil" as Route} className="underline underline-offset-2">
+            Ver tu perfil y radar completo →
+          </Link>
+        )}
       </p>
     </main>
   );

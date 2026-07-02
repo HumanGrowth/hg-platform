@@ -9,14 +9,14 @@ import * as React from "react";
 import { useAuthStore } from "@/lib/auth-store";
 import { cn } from "@/lib/utils";
 
-import { isActive, navItemsForRole } from "./items";
+import { isActive, sideNavItemsForRole } from "./items";
 
 const STORAGE_KEY = "hg_sidenav_collapsed";
 
 export function SideNav({ className }: { className?: string }) {
   const pathname = usePathname();
-  const role = useAuthStore((s) => s.user?.role);
-  const items = navItemsForRole(role);
+  const user = useAuthStore((s) => s.user);
+  const items = sideNavItemsForRole(user);
   const [collapsed, setCollapsed] = React.useState(false);
 
   React.useEffect(() => {

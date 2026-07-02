@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDuration, formatRelativeTime } from "../utils";
+import { formatDuration, formatRelativeTime, greetingName, isFixtureCourse } from "../utils";
 
 describe("formatDuration", () => {
   it("formats zero", () => {
@@ -38,5 +38,28 @@ describe("formatRelativeTime", () => {
   it("formats days ago", () => {
     const iso = new Date(Date.now() - 3 * 86_400_000).toISOString();
     expect(formatRelativeTime(iso)).toMatch(/d[ií]a/);
+  });
+});
+
+describe("greetingName", () => {
+  it("returns the first real name token", () => {
+    expect(greetingName("María González")).toBe("María");
+  });
+
+  it("strips numeric and generic seed tokens", () => {
+    expect(greetingName("Collaborator 2 Corp")).toBe("");
+    expect(greetingName("Colaborador 12")).toBe("");
+  });
+});
+
+describe("isFixtureCourse", () => {
+  it("hides seed widget fixtures", () => {
+    expect(isFixtureCourse("seed-w-collab2-0")).toBe(true);
+    expect(isFixtureCourse("cp-complete")).toBe(true);
+  });
+
+  it("keeps real catalog slugs visible", () => {
+    expect(isFixtureCourse("l1-c1-l1-p1-001")).toBe(false);
+    expect(isFixtureCourse("seed-week-recap")).toBe(false);
   });
 });

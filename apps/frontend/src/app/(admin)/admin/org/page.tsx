@@ -21,13 +21,13 @@ function OrgWidgetsSkeleton() {
 }
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { useActingOrg } from "@/lib/acting-org";
 import { apiExportOrgUsersCsv, apiGetOrgMetrics } from "@/lib/api";
-import { PILLARS } from "@/lib/pillars";
+import { PILLARS, pillarShortName } from "@/lib/pillars";
 import { toast } from "@/lib/toast-store";
 import type { OrgMetrics } from "@/lib/types";
 
 const PILLAR_CODES = ["P1", "P2", "P3", "P4", "P5", "P6"] as const;
-const PILLAR_NAME: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id, p.name]));
 const PILLAR_DOT: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id, p.dot]));
 const LEVELS = ["L1", "L2", "L3", "L4", "L5", "L6"];
 
@@ -46,6 +46,8 @@ function Kpi({ value, label, sub }: { value: string; label: string; sub: string 
 }
 
 function OrgDashboardContent() {
+  const acting = useActingOrg();
+  const orgId = acting?.id;
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [m, setM] = React.useState<OrgMetrics | null>(null);
   const [downloading, setDownloading] = React.useState(false);
@@ -53,12 +55,12 @@ function OrgDashboardContent() {
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      setM(await apiGetOrgMetrics());
+      setM(await apiGetOrgMetrics(orgId));
       setStatus("ok");
     } catch {
       setStatus("error");
     }
-  }, []);
+  }, [orgId]);
 
   React.useEffect(() => {
     void load();
@@ -67,7 +69,7 @@ function OrgDashboardContent() {
   async function downloadCsv() {
     setDownloading(true);
     try {
-      await apiExportOrgUsersCsv();
+      await apiExportOrgUsersCsv(orgId);
     } catch {
       toast("No se pudo descargar el CSV", "danger");
     } finally {
@@ -117,7 +119,7 @@ function OrgDashboardContent() {
 
           {/* Tendencias — widgets lazy-loaded */}
           <React.Suspense fallback={<OrgWidgetsSkeleton />}>
-            <OrgWidgetsSection />
+            <OrgWidgetsSection orgId={orgId} />
           </React.Suspense>
 
           <section className="mt-10">
@@ -129,7 +131,7 @@ function OrgDashboardContent() {
                 return (
                   <div key={code} className="flex items-center gap-3">
                     <span className="w-24 shrink-0 text-xs text-fg-muted">
-                      <span className="font-mono">{code}</span> {PILLAR_NAME[code]}
+                      {pillarShortName(code)}
                     </span>
                     <div className="h-3 flex-1 overflow-hidden rounded-full bg-bg-sunken">
                       <div className={`h-full rounded-full ${PILLAR_DOT[code]}`} style={{ width: pct(rate) }} />

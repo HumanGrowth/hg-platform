@@ -103,12 +103,14 @@ export default function TeamPage() {
         </div>
       </div>
 
-      {/* Vista de equipo — widgets lazy-loaded */}
-      <div className="mt-6">
-        <React.Suspense fallback={<TeamWidgetsSkeleton />}>
-          <TeamWidgetsSection />
-        </React.Suspense>
-      </div>
+      {/* Vista de equipo — widgets lazy-loaded (solo si hay reportes) */}
+      {status === "ok" && data && data.total > 0 && (
+        <div className="mt-6">
+          <React.Suspense fallback={<TeamWidgetsSkeleton />}>
+            <TeamWidgetsSection />
+          </React.Suspense>
+        </div>
+      )}
 
       <section className="mt-6">
         {status === "loading" && (
@@ -136,8 +138,13 @@ export default function TeamPage() {
           <Card className="flex flex-col items-center gap-3 py-16 text-center">
             <Users size={32} strokeWidth={1.75} className="text-fg-subtle" />
             <p className="font-sans text-md font-semibold text-fg">
-              {inactiveOnly ? "Nadie inactivo por ahora 🎉" : "Aún no tenés reportes directos."}
+              {inactiveOnly ? "Nadie inactivo por ahora 🎉" : "Aún no tenés personas a tu cargo."}
             </p>
+            {!inactiveOnly && (
+              <p className="max-w-sm text-sm text-fg-muted">
+                Cuando se te asignen reportes, vas a poder seguirlos desde acá.
+              </p>
+            )}
           </Card>
         )}
 

@@ -9,6 +9,9 @@ import * as React from "react";
  */
 export function BetaBanner() {
   const [dismissed, setDismissed] = React.useState(false);
+  // Oculto por defecto para la demo (JxCR). Mostrar solo si se setea
+  // NEXT_PUBLIC_HIDE_BETA_BANNER="false" explícitamente.
+  if (process.env.NEXT_PUBLIC_HIDE_BETA_BANNER !== "false") return null;
   if (dismissed) return null;
   return (
     <div className="flex w-full items-center justify-center gap-3 bg-warning-bg px-4 py-2 text-warning">

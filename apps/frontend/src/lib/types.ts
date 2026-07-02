@@ -8,6 +8,9 @@ export interface User {
   role: UserRole;
   org_id: string;
   career_level: CareerLevel | null;
+  job_title?: string | null;
+  /** Reportes directos del usuario (para ocultar "Mi equipo" si es 0). */
+  reports_count?: number;
   /** Lo provee el backend cuando el motor de assessment exista (B2-02/B2-03).
    * Si viene `false`, el SessionGate manda al onboarding. `undefined` = no
    * forzar (usuarios actuales no se ven afectados). */
@@ -129,6 +132,11 @@ export interface CourseProgress {
 
 export interface CourseDetail extends Course {
   progress: CourseProgress | null;
+  pillar_code?: string | null;
+}
+
+export interface NextCourseResponse {
+  next: Course | null;
 }
 
 export interface CourseProgressPayload {

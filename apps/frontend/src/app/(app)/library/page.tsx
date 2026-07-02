@@ -11,6 +11,7 @@ import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { apiListCourses } from "@/lib/api";
 import type { CompetencyCode, Course, CourseLevel } from "@/lib/types";
+import { isFixtureCourse } from "@/lib/utils";
 
 const LEVELS: CourseLevel[] = ["L1", "L2", "L3", "L4", "L5", "L6"];
 const COMPETENCIES: CompetencyCode[] = ["C1", "C2", "C3", "C4", "C5"];
@@ -32,8 +33,9 @@ export default function LibraryPage() {
         track: mode === "competency" ? "competency" : undefined,
         limit: 60,
       });
+      const visible = res.items.filter((c) => !isFixtureCourse(c.slug));
       const items =
-        mode === "foundation" ? res.items.filter((c) => c.track !== "competency") : res.items;
+        mode === "foundation" ? visible.filter((c) => c.track !== "competency") : visible;
       setCourses(items);
       setStatus("ok");
     } catch {

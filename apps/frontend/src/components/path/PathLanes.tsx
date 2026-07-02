@@ -7,6 +7,7 @@ import { CourseCard } from "@/components/library/CourseCard";
 import { apiListCoursesForPath, apiListPaths } from "@/lib/api";
 import { PILLARS } from "@/lib/pillars";
 import type { CareerPath, Course } from "@/lib/types";
+import { isFixtureCourse } from "@/lib/utils";
 
 const DOT: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id, p.dot]));
 
@@ -26,7 +27,7 @@ export function PathLanes() {
       const lanes = await Promise.all(
         paths.map(async (path) => {
           const { items } = await apiListCoursesForPath(path.code, { limit: 3 });
-          return { path, courses: items };
+          return { path, courses: items.filter((c) => !isFixtureCourse(c.slug)) };
         }),
       );
       setLanes(lanes);
@@ -68,7 +69,7 @@ export function PathLanes() {
   return (
     <div className="flex flex-col gap-10">
       {lanes.map(({ path, courses }) => (
-        <section key={path.id}>
+        <section key={path.id} id={`lane-${path.code}`} className="scroll-mt-24">
           <div className="mb-3 flex items-center gap-3">
             <span className={`h-3 w-3 shrink-0 rounded-full ${DOT[path.code] ?? "bg-fg-subtle"}`} />
             <h2 className="font-sans text-lg font-semibold text-fg">{path.name}</h2>
