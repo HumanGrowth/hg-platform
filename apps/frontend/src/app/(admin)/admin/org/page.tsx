@@ -21,6 +21,7 @@ function OrgWidgetsSkeleton() {
 }
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { useActingOrg } from "@/lib/acting-org";
 import { apiExportOrgUsersCsv, apiGetOrgMetrics } from "@/lib/api";
 import { PILLARS, pillarShortName } from "@/lib/pillars";
 import { toast } from "@/lib/toast-store";
@@ -45,6 +46,8 @@ function Kpi({ value, label, sub }: { value: string; label: string; sub: string 
 }
 
 function OrgDashboardContent() {
+  const acting = useActingOrg();
+  const orgId = acting?.id;
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [m, setM] = React.useState<OrgMetrics | null>(null);
   const [downloading, setDownloading] = React.useState(false);
@@ -52,12 +55,12 @@ function OrgDashboardContent() {
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      setM(await apiGetOrgMetrics());
+      setM(await apiGetOrgMetrics(orgId));
       setStatus("ok");
     } catch {
       setStatus("error");
     }
-  }, []);
+  }, [orgId]);
 
   React.useEffect(() => {
     void load();
@@ -66,7 +69,7 @@ function OrgDashboardContent() {
   async function downloadCsv() {
     setDownloading(true);
     try {
-      await apiExportOrgUsersCsv();
+      await apiExportOrgUsersCsv(orgId);
     } catch {
       toast("No se pudo descargar el CSV", "danger");
     } finally {
@@ -116,7 +119,7 @@ function OrgDashboardContent() {
 
           {/* Tendencias — widgets lazy-loaded */}
           <React.Suspense fallback={<OrgWidgetsSkeleton />}>
-            <OrgWidgetsSection />
+            <OrgWidgetsSection orgId={orgId} />
           </React.Suspense>
 
           <section className="mt-10">

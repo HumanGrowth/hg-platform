@@ -1,9 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Copy } from "lucide-react";
+import { ArrowLeft, Copy, Eye } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 
@@ -17,6 +17,7 @@ import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Input, Label } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { setActingOrg } from "@/lib/acting-org";
 import { apiCreateInvite, apiListInvites, apiListOrgs, apiRevokeInvite } from "@/lib/api";
 import { toast } from "@/lib/toast-store";
 import type { Invitation, Org } from "@/lib/types";
@@ -40,6 +41,7 @@ const STATUS_BADGE: Record<Status, React.ComponentProps<typeof Badge>["variant"]
 
 function AdminOrgDetailContent() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const orgId = params.id;
   const [org, setOrg] = React.useState<Org | null>(null);
   const [invites, setInvites] = React.useState<Invitation[] | null>(null);
@@ -109,22 +111,36 @@ function AdminOrgDetailContent() {
       </Link>
 
       <Eyebrow accent>Organización</Eyebrow>
-      <Display variant="display-3" className="mt-1">
-        {org?.name ?? "Cargando…"}
-      </Display>
-      {org ? (
-        <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-fg-muted">
-          <Badge>{org.tier}</Badge>
-          <span className="font-mono text-xs">{org.slug}</span>
-          <span>
-            · {org.licenses_used}/{org.licenses_total} licencias · {org.billing_status}
-          </span>
-          {org.country ? <span className="text-xs">· {org.country}</span> : null}
-          <span className="text-xs">
-            · Creada {new Date(org.created_at).toLocaleDateString("es")}
-          </span>
-        </p>
-      ) : null}
+      <div className="mt-1 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <Display variant="display-3">{org?.name ?? "Cargando…"}</Display>
+          {org ? (
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-fg-muted">
+              <Badge>{org.tier}</Badge>
+              <span className="font-mono text-xs">{org.slug}</span>
+              <span>
+                · {org.licenses_used}/{org.licenses_total} licencias · {org.billing_status}
+              </span>
+              {org.country ? <span className="text-xs">· {org.country}</span> : null}
+              <span className="text-xs">
+                · Creada {new Date(org.created_at).toLocaleDateString("es")}
+              </span>
+            </p>
+          ) : null}
+        </div>
+        {org ? (
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setActingOrg({ id: org.id, name: org.name });
+              router.push("/admin/org");
+            }}
+          >
+            <Eye size={16} strokeWidth={1.75} />
+            Ver dashboard como esta org
+          </Button>
+        ) : null}
+      </div>
 
       <Tabs defaultValue="usuarios" className="mt-8">
         <TabsList>

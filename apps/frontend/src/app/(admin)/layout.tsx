@@ -5,6 +5,7 @@ import { ArrowLeft, Building2, LineChart } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
+import { ActingAsBanner } from "@/components/admin/ActingAsBanner";
 import { BetaBanner } from "@/components/BetaBanner";
 import { SessionGate } from "@/components/SessionGate";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -54,7 +55,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Volver a colaborador
             </Link>
           </aside>
-          <div className="flex-1">{children}</div>
+          <div className="flex-1">
+            <ActingAsBanner />
+            {children}
+          </div>
         </div>
       </SessionGate>
     </div>
