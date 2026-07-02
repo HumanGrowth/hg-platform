@@ -74,7 +74,7 @@ export default function OnboardingResult() {
                 <h3 className="mt-1 font-sans text-md font-semibold text-fg">
                   {PILLAR_NAMES[r.pillar_code]}
                 </h3>
-                <p className="mt-1 font-sans text-sm font-semibold text-orange-700">
+                <p className="mt-1 font-sans text-sm font-semibold text-primary">
                   {r.state_label}
                 </p>
                 {r.suggested_next_step && (
@@ -87,13 +87,13 @@ export default function OnboardingResult() {
           <div className="mt-12 flex flex-col items-center gap-3">
             <Link
               href={"/path" as Route}
-              className="rounded-md bg-orange px-8 py-4 font-sans text-base font-semibold text-white transition-colors hover:bg-orange-600"
+              className="rounded-md bg-orange px-8 py-4 font-sans text-base font-semibold text-white transition-colors hover:bg-primary-hover"
             >
               Empezar mi ruta →
             </Link>
             <Link
               href={"/home" as Route}
-              className="font-sans text-sm font-semibold text-orange-700"
+              className="font-sans text-sm font-semibold text-primary"
             >
               Ir a mi inicio
             </Link>

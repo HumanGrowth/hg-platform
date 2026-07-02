@@ -31,7 +31,7 @@ export function TopBar() {
       {/* Logo: visible en mobile (la SideNav está oculta <md). */}
       <Link href="/home" aria-label="Human Growth — inicio" className="md:hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/logo-color.svg" alt="Human Growth" className="h-7 w-auto" />
+        <img src="/brand/logo-positive.png" alt="Human Growth" className="h-7 w-auto" />
       </Link>
       <div className="flex-1" />
 

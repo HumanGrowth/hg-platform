@@ -57,7 +57,7 @@ export default function PricingTable() {
 
           <Link
             href="/contacto"
-            className="block w-full text-center bg-orange text-white px-8 py-4 rounded-md font-semibold text-base hover:bg-orange-600 transition-colors"
+            className="block w-full text-center bg-orange text-white px-8 py-4 rounded-md font-semibold text-base hover:bg-primary-hover transition-colors"
           >
             Conversemos →
           </Link>

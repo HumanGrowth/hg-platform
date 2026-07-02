@@ -23,7 +23,7 @@ export default function Footer() {
         style={{ gridTemplateColumns: "1.5fr repeat(4, 1fr)" }}
       >
         <div className="col-span-2 md:col-span-1">
-          <Image src="/marketing/logo-color.svg" width={200} height={56} className="h-14 w-auto" alt="Human Growth" />
+          <Image src="/brand/logo-positive.png" width={200} height={56} className="h-14 w-auto" alt="Human Growth" />
           <p className="body-sm mt-4 max-w-[240px] text-ink-800">{c.footer.tagline}</p>
           <div className="mt-4 flex items-center gap-4">
             <a
@@ -73,7 +73,7 @@ export default function Footer() {
               {l}
             </span>
           ))}
-          <Link href="/contacto" className="body-xs cursor-pointer text-orange-700 font-semibold">
+          <Link href="/contacto" className="body-xs cursor-pointer text-primary font-semibold">
             Contacto
           </Link>
         </div>

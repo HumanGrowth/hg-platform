@@ -67,7 +67,7 @@ export function PillarStatesGrid({
             <h3 className="font-sans text-md font-semibold text-fg">
               {PILLAR_FULL_LABEL[r.pillar_code]}
             </h3>
-            <p className="font-sans text-sm font-semibold text-orange-700">{r.state_label}</p>
+            <p className="font-sans text-sm font-semibold text-primary">{r.state_label}</p>
             {r.recaida_detected && (
               <span className="w-fit rounded-full bg-warning-bg px-2 py-0.5 text-xs font-semibold text-warning">
                 ⚠ Recaída detectada
@@ -81,7 +81,7 @@ export function PillarStatesGrid({
               <button
                 type="button"
                 onClick={() => setConfirming(r)}
-                className="w-fit rounded-md bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100"
+                className="w-fit rounded-md bg-hg-green-100 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-hg-green-100"
               >
                 ¿Te reconocés en este perfil? Confirmá tu nivel
               </button>

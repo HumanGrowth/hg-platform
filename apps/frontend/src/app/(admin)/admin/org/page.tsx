@@ -101,7 +101,7 @@ function OrgDashboardContent() {
           <button
             type="button"
             onClick={() => void load()}
-            className="rounded-md bg-orange px-5 py-2 font-sans text-sm font-semibold text-white hover:bg-orange-600"
+            className="rounded-md bg-orange px-5 py-2 font-sans text-sm font-semibold text-white hover:bg-primary-hover"
           >
             Reintentar
           </button>

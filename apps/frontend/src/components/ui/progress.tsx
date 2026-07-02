@@ -21,7 +21,7 @@ export function Progress({ value, label, className, ...props }: ProgressProps) {
       {...props}
     >
       <div
-        className="h-full rounded-sm bg-orange-500 transition-[width] duration-base ease-out"
+        className="h-full rounded-sm bg-primary transition-[width] duration-base ease-out"
         style={{ width: `${clamped}%` }}
       />
     </div>

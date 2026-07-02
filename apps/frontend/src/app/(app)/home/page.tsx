@@ -117,7 +117,7 @@ export default function HomePage() {
           {/* Stats */}
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Card className="flex items-center gap-3 bg-bg-raised">
-              <Flame size={22} strokeWidth={1.75} className="text-orange-700" aria-hidden />
+              <Flame size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
               <div>
                 <p className="font-mono text-2xl font-semibold text-fg">{data.stats.streak_days}</p>
                 <p className="text-xs text-fg-muted">
@@ -126,7 +126,7 @@ export default function HomePage() {
               </div>
             </Card>
             <Card className="flex items-center gap-3 bg-bg-raised">
-              <Clock size={22} strokeWidth={1.75} className="text-orange-700" aria-hidden />
+              <Clock size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
               <div>
                 <p className="font-mono text-2xl font-semibold text-fg">
                   {data.stats.month_watch_minutes}
@@ -135,7 +135,7 @@ export default function HomePage() {
               </div>
             </Card>
             <Card className="flex items-center gap-3 bg-bg-raised">
-              <Trophy size={22} strokeWidth={1.75} className="text-orange-700" aria-hidden />
+              <Trophy size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
               <div>
                 <p className="font-mono text-2xl font-semibold text-fg">
                   {data.stats.courses_completed}
@@ -204,7 +204,7 @@ export default function HomePage() {
               <h2 className="mt-1 font-sans text-lg font-semibold text-fg">Vista rápida</h2>
               <Link
                 href={"/perfil" as Route}
-                className="mt-1 inline-flex items-center gap-1 font-sans text-sm font-semibold text-orange-700"
+                className="mt-1 inline-flex items-center gap-1 font-sans text-sm font-semibold text-primary"
               >
                 Ver radar completo
                 <ArrowRight size={16} strokeWidth={1.75} />

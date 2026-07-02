@@ -58,7 +58,7 @@ export function PathLanes() {
         <button
           type="button"
           onClick={() => void load()}
-          className="rounded-md bg-orange px-5 py-2 font-sans text-sm font-semibold text-white hover:bg-orange-600"
+          className="rounded-md bg-orange px-5 py-2 font-sans text-sm font-semibold text-white hover:bg-primary-hover"
         >
           Reintentar
         </button>
@@ -90,7 +90,7 @@ export function PathLanes() {
       ))}
 
       <div>
-        <Link href="/library" className="font-sans text-sm font-semibold text-orange-700">
+        <Link href="/library" className="font-sans text-sm font-semibold text-primary">
           Explorar la biblioteca completa →
         </Link>
       </div>

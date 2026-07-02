@@ -45,7 +45,7 @@ export default function ContactForm({ source = "contacto" }: { source?: string }
         <CheckCircle2 size={48} strokeWidth={1.5} className="text-forest mx-auto mb-4" />
         <h2 className="display text-2xl text-ink-900 mb-3">¡Gracias por escribirnos!</h2>
         <p className="text-ink-800 mb-8">Te respondemos en menos de 24 horas.</p>
-        <Link href="/" className="text-orange-700 font-semibold hover:underline">
+        <Link href="/" className="text-primary font-semibold hover:underline">
           Volver al inicio →
         </Link>
       </Card>

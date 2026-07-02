@@ -64,7 +64,7 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
         <p className="mb-4 font-sans text-md font-semibold text-fg">
           {status === "notfound" ? "Esta persona no está en tu equipo." : "No pudimos cargar el detalle."}
         </p>
-        <Link href="/team" className="font-sans text-sm font-semibold text-orange-700">
+        <Link href="/team" className="font-sans text-sm font-semibold text-primary">
           ← Volver a mi equipo
         </Link>
       </div>

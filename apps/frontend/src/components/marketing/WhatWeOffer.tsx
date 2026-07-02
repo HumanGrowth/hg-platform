@@ -40,7 +40,7 @@ export default function WhatWeOffer() {
           </div>
           <Link
             href="/paths"
-            className="text-orange-700 font-semibold border-b border-orange-700 pb-0.5 hover:text-orange-800"
+            className="text-primary font-semibold border-b border-primary pb-0.5 hover:text-primary"
           >
             Ver todo →
           </Link>

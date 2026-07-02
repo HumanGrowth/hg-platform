@@ -24,7 +24,7 @@ export default function ContactoPage() {
           <div className="flex flex-col sm:flex-row gap-6 sm:gap-10">
             <a
               href="mailto:admin@humangrowth.io"
-              className="flex items-center gap-2 text-ink-900 hover:text-orange-700"
+              className="flex items-center gap-2 text-ink-900 hover:text-primary"
             >
               <Mail size={18} strokeWidth={1.75} />
               <span className="text-sm font-medium">admin@humangrowth.io</span>
@@ -33,7 +33,7 @@ export default function ContactoPage() {
               href="https://www.linkedin.com/company/humangrowthlatam"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-ink-900 hover:text-orange-700"
+              className="flex items-center gap-2 text-ink-900 hover:text-primary"
             >
               <Linkedin size={18} strokeWidth={1.75} />
               <span className="text-sm font-medium">linkedin.com/company/humangrowthlatam</span>

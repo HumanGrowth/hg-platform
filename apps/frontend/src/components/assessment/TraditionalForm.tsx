@@ -61,8 +61,8 @@ export function TraditionalForm({ item, onSubmit, isLoading, answered = 0, total
                 className={cn(
                   "flex min-h-[44px] min-w-[44px] flex-1 items-center justify-center rounded-md border border-border-strong",
                   "px-3 py-2 font-mono text-base font-semibold text-fg transition-colors",
-                  "hover:bg-orange-50 hover:border-orange-500 focus-visible:outline-none",
-                  "focus-visible:ring-2 focus-visible:ring-orange-500 disabled:opacity-40",
+                  "hover:bg-hg-green-100 hover:border-primary focus-visible:outline-none",
+                  "focus-visible:ring-2 focus-visible:ring-hg-amber disabled:opacity-40",
                 )}
               >
                 {v}
@@ -86,8 +86,8 @@ export function TraditionalForm({ item, onSubmit, isLoading, answered = 0, total
               disabled={isLoading}
               className={cn(
                 "min-h-[44px] rounded-lg border border-border-strong bg-cream-50 px-4 py-3 text-left",
-                "font-sans text-sm text-fg transition-colors hover:border-orange-500 hover:bg-orange-50",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:opacity-40",
+                "font-sans text-sm text-fg transition-colors hover:border-primary hover:bg-hg-green-100",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber disabled:opacity-40",
               )}
             >
               {opt.label}

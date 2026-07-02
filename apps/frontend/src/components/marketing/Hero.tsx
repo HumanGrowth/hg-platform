@@ -10,7 +10,7 @@ export default function Hero() {
   return (
     <section className="relative overflow-hidden max-w-marketing mx-auto px-8 pt-36 pb-32">
       <div className="absolute -right-20 top-10 opacity-[0.06] pointer-events-none hidden md:block">
-        <Image src="/marketing/logo-color.svg" width={720} height={720} className="h-[720px] w-auto" alt="" aria-hidden />
+        <Image src="/brand/logo-positive.png" width={720} height={720} className="h-[720px] w-auto" alt="" aria-hidden />
       </div>
 
       <div className="relative max-w-[920px]">
@@ -32,7 +32,7 @@ export default function Hero() {
         <div className="flex gap-3 items-center flex-wrap">
           <Link
             href="/contacto"
-            className="bg-orange text-white border-0 px-7 py-4 rounded-md font-semibold text-base cursor-pointer whitespace-nowrap hover:bg-orange-600 transition-colors"
+            className="bg-orange text-white border-0 px-7 py-4 rounded-md font-semibold text-base cursor-pointer whitespace-nowrap hover:bg-primary-hover transition-colors"
           >
             Conversemos →
           </Link>

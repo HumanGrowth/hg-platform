@@ -65,7 +65,7 @@ export function AssignPathDialog({
                 "flex items-start gap-2 rounded-lg border p-3 text-left transition-colors",
                 assigned
                   ? "cursor-not-allowed border-border bg-bg-sunken opacity-60"
-                  : "border-border bg-bg-raised hover:border-orange hover:bg-orange-50",
+                  : "border-border bg-bg-raised hover:border-orange hover:bg-hg-green-100",
               )}
             >
               <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${p.dot}`} />

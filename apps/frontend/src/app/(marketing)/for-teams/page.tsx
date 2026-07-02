@@ -29,7 +29,7 @@ export default function ForTeamsPage() {
         <div className="mt-9 flex gap-3 flex-wrap">
           <Link
             href="/contacto"
-            className="bg-orange text-white px-7 py-4 rounded-md font-semibold text-base hover:bg-orange-600 transition-colors"
+            className="bg-orange text-white px-7 py-4 rounded-md font-semibold text-base hover:bg-primary-hover transition-colors"
           >
             Conversemos →
           </Link>

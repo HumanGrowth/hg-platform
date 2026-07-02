@@ -36,7 +36,7 @@ export default function Nav() {
     >
       <div className="max-w-marketing mx-auto h-full px-8 flex items-center gap-8">
         <Link href="/" className="flex items-center gap-2.5">
-          <Image src="/marketing/logo-color.svg" width={120} height={32} className="h-8 w-auto" alt="Human Growth" priority />
+          <Image src="/brand/logo-positive.png" width={120} height={32} className="h-8 w-auto" alt="Human Growth" priority />
         </Link>
         <div className="hidden md:flex gap-7 ml-4">
           <Link href="/paths" className={linkCls}>
@@ -61,7 +61,7 @@ export default function Nav() {
         </Link>
         <Link
           href="/contacto"
-          className="bg-orange text-white border-0 px-[18px] py-2.5 rounded-md font-semibold text-sm cursor-pointer hover:bg-orange-600 transition-colors"
+          className="bg-orange text-white border-0 px-[18px] py-2.5 rounded-md font-semibold text-sm cursor-pointer hover:bg-primary-hover transition-colors"
         >
           Conversemos
         </Link>
