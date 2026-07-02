@@ -129,14 +129,14 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
             <Eyebrow className="mb-4">Estados por pilar</Eyebrow>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {Object.entries(data.assessment_states).map(([code, st]) => (
-                <div key={code} className="rounded-md border border-border bg-cream-50 p-3">
+                <div key={code} className="rounded-md border border-border bg-surface-card p-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-fg">{pillarShortName(code)}</span>
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                         st.source === "confirmed"
                           ? "bg-success-bg text-success"
-                          : "bg-cream-200 text-fg-muted"
+                          : "bg-surface-sunken text-fg-muted"
                       }`}
                     >
                       {st.source === "confirmed" ? "Confirmado" : "Estimación"}

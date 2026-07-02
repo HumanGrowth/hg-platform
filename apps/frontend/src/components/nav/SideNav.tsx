@@ -63,7 +63,7 @@ export function SideNav({ className }: { className?: string }) {
                   active ? "bg-bg-sunken text-fg" : "text-fg-muted hover:bg-bg-sunken hover:text-fg",
                 )}
               >
-                <Icon size={20} strokeWidth={1.75} className={active ? "text-orange" : undefined} />
+                <Icon size={20} strokeWidth={1.75} className={active ? "text-primary" : undefined} />
                 {!collapsed && <span>{item.label}</span>}
               </Link>
             );

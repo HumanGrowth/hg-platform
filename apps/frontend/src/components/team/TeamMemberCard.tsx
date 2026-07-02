@@ -13,7 +13,7 @@ export function TeamMemberCard({ member: m }: { member: TeamMember }) {
   return (
     <Link
       href={`/team/${m.id}` as Route}
-      className="flex items-start gap-4 rounded-lg border border-border bg-bg-raised p-5 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange"
+      className="flex items-start gap-4 rounded-lg border border-border bg-bg-raised p-5 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
     >
       <Avatar name={m.full_name} size="md" />
       <div className="min-w-0 flex-1">

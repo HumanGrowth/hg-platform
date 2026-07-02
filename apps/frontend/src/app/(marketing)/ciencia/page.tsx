@@ -69,27 +69,27 @@ const PILLARS: PillarSci[] = [
 
 function PillarScience({ p }: { p: PillarSci }) {
   return (
-    <div className="rounded-lg border border-border bg-cream-50 p-8">
+    <div className="rounded-lg border border-border bg-surface-card p-8">
       <div className="mb-4 flex items-center gap-3">
         <Badge variant={p.badge}>{p.code}</Badge>
-        <h3 className="display m-0 text-xl text-ink-900">{p.name}</h3>
+        <h3 className="display m-0 text-xl text-fg">{p.name}</h3>
       </div>
       <dl className="space-y-3 text-sm">
         <div>
           <dt className="eyebrow mb-1">Instrumento</dt>
-          <dd className="text-ink-800">{p.instrument}</dd>
+          <dd className="text-hg-charcoal">{p.instrument}</dd>
         </div>
         <div>
           <dt className="eyebrow mb-1">Validación</dt>
-          <dd className="text-ink-800">{p.validation}</dd>
+          <dd className="text-hg-charcoal">{p.validation}</dd>
         </div>
         <div>
           <dt className="eyebrow mb-1">Evidencia causal</dt>
-          <dd className="text-ink-800">{p.evidence}</dd>
+          <dd className="text-hg-charcoal">{p.evidence}</dd>
         </div>
         <div>
           <dt className="eyebrow mb-1">Resultado</dt>
-          <dd className="font-mono text-xs text-ink-800">{p.result}</dd>
+          <dd className="font-mono text-xs text-hg-charcoal">{p.result}</dd>
         </div>
       </dl>
     </div>
@@ -101,10 +101,10 @@ export default function CienciaPage() {
     <>
       <section className="max-w-marketing mx-auto px-8 pt-36 pb-16">
         <div className="eyebrow eyebrow-accent mb-6">LA CIENCIA</div>
-        <h1 className="display m-0 text-5xl text-ink-900 sm:text-6xl">
+        <h1 className="display m-0 text-5xl text-fg sm:text-6xl">
           La ciencia detrás de tu radar.
         </h1>
-        <p className="mt-6 max-w-[720px] text-[18px] leading-[1.5] text-ink-800">
+        <p className="mt-6 max-w-[720px] text-[18px] leading-[1.5] text-hg-charcoal">
           Cada pilar tiene un instrumento psicométrico con décadas de validación publicada —
           adaptado al lenguaje y la realidad de Costa Rica y LatAm. No inventamos preguntas.
           Tropicalizamos instrumentos validados.
@@ -120,18 +120,18 @@ export default function CienciaPage() {
       </section>
 
       <section className="max-w-marketing mx-auto px-8 pb-32">
-        <div className="mx-auto max-w-[760px] rounded-lg bg-cream-200 p-10">
+        <div className="mx-auto max-w-[760px] rounded-lg bg-surface-sunken p-10">
           <div className="eyebrow mb-3">NUESTRA POSTURA</div>
-          <h2 className="display mb-4 text-3xl text-ink-900">
+          <h2 className="display mb-4 text-3xl text-fg">
             Por qué no usamos AI generativo para clasificar tu perfil.
           </h2>
-          <p className="mb-3 text-base leading-[1.6] text-ink-800">
+          <p className="mb-3 text-base leading-[1.6] text-hg-charcoal">
             Los instrumentos que usamos tienen entre 20 y 50 años de validación con miles de
             participantes. Un modelo de lenguaje que adivina tu estado emocional no tiene esa base —
             y no es defensible pedagógicamente ni legalmente bajo regulaciones como EU AI Act o NYC
             Local Law 144.
           </p>
-          <p className="text-base leading-[1.6] text-ink-800">
+          <p className="text-base leading-[1.6] text-hg-charcoal">
             La ciencia ya hizo el trabajo difícil. Nuestro aporte es entregarla con un lenguaje
             cercano, sin pedirte que dediques 40 minutos a un cuestionario.
           </p>

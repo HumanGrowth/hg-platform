@@ -181,12 +181,12 @@ export function VideoPlayer({ src, poster, startAt = 0, onProgress, onComplete }
   }
 
   const pct = duration ? (current / duration) * 100 : 0;
-  const ctrlBtn = "text-cream-200 hover:text-orange transition-colors";
+  const ctrlBtn = "text-hg-linen hover:text-primary transition-colors";
 
   return (
     <div
       ref={containerRef}
-      className="group relative aspect-video w-full overflow-hidden rounded-lg bg-ink-900 outline-none"
+      className="group relative aspect-video w-full overflow-hidden rounded-lg bg-hg-ink outline-none"
       tabIndex={0}
       onKeyDown={onKeyDown}
       data-testid="video-player"
@@ -210,16 +210,16 @@ export function VideoPlayer({ src, poster, startAt = 0, onProgress, onComplete }
           type="button"
           aria-label="Reproducir"
           onClick={togglePlay}
-          className="absolute inset-0 flex items-center justify-center bg-ink-900/30"
+          className="absolute inset-0 flex items-center justify-center bg-hg-ink/30"
         >
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-orange text-white">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-white">
             <Play size={28} strokeWidth={2} />
           </span>
         </button>
       )}
 
       {/* Barra de controles */}
-      <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t from-ink-900/90 to-transparent px-3 pb-2 pt-6">
+      <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t from-hg-ink/90 to-transparent px-3 pb-2 pt-6">
         {/* Seek */}
         <input
           type="range"
@@ -254,7 +254,7 @@ export function VideoPlayer({ src, poster, startAt = 0, onProgress, onComplete }
               className="h-1 w-20 cursor-pointer accent-orange"
             />
           </div>
-          <span className="font-mono text-xs text-cream-200">
+          <span className="font-mono text-xs text-hg-linen">
             {formatDuration(current)} / {formatDuration(duration)}
           </span>
           <div className="flex-1" />
@@ -270,7 +270,7 @@ export function VideoPlayer({ src, poster, startAt = 0, onProgress, onComplete }
               {speed}x
             </button>
             {menu === "speed" && (
-              <div className="absolute bottom-7 right-0 flex flex-col rounded-md bg-ink-800 p-1">
+              <div className="absolute bottom-7 right-0 flex flex-col rounded-md bg-hg-charcoal p-1">
                 {SPEEDS.map((s) => (
                   <button
                     key={s}
@@ -279,7 +279,7 @@ export function VideoPlayer({ src, poster, startAt = 0, onProgress, onComplete }
                       setSpeed(s);
                       setMenu(null);
                     }}
-                    className={`px-3 py-1 text-left text-xs ${s === speed ? "text-orange" : "text-cream-200"} hover:text-orange`}
+                    className={`px-3 py-1 text-left text-xs ${s === speed ? "text-primary" : "text-hg-linen"} hover:text-primary`}
                   >
                     {s}x
                   </button>
@@ -300,11 +300,11 @@ export function VideoPlayer({ src, poster, startAt = 0, onProgress, onComplete }
                 <Settings size={18} />
               </button>
               {menu === "quality" && (
-                <div className="absolute bottom-7 right-0 flex flex-col rounded-md bg-ink-800 p-1">
+                <div className="absolute bottom-7 right-0 flex flex-col rounded-md bg-hg-charcoal p-1">
                   <button
                     type="button"
                     onClick={() => selectLevel(-1)}
-                    className={`px-3 py-1 text-left text-xs ${level === -1 ? "text-orange" : "text-cream-200"} hover:text-orange`}
+                    className={`px-3 py-1 text-left text-xs ${level === -1 ? "text-primary" : "text-hg-linen"} hover:text-primary`}
                   >
                     Auto
                   </button>
@@ -313,7 +313,7 @@ export function VideoPlayer({ src, poster, startAt = 0, onProgress, onComplete }
                       key={l.height}
                       type="button"
                       onClick={() => selectLevel(i)}
-                      className={`px-3 py-1 text-left text-xs ${level === i ? "text-orange" : "text-cream-200"} hover:text-orange`}
+                      className={`px-3 py-1 text-left text-xs ${level === i ? "text-primary" : "text-hg-linen"} hover:text-primary`}
                     >
                       {l.height}p
                     </button>
@@ -330,7 +330,7 @@ export function VideoPlayer({ src, poster, startAt = 0, onProgress, onComplete }
       </div>
 
       {/* Barra de progreso fina (indicador) */}
-      <div className="absolute bottom-0 left-0 h-0.5 bg-orange" style={{ width: `${pct}%` }} aria-hidden />
+      <div className="absolute bottom-0 left-0 h-0.5 bg-primary" style={{ width: `${pct}%` }} aria-hidden />
     </div>
   );
 }

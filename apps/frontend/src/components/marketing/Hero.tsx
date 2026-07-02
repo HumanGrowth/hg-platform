@@ -16,7 +16,7 @@ export default function Hero() {
       <div className="relative max-w-[920px]">
         <div className="eyebrow eyebrow-accent mb-6">{t("hero.eyebrow", LANG)}</div>
         <h1
-          className="display text-ink-900 m-0"
+          className="display text-fg m-0"
           style={{ fontSize: "clamp(64px, 9vw, 128px)", lineHeight: 0.9, textWrap: "balance" }}
           aria-label={`${t("hero.titleLine1", LANG)} ${t("hero.titleLine2", LANG)}`}
         >
@@ -24,7 +24,7 @@ export default function Hero() {
           <br aria-hidden="true" />
           <span aria-hidden>{t("hero.titleLine2", LANG)}</span>
         </h1>
-        <p className="text-[22px] leading-[1.45] max-w-[560px] mt-7 mb-9 text-ink-800">
+        <p className="text-[22px] leading-[1.45] max-w-[560px] mt-7 mb-9 text-hg-charcoal">
           {t("hero.bodyBefore", LANG)}
           <em className="serif-italic">{t("hero.bodyEm", LANG)}</em>
           {t("hero.bodyAfter", LANG)}
@@ -32,13 +32,13 @@ export default function Hero() {
         <div className="flex gap-3 items-center flex-wrap">
           <Link
             href="/contacto"
-            className="bg-orange text-white border-0 px-7 py-4 rounded-md font-semibold text-base cursor-pointer whitespace-nowrap hover:bg-primary-hover transition-colors"
+            className="bg-primary text-white border-0 px-7 py-4 rounded-md font-semibold text-base cursor-pointer whitespace-nowrap hover:bg-primary-hover transition-colors"
           >
             Conversemos →
           </Link>
           <Link
             href="/paths"
-            className="bg-transparent text-ink-900 border border-[color:var(--border-strong)] px-7 py-[15px] rounded-md font-semibold text-base cursor-pointer whitespace-nowrap hover:bg-bg-sunken transition-colors"
+            className="bg-transparent text-fg border border-[color:var(--border-strong)] px-7 py-[15px] rounded-md font-semibold text-base cursor-pointer whitespace-nowrap hover:bg-bg-sunken transition-colors"
           >
             Ver rutas
           </Link>
@@ -47,7 +47,7 @@ export default function Hero() {
               {["#C8A76E", "#4A7A54", "#A8C4A0"].map((c, i) => (
                 <div
                   key={i}
-                  className="w-7 h-7 rounded-full border-2 border-cream-100"
+                  className="w-7 h-7 rounded-full border-2 border-hg-cream"
                   style={{ background: c, marginLeft: i ? -10 : 0 }}
                 />
               ))}

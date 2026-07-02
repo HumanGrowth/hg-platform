@@ -127,7 +127,7 @@ export default function TeamPage() {
             <button
               type="button"
               onClick={() => void load()}
-              className="rounded-md bg-orange px-5 py-2 font-sans text-sm font-semibold text-white hover:bg-primary-hover"
+              className="rounded-md bg-primary px-5 py-2 font-sans text-sm font-semibold text-white hover:bg-primary-hover"
             >
               Reintentar
             </button>

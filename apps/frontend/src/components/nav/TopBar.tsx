@@ -41,7 +41,7 @@ export function TopBar() {
           aria-haspopup="menu"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((v) => !v)}
-          className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange"
+          className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
         >
           <Avatar name={user?.full_name ?? "?"} size="md" />
         </button>

@@ -85,7 +85,7 @@ export function TraditionalForm({ item, onSubmit, isLoading, answered = 0, total
               onClick={() => onSubmit(opt.value)}
               disabled={isLoading}
               className={cn(
-                "min-h-[44px] rounded-lg border border-border-strong bg-cream-50 px-4 py-3 text-left",
+                "min-h-[44px] rounded-lg border border-border-strong bg-surface-card px-4 py-3 text-left",
                 "font-sans text-sm text-fg transition-colors hover:border-primary hover:bg-hg-green-100",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber disabled:opacity-40",
               )}

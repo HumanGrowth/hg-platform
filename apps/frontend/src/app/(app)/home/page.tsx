@@ -223,7 +223,7 @@ export default function HomePage() {
               {PILLARS.map((p) => {
                 const rate = rates?.[p.id] ?? 0;
                 return (
-                  <Card key={p.id} className="flex flex-col gap-4 bg-cream-50">
+                  <Card key={p.id} className="flex flex-col gap-4 bg-surface-card">
                     <div className="flex items-center justify-between">
                       <HexIcon pillar={p.id} size={40} />
                       <span className={`h-2 w-2 rounded-full ${p.dot}`} aria-hidden />
@@ -274,7 +274,7 @@ export default function HomePage() {
                   <li key={a.course_id}>
                     <Link
                       href={`/library/${a.course_slug}` as Route}
-                      className="flex items-center gap-3 rounded-lg border border-border bg-cream-50 px-4 py-3 transition-colors hover:bg-bg-raised"
+                      className="flex items-center gap-3 rounded-lg border border-border bg-surface-card px-4 py-3 transition-colors hover:bg-bg-raised"
                     >
                       <Badge variant={pillarBadge(a.pillar_code)}>{pillarShortName(a.pillar_code)}</Badge>
                       <span className="min-w-0 flex-1 truncate font-sans text-sm font-medium text-fg">

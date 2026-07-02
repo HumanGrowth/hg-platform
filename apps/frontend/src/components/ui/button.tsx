@@ -13,8 +13,8 @@ const buttonVariants = cva(
       variant: {
         primary: "bg-primary text-white hover:bg-primary-hover active:bg-hg-green-700",
         secondary:
-          "bg-transparent text-fg border border-border-strong hover:bg-bg-sunken active:bg-cream-300",
-        ghost: "bg-transparent text-fg hover:bg-bg-sunken active:bg-cream-300",
+          "bg-transparent text-fg border border-border-strong hover:bg-bg-sunken active:bg-surface-sunken",
+        ghost: "bg-transparent text-fg hover:bg-bg-sunken active:bg-surface-sunken",
         destructive: "bg-danger text-white hover:opacity-90 active:opacity-80",
       },
       size: {

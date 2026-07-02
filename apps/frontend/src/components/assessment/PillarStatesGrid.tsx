@@ -49,7 +49,7 @@ export function PillarStatesGrid({
       <Eyebrow>Tus dimensiones</Eyebrow>
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {results.map((r) => (
-          <Card key={r.pillar_code} className="flex flex-col gap-3 bg-cream-50">
+          <Card key={r.pillar_code} className="flex flex-col gap-3 bg-surface-card">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <HexIcon pillar={r.pillar_code} size={28} />
@@ -62,7 +62,7 @@ export function PillarStatesGrid({
                   "rounded-full px-2 py-0.5 text-xs font-semibold",
                   r.source === "confirmed"
                     ? "bg-success-bg text-success"
-                    : "bg-cream-200 text-fg-muted",
+                    : "bg-surface-sunken text-fg-muted",
                 )}
               >
                 {sourceLabel(r.source)}

@@ -55,14 +55,14 @@ export default function OnboardingResult() {
         <>
           <Radar values={radar} state="complete" size="large" animateOnMount />
 
-          <p className="mt-8 max-w-prose text-ink-800">
+          <p className="mt-8 max-w-prose text-hg-charcoal">
             Esto es una <strong>estimación rápida</strong>. Podés profundizar cualquier dimensión
             para confirmar tu estado.
           </p>
 
           <div className="mt-10 grid w-full grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
             {results.map((r) => (
-              <div key={r.pillar_code} className="rounded-xl border border-border bg-cream-50 p-5">
+              <div key={r.pillar_code} className="rounded-xl border border-border bg-surface-card p-5">
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-xs text-fg-subtle">{r.pillar_code}</span>
                   {r.recaida_detected && (
@@ -87,7 +87,7 @@ export default function OnboardingResult() {
           <div className="mt-12 flex flex-col items-center gap-3">
             <Link
               href={"/path" as Route}
-              className="rounded-md bg-orange px-8 py-4 font-sans text-base font-semibold text-white transition-colors hover:bg-primary-hover"
+              className="rounded-md bg-primary px-8 py-4 font-sans text-base font-semibold text-white transition-colors hover:bg-primary-hover"
             >
               Empezar mi ruta →
             </Link>

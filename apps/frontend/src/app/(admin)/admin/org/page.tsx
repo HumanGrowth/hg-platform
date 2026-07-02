@@ -94,7 +94,7 @@ function OrgDashboardContent() {
           <button
             type="button"
             onClick={() => void load()}
-            className="rounded-md bg-orange px-5 py-2 font-sans text-sm font-semibold text-white hover:bg-primary-hover"
+            className="rounded-md bg-primary px-5 py-2 font-sans text-sm font-semibold text-white hover:bg-primary-hover"
           >
             Reintentar
           </button>
@@ -146,7 +146,7 @@ function OrgDashboardContent() {
                     <div key={l} className="flex items-center gap-3">
                       <span className="w-6 font-mono text-xs text-fg-subtle">{l}</span>
                       <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-bg-sunken">
-                        <div className="h-full rounded-full bg-orange" style={{ width: `${(count / maxLevel) * 100}%` }} />
+                        <div className="h-full rounded-full bg-primary" style={{ width: `${(count / maxLevel) * 100}%` }} />
                       </div>
                       <span className="w-8 text-right font-mono text-xs text-fg-muted">{count}</span>
                     </div>
@@ -180,7 +180,7 @@ function OrgDashboardContent() {
               type="button"
               onClick={() => void downloadCsv()}
               disabled={downloading}
-              className="inline-flex items-center gap-2 rounded-md bg-ink-900 px-5 py-2.5 font-sans text-sm font-semibold text-cream-50 hover:opacity-90 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-md bg-hg-ink px-5 py-2.5 font-sans text-sm font-semibold text-hg-white hover:opacity-90 disabled:opacity-50"
             >
               <Download size={16} strokeWidth={1.75} />
               {downloading ? "Descargando…" : "Descargar progreso completo (CSV)"}

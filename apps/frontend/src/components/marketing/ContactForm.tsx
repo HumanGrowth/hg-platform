@@ -42,9 +42,9 @@ export default function ContactForm({ source = "contacto" }: { source?: string }
   if (sentTo) {
     return (
       <Card className="text-center py-12">
-        <CheckCircle2 size={48} strokeWidth={1.5} className="text-forest mx-auto mb-4" />
-        <h2 className="display text-2xl text-ink-900 mb-3">¡Gracias por escribirnos!</h2>
-        <p className="text-ink-800 mb-8">Te respondemos en menos de 24 horas.</p>
+        <CheckCircle2 size={48} strokeWidth={1.5} className="text-hg-green mx-auto mb-4" />
+        <h2 className="display text-2xl text-fg mb-3">¡Gracias por escribirnos!</h2>
+        <p className="text-hg-charcoal mb-8">Te respondemos en menos de 24 horas.</p>
         <Link href="/" className="text-primary font-semibold hover:underline">
           Volver al inicio →
         </Link>
@@ -53,7 +53,7 @@ export default function ContactForm({ source = "contacto" }: { source?: string }
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="bg-cream-50 border border-border rounded-lg p-8 flex flex-col gap-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="bg-surface-card border border-border rounded-lg p-8 flex flex-col gap-5">
       <div>
         <Label htmlFor="name">Nombre *</Label>
         <Input id="name" autoComplete="name" {...register("name")} />

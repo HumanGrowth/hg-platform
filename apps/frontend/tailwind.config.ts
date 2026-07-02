@@ -11,12 +11,12 @@ import type { Config } from "tailwindcss";
  *   2. Semantic (primary, accent, success, ...) — reglas de rol.
  *   3. Semantic tokens wired to CSS vars (bg, fg, border, accent) — theme-aware.
  *
- * Los aliases legacy (orange-500, cream-300, warm-900) se mantienen 1 sprint
- * como CSS vars en globals.css para no romper ~180 clases existentes. Se
- * eliminan en DS-07.
+ * DS-07: los aliases legacy v1 (orange/cream/warm/ink/gold/forest/sage/amber)
+ * fueron eliminados; todo el código usa los tokens v2 (hg-*, primary, surface-*,
+ * bg/fg/border semánticos, pillar-*).
  *
- * ⚠️ SWAP CLAVE: --accent ahora es GREEN (era ORANGE). Componentes que usan
- * bg-accent, ring-accent verán el swap.
+ * ⚠️ SWAP CLAVE: --accent es GREEN (era ORANGE). Componentes que usan
+ * bg-accent, ring-accent ven el swap.
  */
 const config: Config = {
   darkMode: ["class", '[data-theme="dark"]'],
@@ -81,40 +81,6 @@ const config: Config = {
         warning: { DEFAULT: "var(--color-warning)", bg: "var(--color-warning-bg)" },
         danger: { DEFAULT: "var(--color-danger)", bg: "var(--color-danger-bg)" },
         info: { DEFAULT: "var(--color-info)", bg: "var(--color-info-bg)" },
-
-        // ---- Legacy aliases (deprecated · remove in DS-07) ---------------
-        ink: {
-          900: "#1a1a1a",
-          800: "#2a2826",
-        },
-        slate: {
-          900: "#2c3e50",
-        },
-        warm: {
-          600: "#6b7061",
-          500: "#8e8e8e",
-          700: "#2a2826",
-          900: "#1a1a1a",
-        },
-        cream: {
-          50: "#ffffff",
-          100: "#faf3e8",
-          200: "#f0ede6",
-          300: "#e4dacb",
-        },
-        gold: { DEFAULT: "#c8a76e" },
-        forest: { DEFAULT: "#4a7a54" },
-        orange: {
-          DEFAULT: "#e8530a",
-          50: "#fff1e8",
-          100: "#ffd9c2",
-          500: "#e8530a",
-          600: "#c4440a",
-          700: "#c4440a",
-          800: "#c4440a",
-        },
-        amber: { DEFAULT: "#e8a030" },
-        sage: { DEFAULT: "#a8c4a0" },
 
         // ---- Pillar colors (mapping DS v2 · §4.2 delta doc) --------------
         // P6 pasa de gray → amber (más visible en dashboards)

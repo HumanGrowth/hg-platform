@@ -22,7 +22,7 @@ export default function Nav() {
   }, []);
 
   const linkCls =
-    "text-sm font-medium text-ink-900 cursor-pointer py-1.5 border-b border-transparent hover:border-ink-900 transition-colors";
+    "text-sm font-medium text-fg cursor-pointer py-1.5 border-b border-transparent hover:border-hg-ink transition-colors";
 
   return (
     <nav
@@ -61,7 +61,7 @@ export default function Nav() {
         </Link>
         <Link
           href="/contacto"
-          className="bg-orange text-white border-0 px-[18px] py-2.5 rounded-md font-semibold text-sm cursor-pointer hover:bg-primary-hover transition-colors"
+          className="bg-primary text-white border-0 px-[18px] py-2.5 rounded-md font-semibold text-sm cursor-pointer hover:bg-primary-hover transition-colors"
         >
           Conversemos
         </Link>
