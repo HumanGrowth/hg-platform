@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { t } from "@/lib/i18n";
@@ -9,8 +8,15 @@ const LANG = "es" as const;
 export default function Hero() {
   return (
     <section className="relative overflow-hidden max-w-marketing mx-auto px-8 pt-36 pb-32">
-      <div className="absolute -right-20 top-10 opacity-[0.06] pointer-events-none hidden md:block">
-        <Image src="/brand/logo-positive.png" width={720} height={720} className="h-[720px] w-auto" alt="" aria-hidden />
+      {/* Watermark "Hï" isotype (Brand Book · hero background treatment). */}
+      <div className="absolute -right-16 bottom-[-8%] opacity-[0.08] pointer-events-none hidden md:block">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/isotype/isotype-oscuro.svg"
+          alt=""
+          aria-hidden
+          className="w-[clamp(360px,40vw,760px)] h-auto"
+        />
       </div>
 
       <div className="relative max-w-[920px]">

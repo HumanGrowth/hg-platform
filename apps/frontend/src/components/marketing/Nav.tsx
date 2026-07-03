@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -36,7 +35,13 @@ export default function Nav() {
     >
       <div className="max-w-marketing mx-auto h-full px-8 flex items-center gap-8">
         <Link href="/" className="flex items-center gap-2.5">
-          <Image src="/brand/logo-positive.png" width={120} height={32} className="h-8 w-auto" alt="Human Growth" priority />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo/nav/logo-nav-negro@1x.png"
+            srcSet="/logo/nav/logo-nav-negro@1x.png 1x, /logo/nav/logo-nav-negro@2x.png 2x, /logo/nav/logo-nav-negro@3x.png 3x"
+            alt="Human Growth"
+            className="h-8 w-auto"
+          />
         </Link>
         <div className="hidden md:flex gap-7 ml-4">
           <Link href="/paths" className={linkCls}>

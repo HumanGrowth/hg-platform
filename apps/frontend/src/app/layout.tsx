@@ -61,17 +61,30 @@ export const metadata: Metadata = {
   },
   description: DESCRIPTION,
   applicationName: "Human Growth",
+  manifest: "/favicon/site.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon/favicon.ico", sizes: "any" },
+      { url: "/favicon/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/favicon/apple-touch-icon.png",
+    other: [{ rel: "mask-icon", url: "/favicon/safari-pinned-tab.svg", color: "#4A7A54" }],
+  },
   openGraph: {
     type: "website",
     siteName: "Human Growth",
     title: "Human Growth",
     description: DESCRIPTION,
     locale: "es_CR",
+    images: [{ url: "/social/og-image-1200x630.png", width: 1200, height: 630, alt: "Human Growth" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Human Growth",
     description: DESCRIPTION,
+    images: ["/social/og-image-1200x630.png"],
   },
 };
 

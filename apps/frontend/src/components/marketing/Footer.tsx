@@ -1,5 +1,4 @@
 import { Linkedin } from "lucide-react";
-import Image from "next/image";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -23,7 +22,13 @@ export default function Footer() {
         style={{ gridTemplateColumns: "1.5fr repeat(4, 1fr)" }}
       >
         <div className="col-span-2 md:col-span-1">
-          <Image src="/brand/logo-positive.png" width={200} height={56} className="h-14 w-auto" alt="Human Growth" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo/nav/logo-nav-negro@2x.png"
+            srcSet="/logo/nav/logo-nav-negro@1x.png 1x, /logo/nav/logo-nav-negro@2x.png 2x, /logo/nav/logo-nav-negro@3x.png 3x"
+            alt="Human Growth"
+            className="h-11 w-auto"
+          />
           <p className="body-sm mt-4 max-w-[240px] text-hg-charcoal">{c.footer.tagline}</p>
           <div className="mt-4 flex items-center gap-4">
             <a

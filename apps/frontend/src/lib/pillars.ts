@@ -59,14 +59,14 @@ export function pillarShortName(code: string): string {
 }
 
 // ─────────── Íconos hexagonales por pilar (DS v2 · HexIcon) ───────────
-// PNGs pre-renderizados del Brand Book (hexágono + pictograma por dimensión).
+// PNGs del Brand Book (Web-Assets/icons · hexágono + pictograma por dimensión).
 const PILLAR_ICON_SRC: Record<string, string> = {
-  P1: "/brand/pillars/p1-carrera.png",      // rocket
-  P2: "/brand/pillars/p2-proposito.png",    // star
-  P3: "/brand/pillars/p3-relaciones.png",   // chat
-  P4: "/brand/pillars/p4-salud.png",        // sprout
-  P5: "/brand/pillars/p5-paz-interior.png", // scales
-  P6: "/brand/pillars/p6-estabilidad.png",  // bulb
+  P1: "/icons/hex-rocket-128.png", // Carrera
+  P2: "/icons/hex-star-128.png",   // Propósito
+  P3: "/icons/hex-chat-128.png",   // Relaciones
+  P4: "/icons/hex-sprout-128.png", // Salud
+  P5: "/icons/hex-scales-128.png", // Paz interior
+  P6: "/icons/hex-bulb-128.png",   // Estabilidad
 };
 
 /** Código base del pilar (P6A/P6B → P6). */

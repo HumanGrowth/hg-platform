@@ -43,7 +43,7 @@ export function SideNav({ className }: { className?: string }) {
         <Link href="/home" aria-label="Human Growth — inicio" className="flex items-center px-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={collapsed ? "/brand/isotype-dark.png" : "/brand/logo-positive.png"}
+            src={collapsed ? "/isotype/isotype-oscuro.svg" : "/logo/nav/logo-nav-negro@2x.png"}
             alt="Human Growth"
             className="h-7 w-auto"
           />
