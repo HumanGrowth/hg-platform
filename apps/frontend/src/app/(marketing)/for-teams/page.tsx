@@ -8,7 +8,7 @@ const valueProps = [
   { title: "Dashboard para gerentes", body: "Quién crece, en qué dimensión y con qué ritmo. Visibilidad real, no diapositivas." },
   { title: "Rutas a la medida", body: "Trayectos personalizados por empresa e industria, alineados a tus objetivos del trimestre." },
   { title: "Mentores por industria", body: "Profesionales latinoamericanos con experiencia real en el problema que tu equipo enfrenta." },
-  { title: "SSO + integración RRHH", body: "Single sign-on y sincronización con tu HRIS. Listo para equipos de 5 a 500 personas." },
+  { title: "Eventos y Masterclass", body: "Sesiones en vivo y grabadas con expertos de la industria para el desarrollo continuo de tu equipo." },
 ];
 
 export default function ForTeamsPage() {

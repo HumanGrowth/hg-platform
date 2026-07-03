@@ -10,10 +10,10 @@ export default function ContactoPage() {
       <section className="max-w-[760px] mx-auto px-8 pt-36 pb-8">
         <div className="eyebrow eyebrow-accent mb-6">CONVERSEMOS</div>
         <h1 className="display text-fg text-4xl sm:text-5xl m-0">
-          Conversemos · te respondemos en 24h
+          Conversemos
         </h1>
         <p className="text-hg-charcoal text-[18px] leading-[1.5] mt-6 mb-10 max-w-[560px]">
-          Contanos un poco sobre vos y tu equipo. Te respondemos en menos de 24 horas.
+          Contanos un poco sobre vos y tu equipo.
         </p>
         <ContactForm source="contacto" />
       </section>

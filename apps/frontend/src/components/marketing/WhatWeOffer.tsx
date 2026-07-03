@@ -17,13 +17,13 @@ const CARDS = [
     eyebrow: "03 · MENTORÍAS",
     title: "Acompañamiento de quien ya pasó por ahí",
     body: "Mentores latinoamericanos con experiencia real en tu desafío.",
-    stat: "En roadmap Q4 2026",
+    stat: "Mentorías disponibles",
   },
   {
-    eyebrow: "04 · BADGES",
-    title: "Credenciales de tu avance",
-    body: "Reconocimiento verificable de tu crecimiento, dimensión por dimensión.",
-    stat: "En roadmap Q4 2026",
+    eyebrow: "04 · EVENTOS",
+    title: "Aprende en tiempo real",
+    body: "Sesiones en vivo y grabadas con expertos de la industria para el desarrollo continuo de tu equipo.",
+    stat: "Mantente conectado",
   },
 ];
 
