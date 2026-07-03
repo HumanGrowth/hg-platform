@@ -145,7 +145,7 @@ function AdminOrgsContent() {
               <select
                 id="tier"
                 {...register("tier")}
-                className="h-10 w-full rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                className="h-10 w-full rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-primary focus:outline-none focus:ring-2 focus:ring-hg-amber/40"
               >
                 <option value="A">A</option>
                 <option value="B">B</option>

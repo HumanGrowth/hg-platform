@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import CienciaPage from "@/app/(marketing)/ciencia/page";
+import MetodoPage from "@/app/(marketing)/metodo/page";
 import PricingTable from "@/components/marketing/PricingTable";
 import SixPillars from "@/components/marketing/SixPillars";
 import WhatWeOffer from "@/components/marketing/WhatWeOffer";
@@ -23,9 +23,11 @@ describe("SixPillars", () => {
 });
 
 describe("WhatWeOffer", () => {
-  it("shows honest roadmap copy and a Ver todo link to /paths", () => {
+  it("shows the four ways to grow and a Ver todo link to /paths", () => {
     render(<WhatWeOffer />);
-    expect(screen.getAllByText("En roadmap Q4 2026").length).toBe(2);
+    expect(screen.getByText("Cuatro formas de crecer con intención.")).toBeTruthy();
+    expect(screen.getByText("01 · DIAGNÓSTICO")).toBeTruthy();
+    expect(screen.getByText("04 · EVENTOS")).toBeTruthy();
     const link = screen.getByRole("link", { name: /Ver todo/ });
     expect(link.getAttribute("href")).toBe("/paths");
   });
@@ -41,13 +43,18 @@ describe("PricingTable", () => {
   });
 });
 
-describe("CienciaPage", () => {
-  it("renders the 6 instruments + the anti-generative-AI stance", () => {
-    render(<CienciaPage />);
-    expect(screen.getByText("MLQ-10 (Steger)")).toBeTruthy();
-    expect(screen.getByText("CD-RISC-10 (Connor-Davidson)")).toBeTruthy();
-    expect(
-      screen.getByText(/Por qué no usamos AI generativo para clasificar tu perfil/),
-    ).toBeTruthy();
+describe("MetodoPage", () => {
+  it("renders the system principle, the 6 pillars, rigor & sources", () => {
+    render(<MetodoPage />);
+    // "Un sistema, no seis módulos"
+    expect(screen.getByText("Los seis pilares son una red, no una lista.")).toBeTruthy();
+    // Los 6 pilares (headers del accordion, siempre presentes)
+    for (const name of ["Carrera e impacto", "Estabilidad emocional y material"]) {
+      expect(screen.getByText(name)).toBeTruthy();
+    }
+    // Rigor y límites (transparencia = diferenciador de marca)
+    expect(screen.getByText("Correlación vs. causalidad")).toBeTruthy();
+    // Fuentes numeradas
+    expect(screen.getByText(/Holt-Lunstad/)).toBeTruthy();
   });
 });

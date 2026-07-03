@@ -24,7 +24,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="flex flex-1">
           <aside className="hidden w-60 shrink-0 flex-col gap-6 border-r border-border bg-bg-raised px-5 py-6 md:flex">
             <Link href="/home" aria-label="Volver a la app">
-              <img src="/brand/logo-color.svg" alt="Human Growth" className="h-7 w-auto" />
+              <img src="/logo/nav/logo-nav-negro@2x.png" alt="Human Growth" className="h-7 w-auto" />
             </Link>
             <div>
               <Eyebrow className="mb-3">Panel HG</Eyebrow>

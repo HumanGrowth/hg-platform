@@ -101,7 +101,7 @@ export function CourseDetailView({ slug }: { slug: string }) {
           <button
             type="button"
             onClick={() => void load()}
-            className="rounded-md bg-orange px-5 py-2 font-sans text-sm font-semibold text-white hover:bg-orange-600"
+            className="rounded-md bg-primary px-5 py-2 font-sans text-sm font-semibold text-white hover:bg-primary-hover"
           >
             Reintentar
           </button>
@@ -142,7 +142,7 @@ export function CourseDetailView({ slug }: { slug: string }) {
               }}
             />
           ) : (
-            <div className="flex aspect-video w-full items-center justify-center rounded-lg bg-ink-900 text-cream-200">
+            <div className="flex aspect-video w-full items-center justify-center rounded-lg bg-hg-ink text-hg-linen">
               {course.hls_master_url ? "Cargando…" : "Video no disponible"}
             </div>
           )}
@@ -170,7 +170,7 @@ export function CourseDetailView({ slug }: { slug: string }) {
                     {nextCourse.title}
                   </p>
                 </div>
-                <ArrowRight size={18} strokeWidth={1.75} className="shrink-0 text-orange-700" />
+                <ArrowRight size={18} strokeWidth={1.75} className="shrink-0 text-primary" />
               </Link>
             ) : (
               <p className="text-sm text-fg-muted">Completaste todos los cursos de esta ruta.</p>
@@ -183,7 +183,7 @@ export function CourseDetailView({ slug }: { slug: string }) {
 
       {/* Diálogo de reanudación */}
       {resumeOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/50 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-hg-ink/50 p-6">
           <div className="w-full max-w-sm rounded-lg border border-border bg-bg-raised p-6 text-center">
             <h2 className="mb-2 font-sans text-lg font-semibold text-fg">¿Dónde querés seguir?</h2>
             <p className="mb-5 text-sm text-fg-muted">
@@ -197,7 +197,7 @@ export function CourseDetailView({ slug }: { slug: string }) {
                   setResumeOpen(false);
                   setReady(true);
                 }}
-                className="rounded-md bg-orange px-5 py-2.5 font-sans text-sm font-semibold text-white hover:bg-orange-600"
+                className="rounded-md bg-primary px-5 py-2.5 font-sans text-sm font-semibold text-white hover:bg-primary-hover"
               >
                 Reanudar desde {formatDuration(course.progress?.last_position_seconds ?? 0)}
               </button>

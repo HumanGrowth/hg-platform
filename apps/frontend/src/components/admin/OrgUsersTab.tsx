@@ -102,7 +102,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
             setPage(1);
             setStatusF(e.target.value);
           }}
-          className="h-9 rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-orange-500 focus:outline-none"
+          className="h-9 rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-primary focus:outline-none"
         >
           <option value="all">Todos</option>
           <option value="active">Activos</option>
@@ -115,7 +115,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
             setPage(1);
             setRoleF(e.target.value);
           }}
-          className="h-9 rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-orange-500 focus:outline-none"
+          className="h-9 rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-primary focus:outline-none"
         >
           <option value="">Todos los roles</option>
           {ROLE_OPTIONS.map((r) => (
@@ -174,7 +174,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
                       type="button"
                       aria-label="Acciones"
                       onClick={() => setMenuFor(menuFor === u.id ? null : u.id)}
-                      className="rounded-md p-1 text-fg-muted hover:bg-bg-sunken hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                      className="rounded-md p-1 text-fg-muted hover:bg-bg-sunken hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
                     >
                       <MoreHorizontal size={18} strokeWidth={1.75} />
                     </button>
@@ -282,7 +282,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
             <select
               id="new-role"
               defaultValue={roleModal?.role}
-              className="h-10 w-full rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-orange-500 focus:outline-none"
+              className="h-10 w-full rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-primary focus:outline-none"
             >
               {ROLE_OPTIONS.map((r) => (
                 <option key={r} value={r}>
@@ -321,7 +321,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
             <select
               id="new-mgr"
               defaultValue={mgrModal?.manager_id ?? ""}
-              className="h-10 w-full rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-orange-500 focus:outline-none"
+              className="h-10 w-full rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-primary focus:outline-none"
             >
               <option value="">— sin manager —</option>
               {data?.items

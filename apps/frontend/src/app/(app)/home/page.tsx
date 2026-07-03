@@ -12,6 +12,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { HexIcon } from "@/components/ui/hex-icon";
 import { Progress } from "@/components/ui/progress";
 import { PillarStatesGrid } from "@/components/assessment/PillarStatesGrid";
 import { apiGetHomeDashboard, apiGetMyResults } from "@/lib/api";
@@ -117,7 +118,7 @@ export default function HomePage() {
           {/* Stats */}
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Card className="flex items-center gap-3 bg-bg-raised">
-              <Flame size={22} strokeWidth={1.75} className="text-orange-700" aria-hidden />
+              <Flame size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
               <div>
                 <p className="font-mono text-2xl font-semibold text-fg">{data.stats.streak_days}</p>
                 <p className="text-xs text-fg-muted">
@@ -126,7 +127,7 @@ export default function HomePage() {
               </div>
             </Card>
             <Card className="flex items-center gap-3 bg-bg-raised">
-              <Clock size={22} strokeWidth={1.75} className="text-orange-700" aria-hidden />
+              <Clock size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
               <div>
                 <p className="font-mono text-2xl font-semibold text-fg">
                   {data.stats.month_watch_minutes}
@@ -135,7 +136,7 @@ export default function HomePage() {
               </div>
             </Card>
             <Card className="flex items-center gap-3 bg-bg-raised">
-              <Trophy size={22} strokeWidth={1.75} className="text-orange-700" aria-hidden />
+              <Trophy size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
               <div>
                 <p className="font-mono text-2xl font-semibold text-fg">
                   {data.stats.courses_completed}
@@ -204,7 +205,7 @@ export default function HomePage() {
               <h2 className="mt-1 font-sans text-lg font-semibold text-fg">Vista rápida</h2>
               <Link
                 href={"/perfil" as Route}
-                className="mt-1 inline-flex items-center gap-1 font-sans text-sm font-semibold text-orange-700"
+                className="mt-1 inline-flex items-center gap-1 font-sans text-sm font-semibold text-primary"
               >
                 Ver radar completo
                 <ArrowRight size={16} strokeWidth={1.75} />
@@ -222,9 +223,9 @@ export default function HomePage() {
               {PILLARS.map((p) => {
                 const rate = rates?.[p.id] ?? 0;
                 return (
-                  <Card key={p.id} className="flex flex-col gap-4 bg-cream-50">
+                  <Card key={p.id} className="flex flex-col gap-4 bg-surface-card">
                     <div className="flex items-center justify-between">
-                      <Badge variant={p.badge}>{p.id}</Badge>
+                      <HexIcon pillar={p.id} size={40} />
                       <span className={`h-2 w-2 rounded-full ${p.dot}`} aria-hidden />
                     </div>
                     <h3 className="font-sans text-md font-semibold text-fg">{p.name}</h3>
@@ -273,7 +274,7 @@ export default function HomePage() {
                   <li key={a.course_id}>
                     <Link
                       href={`/library/${a.course_slug}` as Route}
-                      className="flex items-center gap-3 rounded-lg border border-border bg-cream-50 px-4 py-3 transition-colors hover:bg-bg-raised"
+                      className="flex items-center gap-3 rounded-lg border border-border bg-surface-card px-4 py-3 transition-colors hover:bg-bg-raised"
                     >
                       <Badge variant={pillarBadge(a.pillar_code)}>{pillarShortName(a.pillar_code)}</Badge>
                       <span className="min-w-0 flex-1 truncate font-sans text-sm font-medium text-fg">

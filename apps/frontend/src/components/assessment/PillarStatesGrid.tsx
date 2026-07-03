@@ -5,19 +5,18 @@ import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { HexIcon } from "@/components/ui/hex-icon";
 import { apiConfirmResult } from "@/lib/api";
 import { canRetake, sourceLabel } from "@/lib/assessment-utils";
-import { PILLAR_FULL_LABEL, PILLAR_SHORT_LABEL, pillarBadgeVariant } from "@/lib/pillars";
+import { PILLAR_FULL_LABEL, PILLAR_SHORT_LABEL } from "@/lib/pillars";
 import type { AssessmentPillarCode, PillarResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast-store";
 
-const pillarBadge = pillarBadgeVariant;
 // Para el CTA de detalle, P6A/P6B usan su propio código.
 const detailHref = (code: AssessmentPillarCode) => `/onboarding/detail/${code}` as Route;
 
@@ -50,15 +49,20 @@ export function PillarStatesGrid({
       <Eyebrow>Tus dimensiones</Eyebrow>
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {results.map((r) => (
-          <Card key={r.pillar_code} className="flex flex-col gap-3 bg-cream-50">
+          <Card key={r.pillar_code} className="flex flex-col gap-3 bg-surface-card">
             <div className="flex items-center justify-between">
-              <Badge variant={pillarBadge(r.pillar_code)}>{PILLAR_SHORT_LABEL[r.pillar_code]}</Badge>
+              <div className="flex items-center gap-2">
+                <HexIcon pillar={r.pillar_code} size={28} />
+                <span className="font-heading text-sm font-semibold text-fg">
+                  {PILLAR_SHORT_LABEL[r.pillar_code]}
+                </span>
+              </div>
               <span
                 className={cn(
                   "rounded-full px-2 py-0.5 text-xs font-semibold",
                   r.source === "confirmed"
                     ? "bg-success-bg text-success"
-                    : "bg-cream-200 text-fg-muted",
+                    : "bg-surface-sunken text-fg-muted",
                 )}
               >
                 {sourceLabel(r.source)}
@@ -67,7 +71,7 @@ export function PillarStatesGrid({
             <h3 className="font-sans text-md font-semibold text-fg">
               {PILLAR_FULL_LABEL[r.pillar_code]}
             </h3>
-            <p className="font-sans text-sm font-semibold text-orange-700">{r.state_label}</p>
+            <p className="font-sans text-sm font-semibold text-primary">{r.state_label}</p>
             {r.recaida_detected && (
               <span className="w-fit rounded-full bg-warning-bg px-2 py-0.5 text-xs font-semibold text-warning">
                 ⚠ Recaída detectada
@@ -81,7 +85,7 @@ export function PillarStatesGrid({
               <button
                 type="button"
                 onClick={() => setConfirming(r)}
-                className="w-fit rounded-md bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100"
+                className="w-fit rounded-md bg-hg-green-100 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-hg-green-100"
               >
                 ¿Te reconocés en este perfil? Confirmá tu nivel
               </button>

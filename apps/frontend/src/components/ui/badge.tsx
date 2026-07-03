@@ -9,17 +9,18 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default: "bg-bg-sunken text-fg-muted",
-        earned: "bg-orange-500 text-white",
+        earned: "bg-hg-orange text-white",
         success: "bg-success-bg text-success",
         warning: "bg-warning-bg text-warning",
         danger: "bg-danger-bg text-danger",
         info: "bg-info-bg text-info",
-        "pillar-p1": "bg-orange-50 text-orange-700",
-        "pillar-p2": "bg-cream-200 text-warm-700",
-        "pillar-p3": "bg-success-bg text-success",
-        "pillar-p4": "bg-warning-bg text-warning",
-        "pillar-p5": "bg-info-bg text-info",
-        "pillar-p6": "bg-orange-100 text-orange-800",
+        // Pillar tints — alineados a los tokens de pilar v2 (§4.2 delta).
+        "pillar-p1": "bg-[#fdece3] text-hg-orange",       // Carrera · orange
+        "pillar-p2": "bg-[#f5eddd] text-[#8f6f38]",       // Propósito · gold
+        "pillar-p3": "bg-hg-green-100 text-hg-green",     // Relaciones · green
+        "pillar-p4": "bg-[#e9f0e5] text-[#4f6a46]",       // Salud · sage
+        "pillar-p5": "bg-info-bg text-info",              // Paz interior · slate
+        "pillar-p6": "bg-warning-bg text-warning",        // Estabilidad · amber
       },
     },
     defaultVariants: { variant: "default" },

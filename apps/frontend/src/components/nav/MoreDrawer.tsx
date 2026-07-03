@@ -25,7 +25,7 @@ export function MoreDrawer({ open, onClose }: { open: boolean; onClose: () => vo
   if (!open) return null;
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-ink-900/30" onClick={onClose} aria-hidden />
+      <div className="fixed inset-0 z-40 bg-hg-ink/30" onClick={onClose} aria-hidden />
       <aside
         className="fixed bottom-0 right-0 top-0 z-50 flex w-72 flex-col gap-1 border-l border-border bg-bg-raised p-6"
         role="dialog"

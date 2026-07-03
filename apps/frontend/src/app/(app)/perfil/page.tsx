@@ -128,7 +128,7 @@ export default function PerfilPage() {
                   const ready = r.source === "preliminary" || canRetake(r);
                   const wait = !ready ? daysUntil(r.next_retake_eligible_at) : 0;
                   return (
-                    <Card key={r.pillar_code} className="flex items-center justify-between gap-3 bg-cream-50">
+                    <Card key={r.pillar_code} className="flex items-center justify-between gap-3 bg-surface-card">
                       <div className="min-w-0">
                         <p className="truncate font-sans text-sm font-semibold text-fg">
                           {PILLAR_FULL_LABEL[r.pillar_code as AssessmentPillarCode]}
@@ -185,7 +185,7 @@ export default function PerfilPage() {
           {/* Sección 5: Logros (placeholder) */}
           <section className="mt-12 mb-4">
             <Eyebrow>Logros</Eyebrow>
-            <Card className="mt-4 bg-cream-50">
+            <Card className="mt-4 bg-surface-card">
               <p className="text-sm text-fg-muted">
                 Próximamente: badges al completar pilares y rutas.
               </p>

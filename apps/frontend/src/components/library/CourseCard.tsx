@@ -17,7 +17,7 @@ export function CourseCard({ course }: { course: Course }) {
   return (
     <Link
       href={`/library/${course.slug}` as Route}
-      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-bg-raised text-left transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange"
+      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-bg-raised text-left transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
     >
       <div className="relative aspect-video w-full bg-bg-sunken">
         {showImg ? (
@@ -32,7 +32,7 @@ export function CourseCard({ course }: { course: Course }) {
             <Play size={28} strokeWidth={1.75} />
           </div>
         )}
-        <span className="absolute bottom-2 right-2 rounded bg-ink-900/80 px-1.5 py-0.5 font-mono text-xs text-white">
+        <span className="absolute bottom-2 right-2 rounded bg-hg-ink/80 px-1.5 py-0.5 font-mono text-xs text-white">
           {formatDuration(course.duration_seconds)}
         </span>
       </div>

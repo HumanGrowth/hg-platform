@@ -66,9 +66,9 @@ export function TabsTrigger({ value, className, ...props }: TabsTriggerProps) {
       onClick={() => setValue(value)}
       className={cn(
         "-mb-px border-b-2 px-1 pb-3 font-sans text-sm font-semibold transition-colors duration-fast ease-state",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
         selected
-          ? "border-orange-500 text-fg"
+          ? "border-primary text-fg"
           : "border-transparent text-fg-muted hover:text-fg",
         className,
       )}

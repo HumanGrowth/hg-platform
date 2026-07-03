@@ -31,7 +31,7 @@ export function TopBar() {
       {/* Logo: visible en mobile (la SideNav está oculta <md). */}
       <Link href="/home" aria-label="Human Growth — inicio" className="md:hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/logo-color.svg" alt="Human Growth" className="h-7 w-auto" />
+        <img src="/logo/nav/logo-nav-negro@2x.png" alt="Human Growth" className="h-7 w-auto" />
       </Link>
       <div className="flex-1" />
 
@@ -41,7 +41,7 @@ export function TopBar() {
           aria-haspopup="menu"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((v) => !v)}
-          className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange"
+          className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
         >
           <Avatar name={user?.full_name ?? "?"} size="md" />
         </button>
