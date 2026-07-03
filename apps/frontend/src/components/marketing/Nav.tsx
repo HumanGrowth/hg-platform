@@ -50,8 +50,8 @@ export default function Nav() {
           <Link href="/for-teams" className={linkCls}>
             {t("nav.forTeams", LANG)}
           </Link>
-          <Link href="/ciencia" className={linkCls}>
-            La Ciencia
+          <Link href="/metodo" className={linkCls}>
+            {t("nav.method", LANG)}
           </Link>
           <Link href="/pricing" className={linkCls}>
             {t("nav.pricing", LANG)}
