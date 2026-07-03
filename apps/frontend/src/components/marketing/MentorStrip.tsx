@@ -3,9 +3,9 @@ import Image from "next/image";
 import { getCopy } from "@/lib/i18n";
 
 const mentors = [
-  { name: "Jorge Araya", role: "Liderazgo Ejecutivo", co: "Ex-CEO Retail LatAm", img: "/marketing/mentors/jorge.jpg", ring: "var(--hg-orange)" },
-  { name: "Andrés Aiello", role: "Transformación Digital", co: "Ex-Director, Banca", img: "/marketing/mentors/andres.jpg", ring: "var(--hg-ink)" },
-  { name: "Karina Víquez", role: "Cultura y Talento", co: "Ex-VP RRHH, Manufactura", img: "/marketing/mentors/karina.jpg", ring: "var(--hg-orange)" },
+  { name: "Jorge Araya",   role: "Liderazgo Ejecutivo", co: "CEO - HumanGrowth", img: "/marketing/mentors/jorge.jpg", ring: "var(--hg-orange)" },
+  { name: "Andrés Aiello", role: "Transformación Digital", co: "CTO - HumanGrowth", img: "/marketing/mentors/andres.jpg", ring: "var(--hg-ink)" },
+  { name: "Maria Desanti", role: "Propósito y Desarrollo", co: "Life coach - Inside Out", img: "/marketing/mentors/karina.jpg", ring: "var(--hg-orange)" },
 ];
 
 export default function MentorStrip() {
