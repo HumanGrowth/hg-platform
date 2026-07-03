@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-import { getCopy } from "@/lib/i18n";
-
 export type PathStyle = {
   faces?: string[];
   cohort?: number;
@@ -72,38 +70,5 @@ export function PathCard({ path, cohortLabel }: { path: Path; cohortLabel?: stri
         </div>
       )}
     </Link>
-  );
-}
-
-const styles: PathStyle[] = [{}, { dark: true }, {}];
-
-export function FeaturedPaths() {
-  const c = getCopy("es");
-  return (
-    <section className="max-w-marketing mx-auto px-8 py-32">
-      <div className="flex items-end justify-between mb-12 flex-wrap gap-4">
-        <h2 className="display m-0 text-[40px] sm:text-[48px] lg:text-[56px]">{c.paths.heading}</h2>
-        <div className="flex gap-2 flex-wrap">
-          {c.paths.filters.map((name, i) => (
-            <span
-              key={name}
-              className="px-3.5 py-2 rounded-full text-[13px] font-medium"
-              style={{
-                background: i === 0 ? "var(--text-strong)" : "transparent",
-                color: i === 0 ? "var(--surface-page)" : "var(--hg-charcoal)",
-                border: i === 0 ? "none" : "1px solid var(--border-strong)",
-              }}
-            >
-              {name}
-            </span>
-          ))}
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {c.paths.items.map((content, i) => (
-          <PathCard key={content.title} path={{ ...content, ...styles[i] }} />
-        ))}
-      </div>
-    </section>
   );
 }

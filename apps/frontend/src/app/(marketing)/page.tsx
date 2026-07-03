@@ -1,7 +1,7 @@
 import Hero from "@/components/marketing/Hero";
 import LogoCloud from "@/components/marketing/LogoCloud";
 import MentorStrip from "@/components/marketing/MentorStrip";
-import { FeaturedPaths } from "@/components/marketing/PathCard";
+import { FeaturedPaths } from "@/components/marketing/FeaturedPaths";
 import PricingTable from "@/components/marketing/PricingTable";
 import Quote from "@/components/marketing/Quote";
 import SixPillars from "@/components/marketing/SixPillars";
