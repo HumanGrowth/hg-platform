@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Anton,
   JetBrains_Mono,
@@ -49,10 +49,34 @@ const mono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.humangrowth.io";
+const DESCRIPTION =
+  "Plataforma de crecimiento profesional holístico — 6 dimensiones del crecimiento humano.";
+
 export const metadata: Metadata = {
-  title: "Human Growth",
-  description:
-    "Plataforma de crecimiento profesional holístico — 6 dimensiones del crecimiento humano.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Human Growth",
+    template: "%s · Human Growth",
+  },
+  description: DESCRIPTION,
+  applicationName: "Human Growth",
+  openGraph: {
+    type: "website",
+    siteName: "Human Growth",
+    title: "Human Growth",
+    description: DESCRIPTION,
+    locale: "es_CR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Human Growth",
+    description: DESCRIPTION,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#4A7A54",
 };
 
 export default function RootLayout({
