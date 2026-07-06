@@ -20,6 +20,19 @@ export const es = {
     ctaSecondary: "Ver dimensiones",
     socialProof: "Diseñado para profesionales y equipos de LatAm",
   },
+  sixPillars: {
+    eyebrow: "LA CIENCIA QUE NOS RESPALDA",
+    title: "6 dimensiones del profesional completo.",
+    subtitle: "No desarrollamos habilidades aisladas. Desarrollamos personas enteras.",
+    items: [
+      { code: "P1", title: "Carrera e impacto", body: "Crecé profesionalmente con un mapa claro de tu próximo paso." },
+      { code: "P2", title: "Propósito y significado", body: "Conectá tu trabajo con algo que de verdad te importa." },
+      { code: "P3", title: "Relaciones y conexión", body: "Construí redes que te sostienen y te empujan." },
+      { code: "P4", title: "Salud y bienestar", body: "Sueño, movimiento y energía para sostener el desempeño." },
+      { code: "P5", title: "Paz interior y claridad", body: "Regulá tus estados internos en presencia del estrés." },
+      { code: "P6", title: "Estabilidad emocional y material", body: "Resiliencia y seguridad económica como base." },
+    ],
+  },
   marketingRadar: {
     eyebrow: "TU RADAR",
     title: "Una foto de las 6 dimensiones.",

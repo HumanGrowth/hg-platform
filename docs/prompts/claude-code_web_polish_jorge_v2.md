@@ -312,7 +312,7 @@ En `src/app/(marketing)/metodo/page.tsx`, insertar debajo de la sección de dime
 
 ---
 
-## TASK web-v2-07 · 6 dimensiones · eyebrow + cards watermark (items 9, 10, 11) · `[ ]`
+## TASK web-v2-07 · 6 dimensiones · eyebrow + cards watermark (items 9, 10, 11) · `[x]`
 
 ### 7.1 · Copy en `es.ts`
 
@@ -772,7 +772,7 @@ Todo lo demás está desbloqueado con las 5 respuestas de Andrés (Jul 3 2026).
 | web-v2-04 | Quote Deloitte | `[x]` |
 | web-v2-05 | Remove mentors + pricing del home | `[x]` |
 | web-v2-06 | MarketingRadar | `[x]` |
-| web-v2-07 | SixPillars watermark | `[ ]` |
+| web-v2-07 | SixPillars watermark | `[x]` |
 | web-v2-08 | Nav 5 tabs + mobile drawer | `[ ]` |
 | web-v2-09 | /pricing copy | `[ ]` |
 | web-v2-10 | /metodo · sin PMM + journey | `[ ]` |

@@ -1,36 +1,58 @@
-import { HexIcon } from "@/components/ui/hex-icon";
+import { Display } from "@/components/ui/display";
+import { Eyebrow } from "@/components/ui/eyebrow";
+import { getCopy } from "@/lib/i18n";
+import { pillarIconSrc } from "@/lib/pillars";
 
-const PILLARS = [
-  { code: "P1", dot: "bg-pillar-p1", name: "Carrera e impacto", body: "Crecé profesionalmente con un mapa claro de tu próximo paso." },
-  { code: "P2", dot: "bg-pillar-p2", name: "Propósito y significado", body: "Conectá tu trabajo con algo que de verdad te importa." },
-  { code: "P3", dot: "bg-pillar-p3", name: "Relaciones y conexión", body: "Construí redes que te sostienen y te empujan." },
-  { code: "P4", dot: "bg-pillar-p4", name: "Salud y bienestar", body: "Sueño, movimiento y energía para sostener el desempeño." },
-  { code: "P5", dot: "bg-pillar-p5", name: "Paz interior y claridad", body: "Regulá tus estados internos en presencia del estrés." },
-  { code: "P6", dot: "bg-pillar-p6", name: "Estabilidad emocional y material", body: "Resiliencia y seguridad económica como base." },
-];
-
+/**
+ * Las 6 dimensiones (items 9-11). Cada card muestra el hex icon del pilar como
+ * watermark sutil al costado derecho (~3/4 visible). id="dimensiones" es el
+ * destino del scroll del hero (web-v2-01).
+ */
 export default function SixPillars() {
+  const c = getCopy("es").sixPillars;
   return (
-    <section id="dimensiones" className="scroll-mt-24 bg-surface-card border-t border-b border-border">
+    <section
+      id="dimensiones"
+      className="scroll-mt-24 bg-surface-card border-t border-b border-border"
+    >
       <div className="max-w-marketing mx-auto px-8 py-32">
         <div className="max-w-[760px] mb-14">
-          <div className="eyebrow eyebrow-accent mb-4">LAS 6 DIMENSIONES</div>
-          <h2 className="display text-fg max-w-[720px] m-0 text-[44px] sm:text-[56px] lg:text-[64px]">
-            Las 6 dimensiones del profesional completo.
-          </h2>
+          <Eyebrow accent className="mb-4">
+            {c.eyebrow}
+          </Eyebrow>
+          <Display as="h2" variant="display-2" className="max-w-[720px]">
+            {c.title}
+          </Display>
           <p className="text-hg-charcoal text-[18px] leading-[1.5] mt-5 max-w-[560px]">
-            No desarrollamos habilidades aisladas. Desarrollamos personas enteras.
+            {c.subtitle}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {PILLARS.map((p) => (
-            <div key={p.code} className="bg-surface-page border border-border rounded-lg p-7 flex flex-col gap-3">
-              <HexIcon pillar={p.code} size={48} />
-              <h3 className="display text-fg text-2xl m-0">{p.name}</h3>
-              <p className="text-hg-charcoal text-base leading-[1.5]">{p.body}</p>
-            </div>
-          ))}
+          {c.items.map((item) => {
+            const src = pillarIconSrc(item.code);
+            return (
+              <article
+                key={item.code}
+                className="relative overflow-hidden rounded-lg border border-border bg-surface-page p-8 min-h-[240px]"
+              >
+                {src && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={src}
+                    alt=""
+                    aria-hidden
+                    className="absolute -right-8 -top-4 h-48 w-48 select-none opacity-[0.10] pointer-events-none md:h-56 md:w-56"
+                  />
+                )}
+                <div className="relative z-10">
+                  <div className={`h-2 w-12 rounded-full bg-pillar-${item.code.toLowerCase()}`} />
+                  <h3 className="mt-4 font-heading text-xl font-semibold text-fg">{item.title}</h3>
+                  <p className="body-sm mt-2 max-w-[24rem] text-hg-charcoal">{item.body}</p>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>

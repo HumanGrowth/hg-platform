@@ -20,6 +20,19 @@ export const en = {
     ctaSecondary: "See dimensions",
     socialProof: "Built for professionals and teams across LatAm",
   },
+  sixPillars: {
+    eyebrow: "THE SCIENCE BEHIND US",
+    title: "6 dimensions of the complete professional.",
+    subtitle: "We don't develop isolated skills. We develop whole people.",
+    items: [
+      { code: "P1", title: "Career & impact", body: "Grow professionally with a clear map of your next step." },
+      { code: "P2", title: "Purpose & meaning", body: "Connect your work to something that truly matters to you." },
+      { code: "P3", title: "Relationships & connection", body: "Build networks that hold you up and push you forward." },
+      { code: "P4", title: "Health & wellbeing", body: "Sleep, movement and energy to sustain performance." },
+      { code: "P5", title: "Inner peace & clarity", body: "Regulate your internal states in the presence of stress." },
+      { code: "P6", title: "Emotional & material stability", body: "Resilience and financial security as a foundation." },
+    ],
+  },
   marketingRadar: {
     eyebrow: "YOUR RADAR",
     title: "A snapshot of the 6 dimensions.",
