@@ -670,7 +670,7 @@ nav: {
 
 ---
 
-## TASK web-v2-15 · Tests + smoke + screenshots · `[ ]`
+## TASK web-v2-15 · Tests + smoke + screenshots · `[x]`
 
 ### 15.1 · Actualizar tests
 
@@ -780,4 +780,4 @@ Todo lo demás está desbloqueado con las 5 respuestas de Andrés (Jul 3 2026).
 | web-v2-12 | Footer simplificado | `[x]` |
 | web-v2-13 | Language toggle | `[x]` |
 | web-v2-14 | /perspectivas page + tab | `[x]` |
-| web-v2-15 | Tests + 13 screenshots | `[ ]` |
+| web-v2-15 | Tests + 13 screenshots | `[x]` |
