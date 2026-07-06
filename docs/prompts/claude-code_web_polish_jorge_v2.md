@@ -377,7 +377,7 @@ Para que el CTA del hero (TASK 01) haga scroll acá.
 
 ---
 
-## TASK web-v2-08 · Nav rewrite · 4 tabs + mobile drawer (items 17, 20, 30) · `[ ]`
+## TASK web-v2-08 · Nav rewrite · 4 tabs + mobile drawer (items 17, 20, 30) · `[x]`
 
 **Este es el cambio más grande del prompt.** Reescribe `Nav.tsx` con 4 tabs nuevos + mobile drawer visible.
 
@@ -773,7 +773,7 @@ Todo lo demás está desbloqueado con las 5 respuestas de Andrés (Jul 3 2026).
 | web-v2-05 | Remove mentors + pricing del home | `[x]` |
 | web-v2-06 | MarketingRadar | `[x]` |
 | web-v2-07 | SixPillars watermark | `[x]` |
-| web-v2-08 | Nav 5 tabs + mobile drawer | `[ ]` |
+| web-v2-08 | Nav 5 tabs + mobile drawer | `[x]` |
 | web-v2-09 | /pricing copy | `[ ]` |
 | web-v2-10 | /metodo · sin PMM + journey | `[ ]` |
 | web-v2-11 | Purge "cursos" | `[ ]` |

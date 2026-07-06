@@ -1,12 +1,15 @@
 export const en = {
   nav: {
-    paths: "Growth Paths",
-    mentorships: "Mentorships",
-    forTeams: "For Teams",
-    method: "The Method",
+    platform: "Platform",
+    science: "Science",
     pricing: "Pricing",
+    blog: "Blog",
     login: "Log in",
-    getStarted: "Let's talk",
+    cta: "Let's talk",
+  },
+  comingSoon: {
+    title: "Coming soon.",
+    back: "Back to home",
   },
   hero: {
     eyebrow: "GROWTH SYSTEM · LATAM",

@@ -1,12 +1,15 @@
 export const es = {
   nav: {
-    paths: "Rutas de Crecimiento",
-    mentorships: "Mentorías",
-    forTeams: "Para Equipos",
-    method: "El Método",
-    pricing: "Tarifas",
+    platform: "Plataforma",
+    science: "Ciencia",
+    pricing: "Precios",
+    blog: "Blog",
     login: "Iniciar sesión",
-    getStarted: "Conversemos",
+    cta: "Conversemos",
+  },
+  comingSoon: {
+    title: "Próximamente.",
+    back: "Volver al inicio",
   },
   hero: {
     eyebrow: "SISTEMA DE CRECIMIENTO · LATAM",
