@@ -228,7 +228,7 @@ En `page.tsx`, insertar `<WhatIsHg />` **debajo del `<MarketingRadar />` (TASK 0
 
 ---
 
-## TASK web-v2-04 · Quote Deloitte Jorge Araya (item 6) · `[ ]`
+## TASK web-v2-04 · Quote Deloitte Jorge Araya (item 6) · `[x]`
 
 ### 4.1 · Copy en `es.ts`
 
@@ -769,7 +769,7 @@ Todo lo demás está desbloqueado con las 5 respuestas de Andrés (Jul 3 2026).
 | web-v2-01 | Hero copy + scroll dimensiones | `[x]` |
 | web-v2-02 | Timeline 4 pasos | `[x]` |
 | web-v2-03 | WhatIsHg (Copy A) | `[x]` |
-| web-v2-04 | Quote Deloitte | `[ ]` |
+| web-v2-04 | Quote Deloitte | `[x]` |
 | web-v2-05 | Remove mentors + pricing del home | `[ ]` |
 | web-v2-06 | MarketingRadar | `[ ]` |
 | web-v2-07 | SixPillars watermark | `[ ]` |

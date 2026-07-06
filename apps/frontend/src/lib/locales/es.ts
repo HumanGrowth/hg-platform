@@ -88,11 +88,11 @@ export const es = {
   },
   quote: {
     eyebrow: "POR QUÉ CONSTRUIMOS ESTO",
-    bodyA: "El 28% del talento en LatAm rota cada año. Las empresas invierten en capacitación técnica. El problema casi nunca es técnico. Es que la persona no sabe ",
-    bodyEm: "para qué",
-    bodyB: " trabaja, no confía en su jefe, o está quemada. Eso se puede medir. Y se puede resolver.",
-    name: "Jorge Araya",
-    role: "Fundador · HumanGrowth",
+    p1: "Deloitte confirma que 9 de cada 10 profesionales saben que las habilidades humanas definen su carrera. Aun así, la mitad dice que su empresa no las desarrolla. No es falta de voluntad: no existía cómo hacerlo.",
+    ending: "Hasta ahora.",
+    author: "Jorge Araya",
+    authorTitle: "Fundador · HumanGrowth",
+    source: "Fuente: Deloitte, Workplace Skills Survey, octubre 2024.",
   },
   pricing: {
     // Tarjeta única "a la medida" (polish): se removieron el toggle mensual/anual

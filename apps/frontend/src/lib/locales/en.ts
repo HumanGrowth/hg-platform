@@ -88,11 +88,11 @@ export const en = {
   },
   quote: {
     eyebrow: "WHY WE BUILT THIS",
-    bodyA: "28% of talent in LatAm turns over every year. Companies invest in technical training. The problem is almost never technical. It's that the person doesn't know ",
-    bodyEm: "what for",
-    bodyB: " they work, doesn't trust their boss, or is burned out. That can be measured. And it can be solved.",
-    name: "Jorge Salas",
-    role: "Founder · HumanGrowth",
+    p1: "Deloitte confirms that 9 out of 10 professionals know human skills define their career. Yet half say their company doesn't develop them. It's not a lack of will: there was no way to do it.",
+    ending: "Until now.",
+    author: "Jorge Araya",
+    authorTitle: "Founder · HumanGrowth",
+    source: "Source: Deloitte, Workplace Skills Survey, October 2024.",
   },
   pricing: {
     eyebrow: "PRICING",
