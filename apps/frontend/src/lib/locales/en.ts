@@ -131,15 +131,21 @@ export const en = {
     cta: "Talk to sales",
   },
   footer: {
-    tagline: "A 6-dimension growth system for professionals across LatAm.",
-    columns: [
-      { h: "Product", items: ["Growth Paths", "Mentorships", "Badges", "Diagnostic", "Library"] },
-      { h: "For Teams", items: ["Pricing", "Manager view", "Custom paths", "Procurement"] },
-      { h: "Resources", items: ["Blog", "Case studies", "Help center", "API docs", "Status"] },
-      { h: "Company", items: ["About", "Careers", "Press kit", "Contact"] },
+    sections: [
+      { title: "Platform", href: "/plataforma" },
+      { title: "Science", href: "/ciencia" },
+      { title: "Resources", href: "#" },
+      { title: "Contact", href: "/contacto" },
     ],
+    tagline: "A 6-dimension growth system for professionals across LatAm.",
     rights: "© 2026 HumanGrowth. Made from LatAm, for LatAm.",
-    legal: ["Privacy", "Terms", "Security", "Status"],
+    legal: [
+      { label: "Privacy", href: "#" },
+      { label: "Terms", href: "#" },
+      { label: "Security", href: "#" },
+    ],
+    email: "admin@humangrowth.io",
+    linkedin: "https://www.linkedin.com/company/humangrowthlatam",
   },
   method: {
     meta: {

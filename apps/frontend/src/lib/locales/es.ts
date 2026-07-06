@@ -131,15 +131,21 @@ export const es = {
     cta: "Hablar con ventas",
   },
   footer: {
-    tagline: "Un sistema de crecimiento en 6 dimensiones para profesionales de LatAm.",
-    columns: [
-      { h: "Producto", items: ["Rutas de Crecimiento", "Mentorías", "Badges", "Diagnóstico", "Biblioteca"] },
-      { h: "Para Equipos", items: ["Tarifas", "Vista de líder", "Rutas a la medida", "Compras corporativas"] },
-      { h: "Recursos", items: ["Blog", "Casos de estudio", "Centro de ayuda", "Docs de API", "Estado"] },
-      { h: "Empresa", items: ["Acerca de", "Empleo", "Press kit", "Contacto"] },
+    sections: [
+      { title: "Plataforma", href: "/plataforma" },
+      { title: "Ciencia", href: "/ciencia" },
+      { title: "Recursos", href: "#" },
+      { title: "Contacto", href: "/contacto" },
     ],
+    tagline: "Un sistema de crecimiento en 6 dimensiones para profesionales de LatAm.",
     rights: "© 2026 HumanGrowth. Hecho desde LatAm, para LatAm.",
-    legal: ["Privacidad", "Términos", "Seguridad", "Estado"],
+    legal: [
+      { label: "Privacidad", href: "#" },
+      { label: "Términos", href: "#" },
+      { label: "Seguridad", href: "#" },
+    ],
+    email: "admin@humangrowth.io",
+    linkedin: "https://www.linkedin.com/company/humangrowthlatam",
   },
   method: {
     meta: {

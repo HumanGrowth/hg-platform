@@ -522,7 +522,7 @@ Casos ya conocidos:
 
 ---
 
-## TASK web-v2-12 · Footer nuevo simplificado (item 27) · `[ ]`
+## TASK web-v2-12 · Footer nuevo simplificado (item 27) · `[x]`
 
 Reescribir `Footer.tsx` con 3 filas + 4 títulos sin sublistas.
 
@@ -777,7 +777,7 @@ Todo lo demás está desbloqueado con las 5 respuestas de Andrés (Jul 3 2026).
 | web-v2-09 | /pricing copy | `[x]` |
 | web-v2-10 | /metodo · sin PMM + journey | `[x]` |
 | web-v2-11 | Purge "cursos" | `[x]` |
-| web-v2-12 | Footer simplificado | `[ ]` |
+| web-v2-12 | Footer simplificado | `[x]` |
 | web-v2-13 | Language toggle | `[x]` |
 | web-v2-14 | /perspectivas page + tab | `[ ]` |
 | web-v2-15 | Tests + 13 screenshots | `[ ]` |
