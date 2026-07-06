@@ -1,5 +1,6 @@
 import Hero from "@/components/marketing/Hero";
 import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
+import MarketingRadar from "@/components/marketing/MarketingRadar";
 import WhatIsHg from "@/components/marketing/WhatIsHg";
 import LogoCloud from "@/components/marketing/LogoCloud";
 import { FeaturedPaths } from "@/components/marketing/FeaturedPaths";
@@ -18,6 +19,7 @@ export default function LandingPage() {
       <Hero />
       <LogoCloud />
       <SixPillars />
+      <MarketingRadar />
       <WhatIsHg />
       <HowItWorksTimeline />
       <FeaturedPaths />

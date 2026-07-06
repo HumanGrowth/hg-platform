@@ -20,6 +20,11 @@ export const en = {
     ctaSecondary: "See dimensions",
     socialProof: "Built for professionals and teams across LatAm",
   },
+  marketingRadar: {
+    eyebrow: "YOUR RADAR",
+    title: "A snapshot of the 6 dimensions.",
+    caption: "Illustrative example — each user sees their own radar in the platform.",
+  },
   whatIsHg: {
     eyebrow: "PRODUCT",
     title: "How does HG work?",

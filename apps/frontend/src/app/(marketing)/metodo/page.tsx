@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import MarketingRadar from "@/components/marketing/MarketingRadar";
 import { MethodPillars } from "@/components/marketing/MethodPillars";
 import { MethodSteps } from "@/components/marketing/MethodSteps";
 import { getCopy } from "@/lib/i18n";
@@ -71,6 +72,9 @@ export default function MetodoPage() {
           latamLabel={c.latamLabel}
         />
       </section>
+
+      {/* Radar ilustrativo */}
+      <MarketingRadar />
 
       {/* Rigor y límites */}
       <section className="max-w-marketing mx-auto px-8 pb-20">

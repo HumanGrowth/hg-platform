@@ -274,7 +274,7 @@ Dejar los componentes exportados (por si se reutilizan luego en track Individual
 
 ---
 
-## TASK web-v2-06 · MarketingRadar en home + /metodo (items 23, 24) · `[ ]`
+## TASK web-v2-06 · MarketingRadar en home + /metodo (items 23, 24) · `[x]`
 
 ### 6.1 · Componente `MarketingRadar.tsx`
 
@@ -771,7 +771,7 @@ Todo lo demás está desbloqueado con las 5 respuestas de Andrés (Jul 3 2026).
 | web-v2-03 | WhatIsHg (Copy A) | `[x]` |
 | web-v2-04 | Quote Deloitte | `[x]` |
 | web-v2-05 | Remove mentors + pricing del home | `[x]` |
-| web-v2-06 | MarketingRadar | `[ ]` |
+| web-v2-06 | MarketingRadar | `[x]` |
 | web-v2-07 | SixPillars watermark | `[ ]` |
 | web-v2-08 | Nav 5 tabs + mobile drawer | `[ ]` |
 | web-v2-09 | /pricing copy | `[ ]` |
