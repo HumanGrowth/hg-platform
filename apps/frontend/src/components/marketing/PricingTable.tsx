@@ -6,7 +6,7 @@ import { getCopy } from "@/lib/i18n";
 
 const FEATURES = [
   "Diagnóstico inicial con base científica",
-  "Catálogo de cursos completos",
+  "Catálogo de trayectos completos",
   "Biblioteca de contenido HG",
   "Player de video adaptativo",
   "Dashboard para manager directo",

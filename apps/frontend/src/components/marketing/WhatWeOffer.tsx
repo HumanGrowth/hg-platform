@@ -14,7 +14,7 @@ const CARDS = [
   {
     eyebrow: "02 · RUTAS",
     title: "Un mapa de tu próximo paso",
-    body: "Trayectos de crecimiento por dimensión, con cursos y contenido curado.",
+    body: "Trayectos de crecimiento por dimensión, con lecciones y contenido curado.",
     stat: "Rutas por dimensión",
   },
   {

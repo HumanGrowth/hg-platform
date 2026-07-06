@@ -497,7 +497,7 @@ Grep + fix (regla global de TASK 11).
 
 ---
 
-## TASK web-v2-11 · Purge "cursos" del sitio (item 21) · `[ ]`
+## TASK web-v2-11 · Purge "cursos" del sitio (item 21) · `[x]`
 
 ### 11.1 · Grep + mapeo
 
@@ -776,7 +776,7 @@ Todo lo demás está desbloqueado con las 5 respuestas de Andrés (Jul 3 2026).
 | web-v2-08 | Nav 5 tabs + mobile drawer | `[x]` |
 | web-v2-09 | /pricing copy | `[x]` |
 | web-v2-10 | /metodo · sin PMM + journey | `[x]` |
-| web-v2-11 | Purge "cursos" | `[ ]` |
+| web-v2-11 | Purge "cursos" | `[x]` |
 | web-v2-12 | Footer simplificado | `[ ]` |
 | web-v2-13 | Language toggle | `[x]` |
 | web-v2-14 | /perspectivas page + tab | `[ ]` |
