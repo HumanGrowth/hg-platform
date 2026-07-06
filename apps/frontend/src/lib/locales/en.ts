@@ -117,18 +117,11 @@ export const en = {
   },
   pricing: {
     eyebrow: "PRICING",
-    title: "Pay for use. Not for a catalog nobody opens.",
-    monthly: "Monthly",
-    annual: "Annual (save 2 months)",
-    perSeat: "seat / month",
-    perMonth: "month",
-    letsTalk: "Let's talk",
-    badge: "Most teams pick this",
-    tiers: [
-      { name: "Individual Plan", tagline: "For the professional ready to grow.", features: ["All paths + library", "Verified badges", "1 mentorship session per quarter", "Access to live talks and replays", "Web and mobile"], cta: "Start 14-day free trial" },
-      { name: "Team Plan", tagline: "For 5 to 500 people. Manager view included.", features: ["Everything in Individual", "Manager dashboard: who is growing in what", "Custom paths per company", "4 mentorship sessions / quarter / seat", "Automatic notifications to direct managers", "SSO + HRIS integration"], cta: "Talk to sales" },
-      { name: "Enterprise Plan", tagline: "For 500+ people. Bespoke paths.", features: ["Everything in Team", "Dedicated account manager", "Mentors curated by industry", "Reports and API", "Private cohorts", "Procurement support"], cta: "Talk to sales" },
-    ],
+    title: "Every company is different.",
+    subtitle:
+      "We talk with you to understand your team, define the scope, and build a proposal tailored to you.",
+    cta: "Let's talk",
+    ctaNote: "Individual or group pricing coming soon.",
   },
   forTeams: {
     eyebrow: "FOR TEAMS",

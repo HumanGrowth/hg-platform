@@ -116,10 +116,12 @@ export const es = {
     source: "Fuente: Deloitte, Workplace Skills Survey, octubre 2024.",
   },
   pricing: {
-    // Tarjeta única "a la medida" (polish): se removieron el toggle mensual/anual
-    // y los 3 tiers junto con sus keys.
-    eyebrow: "TARIFAS",
-    title: "Cada empresa es distinta. Vamos a armar tu paquete.",
+    eyebrow: "PRECIOS",
+    title: "Cada empresa es distinta.",
+    subtitle:
+      "Conversamos contigo para entender tu equipo, definir el alcance y armarte una propuesta a la medida.",
+    cta: "Conversemos",
+    ctaNote: "Precios individuales o grupales próximamente.",
   },
   forTeams: {
     eyebrow: "PARA EQUIPOS",

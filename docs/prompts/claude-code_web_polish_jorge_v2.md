@@ -446,7 +446,7 @@ Insertar `<LanguageToggle/>` (TASK 13) en la esquina superior derecha del nav de
 
 ---
 
-## TASK web-v2-09 · /pricing copy (items 17, 19) · `[ ]`
+## TASK web-v2-09 · /pricing copy (items 17, 19) · `[x]`
 
 ### 9.1 · Copy en `es.ts`
 
@@ -774,7 +774,7 @@ Todo lo demás está desbloqueado con las 5 respuestas de Andrés (Jul 3 2026).
 | web-v2-06 | MarketingRadar | `[x]` |
 | web-v2-07 | SixPillars watermark | `[x]` |
 | web-v2-08 | Nav 5 tabs + mobile drawer | `[x]` |
-| web-v2-09 | /pricing copy | `[ ]` |
+| web-v2-09 | /pricing copy | `[x]` |
 | web-v2-10 | /metodo · sin PMM + journey | `[ ]` |
 | web-v2-11 | Purge "cursos" | `[ ]` |
 | web-v2-12 | Footer simplificado | `[ ]` |
