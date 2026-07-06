@@ -8,6 +8,7 @@ const mentors = [
   { name: "Maria Desanti", role: "Propósito y Desarrollo", co: "Life coach - Inside Out", img: "/marketing/mentors/karina.jpg", ring: "var(--hg-orange)" },
 ];
 
+/** @deprecated Removido del home (web-v2). Reutilizable en el track Individual. */
 export default function MentorStrip() {
   const c = getCopy("es");
   return (

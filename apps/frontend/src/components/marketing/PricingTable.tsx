@@ -27,6 +27,7 @@ function FeatureItem({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** @deprecated Removido del home (web-v2). La página /pricing sigue vigente. */
 export default function PricingTable() {
   return (
     <section className="max-w-marketing mx-auto px-8 py-32">
