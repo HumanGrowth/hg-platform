@@ -20,6 +20,16 @@ export const es = {
     ctaSecondary: "Ver dimensiones",
     socialProof: "Diseñado para profesionales y equipos de LatAm",
   },
+  howItWorks: {
+    eyebrow: "CÓMO FUNCIONA",
+    title: "El camino en 4 pasos.",
+    steps: [
+      { n: 1, title: "Diagnóstico", body: "Explicamos el porqué, el cómo y lo que revela." },
+      { n: 2, title: "Rutas", body: "El mapa de las oportunidades: trayectos de crecimiento con sistema de micro-aprendizaje." },
+      { n: 3, title: "Mentorías disponibles", body: "Acompañamiento de quien ya pasó por ahí." },
+      { n: 4, title: "Eventos", body: "La culminación del desarrollo humano." },
+    ],
+  },
   logoCloud: {
     eyebrow: "PRÓXIMOS PARTNERS",
     trustedBy: "Empresas en Costa Rica, Centroamérica y LatAm ya están creciendo con HG.",

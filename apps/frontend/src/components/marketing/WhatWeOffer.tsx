@@ -1,5 +1,9 @@
 import Link from "next/link";
 
+/**
+ * @deprecated Reemplazado en el home por <HowItWorksTimeline/> (web-v2). Se
+ * conserva por si se reutiliza en el track Individual.
+ */
 const CARDS = [
   {
     eyebrow: "01 · DIAGNÓSTICO",

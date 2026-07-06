@@ -1,11 +1,11 @@
 import Hero from "@/components/marketing/Hero";
+import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
 import LogoCloud from "@/components/marketing/LogoCloud";
 import MentorStrip from "@/components/marketing/MentorStrip";
 import { FeaturedPaths } from "@/components/marketing/FeaturedPaths";
 import PricingTable from "@/components/marketing/PricingTable";
 import Quote from "@/components/marketing/Quote";
 import SixPillars from "@/components/marketing/SixPillars";
-import WhatWeOffer from "@/components/marketing/WhatWeOffer";
 
 export const metadata = {
   title: "Human Growth — Crecé integralmente",
@@ -19,7 +19,7 @@ export default function LandingPage() {
       <Hero />
       <LogoCloud />
       <SixPillars />
-      <WhatWeOffer />
+      <HowItWorksTimeline />
       <FeaturedPaths />
       <MentorStrip />
       <Quote />

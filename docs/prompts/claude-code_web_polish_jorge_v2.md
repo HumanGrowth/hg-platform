@@ -141,7 +141,7 @@ hero: {
 
 ---
 
-## TASK web-v2-02 · Timeline horizontal "Cómo funciona" (items 12, 13) · `[ ]`
+## TASK web-v2-02 · Timeline horizontal "Cómo funciona" (items 12, 13) · `[x]`
 
 Reemplaza `<WhatWeOffer/>` (grid de 4 cards) por `<HowItWorksTimeline/>` (línea de tiempo horizontal 1→4).
 
@@ -767,7 +767,7 @@ Todo lo demás está desbloqueado con las 5 respuestas de Andrés (Jul 3 2026).
 | ID | Subject | Status |
 |---|---|---|
 | web-v2-01 | Hero copy + scroll dimensiones | `[x]` |
-| web-v2-02 | Timeline 4 pasos | `[ ]` |
+| web-v2-02 | Timeline 4 pasos | `[x]` |
 | web-v2-03 | WhatIsHg (Copy A) | `[ ]` |
 | web-v2-04 | Quote Deloitte | `[ ]` |
 | web-v2-05 | Remove mentors + pricing del home | `[ ]` |

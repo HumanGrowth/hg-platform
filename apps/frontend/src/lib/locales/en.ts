@@ -20,6 +20,16 @@ export const en = {
     ctaSecondary: "See dimensions",
     socialProof: "Built for professionals and teams across LatAm",
   },
+  howItWorks: {
+    eyebrow: "HOW IT WORKS",
+    title: "The path in 4 steps.",
+    steps: [
+      { n: 1, title: "Diagnosis", body: "We explain the why, the how, and what it reveals." },
+      { n: 2, title: "Paths", body: "The map of opportunities: growth journeys with a micro-learning system." },
+      { n: 3, title: "Mentorships available", body: "Guidance from someone who's already been there." },
+      { n: 4, title: "Events", body: "The culmination of human development." },
+    ],
+  },
   logoCloud: {
     eyebrow: "COMPANIES THAT TRUST HG",
     trustedBy: "Companies in Costa Rica, Central America and LatAm are already growing with HG.",
