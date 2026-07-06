@@ -9,15 +9,16 @@ export const en = {
     getStarted: "Let's talk",
   },
   hero: {
-    eyebrow: "HUMAN SKILLS PLATFORM · LATAM",
-    titleLine1: "Grow on",
-    titleLine2: "purpose.",
-    bodyBefore: "A 6-dimension growth system for professionals across LatAm. Not courses. The difference between the person who ",
-    bodyEm: "stays",
-    bodyAfter: " and the one who walks out the door.",
-    ctaPrimary: "Explore paths",
-    ctaSecondary: "For your company",
-    socialProof: "14,300+ professionals growing today",
+    eyebrow: "GROWTH SYSTEM · LATAM",
+    titleLine1: "Human skills for talent decisions:",
+    titleLine2: "performance, retention and growth.",
+    bodyP1:
+      "Human Growth is a 6-dimension growth system that measures and develops your team's human skills — career, purpose, relationships, health, inner peace and stability — grounded in science.",
+    bodyP2:
+      "You go from training \"just in case\" to knowing exactly which dimension holds each person back: who to support, who to retain, and where to invest.",
+    ctaPrimary: "Let's talk →",
+    ctaSecondary: "See dimensions",
+    socialProof: "Built for professionals and teams across LatAm",
   },
   logoCloud: {
     eyebrow: "COMPANIES THAT TRUST HG",

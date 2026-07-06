@@ -9,14 +9,15 @@ export const es = {
     getStarted: "Conversemos",
   },
   hero: {
-    eyebrow: "PLATAFORMA DE HABILIDADES HUMANAS · LATAM",
-    titleLine1: "Crece con",
-    titleLine2: "intención.",
-    bodyBefore: "Un sistema de crecimiento en 6 dimensiones para profesionales de LatAm. No son cursos. Es la diferencia entre una persona que se ",
-    bodyEm: "queda",
-    bodyAfter: " y una que se va.",
-    ctaPrimary: "Explorar rutas",
-    ctaSecondary: "Para tu empresa",
+    eyebrow: "SISTEMA DE CRECIMIENTO · LATAM",
+    titleLine1: "Habilidades humanas para decisiones",
+    titleLine2: "de talento: desempeño, permanencia y crecimiento.",
+    bodyP1:
+      "Human Growth es un sistema de crecimiento en 6 dimensiones que mide y desarrolla las habilidades humanas de tu equipo — carrera, propósito, relaciones, salud, paz interior y estabilidad — con base científica.",
+    bodyP2:
+      "Pasás de capacitar \"por si acaso\" a saber exactamente qué dimensión frena a cada persona: a quién acompañar, a quién retener y dónde invertir.",
+    ctaPrimary: "Conversemos →",
+    ctaSecondary: "Ver dimensiones",
     socialProof: "Diseñado para profesionales y equipos de LatAm",
   },
   logoCloud: {

@@ -11,7 +11,7 @@ const PILLARS = [
 
 export default function SixPillars() {
   return (
-    <section className="bg-surface-card border-t border-b border-border">
+    <section id="dimensiones" className="scroll-mt-24 bg-surface-card border-t border-b border-border">
       <div className="max-w-marketing mx-auto px-8 py-32">
         <div className="max-w-[760px] mb-14">
           <div className="eyebrow eyebrow-accent mb-4">LAS 6 DIMENSIONES</div>
