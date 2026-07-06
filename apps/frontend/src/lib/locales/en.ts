@@ -2,10 +2,17 @@ export const en = {
   nav: {
     platform: "Platform",
     science: "Science",
+    perspectives: "Perspectives",
     pricing: "Pricing",
     blog: "Blog",
     login: "Log in",
     cta: "Let's talk",
+  },
+  perspectives: {
+    metaTitle: "Perspectives — Human Growth",
+    eyebrow: "PERSPECTIVES",
+    title: "What's new this quarter.",
+    subtitle: "Growth journeys by dimension. Filter by the one that needs it most.",
   },
   comingSoon: {
     title: "Coming soon.",

@@ -16,6 +16,7 @@ const LANG = "es" as const;
 const TABS: { label: string; href: Route }[] = [
   { label: t("nav.platform", LANG), href: "/plataforma" },
   { label: t("nav.science", LANG), href: "/metodo" },
+  { label: t("nav.perspectives", LANG), href: "/perspectivas" },
   { label: t("nav.pricing", LANG), href: "/pricing" },
   { label: t("nav.blog", LANG), href: "/blog" },
 ];

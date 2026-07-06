@@ -625,7 +625,7 @@ Consumido por TASK 08 en el nav (desktop + mobile drawer). Sin lógica i18n real
 
 ---
 
-## TASK web-v2-14 · Página `/perspectivas` + tab (item 14) · `[ ]`
+## TASK web-v2-14 · Página `/perspectivas` + tab (item 14) · `[x]`
 
 **Andrés confirmó nombre "Perspectivas".**
 
@@ -779,5 +779,5 @@ Todo lo demás está desbloqueado con las 5 respuestas de Andrés (Jul 3 2026).
 | web-v2-11 | Purge "cursos" | `[x]` |
 | web-v2-12 | Footer simplificado | `[x]` |
 | web-v2-13 | Language toggle | `[x]` |
-| web-v2-14 | /perspectivas page + tab | `[ ]` |
+| web-v2-14 | /perspectivas page + tab | `[x]` |
 | web-v2-15 | Tests + 13 screenshots | `[ ]` |

@@ -3,7 +3,6 @@ import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
 import MarketingRadar from "@/components/marketing/MarketingRadar";
 import WhatIsHg from "@/components/marketing/WhatIsHg";
 import LogoCloud from "@/components/marketing/LogoCloud";
-import { FeaturedPaths } from "@/components/marketing/FeaturedPaths";
 import Quote from "@/components/marketing/Quote";
 import SixPillars from "@/components/marketing/SixPillars";
 
@@ -22,7 +21,6 @@ export default function LandingPage() {
       <MarketingRadar />
       <WhatIsHg />
       <HowItWorksTimeline />
-      <FeaturedPaths />
       <Quote />
     </>
   );
