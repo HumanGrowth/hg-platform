@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
 import MarketingRadar from "@/components/marketing/MarketingRadar";
 import { MethodPillars } from "@/components/marketing/MethodPillars";
 import { MethodSteps } from "@/components/marketing/MethodSteps";
@@ -106,6 +107,9 @@ export default function MetodoPage() {
           ))}
         </ol>
       </section>
+
+      {/* Journey de producto · consistente con el home (item 22) */}
+      <HowItWorksTimeline />
 
       {/* CTA final */}
       <section className="max-w-marketing mx-auto px-8 pb-32">

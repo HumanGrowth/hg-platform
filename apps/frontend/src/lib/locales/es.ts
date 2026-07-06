@@ -197,7 +197,7 @@ export const es = {
     latamLabel: "Tropicalizado LATAM",
     pillars: [
       {
-        code: "P1", name: "Carrera e impacto", tag: "6 niveles · PMM",
+        code: "P1", name: "Carrera e impacto", tag: "6 niveles",
         definition: "El grado de desarrollo de las competencias que permiten desempeñarse con autonomía, criterio y capacidad de habilitar a otros.",
         notWhat: "No es el cargo, la antigüedad ni el salario: es una progresión de capacidad, no la acumulación de años.",
         roots: "Dreyfus & Dreyfus (1980, adquisición de habilidades), Anders Ericsson (práctica deliberada) y Robert Katz (1955: habilidades técnicas, humanas y conceptuales).",

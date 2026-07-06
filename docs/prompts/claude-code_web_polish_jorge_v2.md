@@ -474,7 +474,7 @@ Consumir las nuevas keys. Verificar que ninguna string legacy quede en el JSX.
 
 ---
 
-## TASK web-v2-10 · /metodo consistency + PMM label + journey 4 pasos (items 7, 22) · `[ ]`
+## TASK web-v2-10 · /metodo consistency + PMM label + journey 4 pasos (items 7, 22) · `[x]`
 
 ### 10.1 · Quitar "PMM" (item #7)
 
@@ -775,7 +775,7 @@ Todo lo demás está desbloqueado con las 5 respuestas de Andrés (Jul 3 2026).
 | web-v2-07 | SixPillars watermark | `[x]` |
 | web-v2-08 | Nav 5 tabs + mobile drawer | `[x]` |
 | web-v2-09 | /pricing copy | `[x]` |
-| web-v2-10 | /metodo · sin PMM + journey | `[ ]` |
+| web-v2-10 | /metodo · sin PMM + journey | `[x]` |
 | web-v2-11 | Purge "cursos" | `[ ]` |
 | web-v2-12 | Footer simplificado | `[ ]` |
 | web-v2-13 | Language toggle | `[x]` |

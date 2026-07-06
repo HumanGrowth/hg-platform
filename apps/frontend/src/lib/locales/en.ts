@@ -197,7 +197,7 @@ export const en = {
     latamLabel: "LATAM-adapted",
     pillars: [
       {
-        code: "P1", name: "Career & impact", tag: "6 levels · PMM",
+        code: "P1", name: "Career & impact", tag: "6 levels",
         definition: "The degree of development of the competencies that allow someone to perform with autonomy, judgment, and the ability to enable others.",
         notWhat: "It isn't title, tenure, or salary: it's a progression of capability, not an accumulation of years.",
         roots: "Dreyfus & Dreyfus (1980, skill acquisition), Anders Ericsson (deliberate practice), and Robert Katz (1955: technical, human, and conceptual skills).",
