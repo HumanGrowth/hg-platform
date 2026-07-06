@@ -20,6 +20,24 @@ export const es = {
     ctaSecondary: "Ver dimensiones",
     socialProof: "Diseñado para profesionales y equipos de LatAm",
   },
+  whatIsHg: {
+    eyebrow: "PRODUCTO",
+    title: "¿Cómo funciona HG?",
+    cards: [
+      {
+        title: "¿Qué es HG?",
+        body: "Una plataforma que desarrolla a cada colaborador de forma holística: las habilidades para ser más humano y las competencias de negocio que su rol exige.",
+      },
+      {
+        title: "¿Qué hace HG?",
+        body: "Diagnostica las brechas del colaborador y de la organización, y las cierra recorriendo el mismo proceso en cuatro etapas.",
+      },
+      {
+        title: "¿Cómo funciona HG?",
+        body: "1. Diagnóstico → 2. Unidades de aprendizaje personalizadas → 3. Acompañamiento organizacional → 4. Evento.",
+      },
+    ],
+  },
   howItWorks: {
     eyebrow: "CÓMO FUNCIONA",
     title: "El camino en 4 pasos.",

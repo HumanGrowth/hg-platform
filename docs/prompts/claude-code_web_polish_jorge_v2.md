@@ -184,7 +184,7 @@ Cambiar `<WhatWeOffer />` por `<HowItWorksTimeline />`. Dejar `WhatWeOffer.tsx` 
 
 ---
 
-## TASK web-v2-03 · Nueva sección "¿Cómo funciona HG?" (item 26 · Copy A) · `[ ]`
+## TASK web-v2-03 · Nueva sección "¿Cómo funciona HG?" (item 26 · Copy A) · `[x]`
 
 **Andrés confirmó Copy A** — vender las 4 etapas como visión completa del producto, SIN matiz de "fase 2".
 
@@ -768,7 +768,7 @@ Todo lo demás está desbloqueado con las 5 respuestas de Andrés (Jul 3 2026).
 |---|---|---|
 | web-v2-01 | Hero copy + scroll dimensiones | `[x]` |
 | web-v2-02 | Timeline 4 pasos | `[x]` |
-| web-v2-03 | WhatIsHg (Copy A) | `[ ]` |
+| web-v2-03 | WhatIsHg (Copy A) | `[x]` |
 | web-v2-04 | Quote Deloitte | `[ ]` |
 | web-v2-05 | Remove mentors + pricing del home | `[ ]` |
 | web-v2-06 | MarketingRadar | `[ ]` |

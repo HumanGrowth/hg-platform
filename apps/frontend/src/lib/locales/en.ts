@@ -20,6 +20,24 @@ export const en = {
     ctaSecondary: "See dimensions",
     socialProof: "Built for professionals and teams across LatAm",
   },
+  whatIsHg: {
+    eyebrow: "PRODUCT",
+    title: "How does HG work?",
+    cards: [
+      {
+        title: "What is HG?",
+        body: "A platform that develops every team member holistically: the skills to be more human and the business competencies their role demands.",
+      },
+      {
+        title: "What does HG do?",
+        body: "It diagnoses the gaps of the individual and the organization, and closes them by running the same four-stage process.",
+      },
+      {
+        title: "How does HG work?",
+        body: "1. Diagnosis → 2. Personalized learning units → 3. Organizational support → 4. Event.",
+      },
+    ],
+  },
   howItWorks: {
     eyebrow: "HOW IT WORKS",
     title: "The path in 4 steps.",
