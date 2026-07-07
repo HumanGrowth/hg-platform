@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { HeroWatermark } from "@/components/marketing/HeroWatermark";
 import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
 import MarketingRadar from "@/components/marketing/MarketingRadar";
 import { MethodPillars } from "@/components/marketing/MethodPillars";
@@ -17,7 +18,8 @@ export default function MetodoPage() {
   return (
     <>
       {/* Hero */}
-      <section className="max-w-marketing mx-auto px-8 pt-36 pb-16">
+      <section className="relative overflow-hidden max-w-marketing mx-auto px-8 pt-36 pb-16">
+        <HeroWatermark />
         <div className="eyebrow eyebrow-accent mb-6">{c.hero.eyebrow}</div>
         <h1 className="display text-fg m-0 text-[56px] leading-[0.95] sm:text-[80px] lg:text-[96px]">
           {c.hero.title}

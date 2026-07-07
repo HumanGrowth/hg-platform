@@ -1,6 +1,7 @@
 import { Check } from "lucide-react";
 import Link from "next/link";
 
+import { HeroWatermark } from "@/components/marketing/HeroWatermark";
 import { Card } from "@/components/ui/card";
 import { getCopy } from "@/lib/i18n";
 
@@ -32,7 +33,8 @@ function FeatureItem({ children }: { children: React.ReactNode }) {
 export default function PricingTable() {
   const c = getCopy("es").pricing;
   return (
-    <section className="max-w-marketing mx-auto px-8 py-32">
+    <section className="relative overflow-hidden max-w-marketing mx-auto px-8 py-32">
+      <HeroWatermark />
       <div className="flex flex-col items-center text-center mb-12">
         <div className="eyebrow eyebrow-accent mb-4">{c.eyebrow}</div>
         <h2 className="display text-fg m-0 max-w-[760px] text-[44px] sm:text-[56px] lg:text-[64px]">

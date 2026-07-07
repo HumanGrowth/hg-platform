@@ -1,4 +1,5 @@
 import { FeaturedPaths } from "@/components/marketing/FeaturedPaths";
+import { HeroWatermark } from "@/components/marketing/HeroWatermark";
 import { getCopy } from "@/lib/i18n";
 
 const c = getCopy("es").perspectives;
@@ -9,7 +10,8 @@ export const metadata = { title: c.metaTitle };
 export default function PerspectivasPage() {
   return (
     <>
-      <section className="max-w-marketing mx-auto px-8 pt-36 pb-10">
+      <section className="relative overflow-hidden max-w-marketing mx-auto px-8 pt-36 pb-10">
+        <HeroWatermark />
         <div className="eyebrow eyebrow-accent mb-6">{c.eyebrow}</div>
         <h1 className="display text-fg m-0 text-5xl sm:text-6xl">{c.title}</h1>
         <p className="mt-6 max-w-[620px] text-[18px] leading-[1.5] text-hg-charcoal">

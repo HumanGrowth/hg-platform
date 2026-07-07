@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { HeroWatermark } from "@/components/marketing/HeroWatermark";
 import { t } from "@/lib/i18n";
 
 const LANG = "es" as const;
@@ -10,16 +11,7 @@ const LANG = "es" as const;
 export default function Hero() {
   return (
     <section className="relative overflow-hidden max-w-marketing mx-auto px-8 pt-36 pb-32">
-      {/* Watermark "Hï" isotype (Brand Book · hero background treatment). */}
-      <div className="absolute -right-16 opacity-[0.08] pointer-events-none hidden md:block">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/isotype/isotype-oscuro.svg"
-          alt=""
-          aria-hidden
-          className="w-[clamp(360px,40vw,760px)] h-auto"
-        />
-      </div>
+      <HeroWatermark />
 
       <div className="relative max-w-[920px]">
         <div className="eyebrow eyebrow-accent mb-6">{t("hero.eyebrow", LANG)}</div>

@@ -60,7 +60,7 @@ Ya mergeado (NO duplicar):
 
 # TASKS
 
-## TASK web-v3-01 · Watermark "Hï" en heros de todas las pages marketing · `[ ]`
+## TASK web-v3-01 · Watermark "Hï" en heros de todas las pages marketing · `[x]`
 
 Hoy solo `<Hero/>` (home) tiene el watermark del isotype (`/isotype/isotype-oscuro.svg`). Extender a las 4 pages restantes con hero.
 
@@ -773,7 +773,7 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 
 | ID | Subject | Status |
 |---|---|---|
-| web-v3-01 | HeroWatermark en 5 pages | `[ ]` |
+| web-v3-01 | HeroWatermark en 5 pages | `[x]` |
 | web-v3-02 | PageBottomIsotype contacto + pricing | `[ ]` |
 | web-v3-03 | Títulos hero cortos | `[ ]` |
 | web-v3-04 | Timeline pasos 3-4 | `[ ]` |

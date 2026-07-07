@@ -1,13 +1,15 @@
 import { Linkedin, Mail } from "lucide-react";
 
 import ContactForm from "@/components/marketing/ContactForm";
+import { HeroWatermark } from "@/components/marketing/HeroWatermark";
 
 export const metadata = { title: "Conversemos — Human Growth" };
 
 export default function ContactoPage() {
   return (
     <>
-      <section className="max-w-[760px] mx-auto px-8 pt-36 pb-8">
+      <section className="relative overflow-hidden max-w-[760px] mx-auto px-8 pt-36 pb-8">
+        <HeroWatermark />
         <div className="eyebrow eyebrow-accent mb-6">CONVERSEMOS</div>
         <h1 className="display text-fg text-4xl sm:text-5xl m-0">
           Conversemos
