@@ -20,8 +20,8 @@ export const en = {
   },
   hero: {
     eyebrow: "GROWTH SYSTEM · LATAM",
-    titleLine1: "Human skills for talent decisions:",
-    titleLine2: "performance, retention and growth.",
+    titleLine1: "Human Skills ·",
+    titleLine2: "Performance, Retention, Growth.",
     bodyP1:
       "Human Growth is a 6-dimension growth system that measures and develops your team's human skills — career, purpose, relationships, health, inner peace and stability — grounded in science.",
     bodyP2:
@@ -161,8 +161,8 @@ export const en = {
         "How we measure human growth: six pillars with validated psychometric instruments, an honest synthesis of the evidence, and adaptation to LatAm.",
     },
     hero: {
-      eyebrow: "THE METHOD",
-      title: "How we measure human growth — and why every number has a source.",
+      eyebrow: "METHOD",
+      title: "The science behind us.",
       subtitle:
         "Six pillars, instruments with decades of published validation, and one rule: we don't invent scientific content. We import proven frameworks and adapt them to LatAm.",
     },

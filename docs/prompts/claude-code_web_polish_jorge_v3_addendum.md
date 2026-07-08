@@ -124,7 +124,7 @@ Colocar **antes** del `<Footer/>`:
 
 ---
 
-## TASK web-v3-03 · Títulos hero cortos (home + método) · `[ ]`
+## TASK web-v3-03 · Títulos hero cortos (home + método) · `[x]`
 
 Editar `src/lib/locales/es.ts`:
 
@@ -775,7 +775,7 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 |---|---|---|
 | web-v3-01 | HeroWatermark en 5 pages | `[x]` |
 | web-v3-02 | PageBottomIsotype contacto + pricing | `[x]` |
-| web-v3-03 | Títulos hero cortos | `[ ]` |
+| web-v3-03 | Títulos hero cortos | `[x]` |
 | web-v3-04 | Timeline pasos 3-4 | `[ ]` |
 | web-v3-05 | HomeCTAFinal | `[ ]` |
 | web-v3-06 | Bug P5↔P6 swap | `[ ]` |

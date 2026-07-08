@@ -54,7 +54,7 @@ describe("PricingTable", () => {
 describe("Hero (web-v2)", () => {
   it("shows the new H1 and a 'Ver dimensiones' scroll button", () => {
     render(<Hero />);
-    expect(screen.getByText(/Habilidades humanas para decisiones/)).toBeTruthy();
+    expect(screen.getByText(/Habilidades Humanas ·/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Ver dimensiones" })).toBeTruthy();
   });
 });

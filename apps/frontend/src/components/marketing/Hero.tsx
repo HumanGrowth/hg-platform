@@ -17,7 +17,7 @@ export default function Hero() {
         <div className="eyebrow eyebrow-accent mb-6">{t("hero.eyebrow", LANG)}</div>
         <h1
           className="display text-fg m-0"
-          style={{ fontSize: "clamp(48px, 6vw, 80px)", lineHeight: 0.95, textWrap: "balance" }}
+          style={{ fontSize: "clamp(56px, 8vw, 96px)", lineHeight: 0.95, textWrap: "balance" }}
           aria-label={`${t("hero.titleLine1", LANG)} ${t("hero.titleLine2", LANG)}`}
         >
           <span aria-hidden>{t("hero.titleLine1", LANG)}</span>

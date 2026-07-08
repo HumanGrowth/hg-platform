@@ -20,8 +20,8 @@ export const es = {
   },
   hero: {
     eyebrow: "SISTEMA DE CRECIMIENTO · LATAM",
-    titleLine1: "Habilidades humanas para decisiones",
-    titleLine2: "de talento: desempeño, permanencia y crecimiento.",
+    titleLine1: "Habilidades Humanas ·",
+    titleLine2: "Desempeño, Permanencia, Crecimiento.",
     bodyP1:
       "Human Growth es un sistema de crecimiento en 6 dimensiones que mide y desarrolla las habilidades humanas de tu equipo — carrera, propósito, relaciones, salud, paz interior y estabilidad — con base científica.",
     bodyP2:
@@ -161,8 +161,8 @@ export const es = {
         "Cómo medimos el crecimiento humano: seis pilares con instrumentos psicométricos validados, síntesis honesta de la evidencia y tropicalización a LatAm.",
     },
     hero: {
-      eyebrow: "EL MÉTODO",
-      title: "Cómo medimos el crecimiento humano — y por qué cada número tiene una fuente.",
+      eyebrow: "MÉTODO",
+      title: "La ciencia nos respalda.",
       subtitle:
         "Seis pilares, instrumentos con décadas de validación publicada y una regla: no inventamos contenido científico. Importamos marcos probados y los tropicalizamos a LatAm.",
     },
