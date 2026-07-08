@@ -510,7 +510,7 @@ Y usar en las pages:
 
 ---
 
-## TASK motion-08 · Tests + performance + screenshots · `[ ]`
+## TASK motion-08 · Tests + performance + screenshots · `[x]`
 
 ### 8.1 · Tests
 
@@ -607,4 +607,4 @@ Para el último screenshot, usar Chrome DevTools > Rendering > Emulate CSS media
 | motion-05 | Hover motion Button + Card | `[x]` |
 | motion-06 | Wire MotionSection en home | `[x]` |
 | motion-07 | Decorativos en 6 pages | `[x]` |
-| motion-08 | Tests + performance + screenshots | `[ ]` |
+| motion-08 | Tests + performance + screenshots | `[x]` |
