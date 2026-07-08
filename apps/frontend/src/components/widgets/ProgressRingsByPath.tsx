@@ -16,7 +16,7 @@ const PILLAR_HEX: Record<PillarCode, string> = {
   P3: "#4A7A54",
   P4: "#A8C4A0",
   P5: "#2C3E50",
-  P6: "#6B7061",
+  P6: "#E8A030", // DS v2 §4.2: Estabilidad pasó de gris a ámbar
 };
 const REMAINING = "#F0EDE6"; // cream-200
 

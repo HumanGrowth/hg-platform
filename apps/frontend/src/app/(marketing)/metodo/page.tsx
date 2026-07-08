@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { HeroWatermark } from "@/components/marketing/HeroWatermark";
 import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
 import MarketingRadar from "@/components/marketing/MarketingRadar";
 import { MethodPillars } from "@/components/marketing/MethodPillars";
@@ -15,9 +16,10 @@ export const metadata = {
 
 export default function MetodoPage() {
   return (
-    <>
+    <div className="landing-flow">
       {/* Hero */}
-      <section className="max-w-marketing mx-auto px-8 pt-36 pb-16">
+      <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
+        <HeroWatermark />
         <div className="eyebrow eyebrow-accent mb-6">{c.hero.eyebrow}</div>
         <h1 className="display text-fg m-0 text-[56px] leading-[0.95] sm:text-[80px] lg:text-[96px]">
           {c.hero.title}
@@ -28,7 +30,7 @@ export default function MetodoPage() {
       </section>
 
       {/* Un sistema, no seis módulos */}
-      <section className="max-w-marketing mx-auto px-8 py-20">
+      <section className="landing-flow-section max-w-marketing mx-auto px-8">
         <div className="rounded-2xl bg-surface-sunken p-8 sm:p-12">
           <div className="eyebrow eyebrow-accent mb-4">{c.system.eyebrow}</div>
           <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">
@@ -49,7 +51,7 @@ export default function MetodoPage() {
       </section>
 
       {/* Metodología · 5 etapas */}
-      <section className="max-w-marketing mx-auto px-8 pb-20">
+      <section className="landing-flow-section max-w-marketing mx-auto px-8">
         <div className="eyebrow eyebrow-accent mb-4">{c.steps.eyebrow}</div>
         <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">{c.steps.title}</h2>
         <p className="mt-4 mb-10 max-w-[620px] text-[18px] leading-[1.5] text-hg-charcoal">
@@ -58,8 +60,8 @@ export default function MetodoPage() {
         <MethodSteps items={c.steps.items} />
       </section>
 
-      {/* Los 6 pilares · accordion */}
-      <section className="max-w-marketing mx-auto px-8 pb-20">
+      {/* Los 6 pilares */}
+      <section className="landing-flow-section max-w-marketing mx-auto px-8">
         <div className="eyebrow eyebrow-accent mb-4">{c.pillarsHeading.eyebrow}</div>
         <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">
           {c.pillarsHeading.title}
@@ -67,18 +69,14 @@ export default function MetodoPage() {
         <p className="mt-4 mb-10 max-w-[620px] text-[18px] leading-[1.5] text-hg-charcoal">
           {c.pillarsHeading.body}
         </p>
-        <MethodPillars
-          pillars={c.pillars}
-          structureLabel={c.structureLabel}
-          latamLabel={c.latamLabel}
-        />
+        <MethodPillars pillars={c.pillars} />
       </section>
 
-      {/* Radar ilustrativo */}
+      {/* Radar back-to-back con los pilares (decisión K) */}
       <MarketingRadar />
 
       {/* Rigor y límites */}
-      <section className="max-w-marketing mx-auto px-8 pb-20">
+      <section className="landing-flow-section max-w-marketing mx-auto px-8 pb-20">
         <div className="eyebrow eyebrow-accent mb-4">{c.rigor.eyebrow}</div>
         <h2 className="display m-0 max-w-[760px] text-3xl text-fg sm:text-4xl">{c.rigor.title}</h2>
         <p className="mt-5 mb-10 max-w-[720px] text-[18px] leading-[1.55] text-hg-charcoal">
@@ -94,25 +92,11 @@ export default function MetodoPage() {
         </div>
       </section>
 
-      {/* Fuentes */}
-      <section className="max-w-marketing mx-auto px-8 pb-24">
-        <div className="eyebrow mb-3">{c.sources.eyebrow}</div>
-        <h2 className="display m-0 mb-8 text-2xl text-fg">{c.sources.title}</h2>
-        <ol className="grid grid-cols-1 gap-x-10 gap-y-2 md:grid-cols-2">
-          {c.sources.items.map((ref, i) => (
-            <li key={i} className="flex gap-3 text-sm leading-[1.5] text-fg-muted">
-              <span className="font-mono text-xs text-fg-subtle">{i + 1}.</span>
-              <span>{ref}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
-
       {/* Journey de producto · consistente con el home (item 22) */}
       <HowItWorksTimeline />
 
       {/* CTA final */}
-      <section className="max-w-marketing mx-auto px-8 pb-32">
+      <section className="landing-flow-section max-w-marketing mx-auto px-8">
         <div className="flex flex-col items-start gap-6 rounded-2xl bg-hg-ink p-10 sm:p-14">
           <h2 className="display m-0 max-w-[620px] text-3xl text-hg-cream sm:text-4xl">
             {c.cta.title}
@@ -126,6 +110,6 @@ export default function MetodoPage() {
           </Link>
         </div>
       </section>
-    </>
+    </div>
   );
 }

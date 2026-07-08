@@ -1,17 +1,21 @@
+"use client";
+
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { Radar } from "@/components/radar/Radar";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import type { RadarValues } from "@/components/radar/radar-model";
-import { getCopy } from "@/lib/i18n";
 
-// Datos ilustrativos — NO llama al backend (items 23-24).
-const SAMPLE: RadarValues = { P1: 62, P2: 78, P3: 55, P4: 70, P5: 48, P6: 65 };
+// Datos ilustrativos — NO llama al backend. Dos mallas (web-v3 decisión J):
+// crecimiento (target aspiracional, verde) + estado actual.
+const SAMPLE_CURRENT: RadarValues = { P1: 52, P2: 48, P3: 45, P4: 60, P5: 38, P6: 55 };
+const SAMPLE_GROWTH: RadarValues = { P1: 90, P2: 90, P3: 90, P4: 90, P5: 90, P6: 90 };
 
 /** Radar de marca (home + /metodo) con datos de ejemplo. */
 export default function MarketingRadar() {
-  const c = getCopy("es");
+  const c = useMarketingCopy();
   return (
-    <section className="max-w-marketing mx-auto px-8 py-20">
+    <section className="landing-flow-section max-w-marketing mx-auto px-8">
       <div className="flex flex-col items-center text-center">
         <Eyebrow accent className="mb-4">
           {c.marketingRadar.eyebrow}
@@ -19,8 +23,8 @@ export default function MarketingRadar() {
         <Display as="h2" variant="display-3" className="mb-10">
           {c.marketingRadar.title}
         </Display>
-        <Radar values={SAMPLE} state="complete" size="large" />
-        <p className="body-sm mt-6 max-w-[420px] text-fg-subtle">{c.marketingRadar.caption}</p>
+        <Radar values={SAMPLE_CURRENT} growth={SAMPLE_GROWTH} state="complete" size="large" />
+        <p className="body-sm max-w-[420px] text-fg-subtle">{c.marketingRadar.caption}</p>
       </div>
     </section>
   );

@@ -14,8 +14,8 @@ const valueProps = [
 export default function ForTeamsPage() {
   const c = getCopy("es");
   return (
-    <>
-      <section className="max-w-marketing mx-auto px-8 pt-36 pb-16">
+    <div className="landing-flow">
+      <section className="landing-flow-section landing-flow-hero max-w-marketing mx-auto px-8">
         <div className="eyebrow eyebrow-accent mb-6">{c.forTeams.eyebrow}</div>
         <h1
           className="display text-fg m-0 text-[44px] sm:text-[56px] lg:text-7xl max-w-[820px]"
@@ -42,7 +42,7 @@ export default function ForTeamsPage() {
         </div>
       </section>
 
-      <section className="max-w-marketing mx-auto px-8 pb-32">
+      <section className="landing-flow-section max-w-marketing mx-auto px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {valueProps.map((v) => (
             <div key={v.title} className="bg-surface-card border border-border rounded-lg p-8 flex flex-col gap-3">
@@ -54,6 +54,6 @@ export default function ForTeamsPage() {
           ))}
         </div>
       </section>
-    </>
+    </div>
   );
 }

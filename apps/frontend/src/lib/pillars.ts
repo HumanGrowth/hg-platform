@@ -65,8 +65,10 @@ const PILLAR_ICON_SRC: Record<string, string> = {
   P2: "/icons/hex-star-128.png",   // Propósito
   P3: "/icons/hex-chat-128.png",   // Relaciones
   P4: "/icons/hex-sprout-128.png", // Salud
-  P5: "/icons/hex-scales-128.png", // Paz interior
-  P6: "/icons/hex-bulb-128.png",   // Estabilidad
+  // web-v3 decisión I: P5 (claridad) ↔ bulb · P6 (estabilidad/equilibrio) ↔
+  // scales. Antes estaban cruzados y se percibía el "swap" en toda la app.
+  P5: "/icons/hex-bulb-128.png",   // Paz interior y claridad
+  P6: "/icons/hex-scales-128.png", // Estabilidad emocional y material
 };
 
 /** Código base del pilar (P6A/P6B → P6). */

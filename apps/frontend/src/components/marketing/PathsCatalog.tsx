@@ -27,7 +27,7 @@ export default function PathsCatalog() {
     }`;
 
   return (
-    <section className="max-w-marketing mx-auto px-8 pb-32">
+    <section className="landing-flow-section max-w-marketing mx-auto px-8">
       {/* Filtro por pilar */}
       <div className="flex gap-2 flex-wrap mb-3">
         <button className={chip(pillar === "all")} onClick={() => setPillar("all")}>

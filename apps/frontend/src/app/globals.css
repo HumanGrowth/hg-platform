@@ -239,3 +239,47 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Marketing landing: alternating full-bleed bands for section rhythm.
+   Las secciones NO deben llevar overflow-hidden (recorta la banda de 100vw);
+   el clip del watermark vive dentro de HeroWatermark. El ritmo vertical es
+   compartido: las secciones no definen py-* propio. */
+.landing-flow {
+  --landing-flow-odd: var(--surface-page);
+  --landing-flow-even: var(--surface-sunken);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* En páginas cortas la última banda se estira hasta el footer (sin hueco). */
+.landing-flow > .landing-flow-section:last-child {
+  flex: 1 0 auto;
+}
+
+.landing-flow-section {
+  position: relative;
+  isolation: isolate;
+  padding-block: clamp(3rem, 6vw, 5rem);
+}
+
+/* Hero: libra el nav fijo (h-16) manteniendo el ritmo compartido. */
+.landing-flow-hero {
+  padding-top: calc(4rem + clamp(3rem, 6vw, 5rem));
+}
+
+.landing-flow-section::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  background: var(--landing-flow-odd);
+}
+
+.landing-flow > .landing-flow-section:nth-child(even)::before {
+  background: var(--landing-flow-even);
+}

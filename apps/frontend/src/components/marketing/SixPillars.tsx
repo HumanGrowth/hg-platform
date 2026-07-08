@@ -1,6 +1,8 @@
+"use client";
+
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { getCopy } from "@/lib/i18n";
 import { pillarIconSrc } from "@/lib/pillars";
 
 /**
@@ -9,13 +11,13 @@ import { pillarIconSrc } from "@/lib/pillars";
  * destino del scroll del hero (web-v2-01).
  */
 export default function SixPillars() {
-  const c = getCopy("es").sixPillars;
+  const c = useMarketingCopy().sixPillars;
   return (
     <section
       id="dimensiones"
-      className="scroll-mt-24 bg-surface-card border-t border-b border-border"
+      className="landing-flow-section scroll-mt-24 border-t border-b border-border"
     >
-      <div className="max-w-marketing mx-auto px-8 py-32">
+      <div className="max-w-marketing mx-auto px-8">
         <div className="max-w-[760px] mb-14">
           <Eyebrow accent className="mb-4">
             {c.eyebrow}
@@ -34,7 +36,7 @@ export default function SixPillars() {
             return (
               <article
                 key={item.code}
-                className="relative overflow-hidden rounded-lg border border-border bg-surface-page p-8 min-h-[240px]"
+                className="relative overflow-hidden rounded-lg border border-border bg-surface-card p-8 min-h-[220px]"
               >
                 {src && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -42,7 +44,7 @@ export default function SixPillars() {
                     src={src}
                     alt=""
                     aria-hidden
-                    className="absolute -right-8 -top-4 h-48 w-48 select-none opacity-[0.10] pointer-events-none md:h-56 md:w-56"
+                    className="absolute -right-8 -top-4 w-48 select-none opacity-[0.10] pointer-events-none md:w-56"
                   />
                 )}
                 <div className="relative z-10">

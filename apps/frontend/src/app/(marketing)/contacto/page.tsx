@@ -1,24 +1,27 @@
 import { Linkedin, Mail } from "lucide-react";
 
 import ContactForm from "@/components/marketing/ContactForm";
+import { PageBottomIsotype } from "@/components/marketing/PageBottomIsotype";
 
 export const metadata = { title: "Conversemos — Human Growth" };
 
 export default function ContactoPage() {
   return (
-    <>
-      <section className="max-w-[760px] mx-auto px-8 pt-36 pb-8">
-        <div className="eyebrow eyebrow-accent mb-6">CONVERSEMOS</div>
+    <div className="landing-flow">
+      <section className="landing-flow-section relative overflow-hidden px-8 pt-36 pb-8 text-center">
+        <div className="eyebrow eyebrow-accent mb-6 flex justify-center">Contacto</div>
         <h1 className="display text-fg text-4xl sm:text-5xl m-0">
           Conversemos
         </h1>
-        <p className="text-hg-charcoal text-[18px] leading-[1.5] mt-6 mb-10 max-w-[560px]">
+        <p className="text-hg-charcoal text-[18px] leading-[1.5] mt-6 mb-10 max-w-[560px] mx-auto">
           Contanos un poco sobre vos y tu equipo.
         </p>
         <ContactForm source="contacto" />
       </section>
 
-      <section className="max-w-marketing mx-auto px-8 mt-4 pb-20">
+      <PageBottomIsotype />
+
+      <section className="landing-flow-section max-w-marketing mx-auto px-8 mt-4 pb-20">
         <div className="max-w-[640px] mx-auto border-t border-border pt-10">
           <div className="eyebrow mb-3">OTRAS FORMAS DE CONTACTO</div>
           <div className="flex flex-col sm:flex-row gap-6 sm:gap-10">
@@ -41,6 +44,6 @@ export default function ContactoPage() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

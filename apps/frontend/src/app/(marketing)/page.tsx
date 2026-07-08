@@ -1,6 +1,8 @@
 import Hero from "@/components/marketing/Hero";
+import { HomeCTAFinal } from "@/components/marketing/HomeCTAFinal";
 import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
 import MarketingRadar from "@/components/marketing/MarketingRadar";
+import { ProductStack } from "@/components/marketing/ProductStack";
 import WhatIsHg from "@/components/marketing/WhatIsHg";
 import LogoCloud from "@/components/marketing/LogoCloud";
 import Quote from "@/components/marketing/Quote";
@@ -14,14 +16,16 @@ export const metadata = {
 
 export default function LandingPage() {
   return (
-    <>
+    <div className="landing-flow">
       <Hero />
       <LogoCloud />
       <SixPillars />
       <MarketingRadar />
       <WhatIsHg />
+      <ProductStack />
       <HowItWorksTimeline />
       <Quote />
-    </>
+      <HomeCTAFinal />
+    </div>
   );
 }

@@ -44,7 +44,7 @@ export default function ContactForm({ source = "contacto" }: { source?: string }
       <Card className="text-center py-12">
         <CheckCircle2 size={48} strokeWidth={1.5} className="text-hg-green mx-auto mb-4" />
         <h2 className="display text-2xl text-fg mb-3">¡Gracias por escribirnos!</h2>
-        <p className="text-hg-charcoal mb-8">Te respondemos en menos de 24 horas.</p>
+        <p className="text-hg-charcoal mb-8">Pronto nos pondremos en contacto contigo.</p>
         <Link href="/" className="text-primary font-semibold hover:underline">
           Volver al inicio →
         </Link>
@@ -55,22 +55,22 @@ export default function ContactForm({ source = "contacto" }: { source?: string }
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="bg-surface-card border border-border rounded-lg p-8 flex flex-col gap-5">
       <div>
-        <Label htmlFor="name">Nombre *</Label>
+        <Label htmlFor="name" className="text-left">Nombre *</Label>
         <Input id="name" autoComplete="name" {...register("name")} />
         {errors.name && <p className="text-danger text-sm mt-1">{errors.name.message}</p>}
       </div>
       <div>
-        <Label htmlFor="email">Email *</Label>
+        <Label htmlFor="email" className="text-left">Email *</Label>
         <Input id="email" type="email" autoComplete="email" {...register("email")} />
         {errors.email && <p className="text-danger text-sm mt-1">{errors.email.message}</p>}
       </div>
       <div>
-        <Label htmlFor="company">Empresa *</Label>
+        <Label htmlFor="company" className="text-left">Empresa *</Label>
         <Input id="company" autoComplete="organization" {...register("company")} />
         {errors.company && <p className="text-danger text-sm mt-1">{errors.company.message}</p>}
       </div>
       <div>
-        <Label htmlFor="role">Rol</Label>
+        <Label htmlFor="role" className="text-left">Rol</Label>
         <select
           id="role"
           {...register("role")}
