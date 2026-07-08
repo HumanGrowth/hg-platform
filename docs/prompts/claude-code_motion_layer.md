@@ -187,7 +187,7 @@ export function MotionSection({
 
 ---
 
-## TASK motion-03 · `<BrandCircle/>` component decorativo con parallax · `[ ]`
+## TASK motion-03 · `<BrandCircle/>` component decorativo con parallax · `[x]`
 
 Círculo decorativo con parallax leve.
 
@@ -602,7 +602,7 @@ Para el último screenshot, usar Chrome DevTools > Rendering > Emulate CSS media
 |---|---|---|
 | motion-01 | Install + MotionConfig + useShouldAnimate | `[x]` |
 | motion-02 | `<MotionSection/>` | `[x]` |
-| motion-03 | `<BrandCircle/>` | `[ ]` |
+| motion-03 | `<BrandCircle/>` | `[x]` |
 | motion-04 | `<BrandLine/>` | `[ ]` |
 | motion-05 | Hover motion Button + Card | `[ ]` |
 | motion-06 | Wire MotionSection en home | `[ ]` |
