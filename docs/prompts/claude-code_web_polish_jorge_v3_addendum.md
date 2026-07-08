@@ -188,7 +188,7 @@ Espejar en `en.ts`.
 
 ---
 
-## TASK web-v3-05 · CTA final del home · `[ ]`
+## TASK web-v3-05 · CTA final del home · `[x]`
 
 Nueva sección al final del home, antes del Quote (o después del Quote, según el orden actual del render — el criterio es "última sección antes del Footer").
 
@@ -777,7 +777,7 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 | web-v3-02 | PageBottomIsotype contacto + pricing | `[x]` |
 | web-v3-03 | Títulos hero cortos | `[x]` |
 | web-v3-04 | Timeline pasos 3-4 | `[x]` |
-| web-v3-05 | HomeCTAFinal | `[ ]` |
+| web-v3-05 | HomeCTAFinal | `[x]` |
 | web-v3-06 | Bug P5↔P6 swap | `[ ]` |
 | web-v3-07 | Nav 4 tabs · Blog out · Método | `[ ]` |
 | web-v3-08 | /metodo cleanup + radar back-to-back | `[ ]` |

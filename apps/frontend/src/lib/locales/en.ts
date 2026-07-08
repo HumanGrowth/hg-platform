@@ -66,6 +66,13 @@ export const en = {
       },
     ],
   },
+  homeCta: {
+    eyebrow: "START TODAY",
+    title: "Ready to transform how your team grows?",
+    body: "We talk with you to design a proposal tailored to you.",
+    primary: "Let's talk →",
+    secondary: "See pricing",
+  },
   howItWorks: {
     eyebrow: "HOW IT WORKS",
     title: "The path in 4 steps.",

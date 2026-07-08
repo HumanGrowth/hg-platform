@@ -66,6 +66,13 @@ export const es = {
       },
     ],
   },
+  homeCta: {
+    eyebrow: "EMPEZÁ HOY",
+    title: "¿Listos para transformar cómo crece tu equipo?",
+    body: "Conversamos contigo para diseñar tu propuesta a medida.",
+    primary: "Conversemos →",
+    secondary: "Ver precios",
+  },
   howItWorks: {
     eyebrow: "CÓMO FUNCIONA",
     title: "El camino en 4 pasos.",
