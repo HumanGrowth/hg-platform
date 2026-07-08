@@ -72,8 +72,8 @@ export const es = {
     steps: [
       { n: 1, title: "Diagnóstico", body: "Explicamos el porqué, el cómo y lo que revela." },
       { n: 2, title: "Rutas", body: "El mapa de las oportunidades: trayectos de crecimiento con sistema de micro-aprendizaje." },
-      { n: 3, title: "Mentorías disponibles", body: "Acompañamiento de quien ya pasó por ahí." },
-      { n: 4, title: "Eventos", body: "La culminación del desarrollo humano." },
+      { n: 3, title: "Acompañamiento", body: "Mentorías y recursos que reafirman el aprendizaje." },
+      { n: 4, title: "Eventos", body: "Conexiones reales que fortalecen el desarrollo humano." },
     ],
   },
   logoCloud: {

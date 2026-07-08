@@ -161,7 +161,7 @@ Actualizar `en.ts` con el mismo shape. Ajustar `Hero.tsx` fontSize del clamp si 
 
 ---
 
-## TASK web-v3-04 · Timeline camino en 4 pasos updates (paso 3 y 4) · `[ ]`
+## TASK web-v3-04 · Timeline camino en 4 pasos updates (paso 3 y 4) · `[x]`
 
 En `es.ts`, dentro de `howItWorks.steps`:
 
@@ -776,7 +776,7 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 | web-v3-01 | HeroWatermark en 5 pages | `[x]` |
 | web-v3-02 | PageBottomIsotype contacto + pricing | `[x]` |
 | web-v3-03 | Títulos hero cortos | `[x]` |
-| web-v3-04 | Timeline pasos 3-4 | `[ ]` |
+| web-v3-04 | Timeline pasos 3-4 | `[x]` |
 | web-v3-05 | HomeCTAFinal | `[ ]` |
 | web-v3-06 | Bug P5↔P6 swap | `[ ]` |
 | web-v3-07 | Nav 4 tabs · Blog out · Método | `[ ]` |

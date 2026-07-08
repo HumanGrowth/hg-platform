@@ -72,8 +72,8 @@ export const en = {
     steps: [
       { n: 1, title: "Diagnosis", body: "We explain the why, the how, and what it reveals." },
       { n: 2, title: "Paths", body: "The map of opportunities: growth journeys with a micro-learning system." },
-      { n: 3, title: "Mentorships available", body: "Guidance from someone who's already been there." },
-      { n: 4, title: "Events", body: "The culmination of human development." },
+      { n: 3, title: "Support", body: "Mentorships and resources that reinforce the learning." },
+      { n: 4, title: "Events", body: "Real connections that strengthen human development." },
     ],
   },
   logoCloud: {
