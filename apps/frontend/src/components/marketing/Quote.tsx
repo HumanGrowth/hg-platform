@@ -1,11 +1,13 @@
+"use client";
+
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { QuoteMark } from "@/components/ui/brand";
-import { getCopy } from "@/lib/i18n";
 
 /** Quote fundador con dato Deloitte 2024 (item 6). */
 export default function Quote() {
-  const c = getCopy("es");
+  const c = useMarketingCopy();
   return (
-    <section className="max-w-[960px] mx-auto px-8 py-32 text-left">
+    <section className="landing-flow-section max-w-[960px] mx-auto px-8 text-left">
       <div className="eyebrow eyebrow-accent mb-7">{c.quote.eyebrow}</div>
       <QuoteMark size={72} tone="amber" className="mb-6" />
 

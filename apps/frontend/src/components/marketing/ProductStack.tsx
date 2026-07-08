@@ -1,8 +1,10 @@
+"use client";
+
 import Link from "next/link";
 
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { getCopy } from "@/lib/i18n";
 
 // TODO(Andrés): pasar screenshots reales de la app (1200×750) a
 // public/marketing/screens/ y poner HAS_SCREENS = true (web-v3-10).
@@ -17,9 +19,9 @@ const SCREENS = [
 
 /** Sección producto en home: stack de screens de la app → /plataforma (decisión G). */
 export function ProductStack() {
-  const c = getCopy("es").productStack;
+  const c = useMarketingCopy().productStack;
   return (
-    <section className="max-w-marketing mx-auto grid items-center gap-12 px-8 py-24 md:grid-cols-2">
+    <section className="landing-flow-section max-w-marketing mx-auto grid items-center gap-12 px-8 md:grid-cols-2">
       <div>
         <Eyebrow accent className="mb-6">
           {c.eyebrow}

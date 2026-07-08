@@ -3,27 +3,29 @@
 import { Menu, X } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { LanguageToggle } from "@/components/marketing/LanguageToggle";
-import { t } from "@/lib/i18n";
-
-const LANG = "es" as const;
-
-// web-v3 (decisiones A+B): 4 tabs. "Método" apunta a /metodo (label renombrado
-// de "Ciencia"); Blog salió del nav — vive dentro de Perspectivas (/blog
-// redirige 308 en next.config). /ciencia mantiene su redirect para links viejos.
-const TABS: { label: string; href: Route }[] = [
-  { label: t("nav.platform", LANG), href: "/plataforma" },
-  { label: t("nav.science", LANG), href: "/metodo" },
-  { label: t("nav.perspectives", LANG), href: "/perspectivas" },
-  { label: t("nav.pricing", LANG), href: "/pricing" },
-];
 
 /** Marketing top nav — 4 tabs + language toggle + drawer mobile (web-v2-08). */
 export default function Nav() {
+  const c = useMarketingCopy().nav;
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+
+  // web-v3 (decisiones A+B): 4 tabs. "Método" apunta a /metodo (label renombrado
+  // de "Ciencia"); Blog salió del nav — vive dentro de Perspectivas (/blog
+  // redirige 308 en next.config). /ciencia mantiene su redirect para links viejos.
+  const tabs: { label: string; href: Route }[] = useMemo(
+    () => [
+      { label: c.platform, href: "/plataforma" },
+      { label: c.science, href: "/metodo" },
+      { label: c.perspectives, href: "/perspectivas" },
+      { label: c.pricing, href: "/pricing" },
+    ],
+    [c.perspectives, c.platform, c.pricing, c.science],
+  );
 
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 24);
@@ -66,7 +68,7 @@ export default function Nav() {
 
         {/* Desktop tabs */}
         <div className="hidden md:flex gap-7 ml-4">
-          {TABS.map((tab) => (
+          {tabs.map((tab) => (
             <Link key={tab.href} href={tab.href} className={linkCls}>
               {tab.label}
             </Link>
@@ -79,10 +81,10 @@ export default function Nav() {
         <div className="hidden md:flex items-center gap-4">
           <LanguageToggle />
           <Link href="/login" className={linkCls}>
-            {t("nav.login", LANG)}
+            {c.login}
           </Link>
           <Link href="/contacto" className={ctaCls}>
-            {t("nav.cta", LANG)}
+            {c.cta}
           </Link>
         </div>
 
@@ -115,7 +117,7 @@ export default function Nav() {
             </div>
 
             <nav className="flex flex-col gap-4">
-              {TABS.map((tab) => (
+              {tabs.map((tab) => (
                 <Link
                   key={tab.href}
                   href={tab.href}
@@ -133,10 +135,10 @@ export default function Nav() {
                 onClick={() => setOpen(false)}
                 className="text-base font-medium text-fg"
               >
-                {t("nav.login", LANG)}
+                {c.login}
               </Link>
               <Link href="/contacto" onClick={() => setOpen(false)} className={`${ctaCls} text-center`}>
-                {t("nav.cta", LANG)}
+                {c.cta}
               </Link>
               <LanguageToggle />
             </div>

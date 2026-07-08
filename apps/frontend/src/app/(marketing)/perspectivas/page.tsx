@@ -10,8 +10,8 @@ export const metadata = { title: c.metaTitle };
 // El CMS backend vive en claude-code_perspectivas_cms.md (prompt separado).
 export default function PerspectivasPage() {
   return (
-    <>
-      <section className="relative overflow-hidden max-w-marketing mx-auto px-8 pt-36 pb-10">
+    <div className="landing-flow">
+      <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
         <HeroWatermark />
         <div className="eyebrow eyebrow-accent mb-6">{c.eyebrow}</div>
         <h1 className="display text-fg m-0 text-5xl sm:text-6xl">{c.title}</h1>
@@ -20,6 +20,6 @@ export default function PerspectivasPage() {
         </p>
       </section>
       <PerspectivasFilter />
-    </>
+    </div>
   );
 }

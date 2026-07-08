@@ -1,6 +1,8 @@
+"use client";
+
 import Image from "next/image";
 
-import { getCopy } from "@/lib/i18n";
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 
 const mentors = [
   { name: "Jorge Araya",   role: "Liderazgo Ejecutivo", co: "CEO - HumanGrowth", img: "/marketing/mentors/jorge.jpg", ring: "var(--hg-orange)" },
@@ -10,7 +12,7 @@ const mentors = [
 
 /** @deprecated Removido del home (web-v2). Reutilizable en el track Individual. */
 export default function MentorStrip() {
-  const c = getCopy("es");
+  const c = useMarketingCopy();
   return (
     <section className="bg-hg-ink text-hg-cream py-32">
       <div className="max-w-marketing mx-auto px-8">

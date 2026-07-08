@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { getCopy } from "@/lib/i18n";
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 
 /**
  * Chips por content type de Perspectivas (Blog · Artículos · Business cases ·
@@ -11,7 +11,7 @@ import { getCopy } from "@/lib/i18n";
  * fetch filtrado por el chip activo.
  */
 export function PerspectivasFilter() {
-  const c = getCopy("es").perspectives;
+  const c = useMarketingCopy().perspectives;
   const [active, setActive] = useState<string>("all");
 
   const chip = (isActive: boolean) =>
@@ -22,7 +22,7 @@ export function PerspectivasFilter() {
     }`;
 
   return (
-    <section className="max-w-marketing mx-auto px-8 pb-32">
+    <section className="landing-flow-section max-w-marketing mx-auto px-8">
       <div className="mb-10 flex flex-wrap gap-2">
         <button type="button" className={chip(active === "all")} onClick={() => setActive("all")}>
           Todo

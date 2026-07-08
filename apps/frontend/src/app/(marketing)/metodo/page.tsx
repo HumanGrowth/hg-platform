@@ -16,9 +16,9 @@ export const metadata = {
 
 export default function MetodoPage() {
   return (
-    <>
+    <div className="landing-flow">
       {/* Hero */}
-      <section className="relative overflow-hidden max-w-marketing mx-auto px-8 pt-36 pb-16">
+      <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
         <HeroWatermark />
         <div className="eyebrow eyebrow-accent mb-6">{c.hero.eyebrow}</div>
         <h1 className="display text-fg m-0 text-[56px] leading-[0.95] sm:text-[80px] lg:text-[96px]">
@@ -30,7 +30,7 @@ export default function MetodoPage() {
       </section>
 
       {/* Un sistema, no seis módulos */}
-      <section className="max-w-marketing mx-auto px-8 py-20">
+      <section className="landing-flow-section max-w-marketing mx-auto px-8">
         <div className="rounded-2xl bg-surface-sunken p-8 sm:p-12">
           <div className="eyebrow eyebrow-accent mb-4">{c.system.eyebrow}</div>
           <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">
@@ -51,7 +51,7 @@ export default function MetodoPage() {
       </section>
 
       {/* Metodología · 5 etapas */}
-      <section className="max-w-marketing mx-auto px-8 pb-20">
+      <section className="landing-flow-section max-w-marketing mx-auto px-8">
         <div className="eyebrow eyebrow-accent mb-4">{c.steps.eyebrow}</div>
         <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">{c.steps.title}</h2>
         <p className="mt-4 mb-10 max-w-[620px] text-[18px] leading-[1.5] text-hg-charcoal">
@@ -61,7 +61,7 @@ export default function MetodoPage() {
       </section>
 
       {/* Los 6 pilares */}
-      <section className="max-w-marketing mx-auto px-8 pb-4">
+      <section className="landing-flow-section max-w-marketing mx-auto px-8">
         <div className="eyebrow eyebrow-accent mb-4">{c.pillarsHeading.eyebrow}</div>
         <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">
           {c.pillarsHeading.title}
@@ -76,7 +76,7 @@ export default function MetodoPage() {
       <MarketingRadar />
 
       {/* Rigor y límites */}
-      <section className="max-w-marketing mx-auto px-8 pb-20">
+      <section className="landing-flow-section max-w-marketing mx-auto px-8 pb-20">
         <div className="eyebrow eyebrow-accent mb-4">{c.rigor.eyebrow}</div>
         <h2 className="display m-0 max-w-[760px] text-3xl text-fg sm:text-4xl">{c.rigor.title}</h2>
         <p className="mt-5 mb-10 max-w-[720px] text-[18px] leading-[1.55] text-hg-charcoal">
@@ -96,7 +96,7 @@ export default function MetodoPage() {
       <HowItWorksTimeline />
 
       {/* CTA final */}
-      <section className="max-w-marketing mx-auto px-8 pb-32">
+      <section className="landing-flow-section max-w-marketing mx-auto px-8">
         <div className="flex flex-col items-start gap-6 rounded-2xl bg-hg-ink p-10 sm:p-14">
           <h2 className="display m-0 max-w-[620px] text-3xl text-hg-cream sm:text-4xl">
             {c.cta.title}
@@ -110,6 +110,6 @@ export default function MetodoPage() {
           </Link>
         </div>
       </section>
-    </>
+    </div>
   );
 }

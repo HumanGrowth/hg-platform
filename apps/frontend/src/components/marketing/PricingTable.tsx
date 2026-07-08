@@ -1,9 +1,11 @@
+"use client";
+
 import { Check } from "lucide-react";
 import Link from "next/link";
 
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { HeroWatermark } from "@/components/marketing/HeroWatermark";
 import { Card } from "@/components/ui/card";
-import { getCopy } from "@/lib/i18n";
 
 const FEATURES = [
   "Diagnóstico inicial con base científica",
@@ -31,9 +33,9 @@ function FeatureItem({ children }: { children: React.ReactNode }) {
 
 /** @deprecated Removido del home (web-v2). La página /pricing sigue vigente. */
 export default function PricingTable() {
-  const c = getCopy("es").pricing;
+  const c = useMarketingCopy().pricing;
   return (
-    <section className="relative overflow-hidden max-w-marketing mx-auto px-8 py-32">
+    <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
       <HeroWatermark />
       <div className="flex flex-col items-center text-center mb-12">
         <div className="eyebrow eyebrow-accent mb-4">{c.eyebrow}</div>

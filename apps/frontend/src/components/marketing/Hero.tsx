@@ -2,40 +2,40 @@
 
 import Link from "next/link";
 
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { HeroWatermark } from "@/components/marketing/HeroWatermark";
-import { t } from "@/lib/i18n";
-
-const LANG = "es" as const;
 
 /** Marketing hero. CTAs: Conversemos → /contacto · Ver dimensiones → scroll #dimensiones. */
 export default function Hero() {
+  const c = useMarketingCopy().hero;
+
   return (
-    <section className="relative overflow-hidden max-w-marketing mx-auto px-8 pt-36 pb-32">
+    <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
       <HeroWatermark />
 
       <div className="relative max-w-[920px]">
-        <div className="eyebrow eyebrow-accent mb-6">{t("hero.eyebrow", LANG)}</div>
+        <div className="eyebrow eyebrow-accent mb-6">{c.eyebrow}</div>
         <h1
           className="display text-fg m-0"
           style={{ fontSize: "clamp(56px, 8vw, 96px)", lineHeight: 0.95, textWrap: "balance" }}
-          aria-label={`${t("hero.titleLine1", LANG)} ${t("hero.titleLine2", LANG)}`}
+          aria-label={`${c.titleLine1} ${c.titleLine2}`}
         >
-          <span aria-hidden>{t("hero.titleLine1", LANG)}</span>
+          <span aria-hidden>{c.titleLine1}</span>
           <br aria-hidden="true" />
-          <span aria-hidden>{t("hero.titleLine2", LANG)}</span>
+          <span aria-hidden>{c.titleLine2}</span>
         </h1>
         <p className="text-lg md:text-xl leading-relaxed max-w-[560px] mt-6 text-hg-charcoal">
-          {t("hero.bodyP1", LANG)}
+          {c.bodyP1}
         </p>
         <p className="text-lg md:text-xl leading-relaxed max-w-[560px] mt-4 mb-9 text-hg-charcoal">
-          {t("hero.bodyP2", LANG)}
+          {c.bodyP2}
         </p>
         <div className="flex gap-3 items-center flex-wrap">
           <Link
             href="/contacto"
             className="bg-primary text-white border-0 px-7 py-4 rounded-md font-semibold text-base cursor-pointer whitespace-nowrap hover:bg-primary-hover transition-colors"
           >
-            {t("hero.ctaPrimary", LANG)}
+            {c.ctaPrimary}
           </Link>
           <button
             type="button"
@@ -46,7 +46,7 @@ export default function Hero() {
             }
             className="bg-transparent text-fg border border-[color:var(--border-strong)] px-7 py-[15px] rounded-md font-semibold text-base cursor-pointer whitespace-nowrap hover:bg-bg-sunken transition-colors"
           >
-            {t("hero.ctaSecondary", LANG)}
+            {c.ctaSecondary}
           </button>
           <div className="ml-3 flex items-center gap-2.5">
             <div className="flex">
@@ -58,7 +58,7 @@ export default function Hero() {
                 />
               ))}
             </div>
-            <span className="body-sm font-medium">{t("hero.socialProof", LANG)}</span>
+            <span className="body-sm font-medium">{c.socialProof}</span>
           </div>
         </div>
       </div>

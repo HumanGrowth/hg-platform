@@ -1,6 +1,8 @@
+"use client";
+
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { getCopy } from "@/lib/i18n";
 
 /**
  * "Cómo funciona" — línea de tiempo horizontal 1→4 (items 12-13).
@@ -8,11 +10,11 @@ import { getCopy } from "@/lib/i18n";
  * Mobile: stack vertical con el número a la izquierda.
  */
 export default function HowItWorksTimeline() {
-  const c = getCopy("es");
+  const c = useMarketingCopy();
   const { eyebrow, title, steps } = c.howItWorks;
 
   return (
-    <section className="max-w-marketing mx-auto px-8 py-32">
+    <section className="landing-flow-section max-w-marketing mx-auto px-8">
       <div className="max-w-[760px] mb-14">
         <Eyebrow accent className="mb-4">
           {eyebrow}

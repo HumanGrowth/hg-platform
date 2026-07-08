@@ -1,14 +1,16 @@
+"use client";
+
 import Link from "next/link";
 
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { getCopy } from "@/lib/i18n";
 
 /** CTA final del home → /contacto + /pricing (decisión H, web-v3). */
 export function HomeCTAFinal() {
-  const c = getCopy("es").homeCta;
+  const c = useMarketingCopy().homeCta;
   return (
-    <section className="max-w-marketing mx-auto px-8 py-24 text-center">
+    <section className="landing-flow-section max-w-marketing mx-auto px-8 text-center">
       <Eyebrow accent className="mb-6">
         {c.eyebrow}
       </Eyebrow>

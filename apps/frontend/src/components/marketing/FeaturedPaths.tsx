@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { GROWTH_PATHS, type PillarId } from "@/lib/growth-paths";
-import { getCopy } from "@/lib/i18n";
 import { PILLARS, pillarShortName } from "@/lib/pillars";
 
 import { PathCard } from "./PathCard";
@@ -16,7 +16,7 @@ import { PathCard } from "./PathCard";
  */
 /** @deprecated Sin consumidores desde web-v3-11: /perspectivas ahora usa PerspectivasFilter (content types CMS). */
 export function FeaturedPaths() {
-  const c = getCopy("es");
+  const c = useMarketingCopy();
   const [pillar, setPillar] = useState<PillarId | "all">("all");
 
   const shown = useMemo(

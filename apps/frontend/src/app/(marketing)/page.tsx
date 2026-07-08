@@ -16,7 +16,7 @@ export const metadata = {
 
 export default function LandingPage() {
   return (
-    <>
+    <div className="landing-flow">
       <Hero />
       <LogoCloud />
       <SixPillars />
@@ -26,6 +26,6 @@ export default function LandingPage() {
       <HowItWorksTimeline />
       <Quote />
       <HomeCTAFinal />
-    </>
+    </div>
   );
 }

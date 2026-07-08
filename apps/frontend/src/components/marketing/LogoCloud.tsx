@@ -1,9 +1,11 @@
-import { getCopy } from "@/lib/i18n";
+"use client";
+
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 
 export default function LogoCloud() {
-  const c = getCopy("es");
+  const c = useMarketingCopy();
   return (
-    <section className="max-w-marketing mx-auto px-8 pb-20 text-center">
+    <section className="landing-flow-section max-w-marketing mx-auto px-8 text-center">
       <div className="eyebrow mb-5">{c.logoCloud.eyebrow}</div>
       {/* Logos placeholder con blur alto: aún no son partners reales. */}
       <div

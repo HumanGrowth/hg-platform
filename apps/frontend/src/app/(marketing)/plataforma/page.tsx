@@ -25,8 +25,8 @@ const ICONS: Record<string, typeof BarChart3> = {
 export default function PlataformaPage() {
   const c = getCopy("es").plataforma;
   return (
-    <>
-      <section className="relative overflow-hidden max-w-marketing mx-auto px-8 pt-36 pb-20">
+    <div className="landing-flow">
+      <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
         <HeroWatermark />
         <div className="relative max-w-[920px]">
           <div className="eyebrow eyebrow-accent mb-6">{c.hero.eyebrow}</div>
@@ -35,7 +35,7 @@ export default function PlataformaPage() {
         </div>
       </section>
 
-      <section className="max-w-marketing mx-auto grid gap-6 px-8 pb-24 md:grid-cols-3">
+      <section className="landing-flow-section max-w-marketing mx-auto grid gap-6 px-8 md:grid-cols-3">
         {c.features.map((f) => {
           const Icon = ICONS[f.icon];
           return (
@@ -50,6 +50,6 @@ export default function PlataformaPage() {
           );
         })}
       </section>
-    </>
+    </div>
   );
 }
