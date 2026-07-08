@@ -1,0 +1,48 @@
+"use client";
+
+import { useState } from "react";
+
+import { getCopy } from "@/lib/i18n";
+
+/**
+ * Chips por content type de Perspectivas (Blog · Artículos · Business cases ·
+ * Whitepapers). Sin data todavía: el CMS backend vive en el prompt
+ * claude-code_perspectivas_cms.md — cuando exista, la grilla se puebla via
+ * fetch filtrado por el chip activo.
+ */
+export function PerspectivasFilter() {
+  const c = getCopy("es").perspectives;
+  const [active, setActive] = useState<string>("all");
+
+  const chip = (isActive: boolean) =>
+    `px-3.5 py-2 rounded-full text-[13px] font-medium cursor-pointer transition-colors border ${
+      isActive
+        ? "bg-hg-ink text-hg-cream border-transparent"
+        : "bg-transparent text-hg-charcoal border-border-strong hover:bg-bg-sunken"
+    }`;
+
+  return (
+    <section className="max-w-marketing mx-auto px-8 pb-32">
+      <div className="mb-10 flex flex-wrap gap-2">
+        <button type="button" className={chip(active === "all")} onClick={() => setActive("all")}>
+          Todo
+        </button>
+        {c.contentTypes.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={chip(active === t.id)}
+            onClick={() => setActive(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Empty state hasta que el CMS provea contenido */}
+      <div className="py-16 text-center">
+        <p className="body-lg text-fg-muted">{c.emptyState}</p>
+      </div>
+    </section>
+  );
+}

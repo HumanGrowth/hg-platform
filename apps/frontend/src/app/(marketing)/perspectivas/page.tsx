@@ -1,4 +1,4 @@
-import { FeaturedPaths } from "@/components/marketing/FeaturedPaths";
+import { PerspectivasFilter } from "@/components/marketing/PerspectivasFilter";
 import { HeroWatermark } from "@/components/marketing/HeroWatermark";
 import { getCopy } from "@/lib/i18n";
 
@@ -6,7 +6,8 @@ const c = getCopy("es").perspectives;
 
 export const metadata = { title: c.metaTitle };
 
-// "Nuevo este trimestre" migrado del home a su propio tab (item 14).
+// Perspectivas: hub de contenido (Blog · Artículos · Casos · Whitepapers).
+// El CMS backend vive en claude-code_perspectivas_cms.md (prompt separado).
 export default function PerspectivasPage() {
   return (
     <>
@@ -18,7 +19,7 @@ export default function PerspectivasPage() {
           {c.subtitle}
         </p>
       </section>
-      <FeaturedPaths />
+      <PerspectivasFilter />
     </>
   );
 }

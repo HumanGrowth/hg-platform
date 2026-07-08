@@ -8,10 +8,18 @@ export const es = {
     cta: "Conversemos",
   },
   perspectives: {
-    metaTitle: "Perspectivas — Human Growth",
+    metaTitle: "Perspectivas · Human Growth",
     eyebrow: "PERSPECTIVAS",
-    title: "Lo nuevo de este trimestre.",
-    subtitle: "Trayectos de crecimiento por dimensión. Filtrá por la que más lo necesita.",
+    title: "Ideas que crecen con vos.",
+    subtitle:
+      "Blog, artículos, casos y whitepapers sobre desarrollo humano y crecimiento profesional.",
+    contentTypes: [
+      { id: "blog", label: "Blog" },
+      { id: "articulo", label: "Artículos" },
+      { id: "caso", label: "Business cases" },
+      { id: "whitepaper", label: "Whitepapers" },
+    ],
+    emptyState: "Contenido próximamente. Estamos preparando material que te va a interesar.",
   },
   comingSoon: {
     title: "Próximamente.",

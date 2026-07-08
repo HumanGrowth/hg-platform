@@ -14,6 +14,7 @@ import { PathCard } from "./PathCard";
  * del catálogo /paths). Vive en /perspectivas (web-v2-14). El heading lo pone el
  * hero de la página; acá solo van los pills + la grilla filtrada en vivo.
  */
+/** @deprecated Sin consumidores desde web-v3-11: /perspectivas ahora usa PerspectivasFilter (content types CMS). */
 export function FeaturedPaths() {
   const c = getCopy("es");
   const [pillar, setPillar] = useState<PillarId | "all">("all");

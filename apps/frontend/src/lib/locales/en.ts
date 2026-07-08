@@ -8,10 +8,18 @@ export const en = {
     cta: "Let's talk",
   },
   perspectives: {
-    metaTitle: "Perspectives — Human Growth",
+    metaTitle: "Perspectives · Human Growth",
     eyebrow: "PERSPECTIVES",
-    title: "What's new this quarter.",
-    subtitle: "Growth journeys by dimension. Filter by the one that needs it most.",
+    title: "Ideas that grow with you.",
+    subtitle:
+      "Blog, articles, cases and whitepapers on human development and professional growth.",
+    contentTypes: [
+      { id: "blog", label: "Blog" },
+      { id: "articulo", label: "Articles" },
+      { id: "caso", label: "Business cases" },
+      { id: "whitepaper", label: "Whitepapers" },
+    ],
+    emptyState: "Content coming soon. We're preparing material you'll find interesting.",
   },
   comingSoon: {
     title: "Coming soon.",

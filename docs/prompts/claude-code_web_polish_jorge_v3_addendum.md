@@ -542,7 +542,7 @@ Wire en `page.tsx` — colocar entre `WhatIsHg` y `HowItWorksTimeline` (o donde 
 
 ---
 
-## TASK web-v3-11 · Perspectivas frontend prep · content types genéricos · `[ ]`
+## TASK web-v3-11 · Perspectivas frontend prep · content types genéricos · `[x]`
 
 **Sin backend CMS todavía** (eso va en prompt separado). Este task solo prepara el frontend para consumir content types (Blog, Artículos, Business Cases, Whitepapers).
 
@@ -783,7 +783,7 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 | web-v3-08 | /metodo cleanup + radar back-to-back | `[x]` |
 | web-v3-09 | /plataforma real | `[x]` |
 | web-v3-10 | ProductStack en home | `[x]` |
-| web-v3-11 | Perspectivas frontend prep | `[ ]` |
+| web-v3-11 | Perspectivas frontend prep | `[x]` |
 | web-v3-12 | Radar nuevo esquema | `[ ]` |
 | web-v3-13 | Language toggle drawer | `[ ]` |
 | web-v3-14 | Placeholders cleanup | `[ ]` |
