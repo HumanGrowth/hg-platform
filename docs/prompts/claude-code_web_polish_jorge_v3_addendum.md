@@ -325,7 +325,7 @@ Eliminar `src/app/(marketing)/blog/page.tsx` (o dejar redirect 308 a `/perspecti
 
 ---
 
-## TASK web-v3-08 · /metodo cleanup · referencias out + pilares user-friendly · `[ ]`
+## TASK web-v3-08 · /metodo cleanup · referencias out + pilares user-friendly · `[x]`
 
 Cambios pedidos por Jorge/Andrés:
 
@@ -780,7 +780,7 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 | web-v3-05 | HomeCTAFinal | `[x]` |
 | web-v3-06 | Bug P5↔P6 swap | `[x]` |
 | web-v3-07 | Nav 4 tabs · Blog out · Método | `[x]` |
-| web-v3-08 | /metodo cleanup + radar back-to-back | `[ ]` |
+| web-v3-08 | /metodo cleanup + radar back-to-back | `[x]` |
 | web-v3-09 | /plataforma real | `[ ]` |
 | web-v3-10 | ProductStack en home | `[ ]` |
 | web-v3-11 | Perspectivas frontend prep | `[ ]` |

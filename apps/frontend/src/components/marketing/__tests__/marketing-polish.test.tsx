@@ -82,7 +82,8 @@ describe("MetodoPage", () => {
     }
     // Rigor y límites (transparencia = diferenciador de marca)
     expect(screen.getByText("Correlación vs. causalidad")).toBeTruthy();
-    // Fuentes numeradas
-    expect(screen.getByText(/Holt-Lunstad/)).toBeTruthy();
+    // web-v3: sin sección de referencias ni citas académicas
+    expect(screen.queryByText(/Holt-Lunstad/)).toBeNull();
+    expect(screen.queryByText("Referencias citadas.")).toBeNull();
   });
 });
