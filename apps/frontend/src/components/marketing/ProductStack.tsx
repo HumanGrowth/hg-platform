@@ -4,6 +4,9 @@ import Link from "next/link";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { MotionSection } from "@/components/motion/MotionSection";
+import { BrandCircle } from "@/components/motion/BrandCircle";
+import { BrandLine } from "@/components/motion/BrandLine";
+import { DecoLayer } from "@/components/motion/DecoLayer";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 
@@ -23,6 +26,10 @@ export function ProductStack() {
   const c = useMarketingCopy().productStack;
   return (
     <section className="landing-flow-section max-w-marketing mx-auto px-8">
+      <DecoLayer>
+        <BrandLine length={320} rotation={15} top="12%" right="8%" color="var(--hg-gold)" opacity={0.3} speed={0.1} />
+        <BrandCircle size={360} bottom="-10%" left="-6%" color="var(--hg-sage)" opacity={0.25} speed={0.12} />
+      </DecoLayer>
       <MotionSection as="div" className="grid items-center gap-12 md:grid-cols-2">
       <div>
         <Eyebrow accent className="mb-6">

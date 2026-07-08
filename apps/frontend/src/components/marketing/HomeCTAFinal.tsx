@@ -4,6 +4,9 @@ import Link from "next/link";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { MotionSection } from "@/components/motion/MotionSection";
+import { BrandCircle } from "@/components/motion/BrandCircle";
+import { BrandLine } from "@/components/motion/BrandLine";
+import { DecoLayer } from "@/components/motion/DecoLayer";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 
@@ -12,6 +15,9 @@ export function HomeCTAFinal() {
   const c = useMarketingCopy().homeCta;
   return (
     <section className="landing-flow-section max-w-marketing mx-auto px-8 text-center">
+      <DecoLayer>
+        <BrandCircle size={560} top="-20%" left="calc(50% - 280px)" color="var(--hg-green-100)" opacity={0.5} speed={0.18} />
+      </DecoLayer>
       <MotionSection as="div">
       <Eyebrow accent className="mb-6">
         {c.eyebrow}

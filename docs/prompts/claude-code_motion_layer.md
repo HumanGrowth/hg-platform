@@ -437,7 +437,7 @@ Editar `src/app/(marketing)/page.tsx` y wrappear cada sección con `<MotionSecti
 
 ---
 
-## TASK motion-07 · Elementos decorativos en 6 pages marketing · `[ ]`
+## TASK motion-07 · Elementos decorativos en 6 pages marketing · `[x]`
 
 Usar `<BrandCircle/>` y `<BrandLine/>` en las secciones para dar profundidad de marca.
 
@@ -606,5 +606,5 @@ Para el último screenshot, usar Chrome DevTools > Rendering > Emulate CSS media
 | motion-04 | `<BrandLine/>` | `[x]` |
 | motion-05 | Hover motion Button + Card | `[x]` |
 | motion-06 | Wire MotionSection en home | `[x]` |
-| motion-07 | Decorativos en 6 pages | `[ ]` |
+| motion-07 | Decorativos en 6 pages | `[x]` |
 | motion-08 | Tests + performance + screenshots | `[ ]` |

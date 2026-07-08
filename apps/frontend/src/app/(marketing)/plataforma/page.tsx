@@ -8,6 +8,9 @@ import {
 } from "lucide-react";
 
 import { HeroWatermark } from "@/components/marketing/HeroWatermark";
+import { BrandCircle } from "@/components/motion/BrandCircle";
+import { BrandLine } from "@/components/motion/BrandLine";
+import { DecoLayer } from "@/components/motion/DecoLayer";
 import { getCopy } from "@/lib/i18n";
 
 export const metadata = { title: "Plataforma · Human Growth" };
@@ -27,6 +30,9 @@ export default function PlataformaPage() {
   return (
     <div className="landing-flow">
       <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
+        <DecoLayer>
+          <BrandCircle size={420} top="10%" left="-8%" color="var(--hg-green-100)" opacity={0.4} speed={0.15} />
+        </DecoLayer>
         <HeroWatermark />
         <div className="relative max-w-[920px]">
           <div className="eyebrow eyebrow-accent mb-6">{c.hero.eyebrow}</div>
@@ -35,7 +41,10 @@ export default function PlataformaPage() {
         </div>
       </section>
 
-      <section className="landing-flow-section max-w-marketing mx-auto grid gap-6 px-8 md:grid-cols-3">
+      <section className="landing-flow-section relative max-w-marketing mx-auto grid gap-6 px-8 md:grid-cols-3">
+        <DecoLayer>
+          <BrandLine length={280} rotation={8} bottom="4%" left="6%" color="var(--hg-sage)" opacity={0.35} speed={0.1} />
+        </DecoLayer>
         {c.features.map((f) => {
           const Icon = ICONS[f.icon];
           return (

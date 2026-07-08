@@ -2,6 +2,9 @@
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { MotionSection } from "@/components/motion/MotionSection";
+import { BrandCircle } from "@/components/motion/BrandCircle";
+import { BrandLine } from "@/components/motion/BrandLine";
+import { DecoLayer } from "@/components/motion/DecoLayer";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { pillarIconSrc } from "@/lib/pillars";
@@ -18,6 +21,9 @@ export default function SixPillars() {
       id="dimensiones"
       className="landing-flow-section scroll-mt-24 border-t border-b border-border"
     >
+      <DecoLayer>
+        <BrandCircle size={480} top="4%" right="-6%" color="var(--hg-green-100)" opacity={0.45} speed={0.15} />
+      </DecoLayer>
       <MotionSection as="div" className="max-w-marketing mx-auto px-8">
         <div className="max-w-[760px] mb-14">
           <Eyebrow accent className="mb-4">

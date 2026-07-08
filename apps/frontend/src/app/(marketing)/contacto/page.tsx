@@ -2,6 +2,9 @@ import { Linkedin, Mail } from "lucide-react";
 
 import ContactForm from "@/components/marketing/ContactForm";
 import { PageBottomIsotype } from "@/components/marketing/PageBottomIsotype";
+import { BrandCircle } from "@/components/motion/BrandCircle";
+import { BrandLine } from "@/components/motion/BrandLine";
+import { DecoLayer } from "@/components/motion/DecoLayer";
 
 export const metadata = { title: "Conversemos — Human Growth" };
 
@@ -9,6 +12,10 @@ export default function ContactoPage() {
   return (
     <div className="landing-flow">
       <section className="landing-flow-section relative overflow-hidden px-8 pt-36 pb-8 text-center">
+        <DecoLayer>
+          <BrandCircle size={340} top="10%" left="-5%" color="var(--hg-green-100)" opacity={0.4} speed={0.12} />
+          <BrandLine length={220} rotation={12} bottom="14%" right="6%" color="var(--hg-gold)" opacity={0.3} speed={0.1} />
+        </DecoLayer>
         <div className="eyebrow eyebrow-accent mb-6 flex justify-center">Contacto</div>
         <h1 className="display text-fg text-4xl sm:text-5xl m-0">
           Conversemos

@@ -1,6 +1,9 @@
 import Link from "next/link";
 
 import { HeroWatermark } from "@/components/marketing/HeroWatermark";
+import { BrandCircle } from "@/components/motion/BrandCircle";
+import { BrandLine } from "@/components/motion/BrandLine";
+import { DecoLayer } from "@/components/motion/DecoLayer";
 import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
 import MarketingRadar from "@/components/marketing/MarketingRadar";
 import { MethodPillars } from "@/components/marketing/MethodPillars";
@@ -19,6 +22,9 @@ export default function MetodoPage() {
     <div className="landing-flow">
       {/* Hero */}
       <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
+        <DecoLayer>
+          <BrandCircle size={420} top="8%" left="-8%" color="var(--hg-green-100)" opacity={0.4} speed={0.15} />
+        </DecoLayer>
         <HeroWatermark />
         <div className="eyebrow eyebrow-accent mb-6">{c.hero.eyebrow}</div>
         <h1 className="display text-fg m-0 text-[56px] leading-[0.95] sm:text-[80px] lg:text-[96px]">
@@ -62,6 +68,9 @@ export default function MetodoPage() {
 
       {/* Los 6 pilares */}
       <section className="landing-flow-section max-w-marketing mx-auto px-8">
+        <DecoLayer>
+          <BrandLine length={300} rotation={-12} bottom="6%" right="4%" color="var(--hg-gold)" opacity={0.3} speed={0.1} />
+        </DecoLayer>
         <div className="eyebrow eyebrow-accent mb-4">{c.pillarsHeading.eyebrow}</div>
         <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">
           {c.pillarsHeading.title}

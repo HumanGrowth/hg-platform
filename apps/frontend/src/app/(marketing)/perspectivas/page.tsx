@@ -1,5 +1,8 @@
 import { PerspectivasFilter } from "@/components/marketing/PerspectivasFilter";
 import { HeroWatermark } from "@/components/marketing/HeroWatermark";
+import { BrandCircle } from "@/components/motion/BrandCircle";
+import { BrandLine } from "@/components/motion/BrandLine";
+import { DecoLayer } from "@/components/motion/DecoLayer";
 import { getCopy } from "@/lib/i18n";
 
 const c = getCopy("es").perspectives;
@@ -12,6 +15,9 @@ export default function PerspectivasPage() {
   return (
     <div className="landing-flow">
       <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
+        <DecoLayer>
+          <BrandCircle size={380} top="6%" left="-7%" color="var(--hg-green-100)" opacity={0.4} speed={0.15} />
+        </DecoLayer>
         <HeroWatermark />
         <div className="eyebrow eyebrow-accent mb-6">{c.eyebrow}</div>
         <h1 className="display text-fg m-0 text-5xl sm:text-6xl">{c.title}</h1>
