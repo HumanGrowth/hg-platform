@@ -1,10 +1,9 @@
 export const en = {
   nav: {
     platform: "Platform",
-    science: "Science",
+    science: "Method",
     perspectives: "Perspectives",
     pricing: "Pricing",
-    blog: "Blog",
     login: "Log in",
     cta: "Let's talk",
   },

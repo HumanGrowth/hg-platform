@@ -59,12 +59,14 @@ describe("Hero (web-v2)", () => {
   });
 });
 
-describe("Nav (web-v2)", () => {
-  it("renders the 5 tabs and no 'Solicitar unirse'", () => {
+describe("Nav (web-v3)", () => {
+  it("renders the 4 tabs (Blog out, Método rename) and no 'Solicitar unirse'", () => {
     render(<Nav />);
-    for (const tab of ["Plataforma", "Ciencia", "Perspectivas", "Precios", "Blog"]) {
+    for (const tab of ["Plataforma", "Método", "Perspectivas", "Precios"]) {
       expect(screen.getAllByText(tab).length).toBeGreaterThan(0);
     }
+    expect(screen.queryByText("Blog")).toBeNull();
+    expect(screen.queryByText("Ciencia")).toBeNull();
     expect(screen.queryByText(/Solicitar unirse/)).toBeNull();
   });
 });

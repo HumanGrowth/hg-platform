@@ -18,7 +18,11 @@ const nextConfig = {
   // routing (edge, 308) — más robusto que un redirect() de página, que bajo
   // static generation en Vercel devolvía un 307 sin Location (__next_error__).
   async redirects() {
-    return [{ source: "/ciencia", destination: "/metodo", permanent: true }];
+    return [
+      { source: "/ciencia", destination: "/metodo", permanent: true },
+      // web-v3 decisión A: Blog vive dentro de Perspectivas (CMS content type).
+      { source: "/blog", destination: "/perspectivas", permanent: true },
+    ];
   },
 };
 

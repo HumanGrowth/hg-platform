@@ -10,15 +10,14 @@ import { t } from "@/lib/i18n";
 
 const LANG = "es" as const;
 
-// El tab "Ciencia" apunta directo a /metodo (la página real); /ciencia mantiene
-// su redirect 308 en next.config para enlaces viejos. (typedRoutes rechaza
-// /ciencia porque ya no tiene page.tsx.)
+// web-v3 (decisiones A+B): 4 tabs. "Método" apunta a /metodo (label renombrado
+// de "Ciencia"); Blog salió del nav — vive dentro de Perspectivas (/blog
+// redirige 308 en next.config). /ciencia mantiene su redirect para links viejos.
 const TABS: { label: string; href: Route }[] = [
   { label: t("nav.platform", LANG), href: "/plataforma" },
   { label: t("nav.science", LANG), href: "/metodo" },
   { label: t("nav.perspectives", LANG), href: "/perspectivas" },
   { label: t("nav.pricing", LANG), href: "/pricing" },
-  { label: t("nav.blog", LANG), href: "/blog" },
 ];
 
 /** Marketing top nav — 4 tabs + language toggle + drawer mobile (web-v2-08). */

@@ -278,7 +278,7 @@ pillar.p6: "#e8a030" // Estabilidad — amber
 
 ---
 
-## TASK web-v3-07 · Nav rewrite v2 · 4 tabs + rename + drawer mobile · `[ ]`
+## TASK web-v3-07 · Nav rewrite v2 · 4 tabs + rename + drawer mobile · `[x]`
 
 Cambios:
 
@@ -779,7 +779,7 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 | web-v3-04 | Timeline pasos 3-4 | `[x]` |
 | web-v3-05 | HomeCTAFinal | `[x]` |
 | web-v3-06 | Bug P5↔P6 swap | `[x]` |
-| web-v3-07 | Nav 4 tabs · Blog out · Método | `[ ]` |
+| web-v3-07 | Nav 4 tabs · Blog out · Método | `[x]` |
 | web-v3-08 | /metodo cleanup + radar back-to-back | `[ ]` |
 | web-v3-09 | /plataforma real | `[ ]` |
 | web-v3-10 | ProductStack en home | `[ ]` |
