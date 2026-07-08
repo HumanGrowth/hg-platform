@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
+import MarketingRadar from "@/components/marketing/MarketingRadar";
 import { MethodPillars } from "@/components/marketing/MethodPillars";
 import { MethodSteps } from "@/components/marketing/MethodSteps";
 import { getCopy } from "@/lib/i18n";
@@ -72,6 +74,9 @@ export default function MetodoPage() {
         />
       </section>
 
+      {/* Radar ilustrativo */}
+      <MarketingRadar />
+
       {/* Rigor y límites */}
       <section className="max-w-marketing mx-auto px-8 pb-20">
         <div className="eyebrow eyebrow-accent mb-4">{c.rigor.eyebrow}</div>
@@ -102,6 +107,9 @@ export default function MetodoPage() {
           ))}
         </ol>
       </section>
+
+      {/* Journey de producto · consistente con el home (item 22) */}
+      <HowItWorksTimeline />
 
       {/* CTA final */}
       <section className="max-w-marketing mx-auto px-8 pb-32">

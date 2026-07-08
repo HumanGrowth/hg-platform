@@ -1,23 +1,80 @@
 export const en = {
   nav: {
-    paths: "Growth Paths",
-    mentorships: "Mentorships",
-    forTeams: "For Teams",
-    method: "The Method",
+    platform: "Platform",
+    science: "Science",
+    perspectives: "Perspectives",
     pricing: "Pricing",
+    blog: "Blog",
     login: "Log in",
-    getStarted: "Let's talk",
+    cta: "Let's talk",
+  },
+  perspectives: {
+    metaTitle: "Perspectives — Human Growth",
+    eyebrow: "PERSPECTIVES",
+    title: "What's new this quarter.",
+    subtitle: "Growth journeys by dimension. Filter by the one that needs it most.",
+  },
+  comingSoon: {
+    title: "Coming soon.",
+    back: "Back to home",
   },
   hero: {
-    eyebrow: "HUMAN SKILLS PLATFORM · LATAM",
-    titleLine1: "Grow on",
-    titleLine2: "purpose.",
-    bodyBefore: "A 6-dimension growth system for professionals across LatAm. Not courses. The difference between the person who ",
-    bodyEm: "stays",
-    bodyAfter: " and the one who walks out the door.",
-    ctaPrimary: "Explore paths",
-    ctaSecondary: "For your company",
-    socialProof: "14,300+ professionals growing today",
+    eyebrow: "GROWTH SYSTEM · LATAM",
+    titleLine1: "Human skills for talent decisions:",
+    titleLine2: "performance, retention and growth.",
+    bodyP1:
+      "Human Growth is a 6-dimension growth system that measures and develops your team's human skills — career, purpose, relationships, health, inner peace and stability — grounded in science.",
+    bodyP2:
+      "You go from training \"just in case\" to knowing exactly which dimension holds each person back: who to support, who to retain, and where to invest.",
+    ctaPrimary: "Let's talk →",
+    ctaSecondary: "See dimensions",
+    socialProof: "Built for professionals and teams across LatAm",
+  },
+  sixPillars: {
+    eyebrow: "THE SCIENCE BEHIND US",
+    title: "6 dimensions of the complete professional.",
+    subtitle: "We don't develop isolated skills. We develop whole people.",
+    items: [
+      { code: "P1", title: "Career & impact", body: "Grow professionally with a clear map of your next step." },
+      { code: "P2", title: "Purpose & meaning", body: "Connect your work to something that truly matters to you." },
+      { code: "P3", title: "Relationships & connection", body: "Build networks that hold you up and push you forward." },
+      { code: "P4", title: "Health & wellbeing", body: "Sleep, movement and energy to sustain performance." },
+      { code: "P5", title: "Inner peace & clarity", body: "Regulate your internal states in the presence of stress." },
+      { code: "P6", title: "Emotional & material stability", body: "Resilience and financial security as a foundation." },
+    ],
+  },
+  marketingRadar: {
+    eyebrow: "YOUR RADAR",
+    title: "A snapshot of the 6 dimensions.",
+    caption: "Illustrative example — each user sees their own radar in the platform.",
+  },
+  whatIsHg: {
+    eyebrow: "PRODUCT",
+    title: "How does HG work?",
+    cards: [
+      {
+        title: "What is HG?",
+        body: "A platform that develops every team member holistically: the skills to be more human and the business competencies their role demands.",
+      },
+      {
+        title: "What does HG do?",
+        body: "It diagnoses the gaps of the individual and the organization, and closes them by running the same four-stage process.",
+      },
+      {
+        title: "How does HG work?",
+        body: "1. Diagnosis → 2. Personalized learning units → 3. Organizational support → 4. Event.",
+      },
+    ],
+  },
+  howItWorks: {
+    eyebrow: "HOW IT WORKS",
+    title: "The path in 4 steps.",
+    steps: [
+      { n: 1, title: "Diagnosis", body: "We explain the why, the how, and what it reveals." },
+      { n: 2, title: "Paths", body: "The map of opportunities: growth journeys with a micro-learning system." },
+      { n: 3, title: "Mentorships available", body: "Guidance from someone who's already been there." },
+      { n: 4, title: "Events", body: "The culmination of human development." },
+    ],
   },
   logoCloud: {
     eyebrow: "COMPANIES THAT TRUST HG",
@@ -59,26 +116,19 @@ export const en = {
   },
   quote: {
     eyebrow: "WHY WE BUILT THIS",
-    bodyA: "28% of talent in LatAm turns over every year. Companies invest in technical training. The problem is almost never technical. It's that the person doesn't know ",
-    bodyEm: "what for",
-    bodyB: " they work, doesn't trust their boss, or is burned out. That can be measured. And it can be solved.",
-    name: "Jorge Salas",
-    role: "Founder · HumanGrowth",
+    p1: "Deloitte confirms that 9 out of 10 professionals know human skills define their career. Yet half say their company doesn't develop them. It's not a lack of will: there was no way to do it.",
+    ending: "Until now.",
+    author: "Jorge Araya",
+    authorTitle: "Founder · HumanGrowth",
+    source: "Source: Deloitte, Workplace Skills Survey, October 2024.",
   },
   pricing: {
     eyebrow: "PRICING",
-    title: "Pay for use. Not for a catalog nobody opens.",
-    monthly: "Monthly",
-    annual: "Annual (save 2 months)",
-    perSeat: "seat / month",
-    perMonth: "month",
-    letsTalk: "Let's talk",
-    badge: "Most teams pick this",
-    tiers: [
-      { name: "Individual Plan", tagline: "For the professional ready to grow.", features: ["All paths + library", "Verified badges", "1 mentorship session per quarter", "Access to live talks and replays", "Web and mobile"], cta: "Start 14-day free trial" },
-      { name: "Team Plan", tagline: "For 5 to 500 people. Manager view included.", features: ["Everything in Individual", "Manager dashboard: who is growing in what", "Custom paths per company", "4 mentorship sessions / quarter / seat", "Automatic notifications to direct managers", "SSO + HRIS integration"], cta: "Talk to sales" },
-      { name: "Enterprise Plan", tagline: "For 500+ people. Bespoke paths.", features: ["Everything in Team", "Dedicated account manager", "Mentors curated by industry", "Reports and API", "Private cohorts", "Procurement support"], cta: "Talk to sales" },
-    ],
+    title: "Every company is different.",
+    subtitle:
+      "We talk with you to understand your team, define the scope, and build a proposal tailored to you.",
+    cta: "Let's talk",
+    ctaNote: "Individual or group pricing coming soon.",
   },
   forTeams: {
     eyebrow: "FOR TEAMS",
@@ -88,15 +138,21 @@ export const en = {
     cta: "Talk to sales",
   },
   footer: {
-    tagline: "A 6-dimension growth system for professionals across LatAm.",
-    columns: [
-      { h: "Product", items: ["Growth Paths", "Mentorships", "Badges", "Diagnostic", "Library"] },
-      { h: "For Teams", items: ["Pricing", "Manager view", "Custom paths", "Procurement"] },
-      { h: "Resources", items: ["Blog", "Case studies", "Help center", "API docs", "Status"] },
-      { h: "Company", items: ["About", "Careers", "Press kit", "Contact"] },
+    sections: [
+      { title: "Platform", href: "/plataforma" },
+      { title: "Science", href: "/ciencia" },
+      { title: "Resources", href: "#" },
+      { title: "Contact", href: "/contacto" },
     ],
+    tagline: "A 6-dimension growth system for professionals across LatAm.",
     rights: "© 2026 HumanGrowth. Made from LatAm, for LatAm.",
-    legal: ["Privacy", "Terms", "Security", "Status"],
+    legal: [
+      { label: "Privacy", href: "#" },
+      { label: "Terms", href: "#" },
+      { label: "Security", href: "#" },
+    ],
+    email: "admin@humangrowth.io",
+    linkedin: "https://www.linkedin.com/company/humangrowthlatam",
   },
   method: {
     meta: {
@@ -154,7 +210,7 @@ export const en = {
     latamLabel: "LATAM-adapted",
     pillars: [
       {
-        code: "P1", name: "Career & impact", tag: "6 levels · PMM",
+        code: "P1", name: "Career & impact", tag: "6 levels",
         definition: "The degree of development of the competencies that allow someone to perform with autonomy, judgment, and the ability to enable others.",
         notWhat: "It isn't title, tenure, or salary: it's a progression of capability, not an accumulation of years.",
         roots: "Dreyfus & Dreyfus (1980, skill acquisition), Anders Ericsson (deliberate practice), and Robert Katz (1955: technical, human, and conceptual skills).",

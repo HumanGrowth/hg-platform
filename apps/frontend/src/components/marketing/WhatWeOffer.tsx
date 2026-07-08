@@ -1,5 +1,9 @@
 import Link from "next/link";
 
+/**
+ * @deprecated Reemplazado en el home por <HowItWorksTimeline/> (web-v2). Se
+ * conserva por si se reutiliza en el track Individual.
+ */
 const CARDS = [
   {
     eyebrow: "01 · DIAGNÓSTICO",
@@ -10,7 +14,7 @@ const CARDS = [
   {
     eyebrow: "02 · RUTAS",
     title: "Un mapa de tu próximo paso",
-    body: "Trayectos de crecimiento por dimensión, con cursos y contenido curado.",
+    body: "Trayectos de crecimiento por dimensión, con lecciones y contenido curado.",
     stat: "Rutas por dimensión",
   },
   {

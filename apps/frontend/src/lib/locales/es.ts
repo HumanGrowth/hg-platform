@@ -1,23 +1,80 @@
 export const es = {
   nav: {
-    paths: "Rutas de Crecimiento",
-    mentorships: "Mentorías",
-    forTeams: "Para Equipos",
-    method: "El Método",
-    pricing: "Tarifas",
+    platform: "Plataforma",
+    science: "Ciencia",
+    perspectives: "Perspectivas",
+    pricing: "Precios",
+    blog: "Blog",
     login: "Iniciar sesión",
-    getStarted: "Conversemos",
+    cta: "Conversemos",
+  },
+  perspectives: {
+    metaTitle: "Perspectivas — Human Growth",
+    eyebrow: "PERSPECTIVAS",
+    title: "Lo nuevo de este trimestre.",
+    subtitle: "Trayectos de crecimiento por dimensión. Filtrá por la que más lo necesita.",
+  },
+  comingSoon: {
+    title: "Próximamente.",
+    back: "Volver al inicio",
   },
   hero: {
-    eyebrow: "PLATAFORMA DE HABILIDADES HUMANAS · LATAM",
-    titleLine1: "Crece con",
-    titleLine2: "intención.",
-    bodyBefore: "Un sistema de crecimiento en 6 dimensiones para profesionales de LatAm. No son cursos. Es la diferencia entre una persona que se ",
-    bodyEm: "queda",
-    bodyAfter: " y una que se va.",
-    ctaPrimary: "Explorar rutas",
-    ctaSecondary: "Para tu empresa",
+    eyebrow: "SISTEMA DE CRECIMIENTO · LATAM",
+    titleLine1: "Habilidades humanas para decisiones",
+    titleLine2: "de talento: desempeño, permanencia y crecimiento.",
+    bodyP1:
+      "Human Growth es un sistema de crecimiento en 6 dimensiones que mide y desarrolla las habilidades humanas de tu equipo — carrera, propósito, relaciones, salud, paz interior y estabilidad — con base científica.",
+    bodyP2:
+      "Pasás de capacitar \"por si acaso\" a saber exactamente qué dimensión frena a cada persona: a quién acompañar, a quién retener y dónde invertir.",
+    ctaPrimary: "Conversemos →",
+    ctaSecondary: "Ver dimensiones",
     socialProof: "Diseñado para profesionales y equipos de LatAm",
+  },
+  sixPillars: {
+    eyebrow: "LA CIENCIA QUE NOS RESPALDA",
+    title: "6 dimensiones del profesional completo.",
+    subtitle: "No desarrollamos habilidades aisladas. Desarrollamos personas enteras.",
+    items: [
+      { code: "P1", title: "Carrera e impacto", body: "Crecé profesionalmente con un mapa claro de tu próximo paso." },
+      { code: "P2", title: "Propósito y significado", body: "Conectá tu trabajo con algo que de verdad te importa." },
+      { code: "P3", title: "Relaciones y conexión", body: "Construí redes que te sostienen y te empujan." },
+      { code: "P4", title: "Salud y bienestar", body: "Sueño, movimiento y energía para sostener el desempeño." },
+      { code: "P5", title: "Paz interior y claridad", body: "Regulá tus estados internos en presencia del estrés." },
+      { code: "P6", title: "Estabilidad emocional y material", body: "Resiliencia y seguridad económica como base." },
+    ],
+  },
+  marketingRadar: {
+    eyebrow: "TU RADAR",
+    title: "Una foto de las 6 dimensiones.",
+    caption: "Ejemplo ilustrativo — cada usuario ve su propio radar en la plataforma.",
+  },
+  whatIsHg: {
+    eyebrow: "PRODUCTO",
+    title: "¿Cómo funciona HG?",
+    cards: [
+      {
+        title: "¿Qué es HG?",
+        body: "Una plataforma que desarrolla a cada colaborador de forma holística: las habilidades para ser más humano y las competencias de negocio que su rol exige.",
+      },
+      {
+        title: "¿Qué hace HG?",
+        body: "Diagnostica las brechas del colaborador y de la organización, y las cierra recorriendo el mismo proceso en cuatro etapas.",
+      },
+      {
+        title: "¿Cómo funciona HG?",
+        body: "1. Diagnóstico → 2. Unidades de aprendizaje personalizadas → 3. Acompañamiento organizacional → 4. Evento.",
+      },
+    ],
+  },
+  howItWorks: {
+    eyebrow: "CÓMO FUNCIONA",
+    title: "El camino en 4 pasos.",
+    steps: [
+      { n: 1, title: "Diagnóstico", body: "Explicamos el porqué, el cómo y lo que revela." },
+      { n: 2, title: "Rutas", body: "El mapa de las oportunidades: trayectos de crecimiento con sistema de micro-aprendizaje." },
+      { n: 3, title: "Mentorías disponibles", body: "Acompañamiento de quien ya pasó por ahí." },
+      { n: 4, title: "Eventos", body: "La culminación del desarrollo humano." },
+    ],
   },
   logoCloud: {
     eyebrow: "PRÓXIMOS PARTNERS",
@@ -59,17 +116,19 @@ export const es = {
   },
   quote: {
     eyebrow: "POR QUÉ CONSTRUIMOS ESTO",
-    bodyA: "El 28% del talento en LatAm rota cada año. Las empresas invierten en capacitación técnica. El problema casi nunca es técnico. Es que la persona no sabe ",
-    bodyEm: "para qué",
-    bodyB: " trabaja, no confía en su jefe, o está quemada. Eso se puede medir. Y se puede resolver.",
-    name: "Jorge Araya",
-    role: "Fundador · HumanGrowth",
+    p1: "Deloitte confirma que 9 de cada 10 profesionales saben que las habilidades humanas definen su carrera. Aun así, la mitad dice que su empresa no las desarrolla. No es falta de voluntad: no existía cómo hacerlo.",
+    ending: "Hasta ahora.",
+    author: "Jorge Araya",
+    authorTitle: "Fundador · HumanGrowth",
+    source: "Fuente: Deloitte, Workplace Skills Survey, octubre 2024.",
   },
   pricing: {
-    // Tarjeta única "a la medida" (polish): se removieron el toggle mensual/anual
-    // y los 3 tiers junto con sus keys.
-    eyebrow: "TARIFAS",
-    title: "Cada empresa es distinta. Vamos a armar tu paquete.",
+    eyebrow: "PRECIOS",
+    title: "Cada empresa es distinta.",
+    subtitle:
+      "Conversamos contigo para entender tu equipo, definir el alcance y armarte una propuesta a la medida.",
+    cta: "Conversemos",
+    ctaNote: "Precios individuales o grupales próximamente.",
   },
   forTeams: {
     eyebrow: "PARA EQUIPOS",
@@ -79,15 +138,21 @@ export const es = {
     cta: "Hablar con ventas",
   },
   footer: {
-    tagline: "Un sistema de crecimiento en 6 dimensiones para profesionales de LatAm.",
-    columns: [
-      { h: "Producto", items: ["Rutas de Crecimiento", "Mentorías", "Badges", "Diagnóstico", "Biblioteca"] },
-      { h: "Para Equipos", items: ["Tarifas", "Vista de líder", "Rutas a la medida", "Compras corporativas"] },
-      { h: "Recursos", items: ["Blog", "Casos de estudio", "Centro de ayuda", "Docs de API", "Estado"] },
-      { h: "Empresa", items: ["Acerca de", "Empleo", "Press kit", "Contacto"] },
+    sections: [
+      { title: "Plataforma", href: "/plataforma" },
+      { title: "Ciencia", href: "/ciencia" },
+      { title: "Recursos", href: "#" },
+      { title: "Contacto", href: "/contacto" },
     ],
+    tagline: "Un sistema de crecimiento en 6 dimensiones para profesionales de LatAm.",
     rights: "© 2026 HumanGrowth. Hecho desde LatAm, para LatAm.",
-    legal: ["Privacidad", "Términos", "Seguridad", "Estado"],
+    legal: [
+      { label: "Privacidad", href: "#" },
+      { label: "Términos", href: "#" },
+      { label: "Seguridad", href: "#" },
+    ],
+    email: "admin@humangrowth.io",
+    linkedin: "https://www.linkedin.com/company/humangrowthlatam",
   },
   method: {
     meta: {
@@ -145,7 +210,7 @@ export const es = {
     latamLabel: "Tropicalizado LATAM",
     pillars: [
       {
-        code: "P1", name: "Carrera e impacto", tag: "6 niveles · PMM",
+        code: "P1", name: "Carrera e impacto", tag: "6 niveles",
         definition: "El grado de desarrollo de las competencias que permiten desempeñarse con autonomía, criterio y capacidad de habilitar a otros.",
         notWhat: "No es el cargo, la antigüedad ni el salario: es una progresión de capacidad, no la acumulación de años.",
         roots: "Dreyfus & Dreyfus (1980, adquisición de habilidades), Anders Ericsson (práctica deliberada) y Robert Katz (1955: habilidades técnicas, humanas y conceptuales).",
