@@ -110,7 +110,7 @@ export function useShouldAnimate(): boolean {
 
 ---
 
-## TASK motion-02 · Componente `<MotionSection/>` con `whileInView` · `[ ]`
+## TASK motion-02 · Componente `<MotionSection/>` con `whileInView` · `[x]`
 
 Wrapper para secciones que anima on-scroll.
 
@@ -601,7 +601,7 @@ Para el último screenshot, usar Chrome DevTools > Rendering > Emulate CSS media
 | ID | Subject | Status |
 |---|---|---|
 | motion-01 | Install + MotionConfig + useShouldAnimate | `[x]` |
-| motion-02 | `<MotionSection/>` | `[ ]` |
+| motion-02 | `<MotionSection/>` | `[x]` |
 | motion-03 | `<BrandCircle/>` | `[ ]` |
 | motion-04 | `<BrandLine/>` | `[ ]` |
 | motion-05 | Hover motion Button + Card | `[ ]` |
