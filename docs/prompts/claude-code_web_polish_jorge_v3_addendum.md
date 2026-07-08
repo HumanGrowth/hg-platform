@@ -94,7 +94,7 @@ Refactor: `<Hero/>` del home usa el mismo componente en vez de tener su propio b
 
 ---
 
-## TASK web-v3-02 · Logo "Hï" al pie del formulario contacto y de pricing · `[ ]`
+## TASK web-v3-02 · Logo "Hï" al pie del formulario contacto y de pricing · `[x]`
 
 Componente `src/components/marketing/PageBottomIsotype.tsx`:
 
@@ -774,7 +774,7 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 | ID | Subject | Status |
 |---|---|---|
 | web-v3-01 | HeroWatermark en 5 pages | `[x]` |
-| web-v3-02 | PageBottomIsotype contacto + pricing | `[ ]` |
+| web-v3-02 | PageBottomIsotype contacto + pricing | `[x]` |
 | web-v3-03 | Títulos hero cortos | `[ ]` |
 | web-v3-04 | Timeline pasos 3-4 | `[ ]` |
 | web-v3-05 | HomeCTAFinal | `[ ]` |

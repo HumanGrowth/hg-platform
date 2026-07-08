@@ -2,6 +2,7 @@ import { Linkedin, Mail } from "lucide-react";
 
 import ContactForm from "@/components/marketing/ContactForm";
 import { HeroWatermark } from "@/components/marketing/HeroWatermark";
+import { PageBottomIsotype } from "@/components/marketing/PageBottomIsotype";
 
 export const metadata = { title: "Conversemos — Human Growth" };
 
@@ -43,6 +44,8 @@ export default function ContactoPage() {
           </div>
         </div>
       </section>
+
+      <PageBottomIsotype />
     </>
   );
 }
