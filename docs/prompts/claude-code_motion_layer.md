@@ -267,7 +267,7 @@ export function BrandCircle({
 
 ---
 
-## TASK motion-04 · `<BrandLine/>` component decorativo con parallax · `[ ]`
+## TASK motion-04 · `<BrandLine/>` component decorativo con parallax · `[x]`
 
 Línea recta decorativa con parallax.
 
@@ -603,7 +603,7 @@ Para el último screenshot, usar Chrome DevTools > Rendering > Emulate CSS media
 | motion-01 | Install + MotionConfig + useShouldAnimate | `[x]` |
 | motion-02 | `<MotionSection/>` | `[x]` |
 | motion-03 | `<BrandCircle/>` | `[x]` |
-| motion-04 | `<BrandLine/>` | `[ ]` |
+| motion-04 | `<BrandLine/>` | `[x]` |
 | motion-05 | Hover motion Button + Card | `[ ]` |
 | motion-06 | Wire MotionSection en home | `[ ]` |
 | motion-07 | Decorativos en 6 pages | `[ ]` |
