@@ -1,7 +1,7 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import * as React from "react";
 
 import { useInMotionScope } from "@/components/motion/MotionProvider";
@@ -58,14 +58,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     }
 
     return (
-      <motion.button
+      <m.button
         ref={ref}
         type={type ?? "button"}
         className={cn(buttonVariants({ variant, size }), className)}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.15, ease: "easeOut" }}
-        {...(props as React.ComponentProps<typeof motion.button>)}
+        {...(props as React.ComponentProps<typeof m.button>)}
       />
     );
   },

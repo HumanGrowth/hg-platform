@@ -1,6 +1,6 @@
 "use client";
 
-import { MotionConfig } from "framer-motion";
+import { domAnimation, LazyMotion, MotionConfig } from "framer-motion";
 import { createContext, useContext, type ReactNode } from "react";
 
 /**
@@ -23,9 +23,11 @@ export function useInMotionScope(): boolean {
 export function MotionProvider({ children }: { children: ReactNode }) {
   return (
     <MotionScopeContext.Provider value={true}>
-      <MotionConfig reducedMotion="user" transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
-        {children}
-      </MotionConfig>
+      <LazyMotion features={domAnimation} strict>
+        <MotionConfig reducedMotion="user" transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
+          {children}
+        </MotionConfig>
+      </LazyMotion>
     </MotionScopeContext.Provider>
   );
 }

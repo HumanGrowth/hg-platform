@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { m, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
@@ -80,7 +80,7 @@ export function BrandLine({
   }
 
   return (
-    <motion.div
+    <m.div
       aria-hidden
       className={className}
       style={{ ...base, y, rotate: rotation }}

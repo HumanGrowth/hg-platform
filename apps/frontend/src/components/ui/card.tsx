@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import * as React from "react";
 
 import { useInMotionScope } from "@/components/motion/MotionProvider";
@@ -26,11 +26,11 @@ export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
     }
 
     return (
-      <motion.div
+      <m.div
         ref={ref}
         className={cn(cardClasses, className)}
         whileHover={{ y: -2, transition: { duration: 0.2 } }}
-        {...(props as React.ComponentProps<typeof motion.div>)}
+        {...(props as React.ComponentProps<typeof m.div>)}
       />
     );
   },

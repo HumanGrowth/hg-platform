@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { m, type Variants } from "framer-motion";
 import { createElement, type ReactNode } from "react";
 
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
@@ -46,7 +46,7 @@ export function MotionSection({
     return createElement(as, { className, id }, children);
   }
 
-  const MotionTag = motion[as as keyof typeof motion] as typeof motion.section;
+  const MotionTag = m[as as keyof typeof m] as typeof m.section;
 
   return (
     <MotionTag

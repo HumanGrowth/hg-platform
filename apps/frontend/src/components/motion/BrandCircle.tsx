@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { m, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
@@ -68,5 +68,5 @@ export function BrandCircle({
     return <div aria-hidden className={className} style={style} ref={ref} />;
   }
 
-  return <motion.div aria-hidden className={className} style={{ ...style, y }} ref={ref} />;
+  return <m.div aria-hidden className={className} style={{ ...style, y }} ref={ref} />;
 }
