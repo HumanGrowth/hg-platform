@@ -104,6 +104,12 @@ export const es = {
       },
     ],
   },
+  productStack: {
+    eyebrow: "EN VIVO",
+    title: "Así se ve el crecimiento en acción.",
+    body: "Diagnóstico, rutas, mentorías y métricas — todo conectado en una sola plataforma.",
+    cta: "Ver la plataforma completa →",
+  },
   homeCta: {
     eyebrow: "EMPEZÁ HOY",
     title: "¿Listos para transformar cómo crece tu equipo?",

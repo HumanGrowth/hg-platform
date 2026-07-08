@@ -104,6 +104,12 @@ export const en = {
       },
     ],
   },
+  productStack: {
+    eyebrow: "LIVE",
+    title: "This is what growth in action looks like.",
+    body: "Diagnosis, paths, mentorships and metrics — all connected in a single platform.",
+    cta: "See the full platform →",
+  },
   homeCta: {
     eyebrow: "START TODAY",
     title: "Ready to transform how your team grows?",

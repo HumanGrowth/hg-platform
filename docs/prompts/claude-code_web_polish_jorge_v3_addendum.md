@@ -468,7 +468,7 @@ export default function PlataformaPage() {
 
 ---
 
-## TASK web-v3-10 · Sección producto en home · stack de screens app · `[ ]`
+## TASK web-v3-10 · Sección producto en home · stack de screens app · `[x]`
 
 Nueva sección en el home que muestra la app en acción con **stack de screens reales**, con link a `/plataforma`.
 
@@ -782,7 +782,7 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 | web-v3-07 | Nav 4 tabs · Blog out · Método | `[x]` |
 | web-v3-08 | /metodo cleanup + radar back-to-back | `[x]` |
 | web-v3-09 | /plataforma real | `[x]` |
-| web-v3-10 | ProductStack en home | `[ ]` |
+| web-v3-10 | ProductStack en home | `[x]` |
 | web-v3-11 | Perspectivas frontend prep | `[ ]` |
 | web-v3-12 | Radar nuevo esquema | `[ ]` |
 | web-v3-13 | Language toggle drawer | `[ ]` |
