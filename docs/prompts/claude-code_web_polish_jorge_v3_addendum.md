@@ -657,7 +657,7 @@ Reemplazar por componente `<PillarBadge code="P1" />` que renderiza el hex icon 
 
 ---
 
-## TASK web-v3-13 · Language toggle: mantener stub · verificar drawer mobile · `[ ]`
+## TASK web-v3-13 · Language toggle: mantener stub · verificar drawer mobile · `[x]`
 
 Verificar que `<LanguageToggle/>` aparece en:
 - Nav desktop (esquina derecha antes de Iniciar sesión) — ya está
@@ -785,6 +785,6 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 | web-v3-10 | ProductStack en home | `[x]` |
 | web-v3-11 | Perspectivas frontend prep | `[x]` |
 | web-v3-12 | Radar nuevo esquema | `[x]` |
-| web-v3-13 | Language toggle drawer | `[ ]` |
+| web-v3-13 | Language toggle drawer | `[x]` |
 | web-v3-14 | Placeholders cleanup | `[ ]` |
 | web-v3-15 | Tests + screenshots | `[ ]` |
