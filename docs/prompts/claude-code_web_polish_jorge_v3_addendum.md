@@ -588,7 +588,7 @@ Cuando el CMS backend esté disponible, la lista se puebla vía fetch.
 
 ---
 
-## TASK web-v3-12 · Radar nuevo esquema · 2 mallas + badges pilar · `[ ]`
+## TASK web-v3-12 · Radar nuevo esquema · 2 mallas + badges pilar · `[x]`
 
 **Este cambio es cross-cutting** — afecta `<Radar/>` que usan `/home`, `/perfil`, `/team`, `/admin/org` **y** `<MarketingRadar/>` que usa `/` + `/metodo`.
 
@@ -784,7 +784,7 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 | web-v3-09 | /plataforma real | `[x]` |
 | web-v3-10 | ProductStack en home | `[x]` |
 | web-v3-11 | Perspectivas frontend prep | `[x]` |
-| web-v3-12 | Radar nuevo esquema | `[ ]` |
+| web-v3-12 | Radar nuevo esquema | `[x]` |
 | web-v3-13 | Language toggle drawer | `[ ]` |
 | web-v3-14 | Placeholders cleanup | `[ ]` |
 | web-v3-15 | Tests + screenshots | `[ ]` |

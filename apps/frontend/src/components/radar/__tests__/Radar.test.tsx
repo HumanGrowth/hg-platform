@@ -27,6 +27,25 @@ describe("Radar", () => {
     expect(screen.getByTestId("radar-value-P2").textContent).toContain("0");
   });
 
+  it("renders growth mesh + axis pillar badges (web-v3)", () => {
+    const { container } = render(
+      <Radar
+        values={{ P1: 62, P5: 48 }}
+        growth={{ P1: 90, P5: 90 }}
+        state="complete"
+        size="large"
+      />,
+    );
+    // dos mallas: growth (verde) + current
+    expect(screen.getByTestId("radar-value-P1").textContent).toContain("crecimiento: 90");
+    expect(screen.getByText("Crecimiento")).toBeTruthy();
+    expect(screen.getByText("Estado actual")).toBeTruthy();
+    // ejes con badge de pilar (label corto) en vez de "P#"
+    const axis = container.querySelector('[data-testid="radar-axis-P5"]');
+    expect(axis?.textContent).toContain("Paz interior");
+    expect(axis?.textContent).not.toContain("P5");
+  });
+
   it("MiniRadar renders at 120×120", () => {
     const { container } = render(<MiniRadar values={{ P1: 50 }} />);
     const root = container.querySelector("[data-radar-size]");

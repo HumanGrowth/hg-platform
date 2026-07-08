@@ -4,8 +4,10 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import type { RadarValues } from "@/components/radar/radar-model";
 import { getCopy } from "@/lib/i18n";
 
-// Datos ilustrativos — NO llama al backend (items 23-24).
-const SAMPLE: RadarValues = { P1: 62, P2: 78, P3: 55, P4: 70, P5: 48, P6: 65 };
+// Datos ilustrativos — NO llama al backend. Dos mallas (web-v3 decisión J):
+// crecimiento (target aspiracional, verde) + estado actual.
+const SAMPLE_CURRENT: RadarValues = { P1: 62, P2: 78, P3: 55, P4: 70, P5: 48, P6: 65 };
+const SAMPLE_GROWTH: RadarValues = { P1: 90, P2: 90, P3: 90, P4: 90, P5: 90, P6: 90 };
 
 /** Radar de marca (home + /metodo) con datos de ejemplo. */
 export default function MarketingRadar() {
@@ -19,7 +21,7 @@ export default function MarketingRadar() {
         <Display as="h2" variant="display-3" className="mb-10">
           {c.marketingRadar.title}
         </Display>
-        <Radar values={SAMPLE} state="complete" size="large" />
+        <Radar values={SAMPLE_CURRENT} growth={SAMPLE_GROWTH} state="complete" size="large" />
         <p className="body-sm mt-6 max-w-[420px] text-fg-subtle">{c.marketingRadar.caption}</p>
       </div>
     </section>
