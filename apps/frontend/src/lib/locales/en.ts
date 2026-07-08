@@ -17,6 +17,45 @@ export const en = {
     title: "Coming soon.",
     back: "Back to home",
   },
+  plataforma: {
+    hero: {
+      eyebrow: "PLATFORM",
+      title: "Everything you need to support human growth.",
+      subtitle: "Diagnosis, personalized paths, mentorships and events — all in one place.",
+    },
+    features: [
+      {
+        icon: "chart",
+        title: "Integral diagnosis",
+        desc: "6 dimensions evaluated with a scientific base. Your team gets a precise map of where they are and where they can go.",
+      },
+      {
+        icon: "route",
+        title: "Personalized paths",
+        desc: "Curated content per dimension, adapted to each person's level and competency.",
+      },
+      {
+        icon: "users",
+        title: "HR dashboard",
+        desc: "Aggregated team metrics with privacy guaranteed. Spot patterns and act in time.",
+      },
+      {
+        icon: "gauge",
+        title: "Growth metrics",
+        desc: "Not just time consumed — real indicators of learning and transfer to work.",
+      },
+      {
+        icon: "message",
+        title: "Mentorships available",
+        desc: "Sessions with mentors specialized by dimension, activated when the team needs them.",
+      },
+      {
+        icon: "calendar",
+        title: "Events & masterclasses",
+        desc: "Live sessions and recordings connecting learning with real experience.",
+      },
+    ],
+  },
   hero: {
     eyebrow: "GROWTH SYSTEM · LATAM",
     titleLine1: "Human Skills ·",

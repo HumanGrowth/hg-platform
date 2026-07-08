@@ -17,6 +17,45 @@ export const es = {
     title: "Próximamente.",
     back: "Volver al inicio",
   },
+  plataforma: {
+    hero: {
+      eyebrow: "PLATAFORMA",
+      title: "Todo lo que necesitás para acompañar el crecimiento humano.",
+      subtitle: "Diagnóstico, rutas personalizadas, mentorías y eventos — en un solo lugar.",
+    },
+    features: [
+      {
+        icon: "chart",
+        title: "Diagnóstico integral",
+        desc: "6 dimensiones evaluadas con base científica. Tu equipo obtiene un mapa preciso de dónde está y a dónde puede llegar.",
+      },
+      {
+        icon: "route",
+        title: "Rutas personalizadas",
+        desc: "Contenido curado por dimensión, adaptado al nivel y competencia de cada persona.",
+      },
+      {
+        icon: "users",
+        title: "Panel para RRHH",
+        desc: "Métricas agregadas de tu equipo con privacidad garantizada. Detectá patrones y actuá a tiempo.",
+      },
+      {
+        icon: "gauge",
+        title: "Métricas de crecimiento",
+        desc: "No solo tiempo consumido — indicadores reales de aprendizaje y transferencia al trabajo.",
+      },
+      {
+        icon: "message",
+        title: "Mentorías disponibles",
+        desc: "Sesiones con mentores especializados por dimensión, activables cuando el equipo las necesita.",
+      },
+      {
+        icon: "calendar",
+        title: "Eventos y masterclasses",
+        desc: "Encuentros en vivo y grabaciones que conectan aprendizaje con experiencia real.",
+      },
+    ],
+  },
   hero: {
     eyebrow: "SISTEMA DE CRECIMIENTO · LATAM",
     titleLine1: "Habilidades Humanas ·",

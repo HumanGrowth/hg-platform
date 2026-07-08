@@ -1,18 +1,55 @@
-import Link from "next/link";
+import {
+  BarChart3,
+  Calendar,
+  Gauge,
+  MessageCircle,
+  Route as RouteIcon,
+  Users,
+} from "lucide-react";
 
+import { HeroWatermark } from "@/components/marketing/HeroWatermark";
 import { getCopy } from "@/lib/i18n";
 
-export const metadata = { title: "Plataforma — Human Growth" };
+export const metadata = { title: "Plataforma · Human Growth" };
 
-// Placeholder (item 30). El contenido real vive en el addendum futuro.
+const ICONS: Record<string, typeof BarChart3> = {
+  chart: BarChart3,
+  route: RouteIcon,
+  users: Users,
+  gauge: Gauge,
+  message: MessageCircle,
+  calendar: Calendar,
+};
+
+// Contenido real basado en features de la app (decisión F, web-v3-09).
 export default function PlataformaPage() {
-  const c = getCopy("es").comingSoon;
+  const c = getCopy("es").plataforma;
   return (
-    <section className="mx-auto flex min-h-[70vh] max-w-marketing flex-col items-center justify-center gap-6 px-8 text-center">
-      <h1 className="display text-fg text-4xl sm:text-5xl">{c.title}</h1>
-      <Link href="/" className="font-semibold text-primary hover:text-primary-hover">
-        {c.back}
-      </Link>
-    </section>
+    <>
+      <section className="relative overflow-hidden max-w-marketing mx-auto px-8 pt-36 pb-20">
+        <HeroWatermark />
+        <div className="relative max-w-[920px]">
+          <div className="eyebrow eyebrow-accent mb-6">{c.hero.eyebrow}</div>
+          <h1 className="display text-fg m-0 text-5xl sm:text-6xl">{c.hero.title}</h1>
+          <p className="mt-6 max-w-[620px] text-lg text-hg-charcoal">{c.hero.subtitle}</p>
+        </div>
+      </section>
+
+      <section className="max-w-marketing mx-auto grid gap-6 px-8 pb-24 md:grid-cols-3">
+        {c.features.map((f) => {
+          const Icon = ICONS[f.icon];
+          return (
+            <article
+              key={f.title}
+              className="rounded-lg border border-border bg-surface-card p-8"
+            >
+              {Icon ? <Icon size={28} strokeWidth={1.75} className="text-primary" aria-hidden /> : null}
+              <h3 className="mt-3 font-heading text-lg font-semibold text-fg">{f.title}</h3>
+              <p className="body-sm mt-3 text-hg-charcoal">{f.desc}</p>
+            </article>
+          );
+        })}
+      </section>
+    </>
   );
 }

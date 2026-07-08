@@ -374,7 +374,7 @@ En `/metodo/page.tsx`, colocar `<MarketingRadar/>` **inmediatamente después** d
 
 ---
 
-## TASK web-v3-09 · Página /plataforma con contenido real · `[ ]`
+## TASK web-v3-09 · Página /plataforma con contenido real · `[x]`
 
 Hoy es placeholder ("Próximamente"). Nuevo contenido basado en features de la app.
 
@@ -781,7 +781,7 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 | web-v3-06 | Bug P5↔P6 swap | `[x]` |
 | web-v3-07 | Nav 4 tabs · Blog out · Método | `[x]` |
 | web-v3-08 | /metodo cleanup + radar back-to-back | `[x]` |
-| web-v3-09 | /plataforma real | `[ ]` |
+| web-v3-09 | /plataforma real | `[x]` |
 | web-v3-10 | ProductStack en home | `[ ]` |
 | web-v3-11 | Perspectivas frontend prep | `[ ]` |
 | web-v3-12 | Radar nuevo esquema | `[ ]` |
