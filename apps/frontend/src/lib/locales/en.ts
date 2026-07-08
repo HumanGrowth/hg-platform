@@ -21,10 +21,6 @@ export const en = {
     ],
     emptyState: "Content coming soon. We're preparing material you'll find interesting.",
   },
-  comingSoon: {
-    title: "Coming soon.",
-    back: "Back to home",
-  },
   plataforma: {
     hero: {
       eyebrow: "PLATFORM",
@@ -199,7 +195,7 @@ export const en = {
   footer: {
     sections: [
       { title: "Platform", href: "/plataforma" },
-      { title: "Science", href: "/ciencia" },
+      { title: "Method", href: "/metodo" },
       { title: "Resources", href: "#" },
       { title: "Contact", href: "/contacto" },
     ],

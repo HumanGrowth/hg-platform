@@ -671,7 +671,7 @@ Si el drawer no lo tiene, agregarlo.
 
 ---
 
-## TASK web-v3-14 · Placeholders limpios · items #28, #30 · `[ ]`
+## TASK web-v3-14 · Placeholders limpios · items #28, #30 · `[x]`
 
 Andrés confirma que:
 - `/blog` → redirect a `/perspectivas` (TASK 07)
@@ -786,5 +786,5 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 | web-v3-11 | Perspectivas frontend prep | `[x]` |
 | web-v3-12 | Radar nuevo esquema | `[x]` |
 | web-v3-13 | Language toggle drawer | `[x]` |
-| web-v3-14 | Placeholders cleanup | `[ ]` |
+| web-v3-14 | Placeholders cleanup | `[x]` |
 | web-v3-15 | Tests + screenshots | `[ ]` |
