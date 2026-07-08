@@ -349,7 +349,7 @@ export function BrandLine({
 
 ---
 
-## TASK motion-05 · Hover motion sutil en Button + Card · `[ ]`
+## TASK motion-05 · Hover motion sutil en Button + Card · `[x]`
 
 **Cero animación agresiva.** Escala y shadow apenas perceptibles.
 
@@ -604,7 +604,7 @@ Para el último screenshot, usar Chrome DevTools > Rendering > Emulate CSS media
 | motion-02 | `<MotionSection/>` | `[x]` |
 | motion-03 | `<BrandCircle/>` | `[x]` |
 | motion-04 | `<BrandLine/>` | `[x]` |
-| motion-05 | Hover motion Button + Card | `[ ]` |
+| motion-05 | Hover motion Button + Card | `[x]` |
 | motion-06 | Wire MotionSection en home | `[ ]` |
 | motion-07 | Decorativos en 6 pages | `[ ]` |
 | motion-08 | Tests + performance + screenshots | `[ ]` |
