@@ -234,7 +234,7 @@ Copy vive en `es.ts` bajo `homeCta`. Wire en `page.tsx` como última sección an
 
 ---
 
-## TASK web-v3-06 · Bug fix cross-cutting · badges P5 ↔ P6 swap · `[ ]`
+## TASK web-v3-06 · Bug fix cross-cutting · badges P5 ↔ P6 swap · `[x]`
 
 **Andrés reporta que el badge del pilar "Paz interior" (P5) hace switch con "Estabilidad emocional" (P6) en toda la plataforma.**
 
@@ -778,7 +778,7 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 | web-v3-03 | Títulos hero cortos | `[x]` |
 | web-v3-04 | Timeline pasos 3-4 | `[x]` |
 | web-v3-05 | HomeCTAFinal | `[x]` |
-| web-v3-06 | Bug P5↔P6 swap | `[ ]` |
+| web-v3-06 | Bug P5↔P6 swap | `[x]` |
 | web-v3-07 | Nav 4 tabs · Blog out · Método | `[ ]` |
 | web-v3-08 | /metodo cleanup + radar back-to-back | `[ ]` |
 | web-v3-09 | /plataforma real | `[ ]` |
