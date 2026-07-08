@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
+import { MotionSection } from "@/components/motion/MotionSection";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 
@@ -21,7 +22,8 @@ const SCREENS = [
 export function ProductStack() {
   const c = useMarketingCopy().productStack;
   return (
-    <section className="landing-flow-section max-w-marketing mx-auto grid items-center gap-12 px-8 md:grid-cols-2">
+    <section className="landing-flow-section max-w-marketing mx-auto px-8">
+      <MotionSection as="div" className="grid items-center gap-12 md:grid-cols-2">
       <div>
         <Eyebrow accent className="mb-6">
           {c.eyebrow}
@@ -59,6 +61,7 @@ export function ProductStack() {
           </div>
         ))}
       </div>
+      </MotionSection>
     </section>
   );
 }

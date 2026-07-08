@@ -400,7 +400,7 @@ Cuidado: si `<Card/>` se usa dentro de un `<Link/>` grande, el hover puede dupli
 
 ---
 
-## TASK motion-06 · Wire `<MotionSection/>` en secciones del home · `[ ]`
+## TASK motion-06 · Wire `<MotionSection/>` en secciones del home · `[x]`
 
 Editar `src/app/(marketing)/page.tsx` y wrappear cada sección con `<MotionSection>`.
 
@@ -605,6 +605,6 @@ Para el último screenshot, usar Chrome DevTools > Rendering > Emulate CSS media
 | motion-03 | `<BrandCircle/>` | `[x]` |
 | motion-04 | `<BrandLine/>` | `[x]` |
 | motion-05 | Hover motion Button + Card | `[x]` |
-| motion-06 | Wire MotionSection en home | `[ ]` |
+| motion-06 | Wire MotionSection en home | `[x]` |
 | motion-07 | Decorativos en 6 pages | `[ ]` |
 | motion-08 | Tests + performance + screenshots | `[ ]` |

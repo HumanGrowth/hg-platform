@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
+import { MotionSection } from "@/components/motion/MotionSection";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 
@@ -11,6 +12,7 @@ export function HomeCTAFinal() {
   const c = useMarketingCopy().homeCta;
   return (
     <section className="landing-flow-section max-w-marketing mx-auto px-8 text-center">
+      <MotionSection as="div">
       <Eyebrow accent className="mb-6">
         {c.eyebrow}
       </Eyebrow>
@@ -32,6 +34,7 @@ export function HomeCTAFinal() {
           {c.secondary}
         </Link>
       </div>
+      </MotionSection>
     </section>
   );
 }

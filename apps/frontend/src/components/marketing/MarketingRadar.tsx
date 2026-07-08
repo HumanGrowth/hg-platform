@@ -2,6 +2,7 @@
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { Radar } from "@/components/radar/Radar";
+import { MotionSection } from "@/components/motion/MotionSection";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import type { RadarValues } from "@/components/radar/radar-model";
@@ -16,7 +17,7 @@ export default function MarketingRadar() {
   const c = useMarketingCopy();
   return (
     <section className="landing-flow-section max-w-marketing mx-auto px-8">
-      <div className="flex flex-col items-center text-center">
+      <MotionSection as="div" className="flex flex-col items-center text-center">
         <Eyebrow accent className="mb-4">
           {c.marketingRadar.eyebrow}
         </Eyebrow>
@@ -25,7 +26,7 @@ export default function MarketingRadar() {
         </Display>
         <Radar values={SAMPLE_CURRENT} growth={SAMPLE_GROWTH} state="complete" size="large" />
         <p className="body-sm max-w-[420px] text-fg-subtle">{c.marketingRadar.caption}</p>
-      </div>
+      </MotionSection>
     </section>
   );
 }

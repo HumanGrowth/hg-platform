@@ -1,6 +1,7 @@
 "use client";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
+import { MotionSection } from "@/components/motion/MotionSection";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 
@@ -14,6 +15,7 @@ export default function WhatIsHg() {
 
   return (
     <section className="landing-flow-section max-w-marketing mx-auto px-8">
+      <MotionSection as="div">
       <div className="max-w-[760px] mb-14">
         <Eyebrow accent className="mb-4">
           {eyebrow}
@@ -34,6 +36,7 @@ export default function WhatIsHg() {
           </article>
         ))}
       </div>
+      </MotionSection>
     </section>
   );
 }

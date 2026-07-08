@@ -1,6 +1,7 @@
 "use client";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
+import { MotionSection } from "@/components/motion/MotionSection";
 import { QuoteMark } from "@/components/ui/brand";
 
 /** Quote fundador con dato Deloitte 2024 (item 6). */
@@ -8,6 +9,7 @@ export default function Quote() {
   const c = useMarketingCopy();
   return (
     <section className="landing-flow-section max-w-[960px] mx-auto px-8 text-left">
+      <MotionSection as="div">
       <div className="eyebrow eyebrow-accent mb-7">{c.quote.eyebrow}</div>
       <QuoteMark size={72} tone="amber" className="mb-6" />
 
@@ -33,6 +35,7 @@ export default function Quote() {
           <div className="body-xs italic text-fg-subtle mt-1">{c.quote.source}</div>
         </div>
       </div>
+      </MotionSection>
     </section>
   );
 }

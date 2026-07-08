@@ -1,6 +1,7 @@
 "use client";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
+import { MotionSection } from "@/components/motion/MotionSection";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { pillarIconSrc } from "@/lib/pillars";
@@ -17,7 +18,7 @@ export default function SixPillars() {
       id="dimensiones"
       className="landing-flow-section scroll-mt-24 border-t border-b border-border"
     >
-      <div className="max-w-marketing mx-auto px-8">
+      <MotionSection as="div" className="max-w-marketing mx-auto px-8">
         <div className="max-w-[760px] mb-14">
           <Eyebrow accent className="mb-4">
             {c.eyebrow}
@@ -56,7 +57,7 @@ export default function SixPillars() {
             );
           })}
         </div>
-      </div>
+      </MotionSection>
     </section>
   );
 }

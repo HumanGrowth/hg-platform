@@ -23,3 +23,17 @@ class ResizeObserverStub {
 if (!globalThis.ResizeObserver) {
   globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
 }
+
+// framer-motion (whileInView) necesita IntersectionObserver; jsdom no lo trae.
+class IntersectionObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+}
+if (!globalThis.IntersectionObserver) {
+  globalThis.IntersectionObserver =
+    IntersectionObserverStub as unknown as typeof IntersectionObserver;
+}
