@@ -44,7 +44,7 @@ export default function SixPillars() {
                     src={src}
                     alt=""
                     aria-hidden
-                    className="absolute -right-8 -top-4 h-48 w-48 select-none opacity-[0.10] pointer-events-none md:h-56 md:w-56"
+                    className="absolute -right-8 -top-4 w-48 select-none opacity-[0.10] pointer-events-none md:w-56"
                   />
                 )}
                 <div className="relative z-10">

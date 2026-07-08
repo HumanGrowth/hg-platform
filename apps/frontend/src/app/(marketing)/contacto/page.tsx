@@ -8,7 +8,7 @@ export const metadata = { title: "Conversemos — Human Growth" };
 export default function ContactoPage() {
   return (
     <div className="landing-flow">
-      <section className="landing-flow-section landing-flow-hero relative max-w-[760px] mx-auto px-8 text-center">
+      <section className="landing-flow-section relative overflow-hidden px-8 pt-36 pb-8 text-center">
         <div className="eyebrow eyebrow-accent mb-6 flex justify-center">Contacto</div>
         <h1 className="display text-fg text-4xl sm:text-5xl m-0">
           Conversemos
@@ -21,7 +21,7 @@ export default function ContactoPage() {
 
       <PageBottomIsotype />
 
-      <section className="landing-flow-section max-w-marketing mx-auto px-8">
+      <section className="landing-flow-section max-w-marketing mx-auto px-8 mt-4 pb-20">
         <div className="max-w-[640px] mx-auto border-t border-border pt-10">
           <div className="eyebrow mb-3">OTRAS FORMAS DE CONTACTO</div>
           <div className="flex flex-col sm:flex-row gap-6 sm:gap-10">

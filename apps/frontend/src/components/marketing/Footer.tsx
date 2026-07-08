@@ -61,7 +61,7 @@ export default function Footer() {
               src="/logo/footer/logo-footer-blanco@1x.png"
               srcSet="/logo/footer/logo-footer-blanco@1x.png 1x, /logo/footer/logo-footer-blanco@2x.png 2x"
               alt="Human Growth"
-              className="h-8 w-auto"
+              className="h-6 w-auto"
             />
             <p className="body-sm mt-4 max-w-[280px] text-hg-cream/80">{c.tagline}</p>
           </div>
