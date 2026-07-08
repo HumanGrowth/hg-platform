@@ -689,7 +689,7 @@ Verificar:
 
 ---
 
-## TASK web-v3-15 · Tests + smoke + screenshots · `[ ]`
+## TASK web-v3-15 · Tests + smoke + screenshots · `[x]`
 
 ### 15.1 · Tests
 
@@ -787,4 +787,4 @@ Se resuelven en prompt separado `claude-code_perspectivas_cms.md`:
 | web-v3-12 | Radar nuevo esquema | `[x]` |
 | web-v3-13 | Language toggle drawer | `[x]` |
 | web-v3-14 | Placeholders cleanup | `[x]` |
-| web-v3-15 | Tests + screenshots | `[ ]` |
+| web-v3-15 | Tests + screenshots | `[x]` |
