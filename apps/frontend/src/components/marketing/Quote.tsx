@@ -2,6 +2,7 @@
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { MotionSection } from "@/components/motion/MotionSection";
+import { Typewriter } from "@/components/motion/Typewriter";
 import { QuoteMark } from "@/components/ui/brand";
 
 /** Quote fundador con dato Deloitte 2024 (item 6). */
@@ -13,9 +14,12 @@ export default function Quote() {
       <div className="eyebrow eyebrow-accent mb-7">{c.quote.eyebrow}</div>
       <QuoteMark size={72} tone="amber" className="mb-6" />
 
-      <p className="font-heading text-xl md:text-2xl leading-snug text-fg max-w-[820px]">
-        {c.quote.p1}
-      </p>
+      <Typewriter
+        as="p"
+        text={c.quote.p1}
+        speed={15}
+        className="font-heading text-xl md:text-2xl leading-snug text-fg max-w-[820px]"
+      />
       <p className="mt-4 font-heading text-2xl md:text-3xl font-bold text-hg-orange">
         {c.quote.ending}
       </p>

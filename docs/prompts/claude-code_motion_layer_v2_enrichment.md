@@ -506,7 +506,7 @@ Sumar `fadeIn` con delay coordinado al hop. El texto aparece **después** del ho
 
 ---
 
-## TASK motion-v2-06 · Quote "por qué" · typewriter effect · `[ ]`
+## TASK motion-v2-06 · Quote "por qué" · typewriter effect · `[x]`
 
 Andrés: "El texto del por qué debe escribirse tipo typewriter".
 
@@ -726,5 +726,5 @@ Bonus: **video corto** (5-10s) capturando el scroll del home con las animaciones
 | motion-v2-03 | BrandSawWave (reemplaza BrandLine) | `[x]` |
 | motion-v2-04 | StaggerBounceGrid on cards | `[x]` |
 | motion-v2-05 | HowItWorksTimeline steps hop | `[x]` |
-| motion-v2-06 | Typewriter on Quote | `[ ]` |
+| motion-v2-06 | Typewriter on Quote | `[x]` |
 | motion-v2-07 | Tests + Lighthouse + screenshots | `[ ]` |
