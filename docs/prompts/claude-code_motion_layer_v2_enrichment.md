@@ -122,7 +122,7 @@ Ubicar el componente que renderiza los logos de empresas del home. Wrappearlo co
 
 ---
 
-## TASK motion-v2-02 · `<BrandCircle/>` refactor · parallax + floating oscillation · `[ ]`
+## TASK motion-v2-02 · `<BrandCircle/>` refactor · parallax + floating oscillation · `[x]`
 
 Sumar oscilación vertical continua al parallax existente. **Combinar ambas transforms.**
 
@@ -722,7 +722,7 @@ Bonus: **video corto** (5-10s) capturando el scroll del home con las animaciones
 | ID | Subject | Status |
 |---|---|---|
 | motion-v2-01 | PartnerMarquee | `[x]` |
-| motion-v2-02 | BrandCircle floating + parallax | `[ ]` |
+| motion-v2-02 | BrandCircle floating + parallax | `[x]` |
 | motion-v2-03 | BrandSawWave (reemplaza BrandLine) | `[ ]` |
 | motion-v2-04 | StaggerBounceGrid on cards | `[ ]` |
 | motion-v2-05 | HowItWorksTimeline steps hop | `[ ]` |

@@ -1,7 +1,7 @@
 "use client";
 
-import { m, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { animate, m, useMotionValue, useScroll, useTransform } from "framer-motion";
+import { useEffect, useRef } from "react";
 
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 
@@ -15,16 +15,24 @@ interface BrandCircleProps {
   /** Color de relleno (default var(--hg-green-100)). */
   color?: string;
   opacity?: number;
-  /** Factor de parallax · 0.1-0.2 sutil (decisión D). */
+  /** Factor de parallax · 0.1-0.2 sutil (decisión D del v1). */
   speed?: number;
+  /** Amplitud de la oscilación flotante en px (decisión B, motion-v2). */
+  floatAmplitude?: number;
+  /** Duración de 1 ciclo de oscilación en segundos. */
+  floatDuration?: number;
   zIndex?: number;
   className?: string;
 }
 
 /**
- * Círculo decorativo de marca con parallax leve (motion-03). Formas extraídas
- * del patrón geométrico del Brand Book (decisión E). aria-hidden +
- * pointer-events:none — nunca interfiere con el contenido.
+ * Círculo decorativo de marca (motion-v2-02): parallax de scroll + oscilación
+ * vertical continua (float), compuestos en un solo motion value con
+ * useTransform([a, b], combiner) — no hace falta anidar divs ni usar
+ * useMotionTemplate. El float usa la API imperativa `animate()` sobre un
+ * motion value (loop 0 → -amplitud → 0, repeat Infinity); no es una feature
+ * de gesto de `m.*`, así que no infla el bundle de LazyMotion domAnimation.
+ * aria-hidden + pointer-events:none. Estático bajo reduced motion (sin loop).
  */
 export function BrandCircle({
   size,
@@ -35,6 +43,8 @@ export function BrandCircle({
   color = "var(--hg-green-100)",
   opacity = 0.5,
   speed = 0.15,
+  floatAmplitude = 8,
+  floatDuration = 6,
   zIndex = -1,
   className,
 }: BrandCircleProps) {
@@ -46,8 +56,22 @@ export function BrandCircle({
     offset: ["start end", "end start"],
   });
 
-  // Parallax: de -speed*100px a +speed*100px según el scroll del elemento.
-  const y = useTransform(scrollYProgress, [0, 1], [`${-speed * 100}px`, `${speed * 100}px`]);
+  // Parallax: de -speed*100 a +speed*100 (números, se combinan con el float
+  // value abajo antes de convertirse a string px).
+  const parallaxY = useTransform(scrollYProgress, [0, 1], [-speed * 100, speed * 100]);
+  const floatY = useMotionValue(0);
+
+  useEffect(() => {
+    if (!shouldAnimate) return;
+    const controls = animate(floatY, [0, -floatAmplitude, 0], {
+      duration: floatDuration,
+      repeat: Infinity,
+      ease: "easeInOut",
+    });
+    return () => controls.stop();
+  }, [shouldAnimate, floatY, floatAmplitude, floatDuration]);
+
+  const y = useTransform([parallaxY, floatY], ([p, f]: number[]) => `${p + f}px`);
 
   const style: React.CSSProperties = {
     position: "absolute",
