@@ -8,6 +8,8 @@ vi.mock("framer-motion", async (importOriginal) => {
 });
 
 import { MotionSection } from "../MotionSection";
+import { PartnerMarquee } from "../PartnerMarquee";
+import { Typewriter } from "../Typewriter";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 
 function Probe() {
@@ -35,5 +37,30 @@ describe("MotionSection (reduced motion)", () => {
     // sin motion: framer no inyecta style de opacity/transform inicial
     expect((el as HTMLElement).style.opacity).toBe("");
     expect((el as HTMLElement).style.transform).toBe("");
+  });
+});
+
+describe("PartnerMarquee (reduced motion)", () => {
+  it("renderiza los logos sin duplicar (fallback estático)", () => {
+    render(
+      <PartnerMarquee>
+        {["ACME", "NOVA", "DELTA"].map((n) => (
+          <span key={n}>{n}</span>
+        ))}
+      </PartnerMarquee>,
+    );
+    expect(screen.getAllByText("ACME")).toHaveLength(1);
+    expect(screen.getAllByText("NOVA")).toHaveLength(1);
+    expect(screen.getAllByText("DELTA")).toHaveLength(1);
+  });
+});
+
+describe("Typewriter (reduced motion)", () => {
+  it("renderiza el texto completo de inmediato, sin cursor", () => {
+    const { container } = render(<Typewriter as="p" text="Hasta ahora." />);
+    expect(screen.getByText("Hasta ahora.")).toBeTruthy();
+    // sin motion: no hay aria-label (el texto real ya está completo, no
+    // necesita la muleta de accesibilidad del modo animado)
+    expect(container.querySelector("[aria-label]")).toBeNull();
   });
 });

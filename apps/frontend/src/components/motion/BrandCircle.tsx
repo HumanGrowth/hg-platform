@@ -1,6 +1,6 @@
 "use client";
 
-import { animate, m, useMotionValue, useScroll, useTransform } from "framer-motion";
+import { animate, m, useInView, useMotionValue, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef } from "react";
 
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
@@ -50,6 +50,10 @@ export function BrandCircle({
 }: BrandCircleProps) {
   const shouldAnimate = useShouldAnimate();
   const ref = useRef<HTMLDivElement>(null);
+  // Sin `once`: el loop arranca al entrar en viewport y se pausa al salir —
+  // evita gastar el hilo principal en círculos fuera de pantalla (perf fix
+  // motion-v2-07: 3 loops perpetuos desde el mount bajaban Lighthouse -4).
+  const inView = useInView(ref, { margin: "0px 0px 200px 0px" });
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -62,14 +66,14 @@ export function BrandCircle({
   const floatY = useMotionValue(0);
 
   useEffect(() => {
-    if (!shouldAnimate) return;
+    if (!shouldAnimate || !inView) return;
     const controls = animate(floatY, [0, -floatAmplitude, 0], {
       duration: floatDuration,
       repeat: Infinity,
       ease: "easeInOut",
     });
     return () => controls.stop();
-  }, [shouldAnimate, floatY, floatAmplitude, floatDuration]);
+  }, [shouldAnimate, inView, floatY, floatAmplitude, floatDuration]);
 
   const y = useTransform([parallaxY, floatY], ([p, f]: number[]) => `${p + f}px`);
 
