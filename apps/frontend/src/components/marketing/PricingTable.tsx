@@ -5,7 +5,6 @@ import Link from "next/link";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { BrandCircle } from "@/components/motion/BrandCircle";
-import { BrandLine } from "@/components/motion/BrandLine";
 import { DecoLayer } from "@/components/motion/DecoLayer";
 import { Card } from "@/components/ui/card";
 

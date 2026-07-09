@@ -1,7 +1,6 @@
 import { PerspectivasFilter } from "@/components/marketing/PerspectivasFilter";
 import { HeroWatermark } from "@/components/marketing/HeroWatermark";
 import { BrandCircle } from "@/components/motion/BrandCircle";
-import { BrandLine } from "@/components/motion/BrandLine";
 import { DecoLayer } from "@/components/motion/DecoLayer";
 import { getCopy } from "@/lib/i18n";
 

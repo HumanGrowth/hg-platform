@@ -25,6 +25,10 @@ interface BrandLineProps {
 }
 
 /**
+ * @deprecated use BrandSawWave — reemplazada en motion-v2-03 (decisión C).
+ * Se mantiene en el árbol hasta el cleanup final (motion-v2-07); sin
+ * callsites activos tras la migración.
+ *
  * Línea decorativa de marca con parallax leve (motion-04). En el modo animado
  * la rotación se pasa como motion value (rotate) para componer con el parallax
  * (y) sin pisar el transform. aria-hidden + pointer-events:none.

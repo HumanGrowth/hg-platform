@@ -221,7 +221,7 @@ export function BrandCircle({
 
 ---
 
-## TASK motion-v2-03 · `<BrandSawWave/>` reemplaza `<BrandLine/>` · SVG sawtooth + draw-on-scroll · `[ ]`
+## TASK motion-v2-03 · `<BrandSawWave/>` reemplaza `<BrandLine/>` · SVG sawtooth + draw-on-scroll · `[x]`
 
 Andrés quiere reemplazar las líneas rectas por sawtooth (`/\/\/\`) inspirado en el mosaic pattern. La onda se dibuja progresivamente al scrollear (draw-on-scroll con `strokeDashoffset`).
 
@@ -723,7 +723,7 @@ Bonus: **video corto** (5-10s) capturando el scroll del home con las animaciones
 |---|---|---|
 | motion-v2-01 | PartnerMarquee | `[x]` |
 | motion-v2-02 | BrandCircle floating + parallax | `[x]` |
-| motion-v2-03 | BrandSawWave (reemplaza BrandLine) | `[ ]` |
+| motion-v2-03 | BrandSawWave (reemplaza BrandLine) | `[x]` |
 | motion-v2-04 | StaggerBounceGrid on cards | `[ ]` |
 | motion-v2-05 | HowItWorksTimeline steps hop | `[ ]` |
 | motion-v2-06 | Typewriter on Quote | `[ ]` |
