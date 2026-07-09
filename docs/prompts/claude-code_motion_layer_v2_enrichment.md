@@ -460,7 +460,7 @@ Spring necesita `domAnimation` (ya migrado en TASK 03).
 
 ---
 
-## TASK motion-v2-05 · Steps HowItWorksTimeline · hop animation · `[ ]`
+## TASK motion-v2-05 · Steps HowItWorksTimeline · hop animation · `[x]`
 
 Andrés: "Los pasos en 'como funciona' deben saltar uno después del otro".
 
@@ -725,6 +725,6 @@ Bonus: **video corto** (5-10s) capturando el scroll del home con las animaciones
 | motion-v2-02 | BrandCircle floating + parallax | `[x]` |
 | motion-v2-03 | BrandSawWave (reemplaza BrandLine) | `[x]` |
 | motion-v2-04 | StaggerBounceGrid on cards | `[x]` |
-| motion-v2-05 | HowItWorksTimeline steps hop | `[ ]` |
+| motion-v2-05 | HowItWorksTimeline steps hop | `[x]` |
 | motion-v2-06 | Typewriter on Quote | `[ ]` |
 | motion-v2-07 | Tests + Lighthouse + screenshots | `[ ]` |
