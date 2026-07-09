@@ -2,6 +2,7 @@
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { MotionSection } from "@/components/motion/MotionSection";
+import { StaggerBounceGrid } from "@/components/motion/StaggerBounceGrid";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 
@@ -25,7 +26,7 @@ export default function WhatIsHg() {
         </Display>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <StaggerBounceGrid className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {cards.map((card) => (
           <article
             key={card.title}
@@ -35,7 +36,7 @@ export default function WhatIsHg() {
             <p className="body-sm leading-relaxed text-hg-charcoal">{card.body}</p>
           </article>
         ))}
-      </div>
+      </StaggerBounceGrid>
       </MotionSection>
     </section>
   );

@@ -4,6 +4,7 @@ import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { MotionSection } from "@/components/motion/MotionSection";
 import { BrandCircle } from "@/components/motion/BrandCircle";
 import { DecoLayer } from "@/components/motion/DecoLayer";
+import { StaggerBounceGrid } from "@/components/motion/StaggerBounceGrid";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { pillarIconSrc } from "@/lib/pillars";
@@ -36,7 +37,7 @@ export default function SixPillars() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <StaggerBounceGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {c.items.map((item) => {
             const src = pillarIconSrc(item.code);
             return (
@@ -61,7 +62,7 @@ export default function SixPillars() {
               </article>
             );
           })}
-        </div>
+        </StaggerBounceGrid>
       </MotionSection>
     </section>
   );

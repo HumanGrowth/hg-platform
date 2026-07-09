@@ -363,7 +363,7 @@ Mantener `BrandLine.tsx` en el árbol pero marcar con JSDoc `@deprecated use Bra
 
 ---
 
-## TASK motion-v2-04 · Card stagger bounce entrance · `[ ]`
+## TASK motion-v2-04 · Card stagger bounce entrance · `[x]`
 
 Andrés: "Las tarjetas deben de subir una tras otra y rebotar al igual que las imágenes de en vivo".
 
@@ -724,7 +724,7 @@ Bonus: **video corto** (5-10s) capturando el scroll del home con las animaciones
 | motion-v2-01 | PartnerMarquee | `[x]` |
 | motion-v2-02 | BrandCircle floating + parallax | `[x]` |
 | motion-v2-03 | BrandSawWave (reemplaza BrandLine) | `[x]` |
-| motion-v2-04 | StaggerBounceGrid on cards | `[ ]` |
+| motion-v2-04 | StaggerBounceGrid on cards | `[x]` |
 | motion-v2-05 | HowItWorksTimeline steps hop | `[ ]` |
 | motion-v2-06 | Typewriter on Quote | `[ ]` |
 | motion-v2-07 | Tests + Lighthouse + screenshots | `[ ]` |

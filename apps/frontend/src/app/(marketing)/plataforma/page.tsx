@@ -11,6 +11,7 @@ import { HeroWatermark } from "@/components/marketing/HeroWatermark";
 import { BrandCircle } from "@/components/motion/BrandCircle";
 import { BrandSawWave } from "@/components/motion/BrandSawWave";
 import { DecoLayer } from "@/components/motion/DecoLayer";
+import { StaggerBounceGrid } from "@/components/motion/StaggerBounceGrid";
 import { getCopy } from "@/lib/i18n";
 
 export const metadata = { title: "Plataforma · Human Growth" };
@@ -41,23 +42,25 @@ export default function PlataformaPage() {
         </div>
       </section>
 
-      <section className="landing-flow-section relative max-w-marketing mx-auto grid gap-6 px-8 md:grid-cols-3">
+      <section className="landing-flow-section relative max-w-marketing mx-auto px-8">
         <DecoLayer>
           <BrandSawWave width={280} teeth={7} height={18} rotation={8} bottom="4%" left="6%" color="var(--hg-sage)" opacity={0.35} speed={0.1} />
         </DecoLayer>
-        {c.features.map((f) => {
-          const Icon = ICONS[f.icon];
-          return (
-            <article
-              key={f.title}
-              className="rounded-lg border border-border bg-surface-card p-8"
-            >
-              {Icon ? <Icon size={28} strokeWidth={1.75} className="text-primary" aria-hidden /> : null}
-              <h3 className="mt-3 font-heading text-lg font-semibold text-fg">{f.title}</h3>
-              <p className="body-sm mt-3 text-hg-charcoal">{f.desc}</p>
-            </article>
-          );
-        })}
+        <StaggerBounceGrid className="grid gap-6 md:grid-cols-3">
+          {c.features.map((f) => {
+            const Icon = ICONS[f.icon];
+            return (
+              <article
+                key={f.title}
+                className="rounded-lg border border-border bg-surface-card p-8"
+              >
+                {Icon ? <Icon size={28} strokeWidth={1.75} className="text-primary" aria-hidden /> : null}
+                <h3 className="mt-3 font-heading text-lg font-semibold text-fg">{f.title}</h3>
+                <p className="body-sm mt-3 text-hg-charcoal">{f.desc}</p>
+              </article>
+            );
+          })}
+        </StaggerBounceGrid>
       </section>
     </div>
   );
