@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
-import { BrandCircle } from "@/components/motion/BrandCircle";
 import { BrandSawWave } from "@/components/motion/BrandSawWave";
+import { BubbleField } from "@/components/motion/BubbleField";
 import { DecoLayer } from "@/components/motion/DecoLayer";
 
 /**
@@ -28,6 +28,7 @@ export function PerspectivasFilter() {
     <section className="landing-flow-section max-w-marketing mx-auto px-8">
       <DecoLayer>
         <BrandSawWave width={260} teeth={7} height={18} rotation={-10} top="30%" right="2%" color="var(--hg-gold)" opacity={0.3} speed={0.1} />
+        <BubbleField seed={32} count={4} />
       </DecoLayer>
       <div className="mb-10 flex flex-wrap gap-2">
         <button type="button" className={chip(active === "all")} onClick={() => setActive("all")}>

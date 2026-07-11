@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 
 import { HeroWatermark } from "@/components/marketing/HeroWatermark";
-import { BrandCircle } from "@/components/motion/BrandCircle";
 import { BrandSawWave } from "@/components/motion/BrandSawWave";
+import { BubbleField } from "@/components/motion/BubbleField";
 import { DecoLayer } from "@/components/motion/DecoLayer";
 import { StaggerBounceGrid } from "@/components/motion/StaggerBounceGrid";
 import { getCopy } from "@/lib/i18n";
@@ -32,10 +32,10 @@ export default function PlataformaPage() {
     <div className="landing-flow">
       <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
         <DecoLayer>
-          <BrandCircle size={420} top="10%" left="-8%" color="var(--hg-green-100)" opacity={0.4} speed={0.15} />
+          <BubbleField seed={11} count={5} />
         </DecoLayer>
         <HeroWatermark />
-        <div className="relative max-w-[920px]">
+        <div className="relative max-w-marketing">
           <div className="eyebrow eyebrow-accent mb-6">{c.hero.eyebrow}</div>
           <h1 className="display text-fg m-0 text-5xl sm:text-6xl">{c.hero.title}</h1>
           <p className="mt-6 max-w-[620px] text-lg text-hg-charcoal">{c.hero.subtitle}</p>
@@ -45,6 +45,7 @@ export default function PlataformaPage() {
       <section className="landing-flow-section relative max-w-marketing mx-auto px-8">
         <DecoLayer>
           <BrandSawWave width={280} teeth={7} height={18} rotation={8} bottom="4%" left="6%" color="var(--hg-sage)" opacity={0.35} speed={0.1} />
+          <BubbleField seed={12} count={4} />
         </DecoLayer>
         <StaggerBounceGrid className="grid gap-6 md:grid-cols-3">
           {c.features.map((f) => {

@@ -196,15 +196,14 @@ export const en = {
     sections: [
       { title: "Platform", href: "/plataforma" },
       { title: "Method", href: "/metodo" },
-      { title: "Resources", href: "#" },
+      { title: "Insights", href: "/perspectivas" },
       { title: "Contact", href: "/contacto" },
     ],
     tagline: "A 6-dimension growth system for professionals across LatAm.",
     rights: "© 2026 HumanGrowth. Made from LatAm, for LatAm.",
     legal: [
-      { label: "Privacy", href: "#" },
-      { label: "Terms", href: "#" },
-      { label: "Security", href: "#" },
+      { label: "Privacy", href: "/legal/privacy.html" },
+      { label: "Terms", href: "/legal/terms.html" },
     ],
     email: "admin@humangrowth.io",
     linkedin: "https://www.linkedin.com/company/humangrowthlatam",

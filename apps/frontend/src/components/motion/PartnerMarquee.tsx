@@ -55,7 +55,7 @@ export function PartnerMarquee({
   return (
     <div
       className={cn(
-        "relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]",
+        "relative w-[60vw] md:w-[40vw] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]",
         className,
       )}
       role="region"

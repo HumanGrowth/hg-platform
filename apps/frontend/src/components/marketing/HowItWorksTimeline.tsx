@@ -4,6 +4,8 @@ import { m, type Variants } from "framer-motion";
 import type { ReactNode } from "react";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
+import { BubbleField } from "@/components/motion/BubbleField";
+import { DecoLayer } from "@/components/motion/DecoLayer";
 import { MotionSection } from "@/components/motion/MotionSection";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { Display } from "@/components/ui/display";
@@ -18,7 +20,10 @@ const hopVariants: Variants = {
     opacity: 1,
     transition: {
       delay: index * HOP_STAGGER,
-      y: { type: "spring", bounce: 0.5, duration: 0.7 },
+      // 3 keyframes (0 → -12 → 0): spring/inertia solo soportan 2, así que el
+      // "hop" usa easing tween — easeOut al subir (desacelera cerca del pico),
+      // easeIn al bajar (acelera hacia el aterrizaje), imitando gravedad.
+      y: { duration: 0.5, ease: ["easeOut", "easeIn"] },
       opacity: { duration: 0.2, delay: index * HOP_STAGGER },
     },
   }),
@@ -89,7 +94,10 @@ export default function HowItWorksTimeline() {
   const { eyebrow, title, steps } = c.howItWorks;
 
   return (
-    <section className="landing-flow-section max-w-marketing mx-auto px-8">
+    <section className="landing-flow-section relative max-w-marketing mx-auto px-8">
+      <DecoLayer>
+        <BubbleField seed={7} count={4} />
+      </DecoLayer>
       <MotionSection as="div">
       <div className="max-w-[760px] mb-14">
         <Eyebrow accent className="mb-4">

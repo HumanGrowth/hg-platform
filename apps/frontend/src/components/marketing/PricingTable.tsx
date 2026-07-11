@@ -4,7 +4,8 @@ import { Check } from "lucide-react";
 import Link from "next/link";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
-import { BrandCircle } from "@/components/motion/BrandCircle";
+import { BrandSawWave } from "@/components/motion/BrandSawWave";
+import { BubbleField } from "@/components/motion/BubbleField";
 import { DecoLayer } from "@/components/motion/DecoLayer";
 import { Card } from "@/components/ui/card";
 
@@ -38,7 +39,8 @@ export default function PricingTable() {
   return (
     <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
       <DecoLayer>
-        <BrandCircle size={400} top="2%" right="-6%" color="var(--hg-sage)" opacity={0.25} speed={0.12} />
+        <BubbleField seed={71} count={5} />
+        <BrandSawWave width={220} teeth={6} height={16} rotation={-10} bottom="8%" left="4%" color="var(--hg-gold)" opacity={0.28} speed={0.08} />
       </DecoLayer>
       <div className="flex flex-col items-center text-center mb-12">
         <div className="eyebrow eyebrow-accent mb-4">{c.eyebrow}</div>

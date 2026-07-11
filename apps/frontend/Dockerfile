@@ -34,6 +34,8 @@ ENV NODE_ENV=production \
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
 COPY --from=builder /app/apps/frontend/public ./apps/frontend/public
+RUN find ./apps/frontend/public -type d -exec chmod 755 {} \;
+RUN find ./apps/frontend/public -type f -exec chmod 644 {} \;
 COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/static ./apps/frontend/.next/static
 
