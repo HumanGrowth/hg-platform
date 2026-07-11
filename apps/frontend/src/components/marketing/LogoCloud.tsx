@@ -1,24 +1,33 @@
 "use client";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
+import { BubbleField } from "@/components/motion/BubbleField";
+import { DecoLayer } from "@/components/motion/DecoLayer";
+import { PartnerMarquee } from "@/components/motion/PartnerMarquee";
+
+const PARTNERS = ["ACME", "NOVA", "VÉRTICE", "PRISMA", "ANDINA", "DELTA"];
 
 export default function LogoCloud() {
   const c = useMarketingCopy();
   return (
-    <section className="landing-flow-section max-w-marketing mx-auto px-8 text-center">
+    <section className="landing-flow-section relative max-w-marketing mx-auto px-8 text-center">
+      <DecoLayer>
+        <BubbleField seed={2} count={3} />
+      </DecoLayer>
       <div className="eyebrow mb-5">{c.logoCloud.eyebrow}</div>
       {/* Logos placeholder con blur alto: aún no son partners reales. */}
-      <div
-        className="mt-2 flex items-center justify-center gap-x-10 gap-y-6 flex-wrap opacity-40"
-        aria-hidden
-        style={{ filter: "blur(6px)" }}
-      >
-        {["ACME", "NOVA", "VÉRTICE", "PRISMA", "ANDINA", "DELTA"].map((name) => (
-          <span key={name} className="font-display text-xl text-hg-charcoal tracking-tight">
+      <PartnerMarquee speed={28} className="mt-2 opacity-40" pauseOnHover>
+        {PARTNERS.map((name) => (
+          <span
+            key={name}
+            aria-hidden
+            className="font-display text-xl text-hg-charcoal tracking-tight"
+            style={{ filter: "blur(6px)" }}
+          >
             {name}
           </span>
         ))}
-      </div>
+      </PartnerMarquee>
     </section>
   );
 }

@@ -1,6 +1,11 @@
+"use client";
+
 import { cva, type VariantProps } from "class-variance-authority";
+import { m } from "framer-motion";
 import * as React from "react";
 
+import { useInMotionScope } from "@/components/motion/MotionProvider";
+import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
@@ -31,15 +36,39 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {}
 
+/**
+ * Hover motion sutil (motion-05): scale 1.02 / tap 0.98, SOLO dentro del
+ * marketing group (useInMotionScope) y sin reduced motion. Fuera de marketing
+ * (app autenticada) renderiza el <button> plano de siempre — cero cambios.
+ */
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, type, ...props }, ref) => (
-    <button
-      ref={ref}
-      type={type ?? "button"}
-      className={cn(buttonVariants({ variant, size }), className)}
-      {...props}
-    />
-  ),
+  ({ className, variant, size, type, ...props }, ref) => {
+    const inScope = useInMotionScope();
+    const shouldAnimate = useShouldAnimate();
+
+    if (!inScope || !shouldAnimate) {
+      return (
+        <button
+          ref={ref}
+          type={type ?? "button"}
+          className={cn(buttonVariants({ variant, size }), className)}
+          {...props}
+        />
+      );
+    }
+
+    return (
+      <m.button
+        ref={ref}
+        type={type ?? "button"}
+        className={cn(buttonVariants({ variant, size }), className)}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ duration: 0.15, ease: "easeOut" }}
+        {...(props as React.ComponentProps<typeof m.button>)}
+      />
+    );
+  },
 );
 Button.displayName = "Button";
 

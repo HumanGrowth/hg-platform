@@ -1,6 +1,9 @@
 import Link from "next/link";
 
 import { HeroWatermark } from "@/components/marketing/HeroWatermark";
+import { BrandSawWave } from "@/components/motion/BrandSawWave";
+import { BubbleField } from "@/components/motion/BubbleField";
+import { DecoLayer } from "@/components/motion/DecoLayer";
 import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
 import MarketingRadar from "@/components/marketing/MarketingRadar";
 import { MethodPillars } from "@/components/marketing/MethodPillars";
@@ -19,7 +22,9 @@ export default function MetodoPage() {
     <div className="landing-flow">
       {/* Hero */}
       <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
-        <HeroWatermark />
+        <DecoLayer>
+          <BubbleField seed={21} count={5} />
+        </DecoLayer>
         <div className="eyebrow eyebrow-accent mb-6">{c.hero.eyebrow}</div>
         <h1 className="display text-fg m-0 text-[56px] leading-[0.95] sm:text-[80px] lg:text-[96px]">
           {c.hero.title}
@@ -30,7 +35,10 @@ export default function MetodoPage() {
       </section>
 
       {/* Un sistema, no seis módulos */}
-      <section className="landing-flow-section max-w-marketing mx-auto px-8">
+      <section className="landing-flow-section relative max-w-marketing mx-auto px-8">
+        <DecoLayer>
+          <BrandSawWave width={220} teeth={6} height={16} rotation={-8} top="6%" right="6%" color="var(--hg-gold)" opacity={0.28} speed={0.08} />
+        </DecoLayer>
         <div className="rounded-2xl bg-surface-sunken p-8 sm:p-12">
           <div className="eyebrow eyebrow-accent mb-4">{c.system.eyebrow}</div>
           <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">
@@ -51,7 +59,10 @@ export default function MetodoPage() {
       </section>
 
       {/* Metodología · 5 etapas */}
-      <section className="landing-flow-section max-w-marketing mx-auto px-8">
+      <section className="landing-flow-section relative max-w-marketing mx-auto px-8">
+        <DecoLayer>
+          <BubbleField seed={22} count={4} />
+        </DecoLayer>
         <div className="eyebrow eyebrow-accent mb-4">{c.steps.eyebrow}</div>
         <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">{c.steps.title}</h2>
         <p className="mt-4 mb-10 max-w-[620px] text-[18px] leading-[1.5] text-hg-charcoal">
@@ -62,6 +73,10 @@ export default function MetodoPage() {
 
       {/* Los 6 pilares */}
       <section className="landing-flow-section max-w-marketing mx-auto px-8">
+        <DecoLayer>
+          <BrandSawWave width={300} teeth={8} height={18} rotation={-12} bottom="6%" right="4%" color="var(--hg-gold)" opacity={0.3} speed={0.1} />
+          <BubbleField seed={23} count={4} />
+        </DecoLayer>
         <div className="eyebrow eyebrow-accent mb-4">{c.pillarsHeading.eyebrow}</div>
         <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">
           {c.pillarsHeading.title}
@@ -76,7 +91,11 @@ export default function MetodoPage() {
       <MarketingRadar />
 
       {/* Rigor y límites */}
-      <section className="landing-flow-section max-w-marketing mx-auto px-8 pb-20">
+      <section className="landing-flow-section relative max-w-marketing mx-auto px-8 pb-20">
+        <DecoLayer>
+          <BrandSawWave width={180} teeth={5} height={16} rotation={10} top="4%" left="2%" color="var(--hg-sage)" opacity={0.28} speed={0.08} />
+          <BubbleField seed={24} count={3} />
+        </DecoLayer>
         <div className="eyebrow eyebrow-accent mb-4">{c.rigor.eyebrow}</div>
         <h2 className="display m-0 max-w-[760px] text-3xl text-fg sm:text-4xl">{c.rigor.title}</h2>
         <p className="mt-5 mb-10 max-w-[720px] text-[18px] leading-[1.55] text-hg-charcoal">
@@ -96,7 +115,10 @@ export default function MetodoPage() {
       <HowItWorksTimeline />
 
       {/* CTA final */}
-      <section className="landing-flow-section max-w-marketing mx-auto px-8">
+      <section className="landing-flow-section relative max-w-marketing mx-auto px-8">
+        <DecoLayer>
+          <BrandSawWave width={200} teeth={5} height={16} rotation={-15} bottom="6%" right="2%" color="var(--hg-gold)" opacity={0.3} speed={0.08} />
+        </DecoLayer>
         <div className="flex flex-col items-start gap-6 rounded-2xl bg-hg-ink p-10 sm:p-14">
           <h2 className="display m-0 max-w-[620px] text-3xl text-hg-cream sm:text-4xl">
             {c.cta.title}

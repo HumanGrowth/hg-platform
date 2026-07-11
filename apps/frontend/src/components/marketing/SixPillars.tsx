@@ -1,6 +1,10 @@
 "use client";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
+import { MotionSection } from "@/components/motion/MotionSection";
+import { BubbleField } from "@/components/motion/BubbleField";
+import { DecoLayer } from "@/components/motion/DecoLayer";
+import { StaggerBounceGrid } from "@/components/motion/StaggerBounceGrid";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { pillarIconSrc } from "@/lib/pillars";
@@ -17,7 +21,10 @@ export default function SixPillars() {
       id="dimensiones"
       className="landing-flow-section scroll-mt-24 border-t border-b border-border"
     >
-      <div className="max-w-marketing mx-auto px-8">
+      <DecoLayer>
+        <BubbleField seed={3} count={5} />
+      </DecoLayer>
+      <MotionSection as="div" className="max-w-marketing mx-auto px-8">
         <div className="max-w-[760px] mb-14">
           <Eyebrow accent className="mb-4">
             {c.eyebrow}
@@ -30,7 +37,7 @@ export default function SixPillars() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <StaggerBounceGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {c.items.map((item) => {
             const src = pillarIconSrc(item.code);
             return (
@@ -55,8 +62,8 @@ export default function SixPillars() {
               </article>
             );
           })}
-        </div>
-      </div>
+        </StaggerBounceGrid>
+      </MotionSection>
     </section>
   );
 }

@@ -2,13 +2,20 @@ import { Linkedin, Mail } from "lucide-react";
 
 import ContactForm from "@/components/marketing/ContactForm";
 import { PageBottomIsotype } from "@/components/marketing/PageBottomIsotype";
+import { BrandSawWave } from "@/components/motion/BrandSawWave";
+import { BubbleField } from "@/components/motion/BubbleField";
+import { DecoLayer } from "@/components/motion/DecoLayer";
 
 export const metadata = { title: "Conversemos — Human Growth" };
 
 export default function ContactoPage() {
   return (
     <div className="landing-flow">
-      <section className="landing-flow-section relative overflow-hidden px-8 pt-36 pb-8 text-center">
+      <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8 text-center">
+        <DecoLayer>
+          <BubbleField seed={41} count={5} />
+          <BrandSawWave width={220} teeth={6} height={18} rotation={12} bottom="14%" right="6%" color="var(--hg-gold)" opacity={0.3} speed={0.1} />
+        </DecoLayer>
         <div className="eyebrow eyebrow-accent mb-6 flex justify-center">Contacto</div>
         <h1 className="display text-fg text-4xl sm:text-5xl m-0">
           Conversemos

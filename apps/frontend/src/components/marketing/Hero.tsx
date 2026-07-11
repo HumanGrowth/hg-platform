@@ -4,6 +4,8 @@ import Link from "next/link";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { HeroWatermark } from "@/components/marketing/HeroWatermark";
+import { BubbleField } from "@/components/motion/BubbleField";
+import { DecoLayer } from "@/components/motion/DecoLayer";
 
 /** Marketing hero. CTAs: Conversemos → /contacto · Ver dimensiones → scroll #dimensiones. */
 export default function Hero() {
@@ -11,9 +13,12 @@ export default function Hero() {
 
   return (
     <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
+      <DecoLayer>
+        <BubbleField seed={1} count={5} />
+      </DecoLayer>
       <HeroWatermark />
 
-      <div className="relative max-w-[920px]">
+      <div className="relative max-w-marketing">
         <div className="eyebrow eyebrow-accent mb-6">{c.eyebrow}</div>
         <h1
           className="display text-fg m-0"

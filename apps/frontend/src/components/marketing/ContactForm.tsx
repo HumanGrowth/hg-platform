@@ -53,7 +53,7 @@ export default function ContactForm({ source = "contacto" }: { source?: string }
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="bg-surface-card border border-border rounded-lg p-8 flex flex-col gap-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="bg-surface-card border border-border rounded-lg max-w-[960px] mx-auto p-8 flex flex-col gap-5">
       <div>
         <Label htmlFor="name" className="text-left">Nombre *</Label>
         <Input id="name" autoComplete="name" {...register("name")} />

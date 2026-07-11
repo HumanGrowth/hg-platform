@@ -8,6 +8,10 @@ import {
 } from "lucide-react";
 
 import { HeroWatermark } from "@/components/marketing/HeroWatermark";
+import { BrandSawWave } from "@/components/motion/BrandSawWave";
+import { BubbleField } from "@/components/motion/BubbleField";
+import { DecoLayer } from "@/components/motion/DecoLayer";
+import { StaggerBounceGrid } from "@/components/motion/StaggerBounceGrid";
 import { getCopy } from "@/lib/i18n";
 
 export const metadata = { title: "Plataforma · Human Growth" };
@@ -27,28 +31,37 @@ export default function PlataformaPage() {
   return (
     <div className="landing-flow">
       <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
+        <DecoLayer>
+          <BubbleField seed={11} count={5} />
+        </DecoLayer>
         <HeroWatermark />
-        <div className="relative max-w-[920px]">
+        <div className="relative max-w-marketing">
           <div className="eyebrow eyebrow-accent mb-6">{c.hero.eyebrow}</div>
           <h1 className="display text-fg m-0 text-5xl sm:text-6xl">{c.hero.title}</h1>
           <p className="mt-6 max-w-[620px] text-lg text-hg-charcoal">{c.hero.subtitle}</p>
         </div>
       </section>
 
-      <section className="landing-flow-section max-w-marketing mx-auto grid gap-6 px-8 md:grid-cols-3">
-        {c.features.map((f) => {
-          const Icon = ICONS[f.icon];
-          return (
-            <article
-              key={f.title}
-              className="rounded-lg border border-border bg-surface-card p-8"
-            >
-              {Icon ? <Icon size={28} strokeWidth={1.75} className="text-primary" aria-hidden /> : null}
-              <h3 className="mt-3 font-heading text-lg font-semibold text-fg">{f.title}</h3>
-              <p className="body-sm mt-3 text-hg-charcoal">{f.desc}</p>
-            </article>
-          );
-        })}
+      <section className="landing-flow-section relative max-w-marketing mx-auto px-8">
+        <DecoLayer>
+          <BrandSawWave width={280} teeth={7} height={18} rotation={8} bottom="4%" left="6%" color="var(--hg-sage)" opacity={0.35} speed={0.1} />
+          <BubbleField seed={12} count={4} />
+        </DecoLayer>
+        <StaggerBounceGrid className="grid gap-6 md:grid-cols-3">
+          {c.features.map((f) => {
+            const Icon = ICONS[f.icon];
+            return (
+              <article
+                key={f.title}
+                className="rounded-lg border border-border bg-surface-card p-8"
+              >
+                {Icon ? <Icon size={28} strokeWidth={1.75} className="text-primary" aria-hidden /> : null}
+                <h3 className="mt-3 font-heading text-lg font-semibold text-fg">{f.title}</h3>
+                <p className="body-sm mt-3 text-hg-charcoal">{f.desc}</p>
+              </article>
+            );
+          })}
+        </StaggerBounceGrid>
       </section>
     </div>
   );

@@ -1,19 +1,39 @@
+"use client";
+
+import { m } from "framer-motion";
 import * as React from "react";
 
+import { useInMotionScope } from "@/components/motion/MotionProvider";
+import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { cn } from "@/lib/utils";
 
+const cardClasses =
+  "rounded-lg border border-border bg-bg-raised p-6 shadow-sm " +
+  "transition-shadow duration-base ease-state hover:shadow-md";
+
+/**
+ * Hover lift sutil (motion-05): translateY -2px SOLO en marketing
+ * (useInMotionScope) y sin reduced motion. En la app autenticada renderiza el
+ * <div> plano de siempre.
+ */
 export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        "rounded-lg border border-border bg-bg-raised p-6 shadow-sm",
-        "transition-shadow duration-base ease-state hover:shadow-md",
-        className,
-      )}
-      {...props}
-    />
-  ),
+  ({ className, ...props }, ref) => {
+    const inScope = useInMotionScope();
+    const shouldAnimate = useShouldAnimate();
+
+    if (!inScope || !shouldAnimate) {
+      return <div ref={ref} className={cn(cardClasses, className)} {...props} />;
+    }
+
+    return (
+      <m.div
+        ref={ref}
+        className={cn(cardClasses, className)}
+        whileHover={{ y: -2, transition: { duration: 0.2 } }}
+        {...(props as React.ComponentProps<typeof m.div>)}
+      />
+    );
+  },
 );
 Card.displayName = "Card";
 

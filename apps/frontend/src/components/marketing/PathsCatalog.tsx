@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from "react";
 
+import { BrandSawWave } from "@/components/motion/BrandSawWave";
+import { BubbleField } from "@/components/motion/BubbleField";
+import { DecoLayer } from "@/components/motion/DecoLayer";
 import { GROWTH_PATHS, LEVELS, type Level, type PillarId } from "@/lib/growth-paths";
 import { PILLARS } from "@/lib/pillars";
 
@@ -27,7 +30,11 @@ export default function PathsCatalog() {
     }`;
 
   return (
-    <section className="landing-flow-section max-w-marketing mx-auto px-8">
+    <section className="landing-flow-section relative max-w-marketing mx-auto px-8">
+      <DecoLayer>
+        <BrandSawWave width={240} teeth={6} height={16} rotation={-9} top="4%" right="4%" color="var(--hg-gold)" opacity={0.28} speed={0.08} />
+        <BubbleField seed={52} count={4} />
+      </DecoLayer>
       {/* Filtro por pilar */}
       <div className="flex gap-2 flex-wrap mb-3">
         <button className={chip(pillar === "all")} onClick={() => setPillar("all")}>
