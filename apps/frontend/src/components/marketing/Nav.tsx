@@ -53,6 +53,7 @@ export default function Nav() {
   } as const;
 
   return (
+    <>
     <nav
       className="fixed top-0 left-0 right-0 z-50 h-16 transition-[background,border-color] duration-200"
       style={{
@@ -103,56 +104,64 @@ export default function Nav() {
           <Menu size={26} strokeWidth={1.75} />
         </button>
       </div>
+    </nav>
 
-      {/* Mobile drawer */}
-      {open && (
-        <div className="fixed inset-0 z-[60] md:hidden">
-          <button
-            type="button"
-            aria-label="Cerrar menú"
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-hg-ink/40"
-          />
-          <div
-            className="absolute right-0 top-0 flex h-full w-[82%] max-w-xs flex-col gap-6 px-6 py-5 shadow-lg"
-            style={{ ...glassStyle, borderLeft: "1px solid var(--border)" }}
-          >
-            <div className="flex items-center justify-between">
-              <span className="eyebrow">Menú</span>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Cerrar menú">
-                <X size={24} strokeWidth={1.75} className="text-fg" />
-              </button>
-            </div>
+    {/*
+      Drawer FUERA de <nav>: cuando scrolled=true, <nav> tiene backdrop-filter
+      (el cristal esmerilado), y un ancestro con backdrop-filter/filter
+      establece containing block para descendientes position:fixed — el
+      drawer (fixed inset-0) quedaba encajonado dentro de la caja de <nav>
+      (h-16 ≈ 63px) en vez de cubrir el viewport completo. Como hermano de
+      <nav>, el fixed del drawer vuelve a resolver contra el viewport real.
+    */}
+    {open && (
+      <div className="fixed inset-0 z-[60] md:hidden">
+        <button
+          type="button"
+          aria-label="Cerrar menú"
+          onClick={() => setOpen(false)}
+          className="absolute inset-0 bg-hg-ink/40"
+        />
+        <div
+          className="absolute right-0 top-0 flex h-full w-[82%] max-w-xs flex-col gap-6 px-6 py-5 shadow-lg"
+          style={{ ...glassStyle, borderLeft: "1px solid var(--border)" }}
+        >
+          <div className="flex items-center justify-between">
+            <span className="eyebrow">Menú</span>
+            <button type="button" onClick={() => setOpen(false)} aria-label="Cerrar menú">
+              <X size={24} strokeWidth={1.75} className="text-fg" />
+            </button>
+          </div>
 
-            <nav className="flex flex-col gap-4">
-              {tabs.map((tab) => (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  onClick={() => setOpen(false)}
-                  className="text-lg font-semibold text-fg"
-                >
-                  {tab.label}
-                </Link>
-              ))}
-            </nav>
-
-            <div className="border-t border-border pt-5 flex flex-col gap-4">
+          <nav className="flex flex-col gap-4">
+            {tabs.map((tab) => (
               <Link
-                href="/login"
+                key={tab.href}
+                href={tab.href}
                 onClick={() => setOpen(false)}
-                className="text-base font-medium text-fg"
+                className="text-lg font-semibold text-fg"
               >
-                {c.login}
+                {tab.label}
               </Link>
-              <Link href="/contacto" onClick={() => setOpen(false)} className={`${ctaCls} text-center`}>
-                {c.cta}
-              </Link>
-              <LanguageToggle />
-            </div>
+            ))}
+          </nav>
+
+          <div className="border-t border-border pt-5 flex flex-col gap-4">
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
+              className="text-base font-medium text-fg"
+            >
+              {c.login}
+            </Link>
+            <Link href="/contacto" onClick={() => setOpen(false)} className={`${ctaCls} text-center`}>
+              {c.cta}
+            </Link>
+            <LanguageToggle />
           </div>
         </div>
-      )}
-    </nav>
+      </div>
+    )}
+    </>
   );
 }
