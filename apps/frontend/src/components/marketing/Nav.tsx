@@ -44,14 +44,19 @@ export default function Nav() {
     "text-sm font-medium text-fg cursor-pointer py-1.5 border-b border-transparent hover:border-hg-ink transition-colors";
   const ctaCls =
     "bg-primary text-white border-0 px-[18px] py-2.5 rounded-md font-semibold text-sm cursor-pointer hover:bg-primary-hover transition-colors";
+  // Mismo cristal esmerilado del nav desktop al hacer scroll — el drawer mobile
+  // lo usa siempre (es un panel flotante, nunca "top of page" transparente).
+  const glassStyle = {
+    background: "rgba(250,243,232,0.80)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+  } as const;
 
   return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 h-16 transition-[background,border-color] duration-200"
       style={{
-        background: scrolled ? "rgba(250,243,232,0.80)" : "transparent",
-        backdropFilter: scrolled ? "blur(12px)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
+        ...(scrolled ? glassStyle : { background: "transparent", backdropFilter: "none", WebkitBackdropFilter: "none" }),
         borderBottom: scrolled ? "1px solid var(--border)" : "1px solid transparent",
       }}
     >
@@ -108,7 +113,10 @@ export default function Nav() {
             onClick={() => setOpen(false)}
             className="absolute inset-0 bg-hg-ink/40"
           />
-          <div className="absolute right-0 top-0 flex h-full w-[82%] max-w-xs flex-col gap-6 bg-surface-page px-6 py-5 shadow-lg">
+          <div
+            className="absolute right-0 top-0 flex h-full w-[82%] max-w-xs flex-col gap-6 px-6 py-5 shadow-lg"
+            style={{ ...glassStyle, borderLeft: "1px solid var(--border)" }}
+          >
             <div className="flex items-center justify-between">
               <span className="eyebrow">Menú</span>
               <button type="button" onClick={() => setOpen(false)} aria-label="Cerrar menú">
