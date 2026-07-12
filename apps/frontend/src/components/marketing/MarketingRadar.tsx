@@ -29,7 +29,30 @@ export default function MarketingRadar() {
         <Display as="h2" variant="display-3" className="mb-10">
           {c.marketingRadar.title}
         </Display>
-        <Radar values={SAMPLE_CURRENT} growth={SAMPLE_GROWTH} state="complete" size="large" />
+        {/*
+          Radar renderiza el chart de recharts a un tamaño fijo en px (440 para
+          "large", ver SIZE_PX en Radar.tsx) — tanto .recharts-wrapper como el
+          <svg> interno traen su propio inline style="width:440px;height:440px"
+          (recharts), así que en mobile (viewport - px-8 < 440px) desbordaba
+          el contenedor y recortaba las etiquetas del lado derecho. Se lo hace
+          responsive acá (sin tocar Radar.tsx, que también usa /perfil y
+          /onboarding/result — fuera de scope de marketing) con un <style>
+          scoped (mismo patrón que PartnerMarquee): un inline style no se
+          puede pisar con clases Tailwind normales, hace falta !important en
+          una regla real de stylesheet. El viewBox interno de recharts escala
+          el dibujo (incluidas las etiquetas) proporcionalmente.
+        */}
+        <style>{`
+          .marketing-radar-scale { width: 100%; max-width: 440px; overflow: hidden; }
+          .marketing-radar-scale .recharts-wrapper,
+          .marketing-radar-scale svg {
+            width: 100% !important;
+            height: auto !important;
+          }
+        `}</style>
+        <div className="marketing-radar-scale">
+          <Radar values={SAMPLE_CURRENT} growth={SAMPLE_GROWTH} state="complete" size="large" />
+        </div>
         <p className="body-sm max-w-[420px] text-fg-subtle">{c.marketingRadar.caption}</p>
       </MotionSection>
     </section>
