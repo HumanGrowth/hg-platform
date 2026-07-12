@@ -1,13 +1,17 @@
+"use client";
+
+import { StaggerBounceGrid } from "@/components/motion/StaggerBounceGrid";
+
 interface Step {
   n: string;
   name: string;
   body: string;
 }
 
-/** Las 5 etapas de la metodología (presentacional). 1 col mobile → 5 en lg. */
+/** Las 5 etapas de la metodología. 1 col mobile → 5 en lg, entrada stagger-bounce. */
 export function MethodSteps({ items }: { items: readonly Step[] }) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <StaggerBounceGrid className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
       {items.map((s) => (
         <div
           key={s.n}
@@ -18,6 +22,6 @@ export function MethodSteps({ items }: { items: readonly Step[] }) {
           <p className="mt-2 text-sm leading-[1.5] text-hg-charcoal">{s.body}</p>
         </div>
       ))}
-    </div>
+    </StaggerBounceGrid>
   );
 }
