@@ -423,7 +423,7 @@ pregunta `ordering`).
 
 ---
 
-## TASK A-04 · Router endpoints consumer · feed + detail + attempts · `[ ]`
+## TASK A-04 · Router endpoints consumer · feed + detail + attempts · `[x]`
 
 Archivo: `apps/backend/src/hg/modules/learning_units/router.py`
 
@@ -470,11 +470,23 @@ Algoritmo simple para MVP:
 Deferrable a Fase 2 · MVP puede usar solo (1) + (3).
 
 ### Criterios
-- [ ] 7 endpoints funcionales con OpenAPI schema válido
-- [ ] Tests unitarios para completion logic
-- [ ] Tests para replay (reset attempt)
-- [ ] Cobertura ≥85%
-- [ ] Commit: `feat(learning-units): consumer endpoints (feed, detail, attempts, quiz/reflection submit)`
+- [x] 7 endpoints funcionales con OpenAPI schema válido
+- [x] Tests unitarios para completion logic
+- [x] Tests para replay (reset attempt)
+- [x] Cobertura ≥85% — 87% en `hg.modules.learning_units` (32 tests: 7 grading + 6 discriminated-union + 8 router HTTP + 11 más de A-03)
+- [x] Commit: `feat(learning-units): consumer endpoints (feed, detail, attempts, quiz/reflection submit)`
+
+**Notas de implementación:**
+- Selección "unit del día": solo pasos (1) attempt in_progress y (3) fallback
+  aleatorio entre publicadas no completadas del pillar de una enrollment
+  activa — el paso (2) (ranking por pillar_score más rezagado) se defiere a
+  Fase 2 tal como habilita el propio doc.
+- `matching`: pairs no-distractor comparten el mismo id en `left_items`/
+  `right_items` (así se puede verificar `left_id == right_id` al calificar,
+  sin una tabla de "submission" intermedia); distractors generan ids
+  distintos por lado para que nunca puedan emparejar correctamente.
+- Grading vive en `quiz_grading.py`, separado del router, para poder
+  testearlo sin DB (7 tests unitarios puros, uno por tipo + casos edge).
 
 ---
 
@@ -1193,7 +1205,7 @@ docs/screenshots/learning-units-fase1/
 | A-01 | Migration rename + 12 tablas | `[x]` |
 | A-02 | SQLAlchemy models polimórficos | `[x]` |
 | A-03 | Pydantic schemas discriminated unions | `[x]` |
-| A-04 | Endpoints consumer | `[ ]` |
+| A-04 | Endpoints consumer | `[x]` |
 | A-05 | Endpoints admin CMS | `[ ]` |
 | A-06 | YouTube helper | `[ ]` |
 | A-07 | Migration events + Course→Event refactor | `[ ]` |
