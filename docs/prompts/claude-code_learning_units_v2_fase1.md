@@ -163,7 +163,7 @@ solo modelaba single/multiple_choice; el schema real tiene 6 tipos).
 
 ---
 
-## TASK A-02 · SQLAlchemy models · polimorfismo + 6 tipos quiz · `[ ]`
+## TASK A-02 · SQLAlchemy models · polimorfismo + 6 tipos quiz · `[x]`
 
 Archivo: `apps/backend/src/hg/modules/learning_units/models.py`
 
@@ -242,10 +242,15 @@ class BlockProgress(Base):
 ```
 
 ### Criterios
-- [ ] 15+ models definidos
-- [ ] Relaciones polimórficas configuradas
-- [ ] `mypy` limpio (opcional pero deseable)
-- [ ] Commit: `feat(learning-units): SQLAlchemy models + polymorphic quiz types`
+- [x] 15+ models definidos — 17 (`LearningUnit` + 8 templates + 5 hijas quiz + `LearningUnitAttempt`/`BlockProgress`/`QuizResponse`/`ReflectionText`)
+- [x] Relaciones polimórficas configuradas
+- [x] `mypy` limpio
+- [x] Commit: `feat(learning-units): SQLAlchemy models + polymorphic quiz types`
+
+**Nota:** `UnitBlock.block_id` no lleva FK de DB (polimórfico real — puede
+apuntar a `video_blocks`, `text_blocks`, `quiz_blocks` o `reflection_blocks`
+según `block_type`). La resolución vive en `BLOCK_TYPE_TO_MODEL` al final de
+`models.py`, usada por schemas/router (A-03/A-04) para el join aplicativo.
 
 ---
 
@@ -1180,7 +1185,7 @@ docs/screenshots/learning-units-fase1/
 | ID | Subject | Status |
 |---|---|---|
 | A-01 | Migration rename + 12 tablas | `[x]` |
-| A-02 | SQLAlchemy models polimórficos | `[ ]` |
+| A-02 | SQLAlchemy models polimórficos | `[x]` |
 | A-03 | Pydantic schemas discriminated unions | `[ ]` |
 | A-04 | Endpoints consumer | `[ ]` |
 | A-05 | Endpoints admin CMS | `[ ]` |
