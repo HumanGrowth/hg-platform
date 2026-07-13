@@ -254,7 +254,7 @@ según `block_type`). La resolución vive en `BLOCK_TYPE_TO_MODEL` al final de
 
 ---
 
-## TASK A-03 · Pydantic schemas + discriminated unions · `[ ]`
+## TASK A-03 · Pydantic schemas + discriminated unions · `[x]`
 
 Archivo: `apps/backend/src/hg/modules/learning_units/schemas.py`
 
@@ -410,10 +410,16 @@ class QuizSubmitResult(BaseModel):
 ```
 
 ### Criterios
-- [ ] Discriminated unions funcionan con pydantic v2
-- [ ] Schemas tienen from_attributes = True
-- [ ] Serialization test unitario para cada tipo de quiz
-- [ ] Commit: `feat(learning-units): pydantic schemas with discriminated unions`
+- [x] Discriminated unions funcionan con pydantic v2
+- [x] Schemas tienen from_attributes = True
+- [x] Serialization test unitario para cada tipo de quiz — 19 tests en `test_learning_units_schemas.py`
+- [x] Commit: `feat(learning-units): pydantic schemas with discriminated unions`
+
+**Nota:** `QuizSubmitPayload` también quedó discriminado por `question_type`
+(6 sub-schemas) en vez del payload plano de campos opcionales del snippet
+original — cada tipo espera una forma de respuesta distinta y un payload
+plano perdía validación (nada impedía mandar `boolean_answer` en una
+pregunta `ordering`).
 
 ---
 
@@ -1186,7 +1192,7 @@ docs/screenshots/learning-units-fase1/
 |---|---|---|
 | A-01 | Migration rename + 12 tablas | `[x]` |
 | A-02 | SQLAlchemy models polimórficos | `[x]` |
-| A-03 | Pydantic schemas discriminated unions | `[ ]` |
+| A-03 | Pydantic schemas discriminated unions | `[x]` |
 | A-04 | Endpoints consumer | `[ ]` |
 | A-05 | Endpoints admin CMS | `[ ]` |
 | A-06 | YouTube helper | `[ ]` |
