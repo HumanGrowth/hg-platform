@@ -280,3 +280,157 @@ class ReflectionSubmitIn(BaseModel):
 
 class ReflectionSubmitOut(BaseModel):
     ok: bool = True
+
+
+# ─────────────────────────── Admin CMS · create/update (TASK A-05) ───────────────────────────
+
+_LEVEL_CODE_RE = r"^L[1-6]$"
+
+
+class LearningUnitCreate(BaseModel):
+    slug: str = Field(pattern=r"^[a-z0-9]+(-[a-z0-9]+)*$", min_length=3, max_length=120)
+    title: str = Field(min_length=1, max_length=200)
+    pillar_code: str
+    competency_code: str | None = None
+    level_code: str = Field(pattern=_LEVEL_CODE_RE)
+    mentor_id: UUID | None = None
+    estimated_duration_seconds: int | None = Field(default=None, ge=0)
+
+
+class LearningUnitUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    pillar_code: str | None = None
+    competency_code: str | None = None
+    level_code: str | None = Field(default=None, pattern=_LEVEL_CODE_RE)
+    mentor_id: UUID | None = None
+    estimated_duration_seconds: int | None = Field(default=None, ge=0)
+
+
+class QuizOptionCreate(BaseModel):
+    text: str = Field(min_length=1)
+    is_correct: bool
+    explanation: str = Field(min_length=1)
+
+
+class QuizQuestionSingleChoiceCreate(BaseModel):
+    question_type: Literal["single_choice"]
+    prompt: str = Field(min_length=1)
+    options: list[QuizOptionCreate] = Field(min_length=2)
+
+
+class QuizQuestionMultipleChoiceCreate(BaseModel):
+    question_type: Literal["multiple_choice"]
+    prompt: str = Field(min_length=1)
+    options: list[QuizOptionCreate] = Field(min_length=2)
+    scoring: Literal["all_or_nothing", "partial"] = "partial"
+
+
+class QuizQuestionTrueFalseCreate(BaseModel):
+    question_type: Literal["true_false"]
+    prompt: str = Field(min_length=1)
+    correct_answer: bool
+    explanation_true: str = Field(min_length=1)
+    explanation_false: str = Field(min_length=1)
+
+
+class OrderingItemCreate(BaseModel):
+    text: str = Field(min_length=1)
+    explanation: str | None = None
+
+
+class QuizQuestionOrderingCreate(BaseModel):
+    question_type: Literal["ordering"]
+    prompt: str = Field(min_length=1)
+    items: list[OrderingItemCreate] = Field(min_length=2)  # en el orden correcto
+
+
+class MatchingPairCreate(BaseModel):
+    left_text: str = Field(min_length=1)
+    right_text: str = Field(min_length=1)
+    is_distractor: bool = False
+
+
+class QuizQuestionMatchingCreate(BaseModel):
+    question_type: Literal["matching"]
+    prompt: str = Field(min_length=1)
+    pairs: list[MatchingPairCreate] = Field(min_length=2)
+
+
+class FillBlankAnswerCreate(BaseModel):
+    correct_text: str = Field(min_length=1)
+    accept_variants: list[str] = []
+    case_sensitive: bool = False
+
+
+class QuizQuestionFillBlankCreate(BaseModel):
+    question_type: Literal["fill_blank"]
+    prompt: str = Field(min_length=1)
+    answers: list[FillBlankAnswerCreate] = Field(min_length=1)
+
+
+QuizQuestionCreateUnion = Annotated[
+    QuizQuestionSingleChoiceCreate
+    | QuizQuestionMultipleChoiceCreate
+    | QuizQuestionTrueFalseCreate
+    | QuizQuestionOrderingCreate
+    | QuizQuestionMatchingCreate
+    | QuizQuestionFillBlankCreate,
+    Field(discriminator="question_type"),
+]
+
+
+class VideoBlockCreate(BaseModel):
+    block_type: Literal["video_intro", "video_teaching", "video_closing"]
+    position: int
+    required: bool = True
+    youtube_video_id: str = Field(min_length=1)  # validado/parseado en A-06
+    poster_url: str | None = None
+    duration_seconds: int = Field(gt=0)
+    subtitle_url: str | None = None
+    transcript_text: str | None = None
+    eyebrow_label: str | None = None
+
+
+class TextBlockCreate(BaseModel):
+    block_type: Literal["text_context", "text_evidence", "text_solution"]
+    position: int
+    required: bool = True
+    variant: Literal["context", "evidence", "solution"]
+    eyebrow: str = Field(min_length=1)
+    body: str = Field(min_length=1)
+    citation: CitationOut | None = None
+    applies_to: list[str] | None = None
+    requires_evidence_block_id: UUID | None = None
+
+
+class QuizBlockCreate(BaseModel):
+    block_type: Literal["quiz_recall"] = "quiz_recall"
+    position: int
+    required: bool = True
+    eyebrow: str = "COMPROBÁ TU COMPRENSIÓN"
+    questions: list[QuizQuestionCreateUnion] = Field(min_length=1)
+
+
+class ReflectionBlockCreate(BaseModel):
+    block_type: Literal["reflection_write"] = "reflection_write"
+    position: int
+    required: bool = True
+    eyebrow: str = "APLICALO ESTA SEMANA"
+    prompt: str = Field(min_length=1)
+    min_chars: int = Field(default=30, ge=1)
+    max_chars: int = Field(default=500, ge=1)
+    example: str | None = None
+
+
+BlockCreate = Annotated[
+    VideoBlockCreate | TextBlockCreate | QuizBlockCreate | ReflectionBlockCreate,
+    Field(discriminator="block_type"),
+]
+
+
+class BlockReorderRequest(BaseModel):
+    block_ids: list[UUID] = Field(min_length=1)
+
+
+class PublishValidationError(BaseModel):
+    errors: list[str]

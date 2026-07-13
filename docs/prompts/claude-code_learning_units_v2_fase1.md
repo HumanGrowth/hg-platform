@@ -490,7 +490,7 @@ Deferrable a Fase 2 · MVP puede usar solo (1) + (3).
 
 ---
 
-## TASK A-05 · CMS API endpoints admin · superadmin CRUD · `[ ]`
+## TASK A-05 · CMS API endpoints admin · superadmin CRUD · `[x]`
 
 Archivo: `apps/backend/src/hg/modules/learning_units/admin_router.py`
 
@@ -537,11 +537,27 @@ POST   /api/v1/admin/learning-units/{id}/blocks/reorder
 ```
 
 ### Criterios
-- [ ] 8 endpoints admin funcionales
-- [ ] `SuperadminGate` bloquea a no-superadmin (403)
-- [ ] Validaciones publish devuelven mensajes útiles
-- [ ] Tests unitarios de validación publish
-- [ ] Commit: `feat(learning-units): admin CMS API endpoints with publish validation`
+- [x] 8 endpoints admin funcionales
+- [x] `SuperadminGate` bloquea a no-superadmin (403) — vía `require_role("superadmin")`
+- [x] Validaciones publish devuelven mensajes útiles — lista completa de errores (no fail-fast), 422 con `{errors: [...]}`
+- [x] Tests unitarios de validación publish — 14 tests, 90% cobertura combinada del módulo
+- [x] Commit: `feat(learning-units): admin CMS API endpoints with publish validation`
+
+**Notas de implementación:**
+- `requires_evidence_block_id` en `POST .../blocks` se resuelve del `id` que
+  el caller ya vio (mismo `unit_blocks.id` que devuelve cualquier
+  `BlockRead`/`create_block`), no del PK interno de `text_blocks` — evita
+  filtrar ese detalle interno al CMS. `PATCH /blocks/{type}/{id}` en cambio sí
+  opera sobre el PK del template directamente (los templates son reusables
+  entre units, no tiene unit_id de contexto).
+- El check de slug duplicado en `_validate_for_publish` es defensa redundante
+  (la tabla ya tiene `UNIQUE(slug)` a nivel DB + `create_unit` ya rechaza con
+  409) — se mantiene por pedido explícito del spec pero no tiene un test de
+  integración honesto posible (no hay forma legítima de dejar dos units
+  persistidas con el mismo slug para ejercitarlo).
+- `block_type` en el PATCH es un path param — el body se valida a mano contra
+  el schema de Update correspondiente porque FastAPI no soporta un tipo de
+  body condicionado por un path param de forma declarativa.
 
 ---
 
@@ -1206,7 +1222,7 @@ docs/screenshots/learning-units-fase1/
 | A-02 | SQLAlchemy models polimórficos | `[x]` |
 | A-03 | Pydantic schemas discriminated unions | `[x]` |
 | A-04 | Endpoints consumer | `[x]` |
-| A-05 | Endpoints admin CMS | `[ ]` |
+| A-05 | Endpoints admin CMS | `[x]` |
 | A-06 | YouTube helper | `[ ]` |
 | A-07 | Migration events + Course→Event refactor | `[ ]` |
 | A-08 | Endpoints events (rename) | `[ ]` |

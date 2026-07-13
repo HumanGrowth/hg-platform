@@ -7,6 +7,7 @@ from hg.modules.admin.router import router as admin_router
 from hg.modules.assessment.router import router as assessment_router
 from hg.modules.identity.router import router as identity_router
 from hg.modules.learning.router import router as learning_router
+from hg.modules.learning_units.admin_router import router as learning_units_admin_router
 from hg.modules.learning_units.router import router as learning_units_router
 from hg.modules.marketing.router import admin_router as marketing_admin_router
 from hg.modules.marketing.router import public_router as marketing_public_router
@@ -30,6 +31,8 @@ router.include_router(marketing_admin_router, prefix="/admin", tags=["marketing"
 router.include_router(learning_router, tags=["catalog"])
 # Learning Units: /modulos/feed, /modulos/{slug}, attempts, quiz/reflection submit (auth)
 router.include_router(learning_units_router, tags=["learning-units"])
+# Learning Units CMS: /admin/learning-units, /admin/blocks/* (superadmin)
+router.include_router(learning_units_admin_router, prefix="/admin", tags=["admin", "learning-units"])
 # Manager: /manager/me/team + /manager/users/{id}/... (B4-A)
 router.include_router(manager_router, prefix="/manager", tags=["manager"])
 # RRHH: /admin/org/metrics + /admin/org/users/export.csv (B4-A)
