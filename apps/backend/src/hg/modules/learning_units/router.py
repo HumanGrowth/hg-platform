@@ -69,7 +69,6 @@ from hg.modules.learning_units.schemas import (
 router = APIRouter()
 
 _VIDEO_TYPES = {UnitBlockType.video_intro, UnitBlockType.video_teaching, UnitBlockType.video_closing}
-_TEXT_TYPES = {UnitBlockType.text_context, UnitBlockType.text_evidence, UnitBlockType.text_solution}
 
 
 # ─────────────────────────── Helpers ───────────────────────────
