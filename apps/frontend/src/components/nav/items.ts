@@ -1,4 +1,4 @@
-import { BookOpen, Home, Menu, Route as RouteIcon, User, Users, type LucideIcon } from "lucide-react";
+import { Home, Menu, Route as RouteIcon, Sparkles, User, Users, type LucideIcon } from "lucide-react";
 
 import type { User as MeUser, UserRole } from "@/lib/types";
 
@@ -18,16 +18,16 @@ const MANAGER_ROLES: UserRole[] = ["manager", "admin", "superadmin"];
 export const SIDE_NAV_ITEMS: NavItem[] = [
   { href: "/home", label: "Inicio", icon: Home },
   { href: "/path", label: "Mi Ruta", icon: RouteIcon },
-  { href: "/library", label: "Biblioteca", icon: BookOpen },
+  { href: "/modulos", label: "Módulos", icon: Sparkles },
   { href: "/perfil", label: "Mi Perfil", icon: User },
   { href: "/team", label: "Mi equipo", icon: Users, roles: MANAGER_ROLES },
 ];
 
-/** BottomNav mobile: 4 ítems fijos + botón "Más" (drawer). */
+/** BottomNav mobile: 4 ítems fijos + botón "Más" (drawer, incluye Eventos). */
 export const BOTTOM_NAV_ITEMS_BASE: NavItem[] = [
   { href: "/home", label: "Inicio", icon: Home },
   { href: "/path", label: "Mi Ruta", icon: RouteIcon },
-  { href: "/library", label: "Biblioteca", icon: BookOpen },
+  { href: "/modulos", label: "Módulos", icon: Sparkles },
   { href: "/perfil", label: "Perfil", icon: User },
 ];
 

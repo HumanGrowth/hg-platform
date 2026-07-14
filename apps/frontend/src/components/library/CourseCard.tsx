@@ -16,7 +16,7 @@ export function CourseCard({ course }: { course: Course }) {
 
   return (
     <Link
-      href={`/library/${course.slug}` as Route}
+      href={`/eventos/${course.slug}` as Route}
       className="group flex flex-col overflow-hidden rounded-lg border border-border bg-bg-raised text-left transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
     >
       <div className="relative aspect-video w-full bg-bg-sunken">

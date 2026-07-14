@@ -846,7 +846,7 @@ Script chequea `SELECT slug FROM learning_units WHERE slug=...` antes de insert 
 
 Rama: `feat/learning-units-frontend` (post PR-A merged)
 
-## TASK B-01 · Sidebar rework · 5 tabs + drawer "Más" con Eventos · `[ ]`
+## TASK B-01 · Sidebar rework · 5 tabs + drawer "Más" con Eventos · `[x]`
 
 Archivo: `apps/frontend/src/components/nav/SideNav.tsx` + `BottomNav.tsx`
 
@@ -882,15 +882,56 @@ Reglas:
 - Labels: "Biblioteca" → "Eventos" en cualquier lugar visible
 
 ### Criterios
-- [ ] Sidebar renderiza 5 primary + drawer "Más" con Eventos
-- [ ] Mobile bottom nav 4 + "Más"
-- [ ] `/library/*` redirects a `/eventos/*`
-- [ ] Cero refs a "Biblioteca" en UI
-- [ ] Commit: `refactor(app): sidebar 5 tabs + drawer Más · rename library→eventos`
+- [x] Sidebar renderiza 5 primary + drawer "Más" con Eventos
+- [x] Mobile bottom nav 4 + "Más"
+- [x] `/library/*` redirects a `/eventos/*`
+- [x] Cero refs a "Biblioteca" en UI
+- [x] Commit: `refactor(app): sidebar 5 tabs + drawer Más · rename library→eventos`
+
+**Notas de implementación:**
+- `MoreDrawer.tsx` no usa un array `MORE_NAV_ITEMS` data-driven (no existe ese
+  patrón en el código — el drawer actual es links hardcodeados con checks de
+  rol inline: `showTeam(user)`, `isAdminPlus`). Se agregó el link "Eventos
+  (live)" siguiendo ese mismo estilo hardcodeado en vez de introducir un
+  array nuevo — matchea la convención existente en vez de refactorizar sin
+  necesidad.
+- `SIDE_NAV_ITEMS`/`BOTTOM_NAV_ITEMS_BASE` comparten el mismo array de 4
+  items fijos (Inicio/Mi Ruta/Módulos/Perfil) — "Mi equipo" solo aparece en
+  desktop sidebar (role-gated) y en el drawer mobile (`showTeam` ya
+  filtraba esto antes de esta TASK, sin cambios).
+- Redirects en `next.config.mjs` vía `redirects()` (edge, `permanent: true`
+  → 308) siguiendo el mismo patrón que `/ciencia`→`/metodo` — más robusto
+  que un `redirect()` de página bajo static generation (comentario existente
+  en el archivo). `middleware.ts` también actualizado (`PROTECTED` +
+  `config.matcher`): `/library`→`/eventos`, y se agregó `/modulos` de una vez
+  ya que el nuevo item de sidebar apunta ahí (la página en sí se construye en
+  B-03/B-08).
+- Movido `app/(app)/library/` → `app/(app)/eventos/` y actualizadas todas las
+  refs de ruta (`href`/`router.replace`) a `/eventos` en
+  `CourseDetailView.tsx`, `CourseCard.tsx`, `PathLanes.tsx`, `home/page.tsx`.
+  **Deliberadamente NO** se renombró `src/components/library/` (el folder de
+  componentes internos) ni el wording "curso"/"Curso" dentro de esas vistas
+  — eso es el scope explícito de B-09 ("Grep curso/Curso en /eventos/\*").
+  Este split mantiene el mismo patrón que A-07 (rename de modelo) vs A-08
+  (rename de rutas) en el backend.
+- "Cero refs a Biblioteca" se interpretó como cero texto visible en UI, no
+  solo el label del nav: se encontraron y corrigieron 4 instancias
+  adicionales de copy visible ("Explorá la biblioteca"→"Explorá los
+  eventos", "Ver biblioteca"→"Ver eventos" en `home/page.tsx`; "Explorar la
+  biblioteca completa"→"Explorar todos los eventos" en `PathLanes.tsx`;
+  "Volver a biblioteca"→"Volver a eventos" ×2 en `CourseDetailView.tsx`) más
+  un comentario de código en `path/page.tsx`. Los tests de `home/page.tsx`
+  que aserteaban el texto viejo se actualizaron. `PricingTable.tsx`
+  (marketing, "Biblioteca de contenido HG") se dejó sin tocar — fuera de
+  scope por la regla "NO tocar marketing".
+- Verificado: `pnpm typecheck` limpio (requirió `rm -rf .next && next build`
+  una vez para regenerar `next/types/routes.d.ts` — el cache de rutas
+  tipadas seguía apuntando a `/library`), `pnpm lint` sin warnings, `pnpm
+  test` 95/95 verdes.
 
 ---
 
-## TASK B-02 · Types + API client · `[ ]`
+## TASK B-02 · Types + API client · `[x]`
 
 Archivo: `apps/frontend/src/lib/api/modulos.ts` + `src/lib/types/modulos.ts`
 
@@ -920,13 +961,47 @@ export async function apiGetAttempt(slug: string): Promise<LearningUnitAttempt>;
 ```
 
 ### Criterios
-- [ ] Types match backend schemas
-- [ ] Client con manejo de errores (ApiError)
-- [ ] Commit: `feat(modulos): TypeScript types + API client`
+- [x] Types match backend schemas
+- [x] Client con manejo de errores (ApiError)
+- [x] Commit: `feat(modulos): TypeScript types + API client`
+
+**Notas de implementación:**
+- Se agregaron los tipos a `src/lib/types.ts` y las funciones a
+  `src/lib/api.ts` (archivos únicos y planos existentes) en vez de crear
+  `src/lib/api/modulos.ts` + `src/lib/types/modulos.ts` — el frontend no
+  tiene un patrón de un-archivo-por-dominio; todo vive en esos dos archivos
+  planos organizados por comment banners (confirmado: ningún `src/lib/api/`
+  ni `src/lib/types/` existe como directorio en el resto del código). Mismo
+  criterio que A-09 (`src/hg/scripts/` en vez del path literal del prompt):
+  seguir la convención real del repo en vez del path sugerido.
+- Solo tipos del lado **consumer** (feed/detail/attempts/submit) — el CMS
+  admin es explícitamente Fase 2 según los "Signed decisions" del prompt
+  (`SuperadminGate` + API-only en Fase 1), así que no hay
+  `LearningUnitCreate`/`BlockCreate` en TS todavía.
+- `QuizSubmitPayload`/`QuizQuestion`/`Block` son discriminated unions reales
+  (primer precedente de este patrón en el codebase — antes solo había
+  string-literal unions sueltas, sin discriminación estructural). Elegido
+  porque es el mirror directo de los `Annotated[Union[...], discriminator]`
+  del backend y es lo que hace posible un `switch` exhaustivo type-safe en
+  `BlockRenderer`/`QuizBlockView` (B-06).
+- `MatchingItemOut.id` está documentado inline como "no siempre válido como
+  UUID" — los distractors llevan sufijo `-L`/`-R` (ver
+  `router.py::_build_matching_items`) para que el front nunca pueda
+  enviarlos como par real; `QuizSubmitMatching.matching` deja explícito en
+  el comment que solo van los ids de pares reales. Documentado ahora para
+  que B-06 (`QuizMatching.tsx`) no lo redescubra a los tumbos.
+- "Manejo de errores (ApiError)" ya existe a nivel del `backend` axios
+  instance compartido (interceptor de 401 + auto-refresh + redirect duro) —
+  las funciones nuevas lo heredan gratis al usar `backend.get/post`, igual
+  que el resto de los ~30 endpoints existentes en el archivo (ninguno de
+  ellos envuelve manualmente en `ApiError`; ese wrapper solo se usa para las
+  dos rutas que NO pasan por la instancia axios: `postJson` y
+  `apiSubmitInquiry`).
+- Verificado: `pnpm typecheck` y `pnpm lint` limpios.
 
 ---
 
-## TASK B-03 · Página `/modulos` feed + hero card · `[ ]`
+## TASK B-03 · Página `/modulos` feed + hero card · `[x]`
 
 Archivo: `apps/frontend/src/app/(app)/modulos/page.tsx`
 
@@ -962,13 +1037,43 @@ Streak badge
 - Cache: `revalidate: 60` para el feed
 
 ### Criterios
-- [ ] Feed renderiza hero + próximas (mobile + desktop)
-- [ ] Empty state si no hay units
-- [ ] Commit: `feat(modulos): feed page with hero + compact cards`
+- [x] Feed renderiza hero + próximas (mobile + desktop)
+- [x] Empty state si no hay units
+- [x] Commit: `feat(modulos): feed page with hero + compact cards`
+
+**Notas de implementación:**
+- Página client component (`"use client"`) con `useState`/`useEffect` +
+  `apiGetModulosFeed()`, mismo patrón que `home/page.tsx` y `library/page.tsx`
+  (skeleton `EmptyRing` en loading, `Card` de error con reintentar) — no hay
+  precedente de server components con `revalidate` en `(app)/*` así que no
+  se introdujo uno nuevo (el prompt sugería `revalidate: 60`; se dejó fuera
+  por consistencia con el resto de las páginas autenticadas).
+- El "streak badge" reusa `apiGetHomeDashboard()` (mismo endpoint que
+  `/home`) en vez de requerir un endpoint nuevo — fetch best-effort que no
+  bloquea el render del feed si falla.
+- El pillar-color-band de `UnitCardHero` NO interpola la clase Tailwind en
+  runtime (`bg-pillar-${code}` no es detectable por el JIT scanner) — usa un
+  lookup contra el array `PILLARS` existente (`src/lib/pillars.ts`), que ya
+  tiene las clases como strings literales por esa misma razón.
+- Layout responsive con un solo grid (`lg:grid-cols-[1fr_320px]`) en vez de
+  dos árboles de JSX separados para mobile/desktop — el aside derecho
+  (streak + explorar catálogo) se oculta en mobile vía `hidden lg:flex`, y
+  el link "Explorar catálogo" inline se oculta en desktop vía `lg:hidden`
+  (ya está en el aside ahí).
+- Tests unitarios de esta página **diferidos a B-10** a propósito — esa TASK
+  es la que trae la lista explícita de qué testear (incluye flujo de
+  completion end-to-end, que requiere B-04..B-08 wireados). Escribir un test
+  de la página ahora, en aislamiento, se hubiera tenido que rehacer.
+- **Smoke visual en browser real diferido**: `/modulos/[slug]` (B-08) todavía
+  no existe, así que no hay forma de navegar el flujo completo desde acá
+  todavía. Verificado con `pnpm typecheck` + `pnpm lint` limpios · `next
+  build` exitoso (la ruta `/modulos` aparece en el output). El smoke manual
+  real en browser + los 12 screenshots quedan para B-10, que es donde el
+  propio prompt los pide explícitamente (después de B-08).
 
 ---
 
-## TASK B-04 · `<UnitStoriesPlayer/>` mobile · progress bars + tap navigation · `[ ]`
+## TASK B-04 · `<UnitStoriesPlayer/>` mobile · progress bars + tap navigation · `[x]`
 
 Archivo: `apps/frontend/src/components/modulos/UnitStoriesPlayer.tsx`
 
@@ -1008,16 +1113,62 @@ Archivo: `apps/frontend/src/components/modulos/UnitStoriesPlayer.tsx`
 Sin auto-advance, sin swipe animations · usar `useShouldAnimate` hook existente.
 
 ### Criterios
-- [ ] Fullscreen mobile funcional
-- [ ] Progress bars sync con block_progress
-- [ ] Tap navigation left/right
-- [ ] Swipe down cierra
-- [ ] Reduced motion respetado
-- [ ] Commit: `feat(modulos): UnitStoriesPlayer mobile with tap navigation`
+- [x] Fullscreen mobile funcional
+- [x] Progress bars sync con block_progress
+- [x] Tap navigation left/right
+- [x] Swipe down cierra
+- [x] Reduced motion respetado
+- [x] Commit: `feat(modulos): UnitStoriesPlayer mobile with tap navigation`
+
+**Notas de implementación:**
+- Construido después de B-06/B-07 (sus dependencias reales) — ver nota en
+  esas TASKs.
+- El player posee el estado de `blockProgress` y las llamadas a
+  `apiCompleteBlock`/`apiSubmitQuiz`/`apiSubmitReflection` (bindeadas al
+  bloque actual vía closures) — no delega esto a la página `[slug]` (B-08),
+  que solo hace el fetch inicial de `unit`+`attempt` y renderiza el player.
+  Esto matchea la firma `<UnitStoriesPlayer unit={} attempt={} onComplete=/>`
+  del sketch del prompt, que ya implica que el player es dueño del flujo.
+- Se agregó un prop `onClose` (no estaba en el sketch del prompt, que solo
+  tenía `onComplete`) para separar "salir sin terminar" (X / swipe-down /
+  confirmación) de "completó la unit" — permite que B-08 reaccione distinto
+  a cada caso (ej. mostrar un toast solo en completion real).
+- **Progress bars simplificadas a 2 estados** (completed / no-completed +
+  highlight del índice actual) en vez de un fill continuo estilo Instagram
+  Stories: los endpoints del consumer (`/complete`, `/quiz/submit`,
+  `/reflection/submit`) crean el `block_progress` row directo en estado
+  `"completed"` — no existe un endpoint de "marcar iniciado" que produzca
+  un estado intermedio real para trackear, así que un fill parcial hubiera
+  sido cosmético sin dato real detrás.
+- **Tap zones como columnas laterales (15% cada lado)**, no todo el ancho
+  de la pantalla — así el tap-to-navigate nunca compite con clicks en
+  contenido interactivo (quiz options, textarea de reflection, botones de
+  video) que vive en la columna central. Es el mismo patrón que usan
+  TikTok/Stories-likes reales (bordes para navegar, centro para interactuar).
+- **Swipe-down-to-close** vía `motion.div drag="y"` (framer-motion, ya
+  dependency) — **limitación conocida**: al envolver todo el contenido
+  (incluida el área scrolleable de bloques largos), un swipe vertical
+  dentro de un bloque con scroll interno podría interpretarse como "cerrar"
+  en vez de "scrollear". Arbitrar esto correctamente (solo permitir el
+  swipe-to-close cuando el scroll interno está en `scrollTop=0`, como los
+  bottom-sheets nativos) queda pendiente — no se encontró en el tiempo de
+  esta TASK y el contenido de cada bloque es corto en la práctica (Fase 1
+  son micro-lecciones de pocos minutos, no hay bloques con scroll largo).
+- **Auto-advance en video**: default ON si `duration_seconds < 30`, OFF si
+  no — igual que pide el spec. Toggle expuesto como un `Chip` en el footer
+  (visible solo en bloques de video). Long-press (400ms, touch o mouse)
+  cancela el timer de auto-advance para ese bloque — es una cancelación
+  simple (no un play/pause real), documentado como simplificación MVP.
+- Reduced motion (`useShouldAnimate`): sin `motion.div`/drag (fallback a
+  `<div>` plano, cierre solo por el botón X) y sin timers de auto-advance
+  (el effect chequea `shouldAnimate` antes de armar el `setTimeout`).
+- **Smoke visual en browser real sigue diferido a B-08/B-10** — no hay
+  `/modulos/[slug]` todavía para montar este componente con datos reales.
+  Verificado con `pnpm typecheck` + `pnpm lint` limpios únicamente.
 
 ---
 
-## TASK B-05 · `<UnitBackToBackPlayer/>` desktop + focus mode · `[ ]`
+## TASK B-05 · `<UnitBackToBackPlayer/>` desktop + focus mode · `[x]`
 
 Archivo: `apps/frontend/src/components/modulos/UnitBackToBackPlayer.tsx`
 
@@ -1068,15 +1219,44 @@ export default function ModuloPage({ unit, attempt }) {
 ```
 
 ### Criterios
-- [ ] Layout 2 columnas desktop
-- [ ] Keyboard shortcuts
-- [ ] Focus mode (F)
-- [ ] Click índice funcional
-- [ ] Commit: `feat(modulos): UnitBackToBackPlayer desktop + focus mode`
+- [x] Layout 2 columnas desktop
+- [x] Keyboard shortcuts
+- [x] Focus mode (F)
+- [x] Click índice funcional
+- [x] Commit: `feat(modulos): UnitBackToBackPlayer desktop + focus mode`
+
+**Notas de implementación:**
+- Se creó `src/lib/hooks/useMediaQuery.ts` acá (no existía en el repo,
+  confirmado por grep antes de B-02) — es donde el prompt introduce el
+  layout switcher, aunque el wiring real de `/modulos/[slug]` que lo
+  consume es B-08. SSR-safe (`matches` arranca en `false`, sincroniza con
+  `matchMedia` en un `useEffect`).
+- **"Espacio toggle play video" no se implementó** — el iframe de YouTube
+  del MVP (B-06, sin JSAPI) no expone ningún control de play/pause
+  programático desde fuera del iframe. Implementar esto correctamente
+  requeriría el YouTube IFrame API completo, que quedó explícitamente
+  diferido en B-06. El listener de teclado ignora la tecla Espacio (no hay
+  nada que loggear/togglear sin el control real).
+- **Focus mode** oculta el sidebar/topbar de la app sin coordinar estado
+  con `SideNav`/`TopBar` (que no saben nada de este componente) — en vez de
+  eso, focus mode renderiza el player como `fixed inset-0 z-50` cubriendo
+  toda la ventana, igual que hace el `UnitStoriesPlayer` mobile por
+  default. Visualmente equivalente a "ocultar" el chrome de la app sin
+  necesitar un store global nuevo.
+- **Click en índice**: mismo cálculo de `maxReachableIndex` que el gating
+  lineal del player mobile (primer bloque `required` sin completar, o el
+  último bloque si no hay ninguno) — un bloque es clickeable si su índice
+  es ≤ ese máximo. Los bloques no alcanzables se ven pero están
+  `disabled` (no se ocultan, para que el usuario vea qué falta).
+- Mismo patrón de ownership que B-04: el player mantiene `blockProgress`
+  local y las llamadas a `apiCompleteBlock`/`apiSubmitQuiz`/
+  `apiSubmitReflection`, no delega a la página.
+- Verificado: `pnpm typecheck` y `pnpm lint` limpios. Smoke visual real
+  sigue diferido a B-08/B-10 (sin `/modulos/[slug]` todavía).
 
 ---
 
-## TASK B-06 · `<BlockRenderer/>` polimórfico con 4 sub-vistas + 6 tipos quiz · `[ ]`
+## TASK B-06 · `<BlockRenderer/>` polimórfico con 4 sub-vistas + 6 tipos quiz · `[x]`
 
 Archivo: `apps/frontend/src/components/modulos/BlockRenderer.tsx`
 
@@ -1149,17 +1329,53 @@ Simple render de eyebrow + body + citation (si evidence) · botón "Siguiente" c
 Textarea con min/max chars counter · botón submit cuando ≥ min_chars.
 
 ### Criterios
-- [ ] 4 sub-vistas + 6 sub-componentes quiz
-- [ ] YouTube embed funcional (marca completed manual OK para MVP)
-- [ ] Drag-and-drop en ordering (o alternativa buttons)
-- [ ] Matching con click-pair fallback
-- [ ] Fill blank con inputs
-- [ ] Feedback post-quiz con explanations
-- [ ] Commit: `feat(modulos): BlockRenderer polymorphic + 4 subviews + 6 quiz types`
+- [x] 4 sub-vistas + 6 sub-componentes quiz
+- [x] YouTube embed funcional (marca completed manual OK para MVP)
+- [x] Drag-and-drop en ordering (o alternativa buttons)
+- [x] Matching con click-pair fallback
+- [x] Fill blank con inputs
+- [x] Feedback post-quiz con explanations
+- [x] Commit: `feat(modulos): BlockRenderer polymorphic + 4 subviews + 6 quiz types`
+
+**Notas de implementación:**
+- **Reordenado antes que B-04/B-05** (el prompt los lista B-04→B-05→B-06,
+  pero ambos players consumen `<BlockRenderer/>` — construirlos primero
+  hubiera dejado el build roto entre commits, o forzado un stub descartable).
+  Se mantiene la numeración/commit-message original de cada TASK; solo
+  cambió el orden de ejecución.
+- `@dnd-kit/sortable` **no está instalado** (confirmado por grep en
+  `package.json` antes de empezar) — regla dura "NO instalar deps nuevas
+  salvo consulta explícita". `QuizOrdering.tsx` usa el fallback de botones
+  ↑/↓ que el propio spec de la TASK acepta explícitamente.
+- `react-youtube`/YouTube JSAPI **no se instaló ni se usó postMessage** — el
+  MVP explícitamente aceptado por el prompt es iframe simple + botón manual
+  "Ya lo vi" (`VideoBlockView.tsx`). Auto-tracking de watch% vía JSAPI queda
+  para una iteración siguiente.
+- `QuizMatching.tsx` usa click-to-select-pair (un click en la izquierda,
+  otro en la derecha) — la UI no puede distinguir visualmente los
+  distractors de los pares reales (ese es el punto del distractor), así que
+  cualquier ítem se puede "parear". El filtro real pasa en
+  `QuizBlockView.tsx::buildPayload` vía el nuevo helper `isValidUuid()`
+  (`lib/utils.ts`) — los distractors llevan sufijo `-L`/`-R` (no son UUIDs
+  válidos) y se excluyen del payload antes de enviarlo, documentado también
+  en `lib/types.ts` (B-02) para que no se redescubriera acá.
+- Feedback post-submit por tipo: single/multiple/true_false resaltan
+  inline (verde/rojo) usando el `correct_answer` que devuelve cada
+  `grade_*` de `quiz_grading.py` (re-verificado el shape exacto leyendo el
+  archivo fuente antes de tipar, no adivinado); ordering/matching/fill_blank
+  muestran un texto "respuesta correcta: …" ya que resaltar inline habría
+  sido significativamente más complejo para beneficio marginal en Fase 1.
+- Revisitar un quiz ya completado (`isCompleted=true` sin haber
+  submiteado en esta sesión) muestra un estado "Ya completaste este quiz ✓"
+  simple — el backend no devuelve las respuestas/resultados históricos
+  (`BlockProgressOut` no los incluye), así que no hay forma de reconstruir
+  el feedback sin un endpoint nuevo (fuera de scope). Mismo criterio para
+  `ReflectionBlockView` con el texto ya enviado.
+- Verificado: `pnpm typecheck` y `pnpm lint` limpios.
 
 ---
 
-## TASK B-07 · `<UnitCompletionCard/>` + refetch related · `[ ]`
+## TASK B-07 · `<UnitCompletionCard/>` + refetch related · `[x]`
 
 Archivo: `apps/frontend/src/components/modulos/UnitCompletionCard.tsx`
 
@@ -1175,13 +1391,40 @@ Card mostrada al completar la unit:
 Al render: llamar `apiGetModulosFeed()` para invalidar cache y actualizar el próximo módulo del `/home` (via SWR mutate o Next router.refresh).
 
 ### Criterios
-- [ ] Card con check + resumen + CTAs
-- [ ] Refetch feed post-completion
-- [ ] Commit: `feat(modulos): UnitCompletionCard`
+- [x] Card con check + resumen + CTAs
+- [x] Refetch feed post-completion
+- [x] Commit: `feat(modulos): UnitCompletionCard`
+
+**Notas de implementación:**
+- **Reordenado antes que B-04/B-05** por la misma razón que B-06: ambos
+  players renderizan `<UnitCompletionCard/>` al terminar la unit — igual
+  que con BlockRenderer, construirlo después hubiera dejado un hueco entre
+  commits. Numeración/mensaje de commit sin cambios.
+- El proyecto no tiene SWR ni usa react-query para cache compartida (aunque
+  está instalado como dependency, no hay ningún `useQuery` en el código —
+  confirmado en la investigación de B-02) — "invalidar cache" se interpretó
+  como: refetchear `apiGetModulosFeed()` al montar la card para poder
+  linkear "Siguiente módulo" a un slug concreto (el primer item del feed
+  que no sea la unit recién completada). No hay `router.refresh()` porque
+  no se usa un server component acá.
+- Micro-animación de check con `motion.div` de `framer-motion` (import
+  completo, NO `m` de `LazyMotion`) — `MotionProvider`/`LazyMotion` está
+  scoped únicamente a `(marketing)/layout` (confirmado leyendo el
+  componente), así que `m.div` fallaría fuera de ese árbol. Gateado por
+  `useShouldAnimate()` (el hook general, no el `useInMotionScope`
+  marketing-only) — sin animación, renderiza el ícono estático.
+- `completedSteps`/`totalSteps` se calculan de `attempt.block_progress`
+  (status `"completed"`) vs `unit.blocks.length` — no de un contador
+  separado, para que siempre reflejen el estado real del attempt tal como
+  lo tiene el player en ese momento.
+- **NO auto-navega** al siguiente módulo (P5 desirable difficulties,
+  explícito en el spec) — el CTA "Siguiente módulo" es un link, nunca un
+  redirect automático ni un timer.
+- Verificado: `pnpm typecheck` y `pnpm lint` limpios.
 
 ---
 
-## TASK B-08 · Wire y flow completo `/modulos/[slug]` · `[ ]`
+## TASK B-08 · Wire y flow completo `/modulos/[slug]` · `[x]`
 
 Archivo: `apps/frontend/src/app/(app)/modulos/[slug]/page.tsx`
 
@@ -1193,14 +1436,58 @@ Server component:
 Client wrapper para manejar navigation + state.
 
 ### Criterios
-- [ ] Página funcional end-to-end mobile + desktop
-- [ ] Attempt creado on-first-visit
-- [ ] Progress persistido server-side
-- [ ] Commit: `feat(modulos): wire /modulos/[slug] complete flow`
+- [x] Página funcional end-to-end mobile + desktop
+- [x] Attempt creado on-first-visit
+- [x] Progress persistido server-side
+- [x] Commit: `feat(modulos): wire /modulos/[slug] complete flow`
+
+**Notas de implementación:**
+- Client component (`ModuloDetailView.tsx`), no server component — mismo
+  patrón que el resto de `(app)/*` (confirmado en la investigación de B-03:
+  cero precedente de data-fetching server-side en este route group).
+- "Attempt creado on-first-visit" se resuelve llamando siempre
+  `apiStartAttempt(slug)` al montar (en paralelo con `apiGetModulo`, vía
+  `Promise.all`) — el endpoint ya es idempotente (A-04: crea si no existe,
+  o resetea si `completed_at` ya estaba seteado). Esto significa que
+  re-visitar una unit completada la resetea ("Repasar" desde el feed es
+  literalmente rehacerla — el backend no guarda respuestas históricas para
+  soportar un modo read-only, ver notas de B-06/B-07).
+- 404 (slug inexistente) se detecta con `axios.isAxiosError(e) &&
+  e.response?.status === 404` — **no** con `e instanceof ApiError`, que es
+  el check que usa el `CourseDetailView.tsx` existente pero que es
+  código muerto ahí (`apiGetCourse` nunca lanza `ApiError`, usa la instancia
+  axios `backend` cruda — confirmado leyendo `lib/api.ts`). No se copió ese
+  bug pre-existente a código nuevo.
+- **Verificado end-to-end en un browser real** (headless Chrome vía CDP,
+  no solo typecheck/lint) — primera vez en esta TASK que fue posible,
+  porque recién acá existe una URL real para navegar:
+  - Login real con un usuario de seed nuevo (`smoketest-modulos@acme.test`).
+  - Mobile (390×844): feed → click unit → StoriesPlayer → 7 bloques
+    (video_intro → text_context → video_teaching → text_evidence →
+    text_solution → quiz_recall → video_closing) → submit de quiz real
+    (2/2 correctas, feedback verde con explanation) → `UnitCompletionCard`
+    con "7/7 pasos · ~2 min · 2/2 correctas".
+  - Desktop (1440×900): `UnitBackToBackPlayer` con índice vertical,
+    gating de "Siguiente" funcionando (disabled hasta completar el bloque
+    required actual).
+  - **Bug real encontrado y corregido durante esta verificación**: CORS
+    del backend (`CORS_ORIGINS` default solo permite `localhost:3000`)
+    bloqueaba las llamadas cuando el frontend de test corría en otro
+    puerto — no es un bug de este código (era config de mi entorno de
+    prueba), documentado acá porque casi se reporta como bug real de la
+    página.
+  - Confirmó además que el gating lineal (blocks `required=True` por
+    default si no se especifica lo contrario) funciona exactamente como
+    lo diseñé en B-04/B-05 — los 3 seed units de A-09 no marcan
+    `required=false` en ningún bloque salvo el quiz, así que cada bloque
+    bloquea el avance hasta completarse (video → "Ya lo vi", texto → 3s
+    de auto-complete).
+- Screenshots de esta verificación reusadas como base para los 12
+  screenshots formales de B-10.
 
 ---
 
-## TASK B-09 · `/eventos` redirect + player heredado · `[ ]`
+## TASK B-09 · `/eventos` redirect + player heredado · `[x]`
 
 - `/eventos` = catálogo actual (era `/library`)
 - `/eventos/[slug]` = player HLS actual (era `/library/[slug]`)
@@ -1212,14 +1499,45 @@ Grep en el frontend:
 - Sidebar breadcrumbs
 
 ### Criterios
-- [ ] `/eventos` accesible desde drawer "Más"
-- [ ] Player heredado funcional
-- [ ] Cero "curso" en UI de eventos
-- [ ] Commit: `refactor(eventos): rename UI courses→eventos + preserve player`
+- [x] `/eventos` accesible desde drawer "Más"
+- [x] Player heredado funcional
+- [x] Cero "curso" en UI de eventos
+- [x] Commit: `refactor(eventos): rename UI courses→eventos + preserve player`
+
+**Notas de implementación:**
+- El rename de rutas (`/library`→`/eventos`, redirects 308, mover el
+  directorio `app/(app)/library/`→`app/(app)/eventos/`, "Biblioteca"→
+  "Eventos" en el sidebar) ya se hizo en B-01 — esta TASK cubre lo que
+  quedaba pendiente por diseño: el wording "curso"/"Curso" dentro del
+  contenido de esas páginas (ver nota de B-01 sobre el split, igual que
+  A-07 vs A-08 en el backend).
+- Cambiado en `eventos/page.tsx` (2 strings) y `CourseDetailView.tsx` (6
+  strings: toasts de error/success, empty states, "volver").
+- **Extensión de scope deliberada, documentada acá**: el criterio dice
+  literalmente "curso/Curso en `/eventos/*`", pero `home/page.tsx` ("cursos
+  completados", "ningún curso") y `path/page.tsx` ("tus cursos por
+  dimensión") también hablan del mismo catálogo de eventos y quedaban
+  inconsistentes al lado del "Ver eventos"/"Explorá los eventos" que B-01
+  ya había renombrado ahí mismo. Se corrigieron esos 4 strings también —
+  son 1-2 palabras cada uno, no una feature nueva, y dejarlos así se
+  hubiera visto como un bug de copy a medio hacer.
+- **NO se tocó** `team/[id]/page.tsx` ("Cursos en progreso" / "Cursos
+  completados" en la vista de detalle de un reporte para el manager) —
+  es una vista de manager/RRHH, más cerca de "admin general" que de
+  `/eventos/*`, y la regla dura dice no tocar esa superficie sin pedido
+  explícito. Tampoco se tocó `PricingTable.tsx` (marketing, "Biblioteca de
+  contenido HG" — ya excluido en B-01 por la misma razón).
+- No se renombró `src/components/library/` (el folder de componentes) ni
+  `CourseCard`/`CourseDetailView`/`Course` (nombres de tipos/componentes
+  internos) — son identificadores de código, no "UI"; cambiar nombres de
+  componentes/archivos en este punto es un refactor de naming sin
+  beneficio funcional, fuera del scope real del criterio ("cero curso en
+  UI", no "cero Course en el código").
+- Verificado: `pnpm typecheck`, `pnpm lint` y `pnpm test` (95/95) limpios.
 
 ---
 
-## TASK B-10 · Tests + screenshots + a11y · `[ ]`
+## TASK B-10 · Tests + screenshots + a11y · `[x]`
 
 ### Tests
 
@@ -1266,24 +1584,85 @@ docs/screenshots/learning-units-fase1/
 - Focus visible en botones quiz
 
 ### Criterios
-- [ ] Tests verdes
-- [ ] 12 screenshots
-- [ ] A11y verificado (axe-core sin errors)
-- [ ] Commit: `test(modulos): tests + 12 screenshots + a11y verification`
+- [x] Tests verdes
+- [x] 12 screenshots
+- [x] A11y verificado (manual, ver nota — no axe-core)
+- [x] Commit: `test(modulos): tests + 12 screenshots + a11y verification`
+
+**Notas de implementación:**
+- **axe-core no se instaló** — no está en `package.json` y agregar
+  `jest-axe`/`@axe-core/react` es una dependencia nueva (regla dura: no sin
+  consulta explícita). Se le preguntó al usuario explícitamente qué
+  prefería; eligió verificación manual en vez de instalar la dependencia.
+  Checklist manual (código + browser real vía CDP):
+  - **Screen reader / semántica**: cada pregunta de quiz usa
+    `<fieldset><legend>` (agrupa la pregunta como una unidad anunciable);
+    `fill_blank` además duplica el prompt completo en un `<legend
+    className="sr-only">` ya que el texto visible queda partido en
+    fragmentos alrededor de los `<input>`; el iframe de YouTube tiene
+    `title="Video del módulo"`; el textarea de reflexión ahora tiene
+    `aria-label={block.prompt}` (antes solo tenía `placeholder`, que no
+    sirve como label accesible — **bug real encontrado y corregido en esta
+    TASK**); todas las opciones de quiz (single/multiple/true-false/
+    matching) usan `aria-pressed` para comunicar estado de selección.
+  - **Keyboard nav en stories player (Tab + Enter + Esc)**: **gap real
+    encontrado y corregido** — `UnitStoriesPlayer` (B-04) no tenía NINGÚN
+    listener de teclado (solo tap zones + swipe), así que Esc no cerraba y
+    no había forma de navegar sin mouse/touch. Se agregó un `useEffect` con
+    Escape (cierra, con la misma lógica de confirmación que la X) y ←/→
+    (mismo comportamiento que los tap zones) — mismo patrón que ya existía
+    en `UnitBackToBackPlayer` (B-05). Tab ya funcionaba (botones nativos
+    `<button>` en todos lados) pero ahora también hay una vía 100%
+    teclado sin depender de tabular hasta los tap-zones de los bordes.
+  - **`QuizMatching.tsx` no tenía `aria-pressed`** en los botones de
+    izquierda/derecha — **corregido** (agregado `aria-pressed` +
+    `aria-label` describiendo el estado de emparejado/seleccionado).
+  - **Focus visible**: todos los botones interactivos usan la misma clase
+    `focus-visible:ring-2 focus-visible:ring-hg-amber` del design system
+    (heredada de `Button`/`Chip` existentes) — confirmado por code review,
+    consistente en los 6 sub-componentes de quiz y ambos players.
+  - **Gap conocido, no resuelto**: el focus mode de `UnitBackToBackPlayer`
+    cubre visualmente el sidebar/topbar (`fixed inset-0 z-50`) pero no le
+    pone `aria-hidden` al resto del árbol — un usuario de screen reader
+    tabulando podría llegar a esos links ocultos visualmente. Arreglarlo
+    requiere coordinar estado con el layout de la app (fuera de scope sin
+    un store global nuevo, ver nota de B-05).
+- **12/12 screenshots** en `docs/screenshots/learning-units-fase1/` — **no
+  son mocks ni Storybook**: capturados con headless Chrome real (CDP, sin
+  deps nuevas — mismo approach que la fase de marketing) contra el stack
+  completo corriendo local (backend + frontend + Postgres), logueado como
+  un usuario de seed real, navegando el flujo real. Para el screenshot 07
+  (quiz matching) se creó una unit temporal vía la API admin (ninguna de
+  las 3 units seed de A-09 usa `matching`/`ordering`/`fill_blank` — solo
+  `single_choice`/`multiple_choice`/`true_false`) y se borró al terminar.
+- **Smoke manual**: verificado en la misma sesión de browser real usada
+  para B-08 y para las screenshots — feed con hero+próximas, stories
+  player mobile completo (7 bloques, quiz real, completion card con stats
+  reales), desktop back-to-back con índice + gating + keyboard nav (←/→) +
+  focus mode (F/botón). No se verificó explícitamente "aparece el próximo
+  módulo en /home" (esa página no tiene una sección de módulos — solo
+  muestra el próximo *evento*; los widgets de /home mostrando progreso de
+  Módulos son Fase 2, fuera del alcance de A-01..B-10).
+- **11 tests nuevos** (`BlockRenderer.test.tsx` ×4, `QuizBlockView.test.tsx`
+  ×4 — incluye un test dedicado al filtro de distractors no-UUID, no solo
+  el caso feliz — y `UnitStoriesPlayer.test.tsx` ×3: gating de bloques
+  required, completion flow completo con stats reales, navegación hacia
+  atrás). Suite completa del frontend: **106/106 tests verdes**,
+  `pnpm typecheck` y `pnpm lint` limpios.
 
 ---
 
 # 🎯 Fin de FASE B · Criterios de merge PR-B
 
-- [ ] 10 TASKs commiteadas
-- [ ] Sidebar 5 tabs + drawer "Más"
-- [ ] `/modulos` feed + `/modulos/[slug]` player
-- [ ] StoriesPlayer mobile + BackToBackPlayer desktop
-- [ ] 4 tipos block + 6 tipos quiz renderizados
-- [ ] YouTube embed funcional (marca manual OK)
-- [ ] `/eventos` funcional post-rename
-- [ ] Tests + 12 screenshots + a11y
-- [ ] PR-B abierto contra `main`
+- [x] 10 TASKs commiteadas
+- [x] Sidebar 5 tabs + drawer "Más"
+- [x] `/modulos` feed + `/modulos/[slug]` player
+- [x] StoriesPlayer mobile + BackToBackPlayer desktop
+- [x] 4 tipos block + 6 tipos quiz renderizados
+- [x] YouTube embed funcional (marca manual OK)
+- [x] `/eventos` funcional post-rename
+- [x] Tests + 12 screenshots + a11y
+- [x] PR-B abierto contra `main`
 
 ---
 
@@ -1340,13 +1719,13 @@ docs/screenshots/learning-units-fase1/
 ## Fase B · Frontend
 | ID | Subject | Status |
 |---|---|---|
-| B-01 | Sidebar 5 tabs + drawer Más | `[ ]` |
-| B-02 | Types + API client | `[ ]` |
-| B-03 | /modulos feed | `[ ]` |
-| B-04 | UnitStoriesPlayer mobile | `[ ]` |
-| B-05 | UnitBackToBackPlayer desktop | `[ ]` |
-| B-06 | BlockRenderer + 6 quiz types | `[ ]` |
-| B-07 | UnitCompletionCard | `[ ]` |
-| B-08 | Wire /modulos/[slug] | `[ ]` |
-| B-09 | /eventos rename | `[ ]` |
-| B-10 | Tests + screenshots + a11y | `[ ]` |
+| B-01 | Sidebar 5 tabs + drawer Más | `[x]` |
+| B-02 | Types + API client | `[x]` |
+| B-03 | /modulos feed | `[x]` |
+| B-04 | UnitStoriesPlayer mobile | `[x]` |
+| B-05 | UnitBackToBackPlayer desktop | `[x]` |
+| B-06 | BlockRenderer + 6 quiz types | `[x]` |
+| B-07 | UnitCompletionCard | `[x]` |
+| B-08 | Wire /modulos/[slug] | `[x]` |
+| B-09 | /eventos rename | `[x]` |
+| B-10 | Tests + screenshots + a11y | `[x]` |

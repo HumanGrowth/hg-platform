@@ -90,8 +90,8 @@ export function PathLanes() {
       ))}
 
       <div>
-        <Link href="/library" className="font-sans text-sm font-semibold text-primary">
-          Explorar la biblioteca completa →
+        <Link href="/eventos" className="font-sans text-sm font-semibold text-primary">
+          Explorar todos los eventos →
         </Link>
       </div>
     </div>

@@ -49,12 +49,12 @@ export default function LibraryPage() {
 
   return (
     <main className="mx-auto w-full max-w-app px-6 py-10">
-      <Eyebrow accent>Biblioteca</Eyebrow>
+      <Eyebrow accent>Eventos</Eyebrow>
       <Display variant="display-2" className="mt-2">
         Carrera
       </Display>
       <p className="mt-3 max-w-prose text-md text-fg-muted">
-        Cursos del catálogo. Filtrá por nivel y competencia.
+        Eventos del catálogo. Filtrá por nivel y competencia.
       </p>
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[260px_1fr]">
@@ -136,7 +136,7 @@ export default function LibraryPage() {
           {status === "ok" && courses.length === 0 && (
             <Card className="flex flex-col items-center justify-center gap-3 py-20 text-center">
               <LibraryIcon size={32} strokeWidth={1.75} className="text-fg-subtle" />
-              <EmptyRing label="Sin cursos para estos filtros. Probá otro nivel o competencia." />
+              <EmptyRing label="Sin eventos para estos filtros. Probá otro nivel o competencia." />
             </Card>
           )}
 
