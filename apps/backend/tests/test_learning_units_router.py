@@ -586,3 +586,30 @@ def test_by_pillar_requires_valid_pillar_code(client: TestClient, factory, auth_
     _, headers = _auth(factory, auth_headers)
     res = client.get("/api/v1/modulos/by-pillar", headers=headers, params={"pillar_code": "P9"})
     assert res.status_code == 422
+
+
+def test_seed_then_by_pillar_returns_real_unit(client: TestClient, factory, auth_headers) -> None:
+    """Integración de punta a punta (TASK lu-refine-A-05): corre el seed real
+    (o su fallback embebido, según la máquina) y confirma que la unit real
+    "Antes de seguir" aparece en /modulos/by-pillar?pillar_code=P1 — mismo
+    flujo que un usuario real vería en /path."""
+    from hg.scripts.seed_learning_units import _load_unit_1_spec, _seed_unit
+
+    _, headers = _auth(factory, auth_headers)
+    s = SessionLocal()
+    try:
+        spec, content_dir = _load_unit_1_spec()
+        _seed_unit(s, spec, content_dir)
+        s.commit()
+
+        res = client.get("/api/v1/modulos/by-pillar", headers=headers, params={"pillar_code": "P1"})
+        assert res.status_code == 200, res.text
+        units = res.json()
+        matching = [u for u in units if u["slug"] == "hg-p1-l1-001-antes-de-seguir"]
+        assert len(matching) == 1
+        assert matching[0]["title"] == "Antes de seguir"
+        assert matching[0]["level_code"] == "L1"
+    finally:
+        s.execute(delete(LearningUnit).where(LearningUnit.slug == "hg-p1-l1-001-antes-de-seguir"))
+        s.commit()
+        s.close()

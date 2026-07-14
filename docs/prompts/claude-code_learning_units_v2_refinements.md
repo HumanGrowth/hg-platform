@@ -410,16 +410,52 @@ Al terminar, setear `published_at = now()` en las 3 units.
 
 ---
 
-## TASK lu-refine-A-05 · Tests backend + Bruno collection update · `[ ]`
+## TASK lu-refine-A-05 · Tests backend + Bruno collection update · `[x]`
 
 - Actualizar tests que asumían `youtube_video_id` → `video_url`
 - Test integración: seed 3 units → GET /modulos/by-pillar?pillar_code=P1 → devuelve la unit "Antes de seguir"
 - Bruno collection actualizado con nuevo schema
 
 ### Criterios
-- [ ] Tests verdes ≥85% cobertura
-- [ ] Bruno collection sin refs a YouTube
-- [ ] Commit: `test(lu-refine): update tests + Bruno for video_url schema`
+- [x] Tests verdes ≥85% cobertura
+- [x] Bruno collection sin refs a YouTube
+- [x] Commit: `test(lu-refine): update tests + Bruno for video_url schema`
+
+**Notas de implementación:**
+- El grueso de "actualizar tests que asumían youtube_video_id" ya se hizo
+  en A-02 (era necesario ahí para no dejar ese commit con tests rotos —
+  ver sus notas). Esta TASK cierra lo que quedaba pendiente explícitamente
+  en su propio scope: el test de integración seed→by-pillar y el Bruno
+  collection.
+- `test_seed_then_by_pillar_returns_real_unit` (nuevo, en
+  `test_learning_units_router.py`) llama `_load_unit_1_spec()` +
+  `_seed_unit()` del script de A-04 directamente con una `SessionLocal()`
+  propia + commit explícito — **no** usa el fixture `db` (session
+  transaccional con rollback-per-test) porque esa sesión vive en una
+  conexión separada de la que usa `client` (los requests HTTP pasan por
+  `Depends(get_db)`, otra conexión) — si el seed commiteara solo en la
+  sesión del fixture `db`, el request HTTP nunca vería esos datos (dos
+  conexiones distintas, sin commit cross-connection). Mismo patrón que
+  `_make_unit`/`_make_minimal_unit` ya usaban en este archivo. Limpieza
+  explícita en `finally` (borra el slug real después del test).
+- Cobertura del módulo `learning_units` (todos los test files relevantes,
+  incluyendo `test_youtube_helper.py`): **97%** (`admin_router.py` 93%,
+  `router.py` 93%, `models.py`/`schemas.py`/`youtube.py` 100%,
+  `quiz_grading.py` 96%) — bien por encima del 85% pedido, sin necesidad
+  de tests adicionales solo por número.
+- Bruno: solo `03-admin-create-block-video-intro.bru` tenía
+  `youtube_video_id` — actualizado a `video_url` + doc actualizada
+  (ya no hay auto-fill de `poster_url`). Grep final confirma cero
+  referencias a YouTube en el resto de la colección.
+- También actualizado `docs/learning-units/create-unit-via-api.md` (la
+  guía de Fase 1 documentaba el flujo viejo de `youtube_video_id` en la
+  sección "Video") — no estaba en el scope literal de esta TASK pero
+  quedaba con ejemplos rotos si no se tocaba.
+- Verificado: 27/27 tests de `learning_units` (incluye los 3 de A-03 + el
+  nuevo de A-05) + `test_catalog.py`/`test_course_progress.py`/
+  `test_events_redirect.py` (no tocados por este refinamiento, corridos
+  igual para confirmar que nada se rompió) — **todos verdes**. `ruff
+  check` limpio.
 
 ---
 
@@ -770,7 +806,7 @@ Este paso queda documentado como próximo TODO post-merge.
 | A-02 | Models + schemas + admin_router update | `[x]` |
 | A-03 | Endpoint /modulos/by-pillar | `[x]` |
 | A-04 | Seed real content HG-P1-L1-001.json + 2 más | `[x]` |
-| A-05 | Tests backend + Bruno collection | `[ ]` |
+| A-05 | Tests backend + Bruno collection | `[x]` |
 | B-01 | Types + API client update | `[ ]` |
 | B-02 | VideoBlockView native player + fullscreen | `[ ]` |
 | B-03 | /path migrate to learning_units | `[ ]` |
