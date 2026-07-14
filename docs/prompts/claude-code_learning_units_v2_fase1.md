@@ -1181,7 +1181,7 @@ export default function ModuloPage({ unit, attempt }) {
 
 ---
 
-## TASK B-06 · `<BlockRenderer/>` polimórfico con 4 sub-vistas + 6 tipos quiz · `[ ]`
+## TASK B-06 · `<BlockRenderer/>` polimórfico con 4 sub-vistas + 6 tipos quiz · `[x]`
 
 Archivo: `apps/frontend/src/components/modulos/BlockRenderer.tsx`
 
@@ -1254,13 +1254,49 @@ Simple render de eyebrow + body + citation (si evidence) · botón "Siguiente" c
 Textarea con min/max chars counter · botón submit cuando ≥ min_chars.
 
 ### Criterios
-- [ ] 4 sub-vistas + 6 sub-componentes quiz
-- [ ] YouTube embed funcional (marca completed manual OK para MVP)
-- [ ] Drag-and-drop en ordering (o alternativa buttons)
-- [ ] Matching con click-pair fallback
-- [ ] Fill blank con inputs
-- [ ] Feedback post-quiz con explanations
-- [ ] Commit: `feat(modulos): BlockRenderer polymorphic + 4 subviews + 6 quiz types`
+- [x] 4 sub-vistas + 6 sub-componentes quiz
+- [x] YouTube embed funcional (marca completed manual OK para MVP)
+- [x] Drag-and-drop en ordering (o alternativa buttons)
+- [x] Matching con click-pair fallback
+- [x] Fill blank con inputs
+- [x] Feedback post-quiz con explanations
+- [x] Commit: `feat(modulos): BlockRenderer polymorphic + 4 subviews + 6 quiz types`
+
+**Notas de implementación:**
+- **Reordenado antes que B-04/B-05** (el prompt los lista B-04→B-05→B-06,
+  pero ambos players consumen `<BlockRenderer/>` — construirlos primero
+  hubiera dejado el build roto entre commits, o forzado un stub descartable).
+  Se mantiene la numeración/commit-message original de cada TASK; solo
+  cambió el orden de ejecución.
+- `@dnd-kit/sortable` **no está instalado** (confirmado por grep en
+  `package.json` antes de empezar) — regla dura "NO instalar deps nuevas
+  salvo consulta explícita". `QuizOrdering.tsx` usa el fallback de botones
+  ↑/↓ que el propio spec de la TASK acepta explícitamente.
+- `react-youtube`/YouTube JSAPI **no se instaló ni se usó postMessage** — el
+  MVP explícitamente aceptado por el prompt es iframe simple + botón manual
+  "Ya lo vi" (`VideoBlockView.tsx`). Auto-tracking de watch% vía JSAPI queda
+  para una iteración siguiente.
+- `QuizMatching.tsx` usa click-to-select-pair (un click en la izquierda,
+  otro en la derecha) — la UI no puede distinguir visualmente los
+  distractors de los pares reales (ese es el punto del distractor), así que
+  cualquier ítem se puede "parear". El filtro real pasa en
+  `QuizBlockView.tsx::buildPayload` vía el nuevo helper `isValidUuid()`
+  (`lib/utils.ts`) — los distractors llevan sufijo `-L`/`-R` (no son UUIDs
+  válidos) y se excluyen del payload antes de enviarlo, documentado también
+  en `lib/types.ts` (B-02) para que no se redescubriera acá.
+- Feedback post-submit por tipo: single/multiple/true_false resaltan
+  inline (verde/rojo) usando el `correct_answer` que devuelve cada
+  `grade_*` de `quiz_grading.py` (re-verificado el shape exacto leyendo el
+  archivo fuente antes de tipar, no adivinado); ordering/matching/fill_blank
+  muestran un texto "respuesta correcta: …" ya que resaltar inline habría
+  sido significativamente más complejo para beneficio marginal en Fase 1.
+- Revisitar un quiz ya completado (`isCompleted=true` sin haber
+  submiteado en esta sesión) muestra un estado "Ya completaste este quiz ✓"
+  simple — el backend no devuelve las respuestas/resultados históricos
+  (`BlockProgressOut` no los incluye), así que no hay forma de reconstruir
+  el feedback sin un endpoint nuevo (fuera de scope). Mismo criterio para
+  `ReflectionBlockView` con el texto ya enviado.
+- Verificado: `pnpm typecheck` y `pnpm lint` limpios.
 
 ---
 
@@ -1450,7 +1486,7 @@ docs/screenshots/learning-units-fase1/
 | B-03 | /modulos feed | `[x]` |
 | B-04 | UnitStoriesPlayer mobile | `[ ]` |
 | B-05 | UnitBackToBackPlayer desktop | `[ ]` |
-| B-06 | BlockRenderer + 6 quiz types | `[ ]` |
+| B-06 | BlockRenderer + 6 quiz types | `[x]` |
 | B-07 | UnitCompletionCard | `[ ]` |
 | B-08 | Wire /modulos/[slug] | `[ ]` |
 | B-09 | /eventos rename | `[ ]` |

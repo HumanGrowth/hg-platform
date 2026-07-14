@@ -69,3 +69,12 @@ export function formatApproxMinutes(seconds: number | null): string {
   if (seconds < 60) return `${Math.max(1, Math.round(seconds))} seg`;
   return `~${Math.round(seconds / 60)} min`;
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** ¿Es un UUID válido? Los distractors de quiz "matching" llevan sufijo
+ * -L/-R (ver MatchingItemOut en lib/types.ts) y nunca deben enviarse al
+ * submit — este check es lo que los filtra antes de armar el payload. */
+export function isValidUuid(value: string): boolean {
+  return UUID_RE.test(value);
+}
