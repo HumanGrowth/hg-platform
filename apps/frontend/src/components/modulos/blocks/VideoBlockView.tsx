@@ -38,9 +38,10 @@ export function VideoBlockView({
     <div className="flex flex-col gap-4">
       {block.eyebrow_label && <Eyebrow accent>{block.eyebrow_label}</Eyebrow>}
       <div className="aspect-video w-full overflow-hidden rounded-lg bg-hg-ink">
+        {/* Interim: TASK lu-refine-B-02 reemplaza este iframe por un <video> nativo. */}
         <iframe
           className="h-full w-full"
-          src={`https://www.youtube.com/embed/${block.youtube_video_id}?modestbranding=1&rel=0`}
+          src={block.video_url}
           title="Video del módulo"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen

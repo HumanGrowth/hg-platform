@@ -461,7 +461,7 @@ Al terminar, setear `published_at = now()` en las 3 units.
 
 # PARTE B · Frontend fixes (5 TASKs · ~7-9h)
 
-## TASK lu-refine-B-01 · Types + API client update · `[ ]`
+## TASK lu-refine-B-01 · Types + API client update · `[x]`
 
 `apps/frontend/src/lib/types/modulos.ts`:
 
@@ -491,10 +491,28 @@ export async function apiListModulosByPillar(
 ```
 
 ### Criterios
-- [ ] Types actualizados
-- [ ] API client con nuevo método
-- [ ] Cero refs a `youtube_video_id` en frontend
-- [ ] Commit: `refactor(lu-refine): types + API client for video_url + by-pillar`
+- [x] Types actualizados
+- [x] API client con nuevo método
+- [x] Cero refs a `youtube_video_id` en frontend
+- [x] Commit: `refactor(lu-refine): types + API client for video_url + by-pillar`
+
+**Notas de implementación:**
+- Igual que B-02 (Fase 1): los tipos/API viven en `lib/types.ts`/`lib/api.ts`
+  (archivos planos existentes), no en `lib/types/modulos.ts` — sigue la
+  convención real del repo, no el path literal del sketch.
+- `apiListModulosByPillar(pillarCode, levelCode?, limit=10)` — mismo
+  nombre/firma que el sketch del prompt.
+- **`VideoBlockView.tsx` recibió un fix interino** (solo
+  `block.youtube_video_id` → `block.video_url`, el iframe de YouTube queda
+  intacto por ahora) para que este commit compile/typechequee limpio sin
+  arrastrar B-02 completo acá — mismo criterio que A-02 con el seed script
+  de Fase 1. B-02 reemplaza el componente entero (iframe → `<video>`
+  nativo) en su propio commit inmediatamente después.
+- 2 test fixtures (`BlockRenderer.test.tsx`, `UnitStoriesPlayer.test.tsx`)
+  actualizados al mismo tiempo — construían objetos `VideoBlock` con el
+  campo viejo, hubieran roto el typecheck si no se tocaban ahora.
+- Verificado: `pnpm typecheck`, `pnpm lint` y `pnpm test` (106/106) limpios
+  · grep final confirma 0 referencias a `youtube_video_id` en todo `src/`.
 
 ---
 
@@ -807,7 +825,7 @@ Este paso queda documentado como próximo TODO post-merge.
 | A-03 | Endpoint /modulos/by-pillar | `[x]` |
 | A-04 | Seed real content HG-P1-L1-001.json + 2 más | `[x]` |
 | A-05 | Tests backend + Bruno collection | `[x]` |
-| B-01 | Types + API client update | `[ ]` |
+| B-01 | Types + API client update | `[x]` |
 | B-02 | VideoBlockView native player + fullscreen | `[ ]` |
 | B-03 | /path migrate to learning_units | `[ ]` |
 | B-04 | /modulos pillar filter | `[ ]` |

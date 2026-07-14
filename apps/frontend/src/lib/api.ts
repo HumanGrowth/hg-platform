@@ -22,6 +22,7 @@ import type {
   LearningUnitAttempt,
   LearningUnitDetail,
   LearningUnitFeed,
+  LearningUnitFeedItem,
   ManagerWidgets,
   Me,
   MeWidgets,
@@ -382,6 +383,19 @@ export const apiGetModulosFeed = async (): Promise<LearningUnitFeed> => {
 
 export const apiGetModulo = async (slug: string): Promise<LearningUnitDetail> => {
   const res = await backend.get<LearningUnitDetail>(`/api/v1/modulos/${slug}`);
+  return res.data;
+};
+
+/** TASK lu-refine-A-03/B-01 — usado por /path (B-03) para reemplazar el
+ * lane de `apiListCoursesForPath` (events) por units reales del pilar. */
+export const apiListModulosByPillar = async (
+  pillarCode: string,
+  levelCode?: string,
+  limit = 10,
+): Promise<LearningUnitFeedItem[]> => {
+  const res = await backend.get<LearningUnitFeedItem[]>("/api/v1/modulos/by-pillar", {
+    params: { pillar_code: pillarCode, level_code: levelCode, limit },
+  });
   return res.data;
 };
 
