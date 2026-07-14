@@ -1168,7 +1168,7 @@ Sin auto-advance, sin swipe animations · usar `useShouldAnimate` hook existente
 
 ---
 
-## TASK B-05 · `<UnitBackToBackPlayer/>` desktop + focus mode · `[ ]`
+## TASK B-05 · `<UnitBackToBackPlayer/>` desktop + focus mode · `[x]`
 
 Archivo: `apps/frontend/src/components/modulos/UnitBackToBackPlayer.tsx`
 
@@ -1219,11 +1219,40 @@ export default function ModuloPage({ unit, attempt }) {
 ```
 
 ### Criterios
-- [ ] Layout 2 columnas desktop
-- [ ] Keyboard shortcuts
-- [ ] Focus mode (F)
-- [ ] Click índice funcional
-- [ ] Commit: `feat(modulos): UnitBackToBackPlayer desktop + focus mode`
+- [x] Layout 2 columnas desktop
+- [x] Keyboard shortcuts
+- [x] Focus mode (F)
+- [x] Click índice funcional
+- [x] Commit: `feat(modulos): UnitBackToBackPlayer desktop + focus mode`
+
+**Notas de implementación:**
+- Se creó `src/lib/hooks/useMediaQuery.ts` acá (no existía en el repo,
+  confirmado por grep antes de B-02) — es donde el prompt introduce el
+  layout switcher, aunque el wiring real de `/modulos/[slug]` que lo
+  consume es B-08. SSR-safe (`matches` arranca en `false`, sincroniza con
+  `matchMedia` en un `useEffect`).
+- **"Espacio toggle play video" no se implementó** — el iframe de YouTube
+  del MVP (B-06, sin JSAPI) no expone ningún control de play/pause
+  programático desde fuera del iframe. Implementar esto correctamente
+  requeriría el YouTube IFrame API completo, que quedó explícitamente
+  diferido en B-06. El listener de teclado ignora la tecla Espacio (no hay
+  nada que loggear/togglear sin el control real).
+- **Focus mode** oculta el sidebar/topbar de la app sin coordinar estado
+  con `SideNav`/`TopBar` (que no saben nada de este componente) — en vez de
+  eso, focus mode renderiza el player como `fixed inset-0 z-50` cubriendo
+  toda la ventana, igual que hace el `UnitStoriesPlayer` mobile por
+  default. Visualmente equivalente a "ocultar" el chrome de la app sin
+  necesitar un store global nuevo.
+- **Click en índice**: mismo cálculo de `maxReachableIndex` que el gating
+  lineal del player mobile (primer bloque `required` sin completar, o el
+  último bloque si no hay ninguno) — un bloque es clickeable si su índice
+  es ≤ ese máximo. Los bloques no alcanzables se ven pero están
+  `disabled` (no se ocultan, para que el usuario vea qué falta).
+- Mismo patrón de ownership que B-04: el player mantiene `blockProgress`
+  local y las llamadas a `apiCompleteBlock`/`apiSubmitQuiz`/
+  `apiSubmitReflection`, no delega a la página.
+- Verificado: `pnpm typecheck` y `pnpm lint` limpios. Smoke visual real
+  sigue diferido a B-08/B-10 (sin `/modulos/[slug]` todavía).
 
 ---
 
@@ -1558,7 +1587,7 @@ docs/screenshots/learning-units-fase1/
 | B-02 | Types + API client | `[x]` |
 | B-03 | /modulos feed | `[x]` |
 | B-04 | UnitStoriesPlayer mobile | `[x]` |
-| B-05 | UnitBackToBackPlayer desktop | `[ ]` |
+| B-05 | UnitBackToBackPlayer desktop | `[x]` |
 | B-06 | BlockRenderer + 6 quiz types | `[x]` |
 | B-07 | UnitCompletionCard | `[x]` |
 | B-08 | Wire /modulos/[slug] | `[ ]` |
