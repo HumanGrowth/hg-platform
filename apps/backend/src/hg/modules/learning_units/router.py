@@ -289,6 +289,37 @@ def get_feed(
     return LearningUnitFeed(hero=hero_item, next=next_items)
 
 
+@router.get("/modulos/by-pillar", response_model=list[LearningUnitFeedItem])
+def list_modulos_by_pillar(
+    pillar_code: str = Query(..., pattern=r"^P[1-6]$"),
+    level_code: str | None = Query(default=None, pattern=r"^L[1-6]$"),
+    limit: int = Query(default=10, ge=1, le=50),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[LearningUnitFeedItem]:
+    """Units publicadas de un pilar (TASK lu-refine-A-03) — usado por `/path`
+    para reemplazar el lane de `events` legacy. Ordenadas por `level_code`
+    ASC (L1 primero), tie-break `created_at` DESC (la más nueva primero
+    dentro de un mismo nivel). Excluye units reemplazadas por una versión
+    más nueva (`superseded_by_unit_id IS NOT NULL`) — nunca se le muestra al
+    usuario una unit obsoleta que ya tiene sucesora."""
+    conds = [
+        LearningUnit.pillar_code == pillar_code,
+        LearningUnit.published_at.isnot(None),
+        LearningUnit.superseded_by_unit_id.is_(None),
+    ]
+    if level_code:
+        conds.append(LearningUnit.level_code == level_code)
+
+    units = db.scalars(
+        select(LearningUnit)
+        .where(*conds)
+        .order_by(LearningUnit.level_code.asc(), LearningUnit.created_at.desc())
+        .limit(limit)
+    ).all()
+    return [_feed_item(db, u, current_user) for u in units]
+
+
 @router.get("/modulos/{slug}", response_model=LearningUnitDetail)
 def get_unit_detail(
     slug: str,

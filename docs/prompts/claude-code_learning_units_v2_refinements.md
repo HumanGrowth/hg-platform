@@ -225,7 +225,7 @@ Mantener el módulo `apps/backend/src/hg/modules/learning_units/youtube.py` como
 
 ---
 
-## TASK lu-refine-A-03 · Endpoint `/modulos/by-pillar` para /path · `[ ]`
+## TASK lu-refine-A-03 · Endpoint `/modulos/by-pillar` para /path · `[x]`
 
 `apps/backend/src/hg/modules/learning_units/router.py`:
 
@@ -254,10 +254,36 @@ Criterios visuales de la lista:
 - Excluir units con `superseded_by_unit_id IS NOT NULL` (versión reemplazada)
 
 ### Criterios
-- [ ] Endpoint funcional con filtros
-- [ ] Attempt status por user incluido en response
-- [ ] Test unitario
-- [ ] Commit: `feat(lu-refine): /modulos/by-pillar endpoint for /path integration`
+- [x] Endpoint funcional con filtros
+- [x] Attempt status por user incluido en response
+- [x] Test unitario
+- [x] Commit: `feat(lu-refine): /modulos/by-pillar endpoint for /path integration`
+
+**Notas de implementación:**
+- No es `async def` con `Depends(current_user)` como el sketch del prompt
+  (ese nombre de dependencia no existe en este código) — sigue exactamente
+  el mismo patrón sync + `Depends(get_current_user)` + `Depends(get_db)`
+  que el resto de `router.py` (`get_feed`, `get_unit_detail`, etc.), para
+  no introducir una firma distinta al resto del archivo.
+- `regex=` del sketch → `pattern=` (Pydantic v2 en FastAPI renombró el
+  parámetro de `Query`; `regex=` ya no existe en esta versión).
+- Reutiliza `_feed_item()` (ya calculaba `attempt_status` + `poster_url`
+  por unit para el feed) en vez de reimplementar esa lógica — el "left join
+  learning_unit_attempts" del sketch ya está resuelto ahí vía
+  `_get_attempt`.
+- Registrado **antes** de `GET /modulos/{slug}` en el archivo — en FastAPI
+  el orden de registro importa entre una ruta literal y una con path param:
+  si `/modulos/{slug}` fuera declarada primero, capturaría `by-pillar` como
+  si fuera un slug. Mismo patrón que ya usa `/modulos/feed`.
+- Test con un helper nuevo `_make_minimal_unit()` (unit publicada sin
+  bloques) en vez de reusar `_make_unit()` — este endpoint no toca contenido
+  de bloques (`_feed_item` solo cuenta `len(unit.blocks)` y busca el primer
+  video para el poster), así que no hace falta la estructura completa de 3
+  bloques que arma `_make_unit()`. 3 tests: filtro de pilar + orden
+  level ASC/created_at DESC (con 4 units, verificando índices relativos en
+  la respuesta), filtro de level + exclusión de `superseded_by_unit_id`, y
+  422 en un `pillar_code` inválido.
+- Verificado: 3/3 tests nuevos verdes, `ruff check` limpio.
 
 ---
 
@@ -682,7 +708,7 @@ Este paso queda documentado como próximo TODO post-merge.
 |---|---|---|
 | A-01 | Migration youtube_video_id → video_url | `[x]` |
 | A-02 | Models + schemas + admin_router update | `[x]` |
-| A-03 | Endpoint /modulos/by-pillar | `[ ]` |
+| A-03 | Endpoint /modulos/by-pillar | `[x]` |
 | A-04 | Seed real content HG-P1-L1-001.json + 2 más | `[ ]` |
 | A-05 | Tests backend + Bruno collection | `[ ]` |
 | B-01 | Types + API client update | `[ ]` |
