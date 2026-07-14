@@ -62,3 +62,10 @@ const FIXTURE_SLUG = /^(seed-w-|cp-complete$)/;
 export function isFixtureCourse(slug: string): boolean {
   return FIXTURE_SLUG.test(slug);
 }
+
+/** Segundos → "~N min" (Learning Units, duraciones cortas). null → "—". */
+export function formatApproxMinutes(seconds: number | null): string {
+  if (seconds === null) return "—";
+  if (seconds < 60) return `${Math.max(1, Math.round(seconds))} seg`;
+  return `~${Math.round(seconds / 60)} min`;
+}

@@ -1001,7 +1001,7 @@ export async function apiGetAttempt(slug: string): Promise<LearningUnitAttempt>;
 
 ---
 
-## TASK B-03 · Página `/modulos` feed + hero card · `[ ]`
+## TASK B-03 · Página `/modulos` feed + hero card · `[x]`
 
 Archivo: `apps/frontend/src/app/(app)/modulos/page.tsx`
 
@@ -1037,9 +1037,39 @@ Streak badge
 - Cache: `revalidate: 60` para el feed
 
 ### Criterios
-- [ ] Feed renderiza hero + próximas (mobile + desktop)
-- [ ] Empty state si no hay units
-- [ ] Commit: `feat(modulos): feed page with hero + compact cards`
+- [x] Feed renderiza hero + próximas (mobile + desktop)
+- [x] Empty state si no hay units
+- [x] Commit: `feat(modulos): feed page with hero + compact cards`
+
+**Notas de implementación:**
+- Página client component (`"use client"`) con `useState`/`useEffect` +
+  `apiGetModulosFeed()`, mismo patrón que `home/page.tsx` y `library/page.tsx`
+  (skeleton `EmptyRing` en loading, `Card` de error con reintentar) — no hay
+  precedente de server components con `revalidate` en `(app)/*` así que no
+  se introdujo uno nuevo (el prompt sugería `revalidate: 60`; se dejó fuera
+  por consistencia con el resto de las páginas autenticadas).
+- El "streak badge" reusa `apiGetHomeDashboard()` (mismo endpoint que
+  `/home`) en vez de requerir un endpoint nuevo — fetch best-effort que no
+  bloquea el render del feed si falla.
+- El pillar-color-band de `UnitCardHero` NO interpola la clase Tailwind en
+  runtime (`bg-pillar-${code}` no es detectable por el JIT scanner) — usa un
+  lookup contra el array `PILLARS` existente (`src/lib/pillars.ts`), que ya
+  tiene las clases como strings literales por esa misma razón.
+- Layout responsive con un solo grid (`lg:grid-cols-[1fr_320px]`) en vez de
+  dos árboles de JSX separados para mobile/desktop — el aside derecho
+  (streak + explorar catálogo) se oculta en mobile vía `hidden lg:flex`, y
+  el link "Explorar catálogo" inline se oculta en desktop vía `lg:hidden`
+  (ya está en el aside ahí).
+- Tests unitarios de esta página **diferidos a B-10** a propósito — esa TASK
+  es la que trae la lista explícita de qué testear (incluye flujo de
+  completion end-to-end, que requiere B-04..B-08 wireados). Escribir un test
+  de la página ahora, en aislamiento, se hubiera tenido que rehacer.
+- **Smoke visual en browser real diferido**: `/modulos/[slug]` (B-08) todavía
+  no existe, así que no hay forma de navegar el flujo completo desde acá
+  todavía. Verificado con `pnpm typecheck` + `pnpm lint` limpios · `next
+  build` exitoso (la ruta `/modulos` aparece en el output). El smoke manual
+  real en browser + los 12 screenshots quedan para B-10, que es donde el
+  propio prompt los pide explícitamente (después de B-08).
 
 ---
 
@@ -1417,7 +1447,7 @@ docs/screenshots/learning-units-fase1/
 |---|---|---|
 | B-01 | Sidebar 5 tabs + drawer Más | `[x]` |
 | B-02 | Types + API client | `[x]` |
-| B-03 | /modulos feed | `[ ]` |
+| B-03 | /modulos feed | `[x]` |
 | B-04 | UnitStoriesPlayer mobile | `[ ]` |
 | B-05 | UnitBackToBackPlayer desktop | `[ ]` |
 | B-06 | BlockRenderer + 6 quiz types | `[ ]` |
