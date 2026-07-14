@@ -1,0 +1,40 @@
+meta {
+  name: 05 - Admin - Create Block · text_solution
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/admin/learning-units/{{unit_id}}/blocks
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{superadmin_token}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "block_type": "text_solution",
+    "position": 3,
+    "required": false,
+    "variant": "solution",
+    "eyebrow": "PROBÁ ESTO",
+    "body": "[COPY PENDIENTE · coach] Antes de escribir en un canal nuevo, agregá una línea de contexto sobre quién sos y qué necesitás.",
+    "applies_to": ["P1", "P3"],
+    "requires_evidence_block_id": "{{evidence_block_id}}"
+  }
+}
+
+script:post-response {
+  bru.setEnvVar("solution_block_id", res.body.id);
+}
+
+docs {
+  201 esperado. requires_evidence_block_id debe ser el "id" que devolvió la
+  request 04 (unit_blocks.id, no el PK interno del template — ver
+  _resolve_evidence_template_id en admin_router.py). Si se apunta a un bloque
+  que no es text_evidence de esta misma unit, 422.
+}

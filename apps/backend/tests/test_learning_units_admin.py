@@ -465,6 +465,198 @@ def test_create_video_block_rejects_invalid_url(client: TestClient, factory, aut
         _cleanup(slug)
 
 
+def test_create_block_with_all_non_single_choice_question_types(
+    client: TestClient, factory, auth_headers
+) -> None:
+    """multiple_choice/true_false/ordering/matching/fill_blank via create_block
+    — single_choice ya cubierto en test_create_each_block_type."""
+    headers = _superadmin_headers(factory, auth_headers)
+    slug = f"admin-test-{uuid.uuid4().hex[:8]}"
+    try:
+        unit = _create_unit(client, headers, slug)
+        r = client.post(
+            f"/api/v1/admin/learning-units/{unit['id']}/blocks", headers=headers,
+            json={
+                "block_type": "quiz_recall", "position": 1,
+                "questions": [
+                    {
+                        "question_type": "multiple_choice", "prompt": "mc",
+                        "options": [
+                            {"text": "a", "is_correct": True, "explanation": "yes a"},
+                            {"text": "b", "is_correct": True, "explanation": "yes b"},
+                            {"text": "c", "is_correct": False, "explanation": "no c"},
+                        ],
+                        "scoring": "all_or_nothing",
+                    },
+                    {
+                        "question_type": "true_false", "prompt": "tf", "correct_answer": True,
+                        "explanation_true": "yes", "explanation_false": "no",
+                    },
+                    {
+                        "question_type": "ordering", "prompt": "ord",
+                        "items": [
+                            {"text": "first", "explanation": "step 1"},
+                            {"text": "second", "explanation": "step 2"},
+                        ],
+                    },
+                    {
+                        "question_type": "matching", "prompt": "match",
+                        "pairs": [
+                            {"left_text": "l1", "right_text": "r1"},
+                            {"left_text": "l2", "right_text": "r2"},
+                            {"left_text": "l3", "right_text": "r3", "is_distractor": True},
+                        ],
+                    },
+                    {
+                        "question_type": "fill_blank", "prompt": "fb {{blank}}",
+                        "answers": [{"correct_text": "Edmondson", "accept_variants": ["edmondsen"]}],
+                    },
+                ],
+            },
+        )
+        assert r.status_code == 201, r.text
+        assert len(r.json()["questions"]) == 5
+    finally:
+        _cleanup(slug)
+
+
+def test_publish_fails_whitespace_only_option_explanation(client: TestClient, factory, auth_headers) -> None:
+    """explanation="" está bloqueado a nivel schema (min_length=1) — pero un
+    explanation solo-whitespace pasa esa validación y debe ser cachado por
+    _validate_for_publish (.strip())."""
+    headers = _superadmin_headers(factory, auth_headers)
+    slug = f"admin-test-{uuid.uuid4().hex[:8]}"
+    try:
+        unit = _create_unit(client, headers, slug)
+        uid = unit["id"]
+        client.post(
+            f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
+            json={"block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ", "duration_seconds": 10},
+        )
+        evidence = client.post(
+            f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
+            json={
+                "block_type": "text_evidence", "position": 2, "variant": "evidence", "eyebrow": "E", "body": "b" * 40,
+                "citation": {"text": "t", "source": "s", "year": 2020, "doi_or_url": "https://x", "tier": "rct"},
+            },
+        )
+        client.post(
+            f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
+            json={
+                "block_type": "text_solution", "position": 3, "variant": "solution", "eyebrow": "S", "body": "b" * 40,
+                "requires_evidence_block_id": evidence.json()["id"],
+            },
+        )
+        client.post(
+            f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
+            json={
+                "block_type": "quiz_recall", "position": 4, "required": True,
+                "questions": [{
+                    "question_type": "single_choice", "prompt": "p",
+                    "options": [
+                        {"text": "a", "is_correct": True, "explanation": " "},
+                        {"text": "b", "is_correct": False, "explanation": "no"},
+                    ],
+                }],
+            },
+        )
+        r = client.post(f"/api/v1/admin/learning-units/{uid}/publish", headers=headers)
+        assert r.status_code == 422
+        assert any("sin explanation" in e for e in r.json()["detail"]["errors"])
+    finally:
+        _cleanup(slug)
+
+
+def test_update_block_content_replaces_quiz_questions(client: TestClient, factory, auth_headers) -> None:
+    headers = _superadmin_headers(factory, auth_headers)
+    slug = f"admin-test-{uuid.uuid4().hex[:8]}"
+    try:
+        unit = _create_unit(client, headers, slug)
+        quiz = client.post(
+            f"/api/v1/admin/learning-units/{unit['id']}/blocks", headers=headers,
+            json={
+                "block_type": "quiz_recall", "position": 1,
+                "questions": [{
+                    "question_type": "single_choice", "prompt": "old",
+                    "options": [
+                        {"text": "a", "is_correct": True, "explanation": "y"},
+                        {"text": "b", "is_correct": False, "explanation": "n"},
+                    ],
+                }],
+            },
+        )
+        unit_block_id = quiz.json()["id"]
+        s = SessionLocal()
+        from hg.modules.learning_units.models import UnitBlock
+        template_id = s.scalar(select(UnitBlock.block_id).where(UnitBlock.id == uuid.UUID(unit_block_id)))
+        s.close()
+
+        r = client.patch(
+            f"/api/v1/admin/blocks/quiz_recall/{template_id}", headers=headers,
+            json={"questions": [{
+                "question_type": "true_false", "prompt": "new", "correct_answer": False,
+                "explanation_true": "y", "explanation_false": "n",
+            }]},
+        )
+        assert r.status_code == 200, r.text
+
+        refreshed = client.patch(f"/api/v1/admin/learning-units/{unit['id']}", headers=headers, json={})
+        quiz_block = next(b for b in refreshed.json()["blocks"] if b["block_type"] == "quiz_recall")
+        assert len(quiz_block["questions"]) == 1
+        assert quiz_block["questions"][0]["question_type"] == "true_false"
+    finally:
+        _cleanup(slug)
+
+
+def test_update_block_content_rejects_unknown_field(client: TestClient, factory, auth_headers) -> None:
+    headers = _superadmin_headers(factory, auth_headers)
+    slug = f"admin-test-{uuid.uuid4().hex[:8]}"
+    try:
+        unit = _create_unit(client, headers, slug)
+        video = client.post(
+            f"/api/v1/admin/learning-units/{unit['id']}/blocks", headers=headers,
+            json={"block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ", "duration_seconds": 10},
+        )
+        unit_block_id = video.json()["id"]
+        s = SessionLocal()
+        from hg.modules.learning_units.models import UnitBlock
+        template_id = s.scalar(select(UnitBlock.block_id).where(UnitBlock.id == uuid.UUID(unit_block_id)))
+        s.close()
+
+        r = client.patch(
+            f"/api/v1/admin/blocks/video_intro/{template_id}", headers=headers,
+            json={"not_a_real_field": 1},
+        )
+        assert r.status_code == 400
+    finally:
+        _cleanup(slug)
+
+
+def test_solution_block_rejects_evidence_id_from_wrong_type(client: TestClient, factory, auth_headers) -> None:
+    """requires_evidence_block_id debe apuntar a un unit_block text_evidence de
+    la misma unit — probamos que apuntar a un text_context (tipo incorrecto)
+    tira 422 en vez de silenciosamente guardar una referencia rota."""
+    headers = _superadmin_headers(factory, auth_headers)
+    slug = f"admin-test-{uuid.uuid4().hex[:8]}"
+    try:
+        unit = _create_unit(client, headers, slug)
+        uid = unit["id"]
+        context = client.post(
+            f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
+            json={"block_type": "text_context", "position": 1, "variant": "context", "eyebrow": "S", "body": "b" * 40},
+        )
+        r = client.post(
+            f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
+            json={
+                "block_type": "text_solution", "position": 2, "variant": "solution", "eyebrow": "S", "body": "b" * 40,
+                "requires_evidence_block_id": context.json()["id"],
+            },
+        )
+        assert r.status_code == 422
+    finally:
+        _cleanup(slug)
+
+
 def test_create_video_block_respects_explicit_poster_url(client: TestClient, factory, auth_headers) -> None:
     headers = _superadmin_headers(factory, auth_headers)
     slug = f"admin-test-{uuid.uuid4().hex[:8]}"

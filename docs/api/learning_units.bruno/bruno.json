@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "name": "Learning Units (Módulos)",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"]
+}

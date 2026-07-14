@@ -1,0 +1,21 @@
+meta {
+  name: 11 - Consumer - Get Unit Detail
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{base_url}}/modulos/{{unit_slug}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{collaborator_token}}
+}
+
+docs {
+  200 esperado con los 4 blocks en orden, quiz options SIN is_correct
+  expuesto (solo se revela en el feedback post-submit — request 14). 404 si
+  la unit no está publicada.
+}

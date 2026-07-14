@@ -1,0 +1,21 @@
+meta {
+  name: 10 - Consumer - Get Feed
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{base_url}}/modulos/feed
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{collaborator_token}}
+}
+
+docs {
+  200 esperado con {hero, next: [...]}. La unit recién publicada debería
+  aparecer entre las candidatas si el pillar_code (P1) matchea alguna
+  enrollment activa del usuario, o como random pick si no hay enrollments.
+}

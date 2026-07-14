@@ -1,0 +1,28 @@
+meta {
+  name: 07 - Admin - Reorder Blocks
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base_url}}/admin/learning-units/{{unit_id}}/blocks/reorder
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{superadmin_token}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "block_ids": ["{{video_block_id}}", "{{evidence_block_id}}", "{{solution_block_id}}", "{{quiz_block_id}}"]
+  }
+}
+
+docs {
+  200 esperado. Reafirma el orden de creación (demuestra el endpoint) —
+  block_ids debe incluir EXACTAMENTE todos los bloques de la unit, sin
+  repetir, o 400.
+}

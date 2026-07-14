@@ -1,0 +1,57 @@
+meta {
+  name: 06 - Admin - Create Block · quiz_recall
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base_url}}/admin/learning-units/{{unit_id}}/blocks
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{superadmin_token}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "block_type": "quiz_recall",
+    "position": 4,
+    "required": true,
+    "questions": [
+      {
+        "question_type": "single_choice",
+        "prompt": "[COPY PENDIENTE · coach] ¿Cuál es el mecanismo central de la seguridad psicológica?",
+        "options": [
+          {
+            "text": "Reduce la ansiedad por evaluación y hace visibles los errores",
+            "is_correct": true,
+            "explanation": "Correcto — la visibilidad es lo que produce el aprendizaje."
+          },
+          {
+            "text": "Aumenta la felicidad del equipo directamente",
+            "is_correct": false,
+            "explanation": "No es el mecanismo central — es una consecuencia, no la causa."
+          }
+        ]
+      }
+    ]
+  }
+}
+
+script:post-response {
+  bru.setEnvVar("quiz_block_id", res.body.id);
+  bru.setEnvVar("question_id", res.body.questions[0].id);
+  bru.setEnvVar("correct_option_id", res.body.questions[0].options[0].id);
+}
+
+docs {
+  201 esperado. El único bloque required=true de esta unit — completar el
+  quiz (request 14) es lo único necesario para que la unit se marque
+  completa. La opción correcta se pone primero a propósito: el orden de
+  creación se preserva por position, así request 14 puede referenciar
+  options[0] sin tener que adivinar cuál es correcta (el read-schema del
+  consumer nunca expone is_correct).
+}

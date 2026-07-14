@@ -1,0 +1,22 @@
+meta {
+  name: 15 - Consumer - Get Attempt (verificar completion)
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{base_url}}/modulos/{{unit_slug}}/attempt
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{collaborator_token}}
+}
+
+docs {
+  200 esperado con completed_at != null — cierre del smoke test end-to-end:
+  create unit → add blocks → publish → start attempt → complete blocks →
+  submit quiz → unit completa. block_progress debería listar el video_intro
+  y el quiz_recall como "completed".
+}

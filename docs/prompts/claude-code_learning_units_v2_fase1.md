@@ -768,7 +768,7 @@ Script chequea `SELECT slug FROM learning_units WHERE slug=...` antes de insert 
 
 ---
 
-## TASK A-10 · Tests backend + smoke · `[ ]`
+## TASK A-10 · Tests backend + smoke · `[x]`
 
 - Tests unitarios para todos los endpoints
 - Test integración: create unit → add blocks → publish → user starts attempt → completes blocks → completes unit
@@ -776,10 +776,57 @@ Script chequea `SELECT slug FROM learning_units WHERE slug=...` antes de insert 
 - Smoke manual con Bruno/Postman collection: `docs/api/learning_units.bruno` con 15 requests templados
 
 ### Criterios
-- [ ] Tests verdes
-- [ ] Cobertura backend ≥85%
-- [ ] Collection Bruno con 15 requests
-- [ ] Commit: `test(learning-units): backend tests + Bruno collection`
+- [x] Tests verdes
+- [x] Cobertura backend ≥85%
+- [x] Collection Bruno con 15 requests
+- [x] Commit: `test(learning-units): backend tests + Bruno collection`
+
+**Notas de implementación:**
+- La mayoría de los endpoints ya tenían tests desde A-04/A-05
+  (`test_learning_units_router.py`, `test_learning_units_admin.py`,
+  `test_learning_units_schemas.py`, `test_quiz_grading.py`). Esta TASK
+  agregó los tests que faltaban para llegar a cobertura real de todos los
+  tipos/branches, no solo de los endpoints:
+  - Los 5 tipos de pregunta que no eran `single_choice` (multiple_choice,
+    true_false, ordering, matching, fill_blank) no tenían cobertura a nivel
+    HTTP — ni en creación (`create_block`) ni en el read-path del consumer
+    (`_build_question_union`) ni en submit. La lógica de *grading* pura ya
+    estaba 100% cubierta en `test_quiz_grading.py` (unit tests sin DB), pero
+    la serialización de esos tipos y el submit end-to-end vía API no. Se
+    agregó `test_create_block_with_all_non_single_choice_question_types` y
+    `test_quiz_submit_all_five_remaining_question_types`.
+  - El criterio "create unit → add blocks → publish → starts attempt →
+    completes blocks → completes unit" no existía como un único test
+    encadenado 100% vía HTTP (admin + consumer) — `test_full_completion_flow`
+    (A-04) partía de objetos ya insertados directo en la DB. Se agregó
+    `test_full_admin_create_to_consumer_complete_flow`, que hace el camino
+    completo real: crea la unit vía `/admin/learning-units`, agrega 4
+    bloques, publica, y como usuario distinto arranca un attempt, completa
+    los bloques y confirma `completed_at` vía `/modulos/*`.
+  - Branches de validación sin cubrir: explanation solo-whitespace en
+    publish validation (`" "` pasa `min_length=1` pero falla `.strip()`),
+    reemplazo de preguntas de un quiz vía PATCH (`update_block_content`),
+    rechazo de campos desconocidos en ese mismo PATCH, y
+    `_resolve_evidence_template_id` rechazando un `requires_evidence_block_id`
+    que apunta a un bloque que no es `text_evidence`.
+  - Cobertura de `src/hg/modules/learning_units/` subió de 87% a **96%**
+    (`quiz_grading.py` 33%→96%, `admin_router.py` 83%→92%, `router.py`
+    83%→93%) contando solo los tests nuevos de esta TASK sobre el baseline
+    existente.
+- La colección Bruno vive en `docs/api/learning_units.bruno/` (carpeta, no
+  un único archivo — así es como Bruno realmente estructura una colección:
+  `bruno.json` + un environment + 15 archivos `.bru`, uno por request) con
+  variables encadenadas (`script:post-response` → `bru.setEnvVar(...)`) para
+  que las 15 requests corran en secuencia como un smoke test real: login
+  superadmin → crear unit → 4 bloques (video/evidence/solution/quiz) →
+  reorder → publish → login collaborator → feed → detail → start attempt →
+  complete block → submit quiz → get attempt (verifica `completed_at`).
+  Las credenciales de `environments/local.bru` quedan en blanco a propósito
+  (`docs/dev-credentials.md` está en `.gitignore` — no se commitean
+  passwords reales, ni siquiera de seed/demo).
+- Verificado: `ruff check` y `mypy` limpios sobre todo el módulo
+  `learning_units` (7 archivos fuente) · 32/32 tests verdes en
+  `test_learning_units_admin.py` + `test_learning_units_router.py`.
 
 ---
 
@@ -1288,7 +1335,7 @@ docs/screenshots/learning-units-fase1/
 | A-07 | Migration events + Course→Event refactor | `[x]` |
 | A-08 | Endpoints events (rename) | `[x]` |
 | A-09 | Seed 3 units placeholder | `[x]` |
-| A-10 | Tests + Bruno collection | `[ ]` |
+| A-10 | Tests + Bruno collection | `[x]` |
 
 ## Fase B · Frontend
 | ID | Subject | Status |

@@ -1,0 +1,35 @@
+meta {
+  name: 14 - Consumer - Submit Quiz
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{base_url}}/modulos/{{unit_slug}}/blocks/{{quiz_block_id}}/quiz/submit
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{collaborator_token}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "responses": [
+      {
+        "question_id": "{{question_id}}",
+        "question_type": "single_choice",
+        "selected_option_ids": ["{{correct_option_id}}"]
+      }
+    ]
+  }
+}
+
+docs {
+  200 esperado, block_completed=true, results[0].is_correct=true. Como
+  quiz_recall es el único bloque required=true de esta unit (ver request
+  06), esta llamada también dispara la completion de la unit entera —
+  verificar en request 15.
+}

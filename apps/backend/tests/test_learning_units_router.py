@@ -279,3 +279,220 @@ def test_feed_shows_unit_as_hero_when_in_progress(client: TestClient, factory, a
 
 def test_feed_requires_auth(client: TestClient) -> None:
     assert client.get("/api/v1/modulos/feed").status_code in (401, 403)
+
+
+# ─────────── Integración completa: admin crea/publica → consumer completa (A-10) ───────────
+
+
+def _superadmin_headers(factory, auth_headers):
+    _p1_id()
+    from hg.modules.identity.models import UserRole as _UserRole
+    sa = factory.make_user(org=factory.make_org(), role=_UserRole.superadmin)
+    return auth_headers(sa)
+
+
+def test_full_admin_create_to_consumer_complete_flow(client: TestClient, factory, auth_headers) -> None:
+    """create unit → add blocks → publish → user starts attempt → completes
+    blocks → completes unit, todo vía HTTP real (admin + consumer), sin tocar
+    la DB directamente — el flujo end-to-end que pide el criterio de A-10."""
+    admin_headers = _superadmin_headers(factory, auth_headers)
+    slug = f"e2e-test-{uuid.uuid4().hex[:8]}"
+    try:
+        unit = client.post(
+            "/api/v1/admin/learning-units", headers=admin_headers,
+            json={"slug": slug, "title": "t", "pillar_code": "P1", "level_code": "L2"},
+        ).json()
+        uid = unit["id"]
+
+        client.post(
+            f"/api/v1/admin/learning-units/{uid}/blocks", headers=admin_headers,
+            json={"block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ", "duration_seconds": 10},
+        )
+        evidence = client.post(
+            f"/api/v1/admin/learning-units/{uid}/blocks", headers=admin_headers,
+            json={
+                "block_type": "text_evidence", "position": 2, "variant": "evidence", "eyebrow": "E", "body": "b" * 40,
+                "citation": {
+                    "text": "t", "source": "s", "year": 2020,
+                    "doi_or_url": "https://doi.org/10.2307/2666999", "tier": "observational",
+                },
+            },
+        )
+        client.post(
+            f"/api/v1/admin/learning-units/{uid}/blocks", headers=admin_headers,
+            json={
+                "block_type": "text_solution", "position": 3, "variant": "solution", "eyebrow": "S", "body": "b" * 40,
+                "requires_evidence_block_id": evidence.json()["id"],
+            },
+        )
+        client.post(
+            f"/api/v1/admin/learning-units/{uid}/blocks", headers=admin_headers,
+            json={
+                "block_type": "quiz_recall", "position": 4, "required": True,
+                "questions": [{
+                    "question_type": "single_choice", "prompt": "p",
+                    "options": [
+                        {"text": "right", "is_correct": True, "explanation": "yes"},
+                        {"text": "wrong", "is_correct": False, "explanation": "no"},
+                    ],
+                }],
+            },
+        )
+
+        publish = client.post(f"/api/v1/admin/learning-units/{uid}/publish", headers=admin_headers)
+        assert publish.status_code == 200, publish.text
+
+        _, user_headers = _auth(factory, auth_headers)
+
+        detail = client.get(f"/api/v1/modulos/{slug}", headers=user_headers)
+        assert detail.status_code == 200
+        blocks = detail.json()["blocks"]
+        assert len(blocks) == 4
+
+        start = client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=user_headers)
+        assert start.status_code == 200
+
+        video_block = next(b for b in blocks if b["block_type"] == "video_intro")
+        r1 = client.post(f"/api/v1/modulos/{slug}/blocks/{video_block['id']}/complete", headers=user_headers)
+        assert r1.status_code == 200
+
+        solution_block = next(b for b in blocks if b["block_type"] == "text_solution")
+        r2 = client.post(f"/api/v1/modulos/{slug}/blocks/{solution_block['id']}/complete", headers=user_headers)
+        assert r2.status_code == 200
+
+        evidence_block = next(b for b in blocks if b["block_type"] == "text_evidence")
+        r3 = client.post(f"/api/v1/modulos/{slug}/blocks/{evidence_block['id']}/complete", headers=user_headers)
+        assert r3.status_code == 200
+
+        quiz_block = next(b for b in blocks if b["block_type"] == "quiz_recall")
+        question = quiz_block["questions"][0]
+        submit = client.post(
+            f"/api/v1/modulos/{slug}/blocks/{quiz_block['id']}/quiz/submit", headers=user_headers,
+            json={"responses": [{
+                "question_id": question["id"], "question_type": "single_choice",
+                "selected_option_ids": [question["options"][0]["id"]],
+            }]},
+        )
+        assert submit.status_code == 200
+        assert submit.json()["block_completed"] is True
+
+        final_attempt = client.get(f"/api/v1/modulos/{slug}/attempt", headers=user_headers).json()
+        assert final_attempt["completed_at"] is not None
+    finally:
+        s = SessionLocal()
+        s.execute(delete(LearningUnit).where(LearningUnit.slug == slug))
+        s.commit()
+        s.close()
+
+
+# ─────────── Serialización + submit vía API para los 5 tipos de pregunta restantes ───────────
+
+
+def _make_unit_with_all_question_types(slug: str) -> tuple[uuid.UUID, uuid.UUID]:
+    """Unit publicada con 1 quiz_recall que tiene 1 pregunta de cada uno de
+    los 5 tipos restantes (single_choice ya cubierto en otros tests).
+    Devuelve (unit_id, quiz_unit_block_id)."""
+    from hg.modules.learning_units.models import (
+        QuizFillBlankAnswer,
+        QuizMatchingPair,
+        QuizMultipleChoiceConfig,
+        QuizOrderingItem,
+        QuizTrueFalse,
+    )
+
+    s = SessionLocal()
+    try:
+        quiz = QuizBlock(eyebrow="e")
+        s.add(quiz)
+        s.flush()
+
+        mc = QuizQuestion(quiz_block_id=quiz.id, position=1, question_type="multiple_choice", prompt="mc")
+        s.add(mc)
+        s.flush()
+        s.add(QuizOption(question_id=mc.id, position=1, text="a", is_correct=True, explanation="ya"))
+        s.add(QuizOption(question_id=mc.id, position=2, text="b", is_correct=True, explanation="yb"))
+        s.add(QuizOption(question_id=mc.id, position=3, text="c", is_correct=False, explanation="nc"))
+        s.add(QuizMultipleChoiceConfig(question_id=mc.id, scoring="all_or_nothing"))
+
+        tf = QuizQuestion(quiz_block_id=quiz.id, position=2, question_type="true_false", prompt="tf")
+        s.add(tf)
+        s.flush()
+        s.add(QuizTrueFalse(question_id=tf.id, correct_answer=True, explanation_true="y", explanation_false="n"))
+
+        ordering = QuizQuestion(quiz_block_id=quiz.id, position=3, question_type="ordering", prompt="ord")
+        s.add(ordering)
+        s.flush()
+        s.add(QuizOrderingItem(question_id=ordering.id, text="first", correct_position=1, explanation="s1"))
+        s.add(QuizOrderingItem(question_id=ordering.id, text="second", correct_position=2, explanation="s2"))
+
+        matching = QuizQuestion(quiz_block_id=quiz.id, position=4, question_type="matching", prompt="match")
+        s.add(matching)
+        s.flush()
+        s.add(QuizMatchingPair(question_id=matching.id, left_text="l1", right_text="r1", is_distractor=False))
+        s.add(QuizMatchingPair(question_id=matching.id, left_text="l2", right_text="r2", is_distractor=False))
+
+        fb = QuizQuestion(quiz_block_id=quiz.id, position=5, question_type="fill_blank", prompt="fb {{blank}}")
+        s.add(fb)
+        s.flush()
+        s.add(QuizFillBlankAnswer(question_id=fb.id, position=1, correct_text="Edmondson", accept_variants=[]))
+        s.flush()
+
+        unit = LearningUnit(
+            slug=slug, title="t", pillar_code="P1", level_code="L2", published_at=datetime.now(UTC),
+        )
+        s.add(unit)
+        s.flush()
+        ub_quiz = UnitBlock(
+            unit_id=unit.id, position=1, block_type="quiz_recall", block_id=quiz.id, required=True
+        )
+        s.add(ub_quiz)
+        s.commit()
+        return unit.id, ub_quiz.id
+    finally:
+        s.close()
+
+
+def test_quiz_submit_all_five_remaining_question_types(client: TestClient, factory, auth_headers) -> None:
+    slug = f"test-unit-{uuid.uuid4().hex[:8]}"
+    unit_id, quiz_block_id = _make_unit_with_all_question_types(slug)
+    _, headers = _auth(factory, auth_headers)
+    try:
+        client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
+
+        detail = client.get(f"/api/v1/modulos/{slug}", headers=headers).json()
+        questions = {q["question_type"]: q for q in detail["blocks"][0]["questions"]}
+        assert set(questions) == {"multiple_choice", "true_false", "ordering", "matching", "fill_blank"}
+
+        mc = questions["multiple_choice"]
+        assert mc["scoring"] == "all_or_nothing"
+        correct_mc_ids = [o["id"] for o in mc["options"] if o["text"] in ("a", "b")]
+
+        ordering = questions["ordering"]
+        by_text = {i["text"]: i["id"] for i in ordering["items"]}
+        correct_order = [by_text["first"], by_text["second"]]
+
+        matching = questions["matching"]
+        left_by_id = {i["id"] for i in matching["left_items"]}
+        right_by_id = {i["id"] for i in matching["right_items"]}
+        assert left_by_id == right_by_id  # non-distractor pairs comparten id entre lados
+        correct_pairs = [[i, i] for i in left_by_id]
+
+        submit = client.post(
+            f"/api/v1/modulos/{slug}/blocks/{quiz_block_id}/quiz/submit", headers=headers,
+            json={"responses": [
+                {"question_id": mc["id"], "question_type": "multiple_choice", "selected_option_ids": correct_mc_ids},
+                {"question_id": questions["true_false"]["id"], "question_type": "true_false", "boolean_answer": True},
+                {"question_id": ordering["id"], "question_type": "ordering", "ordering": correct_order},
+                {"question_id": matching["id"], "question_type": "matching", "matching": correct_pairs},
+                {
+                    "question_id": questions["fill_blank"]["id"], "question_type": "fill_blank",
+                    "fill_blank_answers": ["edmondson"],
+                },
+            ]},
+        )
+        assert submit.status_code == 200, submit.text
+        results = {r["question_id"]: r for r in submit.json()["results"]}
+        assert all(r["is_correct"] for r in results.values()), submit.json()
+        assert submit.json()["block_completed"] is True
+    finally:
+        _cleanup(unit_id)

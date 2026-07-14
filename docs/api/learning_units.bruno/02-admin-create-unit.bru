@@ -1,0 +1,38 @@
+meta {
+  name: 02 - Admin - Create Learning Unit
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/admin/learning-units
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{superadmin_token}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "slug": "{{unit_slug}}",
+    "title": "[COPY PENDIENTE · coach] Bruno smoke test unit",
+    "pillar_code": "P1",
+    "competency_code": "C3",
+    "level_code": "L2",
+    "estimated_duration_seconds": 60
+  }
+}
+
+script:post-response {
+  bru.setEnvVar("unit_id", res.body.id);
+}
+
+docs {
+  201 esperado. Si ya corriste la colección antes con el mismo unit_slug, va
+  a devolver 409 (slug duplicado) — cambiar unit_slug en el environment antes
+  de re-correr, o borrar la unit anterior vía DELETE /admin/learning-units/{id}
+  (requiere unpublish primero si está publicada).
+}

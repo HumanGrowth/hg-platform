@@ -1,0 +1,22 @@
+meta {
+  name: 08 - Admin - Publish Unit
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{base_url}}/admin/learning-units/{{unit_id}}/publish
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{superadmin_token}}
+}
+
+docs {
+  200 esperado con published_at seteado. 422 si falta algún requisito de
+  _validate_for_publish (TASK A-05): video, evidence con doi_or_url,
+  solution referenciando esa evidence, quiz/reflection required=true, y
+  todas las opciones single/multiple_choice con explanation.
+}
