@@ -837,7 +837,7 @@ export default async function ModulosPage({ searchParams }: { searchParams: { pi
 
 ---
 
-## TASK lu-refine-B-05 · Tests + smoke visual · `[ ]`
+## TASK lu-refine-B-05 · Tests + smoke visual · `[x]`
 
 - Tests actualizados: `VideoBlockView` renderiza `<video>` (no `<iframe>`)
 - Test snapshot para el filter query param
@@ -861,10 +861,28 @@ docs/screenshots/lu-refinements/
 ```
 
 ### Criterios
-- [ ] Tests + typecheck + lint verdes
-- [ ] 5 screenshots
-- [ ] Smoke mobile + desktop OK
-- [ ] Commit: `test(lu-refine): tests + 5 screenshots for video/path/filter changes`
+- [x] Tests + typecheck + lint verdes
+- [x] 5 screenshots
+- [x] Smoke mobile + desktop OK
+- [x] Commit: `test(lu-refine): tests + 5 screenshots for video/path/filter changes`
+
+**Notas de implementación:**
+- Tests nuevos:
+  - `src/components/modulos/blocks/__tests__/VideoBlockView.test.tsx` (6 tests): confirma que el elemento renderizado es `VIDEO` (`tagName`), no `IFRAME` (`document.querySelector("iframe")` es `null`); verifica `src`/`poster` apuntan a `video_url`/`poster_url`; `fireEvent.ended(...)` dispara `onCompleteBlock`; click en "Ya lo vi" también lo dispara; estado "Visto" reemplaza el botón cuando `isCompleted`; el botón custom de fullscreen solo aparece cuando `useMediaQuery` devuelve `true` (mockeado vía `vi.spyOn(window, "matchMedia")`, mismo patrón que `motion-animated.test.tsx`).
+  - `src/components/modulos/__tests__/BlockRenderer.test.tsx`: el test de `video_intro` se reforzó para afirmar `tagName === "VIDEO"` y ausencia de `<iframe>` en el DOM (antes solo chequeaba el `title`, lo cual no distinguía un iframe con el mismo `title`).
+  - `src/app/(app)/modulos/__tests__/page.test.tsx` (4 tests, NUEVO — no existía test para esta página): mockea `next/navigation` (`useSearchParams().get("pillar")`) y `@/lib/api`; cubre sin `?pillar` (usa `apiGetModulosFeed`, no llama a `apiListModulosByPillar`), con `?pillar=P1` (llama a `apiListModulosByPillar("P1", undefined, 20)`, muestra chip "Filtrando:"), click en la X del chip navega a `/modulos` vía `router.push`, y el empty-state específico de pillar cuando la lista filtrada vuelve vacía.
+  - Suite completa: **116/116 tests**, `pnpm typecheck` limpio, `pnpm lint` sin warnings.
+- Smoke manual real (Chrome headed vía CDP, sesión autenticada como `smoketest-modulos@acme.test`, contra el stack local corriendo — Postgres + FastAPI + Next dev):
+  - **Desktop 1440×900**: `/modulos` muestra el feed real (hero "Antes de seguir" + 2 "próximos" con tag `[GENERADO POR CLAUDE · Andrés valida]`) → click en la unit → stories player, bloque 1 "Contexto" (texto) → avanza a bloque 2 "Video" → `<video>` HTML5 con controles nativos del browser, `aspect-video`, sin iframe, `eyebrow_label` muestra `[LOCAL: CP-L1-P1-001 - VID1.MP4 · PENDIENTE SUBIR A R2]` (el placeholder documentado por A-04) → `/path` muestra las 3 units distribuidas por pilar, "Antes de seguir" bajo P1, links "Ver todos →" con `href` correctos (`/modulos?pillar=P1`, `?pillar=P3`, `?pillar=P4`) → click en uno navega y filtra correctamente (verificado también en B-04).
+  - **Mobile emulado 390×844** (`Emulation.setDeviceMetricsOverride` + touch habilitado): mismo flujo — el stories player en mobile no tiene nav lateral con labels de texto (usa tap-a-los-costados + barra de progreso segmentada arriba), tap a la derecha avanza de "Contexto" a "Video" → botón custom "Ver en pantalla completa" visible (mobile-only, confirmado por `useMediaQuery`) → al hacer click, **el navegador realmente entró a fullscreen nativo** (`requestFullscreen()` fue aceptado bajo automatización CDP en este entorno — mejor resultado del esperado; screenshot 03 muestra el reproductor nativo a pantalla completa con controles del sistema, no solo el layout con el botón visible).
+  - Reproducción real de video no verificable: la URL sigue siendo el placeholder `https://cdn.humangrowth.app/placeholder/no-video-available.mp4` (A-04), por lo que "video termina → auto-mark completed" se verificó a nivel de componente (test unitario disparando el evento `ended`), no end-to-end con reproducción real — documentado como limitación conocida, igual que en B-02/B-03/B-04, hasta que Parte C (upload a R2) esté hecho.
+  - Cross-browser real (Safari iOS, Chrome Android) sigue sin poder verificarse en este entorno sandboxed — mismo disclaimer que tasks anteriores.
+- 5 screenshots capturados en `docs/screenshots/lu-refinements/` (desktop 1440×900 salvo la 03 que es mobile 390×844):
+  1. `01-modulos-feed-with-real-content.png` — feed con hero real + 2 generadas
+  2. `02-video-player-html5-desktop.png` — `<video>` nativo, sin iframe, con "Ya lo vi"
+  3. `03-video-player-mobile-fullscreen.png` — fullscreen nativo mobile real (no solo el botón)
+  4. `04-path-with-learning-units.png` — `/path` con 3 units por pilar + "Ver todos"
+  5. `05-modulos-pillar-filter.png` — `/modulos?pillar=P1` con chip "Filtrando: Carrera"
 
 ---
 
@@ -885,15 +903,15 @@ Este paso queda documentado como próximo TODO post-merge.
 
 # 🎯 Criterios globales
 
-- [ ] 10 TASKs commiteadas
-- [ ] Migration video_blocks (youtube_video_id → video_url) aplicada
-- [ ] VideoBlockView usa `<video>` nativo
-- [ ] Fullscreen mobile funcional
-- [ ] `/path` conecta learning_units (no events)
-- [ ] `/modulos?pillar=X` filtra
-- [ ] Seed cargó unit real "Antes de seguir" + 2 generadas
-- [ ] Videos placeholder documentados con `[PLACEHOLDER · Andrés reemplaza]`
-- [ ] Tests + 5 screenshots
+- [x] 10 TASKs commiteadas
+- [x] Migration video_blocks (youtube_video_id → video_url) aplicada
+- [x] VideoBlockView usa `<video>` nativo
+- [x] Fullscreen mobile funcional
+- [x] `/path` conecta learning_units (no events)
+- [x] `/modulos?pillar=X` filtra
+- [x] Seed cargó unit real "Antes de seguir" + 2 generadas
+- [x] Videos placeholder documentados con `[PLACEHOLDER · Andrés reemplaza]` (o `[LOCAL: ... · PENDIENTE SUBIR A R2]` cuando el MP4 local fue encontrado)
+- [x] Tests + 5 screenshots
 - [ ] PR contra `main`
 
 # 📤 Entrega
@@ -928,4 +946,4 @@ Este paso queda documentado como próximo TODO post-merge.
 | B-02 | VideoBlockView native player + fullscreen | `[x]` |
 | B-03 | /path migrate to learning_units | `[x]` |
 | B-04 | /modulos pillar filter | `[x]` |
-| B-05 | Tests + 5 screenshots | `[ ]` |
+| B-05 | Tests + 5 screenshots | `[x]` |
