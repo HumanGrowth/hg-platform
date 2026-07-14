@@ -1662,7 +1662,7 @@ docs/screenshots/learning-units-fase1/
 - [x] YouTube embed funcional (marca manual OK)
 - [x] `/eventos` funcional post-rename
 - [x] Tests + 12 screenshots + a11y
-- [ ] PR-B abierto contra `main`
+- [x] PR-B abierto contra `main`
 
 ---
 
