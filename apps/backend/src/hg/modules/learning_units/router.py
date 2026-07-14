@@ -167,7 +167,7 @@ def _build_block_union(db: Session, unit_block: UnitBlock):  # union de 4 tipos
 
     if isinstance(content, VideoBlock):
         return VideoBlockRead(
-            **base, block_type=btype, youtube_video_id=content.youtube_video_id,
+            **base, block_type=btype, video_url=content.video_url,
             poster_url=content.poster_url, duration_seconds=content.duration_seconds,
             subtitle_url=content.subtitle_url, transcript_text=content.transcript_text,
             eyebrow_label=content.eyebrow_label,

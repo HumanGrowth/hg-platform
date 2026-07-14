@@ -53,6 +53,7 @@ from hg.modules.learning_units.schemas import (
 log = logging.getLogger("hg.seed_learning_units")
 
 PLACEHOLDER_VIDEO_ID = "dQw4w9WgXcQ"
+PLACEHOLDER_VIDEO_URL = f"https://www.youtube.com/embed/{PLACEHOLDER_VIDEO_ID}"  # TASK lu-refine-A-04 reemplaza este script entero
 PENDING = "[COPY PENDIENTE · coach]"
 
 # Los endpoints admin exigen `_: User = Depends(require_role("superadmin"))`
@@ -85,7 +86,7 @@ def _seed_unit_1_onboarding_remoto(db: Session) -> None:
     )
 
     create_block(unit.id, VideoBlockCreate(
-        block_type="video_intro", position=1, youtube_video_id=PLACEHOLDER_VIDEO_ID, duration_seconds=12,
+        block_type="video_intro", position=1, video_url=PLACEHOLDER_VIDEO_URL, duration_seconds=12,
     ), db=db, _=_SEED_ACTOR)
 
     create_block(unit.id, TextBlockCreate(
@@ -98,7 +99,7 @@ def _seed_unit_1_onboarding_remoto(db: Session) -> None:
     ), db=db, _=_SEED_ACTOR)
 
     create_block(unit.id, VideoBlockCreate(
-        block_type="video_teaching", position=3, youtube_video_id=PLACEHOLDER_VIDEO_ID, duration_seconds=30,
+        block_type="video_teaching", position=3, video_url=PLACEHOLDER_VIDEO_URL, duration_seconds=30,
     ), db=db, _=_SEED_ACTOR)
 
     evidence = create_block(unit.id, TextBlockCreate(
@@ -166,7 +167,7 @@ def _seed_unit_1_onboarding_remoto(db: Session) -> None:
     ), db=db, _=_SEED_ACTOR)
 
     create_block(unit.id, VideoBlockCreate(
-        block_type="video_closing", position=7, youtube_video_id=PLACEHOLDER_VIDEO_ID, duration_seconds=10,
+        block_type="video_closing", position=7, video_url=PLACEHOLDER_VIDEO_URL, duration_seconds=10,
     ), db=db, _=_SEED_ACTOR)
 
     publish_unit(unit.id, db=db, _=_SEED_ACTOR)
@@ -189,7 +190,7 @@ def _seed_unit_2_feedback_directo(db: Session) -> None:
     )
 
     create_block(unit.id, VideoBlockCreate(
-        block_type="video_intro", position=1, youtube_video_id=PLACEHOLDER_VIDEO_ID, duration_seconds=10,
+        block_type="video_intro", position=1, video_url=PLACEHOLDER_VIDEO_URL, duration_seconds=10,
     ), db=db, _=_SEED_ACTOR)
 
     create_block(unit.id, TextBlockCreate(
@@ -202,7 +203,7 @@ def _seed_unit_2_feedback_directo(db: Session) -> None:
     ), db=db, _=_SEED_ACTOR)
 
     create_block(unit.id, VideoBlockCreate(
-        block_type="video_teaching", position=3, youtube_video_id=PLACEHOLDER_VIDEO_ID, duration_seconds=25,
+        block_type="video_teaching", position=3, video_url=PLACEHOLDER_VIDEO_URL, duration_seconds=25,
     ), db=db, _=_SEED_ACTOR)
 
     evidence = create_block(unit.id, TextBlockCreate(
@@ -254,7 +255,7 @@ def _seed_unit_3_micro_descansos(db: Session) -> None:
     )
 
     create_block(unit.id, VideoBlockCreate(
-        block_type="video_intro", position=1, youtube_video_id=PLACEHOLDER_VIDEO_ID, duration_seconds=8,
+        block_type="video_intro", position=1, video_url=PLACEHOLDER_VIDEO_URL, duration_seconds=8,
     ), db=db, _=_SEED_ACTOR)
 
     evidence = create_block(unit.id, TextBlockCreate(

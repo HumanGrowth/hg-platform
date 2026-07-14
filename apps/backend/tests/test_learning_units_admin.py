@@ -144,12 +144,12 @@ def test_create_each_block_type(client: TestClient, factory, auth_headers) -> No
         video = client.post(
             f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
             json={
-                "block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ",
+                "block_type": "video_intro", "position": 1, "video_url": "https://cdn.example.com/v.mp4",
                 "duration_seconds": 10,
             },
         )
         assert video.status_code == 201, video.text
-        assert video.json()["youtube_video_id"] == "dQw4w9WgXcQ"
+        assert video.json()["video_url"] == "https://cdn.example.com/v.mp4"
 
         text = client.post(
             f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
@@ -194,7 +194,7 @@ def _make_publishable_unit(client: TestClient, headers: dict, slug: str) -> dict
 
     client.post(
         f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
-        json={"block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ", "duration_seconds": 10},
+        json={"block_type": "video_intro", "position": 1, "video_url": "https://cdn.example.com/v.mp4", "duration_seconds": 10},
     )
     evidence = client.post(
         f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
@@ -260,7 +260,7 @@ def test_publish_fails_without_evidence_doi(client: TestClient, factory, auth_he
         uid = unit["id"]
         client.post(
             f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
-            json={"block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ", "duration_seconds": 10},
+            json={"block_type": "video_intro", "position": 1, "video_url": "https://cdn.example.com/v.mp4", "duration_seconds": 10},
         )
         # evidence SIN citation -> no cuenta
         client.post(
@@ -282,7 +282,7 @@ def test_publish_fails_without_required_retrieval(client: TestClient, factory, a
         uid = unit["id"]
         client.post(
             f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
-            json={"block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ", "duration_seconds": 10},
+            json={"block_type": "video_intro", "position": 1, "video_url": "https://cdn.example.com/v.mp4", "duration_seconds": 10},
         )
         evidence = client.post(
             f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
@@ -353,7 +353,7 @@ def test_patch_video_block_content(client: TestClient, factory, auth_headers) ->
         unit = _create_unit(client, headers, slug)
         video = client.post(
             f"/api/v1/admin/learning-units/{unit['id']}/blocks", headers=headers,
-            json={"block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ", "duration_seconds": 10},
+            json={"block_type": "video_intro", "position": 1, "video_url": "https://cdn.example.com/v.mp4", "duration_seconds": 10},
         )
         template_id = video.json()["id"]
         # video.json()["id"] es el unit_block id (BlockRead.id); necesitamos el
@@ -385,7 +385,7 @@ def test_delete_block_removes_it_from_unit(client: TestClient, factory, auth_hea
         unit = _create_unit(client, headers, slug)
         video = client.post(
             f"/api/v1/admin/learning-units/{unit['id']}/blocks", headers=headers,
-            json={"block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ", "duration_seconds": 10},
+            json={"block_type": "video_intro", "position": 1, "video_url": "https://cdn.example.com/v.mp4", "duration_seconds": 10},
         )
         unit_block_id = video.json()["id"]
         r = client.delete(f"/api/v1/admin/blocks/{unit_block_id}", headers=headers)
@@ -405,7 +405,7 @@ def test_reorder_blocks(client: TestClient, factory, auth_headers) -> None:
         uid = unit["id"]
         b1 = client.post(
             f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
-            json={"block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ", "duration_seconds": 10},
+            json={"block_type": "video_intro", "position": 1, "video_url": "https://cdn.example.com/v.mp4", "duration_seconds": 10},
         ).json()["id"]
         b2 = client.post(
             f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
@@ -423,12 +423,14 @@ def test_reorder_blocks(client: TestClient, factory, auth_headers) -> None:
         _cleanup(slug)
 
 
-# ─────────────────────────── YouTube parsing (TASK A-06) ───────────────────────────
+# ─────────────────────────── video_url (TASK lu-refine-A-02) ───────────────────────────
+# YouTube salió de scope — video blocks apuntan a un MP4 http(s) (R2 en
+# producción). Reemplaza los tests viejos de parsing/auto-thumbnail de
+# YouTube (TASK A-06, ya no aplica: sin _parse_youtube_id_or_422, sin
+# auto-fill de poster_url).
 
 
-def test_create_video_block_accepts_full_url_and_autofills_poster(
-    client: TestClient, factory, auth_headers
-) -> None:
+def test_create_video_block_accepts_any_https_url(client: TestClient, factory, auth_headers) -> None:
     headers = _superadmin_headers(factory, auth_headers)
     slug = f"admin-test-{uuid.uuid4().hex[:8]}"
     try:
@@ -437,18 +439,19 @@ def test_create_video_block_accepts_full_url_and_autofills_poster(
             f"/api/v1/admin/learning-units/{unit['id']}/blocks", headers=headers,
             json={
                 "block_type": "video_intro", "position": 1, "duration_seconds": 10,
-                "youtube_video_id": "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=5s",
+                "video_url": "https://cdn.hg.app/videos/p1-l1-001/vid1.mp4",
             },
         )
         assert r.status_code == 201, r.text
         body = r.json()
-        assert body["youtube_video_id"] == "dQw4w9WgXcQ"
-        assert body["poster_url"] == "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"
+        assert body["video_url"] == "https://cdn.hg.app/videos/p1-l1-001/vid1.mp4"
+        # poster_url ya no se auto-genera — si no viene explícito, queda null.
+        assert body["poster_url"] is None
     finally:
         _cleanup(slug)
 
 
-def test_create_video_block_rejects_invalid_url(client: TestClient, factory, auth_headers) -> None:
+def test_create_video_block_rejects_non_url_string(client: TestClient, factory, auth_headers) -> None:
     headers = _superadmin_headers(factory, auth_headers)
     slug = f"admin-test-{uuid.uuid4().hex[:8]}"
     try:
@@ -457,7 +460,7 @@ def test_create_video_block_rejects_invalid_url(client: TestClient, factory, aut
             f"/api/v1/admin/learning-units/{unit['id']}/blocks", headers=headers,
             json={
                 "block_type": "video_intro", "position": 1, "duration_seconds": 10,
-                "youtube_video_id": "https://vimeo.com/12345",
+                "video_url": "not-a-url",
             },
         )
         assert r.status_code == 422
@@ -531,7 +534,7 @@ def test_publish_fails_whitespace_only_option_explanation(client: TestClient, fa
         uid = unit["id"]
         client.post(
             f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
-            json={"block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ", "duration_seconds": 10},
+            json={"block_type": "video_intro", "position": 1, "video_url": "https://cdn.example.com/v.mp4", "duration_seconds": 10},
         )
         evidence = client.post(
             f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
@@ -615,7 +618,7 @@ def test_update_block_content_rejects_unknown_field(client: TestClient, factory,
         unit = _create_unit(client, headers, slug)
         video = client.post(
             f"/api/v1/admin/learning-units/{unit['id']}/blocks", headers=headers,
-            json={"block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ", "duration_seconds": 10},
+            json={"block_type": "video_intro", "position": 1, "video_url": "https://cdn.example.com/v.mp4", "duration_seconds": 10},
         )
         unit_block_id = video.json()["id"]
         s = SessionLocal()
@@ -666,7 +669,7 @@ def test_create_video_block_respects_explicit_poster_url(client: TestClient, fac
             f"/api/v1/admin/learning-units/{unit['id']}/blocks", headers=headers,
             json={
                 "block_type": "video_intro", "position": 1, "duration_seconds": 10,
-                "youtube_video_id": "dQw4w9WgXcQ", "poster_url": "https://example.com/custom.jpg",
+                "video_url": "https://cdn.example.com/v.mp4", "poster_url": "https://example.com/custom.jpg",
             },
         )
         assert r.status_code == 201, r.text

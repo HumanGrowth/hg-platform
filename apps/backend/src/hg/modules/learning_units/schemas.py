@@ -30,7 +30,7 @@ class BlockRead(BaseModel):
 
 class VideoBlockRead(BlockRead):
     block_type: Literal["video_intro", "video_teaching", "video_closing"]
-    youtube_video_id: str
+    video_url: str
     poster_url: str | None
     duration_seconds: int
     subtitle_url: str | None
@@ -383,7 +383,11 @@ class VideoBlockCreate(BaseModel):
     block_type: Literal["video_intro", "video_teaching", "video_closing"]
     position: int
     required: bool = True
-    youtube_video_id: str = Field(min_length=1)  # URL o ID — parseado en admin_router (A-06)
+    # http(s) completa a un MP4 (R2) — validado acá con un pattern en vez de
+    # pydantic.AnyHttpUrl para no introducir un tipo Url distinto al resto
+    # de los campos *_url de este archivo (todos son str; AnyHttpUrl exige
+    # str(url) antes de persistir y tiene su propia forma de serializar).
+    video_url: str = Field(min_length=1, pattern=r"^https?://")
     poster_url: str | None = None
     duration_seconds: int = Field(gt=0)
     subtitle_url: str | None = None

@@ -1,10 +1,13 @@
 """YouTube URL/ID parsing + thumbnail helper (TASK A-06).
 
-Único host de video soportado para units (regla dura del prompt — sin R2,
-sin HLS para LearningUnit). Usado en ``admin_router.py`` cuando el
-POST/PATCH de un video block recibe ``youtube_video_id``: acepta URL
-completa o ID directo, valida el formato, y puede auto-popular
-``poster_url`` con el thumbnail si no viene explícito.
+.. deprecated:: lu-refine-A-02
+    YouTube embed salió de scope para Learning Units (reemplazado por
+    ``video_url`` apuntando a un MP4 en R2 — mismo pattern que ``events``).
+    Ningún código productivo importa este módulo desde lu-refine-A-02 en
+    adelante (``admin_router.py``/``router.py`` ya no lo referencian). Se
+    mantiene el archivo sin eliminar por si hace falta parsear/migrar URLs
+    de YouTube legacy más adelante; se borra en un sprint futuro si sigue
+    sin uso.
 """
 from __future__ import annotations
 

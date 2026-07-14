@@ -121,7 +121,7 @@ def downgrade() -> None:
 
 ---
 
-## TASK lu-refine-A-02 · Models + schemas update · `[ ]`
+## TASK lu-refine-A-02 · Models + schemas update · `[x]`
 
 ### A.2.1 · Model
 
@@ -179,10 +179,49 @@ Update `apps/backend/src/hg/modules/learning_units/router.py` para serializar `v
 Mantener el módulo `apps/backend/src/hg/modules/learning_units/youtube.py` como legacy con nota deprecated. Sin uso activo. Se elimina en un sprint futuro.
 
 ### Criterios
-- [ ] Models, schemas, routers usan `video_url`
-- [ ] Sin refs a `youtube_video_id` en código productivo
-- [ ] Tests backend actualizados y verdes
-- [ ] Commit: `refactor(lu-refine): models + schemas + router use video_url`
+- [x] Models, schemas, routers usan `video_url`
+- [x] Sin refs a `youtube_video_id` en código productivo
+- [x] Tests backend actualizados y verdes
+- [x] Commit: `refactor(lu-refine): models + schemas + router use video_url`
+
+**Notas de implementación:**
+- `VideoBlockCreate.video_url` valida con `Field(pattern=r"^https?://")` en
+  vez de `pydantic.AnyHttpUrl` que sugería el prompt — introducir
+  `AnyHttpUrl` hubiera sido el único campo `*_url` de todo `schemas.py` con
+  un tipo distinto a `str` (todos los demás, incluido `citation.doi_or_url`,
+  son `str` plano); `AnyHttpUrl` además serializa/normaliza la URL de forma
+  distinta (requiere `str(url)` antes de persistir, puede agregar barra
+  final, etc.), lo que hubiera sido una inconsistencia nueva sin beneficio
+  real sobre un pattern check simple.
+- `admin_router.py`: se borró `_parse_youtube_id_or_422` completo (no solo
+  se dejó de llamar) y el import de `youtube.py`. `poster_url` ya no se
+  auto-genera en ningún path (ni create ni PATCH) — queda `null` si no
+  viene explícito, tal como pide el criterio.
+- `router.py` (consumer) construía `VideoBlockRead(...)` campo a campo
+  (no via `from_attributes`) — tenía `youtube_video_id=content.youtube_video_id`
+  hardcodeado ahí, que el grep inicial de `admin_router.py` no hubiera
+  encontrado. Corregido a `video_url=content.video_url`.
+- `youtube.py` se dejó con nota `.. deprecated::` en el docstring del
+  módulo (no se borró, no se vació) — `test_youtube_helper.py` sigue
+  pasando sin cambios porque testea el parser puro directamente, no a
+  través del flujo de video blocks.
+- El seed script viejo (`src/hg/scripts/seed_learning_units.py`) todavía
+  usaba `youtube_video_id` en 6 lugares — se le aplicó un fix mecánico
+  mínimo (mismo valor efectivo, solo el nombre del campo) para no dejar el
+  commit de A-02 con `mypy`/tests rotos; TASK A-04 reemplaza este archivo
+  entero con contenido real, así que este fix es explícitamente interino.
+- 3 tests de `test_learning_units_admin.py` quedaban obsoletos (testeaban
+  parsing/rechazo de URLs de YouTube específicamente y auto-fill de
+  thumbnail — comportamiento que ya no existe): reemplazados por
+  `test_create_video_block_accepts_any_https_url` (+ asserts que
+  `poster_url` NO se auto-genera) y `test_create_video_block_rejects_non_url_string`.
+  El tercero (`test_create_video_block_respects_explicit_poster_url`) seguía
+  siendo válido — solo se renombró el campo del payload.
+- Verificado: 35/35 tests de `test_learning_units_{admin,router,schemas}.py`
+  + `test_quiz_grading.py` + `test_youtube_helper.py` verdes · `ruff check
+  src tests` limpio · `mypy src` limpio (el único error reportado es
+  preexistente en `seed_assessment.py`, no relacionado — confirmado con
+  `git stash`).
 
 ---
 
@@ -642,7 +681,7 @@ Este paso queda documentado como próximo TODO post-merge.
 | ID | Subject | Status |
 |---|---|---|
 | A-01 | Migration youtube_video_id → video_url | `[x]` |
-| A-02 | Models + schemas + admin_router update | `[ ]` |
+| A-02 | Models + schemas + admin_router update | `[x]` |
 | A-03 | Endpoint /modulos/by-pillar | `[ ]` |
 | A-04 | Seed real content HG-P1-L1-001.json + 2 más | `[ ]` |
 | A-05 | Tests backend + Bruno collection | `[ ]` |

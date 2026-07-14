@@ -30,7 +30,7 @@ def _unit_payload(blocks: list[dict]) -> dict:
 def _video_block(block_type: str = "video_intro") -> dict:
     return {
         "id": str(uuid4()), "position": 1, "required": True, "block_type": block_type,
-        "youtube_video_id": "dQw4w9WgXcQ", "poster_url": None, "duration_seconds": 10,
+        "video_url": "https://cdn.example.com/videos/v1.mp4", "poster_url": None, "duration_seconds": 10,
         "subtitle_url": None, "transcript_text": None, "eyebrow_label": None,
     }
 
@@ -47,7 +47,7 @@ class TestBlockTypes:
     def test_video_block_discriminates_correctly(self) -> None:
         unit = LearningUnitDetail.model_validate(_unit_payload([_video_block()]))
         assert isinstance(unit.blocks[0], VideoBlockRead)
-        assert unit.blocks[0].youtube_video_id == "dQw4w9WgXcQ"
+        assert unit.blocks[0].video_url == "https://cdn.example.com/videos/v1.mp4"
 
     def test_text_block_discriminates_correctly(self) -> None:
         unit = LearningUnitDetail.model_validate(_unit_payload([_text_block("context")]))

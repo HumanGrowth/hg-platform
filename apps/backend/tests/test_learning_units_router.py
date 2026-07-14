@@ -306,7 +306,7 @@ def test_full_admin_create_to_consumer_complete_flow(client: TestClient, factory
 
         client.post(
             f"/api/v1/admin/learning-units/{uid}/blocks", headers=admin_headers,
-            json={"block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ", "duration_seconds": 10},
+            json={"block_type": "video_intro", "position": 1, "video_url": "https://cdn.example.com/v.mp4", "duration_seconds": 10},
         )
         evidence = client.post(
             f"/api/v1/admin/learning-units/{uid}/blocks", headers=admin_headers,
