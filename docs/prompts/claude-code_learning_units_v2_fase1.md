@@ -1537,7 +1537,7 @@ Grep en el frontend:
 
 ---
 
-## TASK B-10 · Tests + screenshots + a11y · `[ ]`
+## TASK B-10 · Tests + screenshots + a11y · `[x]`
 
 ### Tests
 
@@ -1584,23 +1584,84 @@ docs/screenshots/learning-units-fase1/
 - Focus visible en botones quiz
 
 ### Criterios
-- [ ] Tests verdes
-- [ ] 12 screenshots
-- [ ] A11y verificado (axe-core sin errors)
-- [ ] Commit: `test(modulos): tests + 12 screenshots + a11y verification`
+- [x] Tests verdes
+- [x] 12 screenshots
+- [x] A11y verificado (manual, ver nota — no axe-core)
+- [x] Commit: `test(modulos): tests + 12 screenshots + a11y verification`
+
+**Notas de implementación:**
+- **axe-core no se instaló** — no está en `package.json` y agregar
+  `jest-axe`/`@axe-core/react` es una dependencia nueva (regla dura: no sin
+  consulta explícita). Se le preguntó al usuario explícitamente qué
+  prefería; eligió verificación manual en vez de instalar la dependencia.
+  Checklist manual (código + browser real vía CDP):
+  - **Screen reader / semántica**: cada pregunta de quiz usa
+    `<fieldset><legend>` (agrupa la pregunta como una unidad anunciable);
+    `fill_blank` además duplica el prompt completo en un `<legend
+    className="sr-only">` ya que el texto visible queda partido en
+    fragmentos alrededor de los `<input>`; el iframe de YouTube tiene
+    `title="Video del módulo"`; el textarea de reflexión ahora tiene
+    `aria-label={block.prompt}` (antes solo tenía `placeholder`, que no
+    sirve como label accesible — **bug real encontrado y corregido en esta
+    TASK**); todas las opciones de quiz (single/multiple/true-false/
+    matching) usan `aria-pressed` para comunicar estado de selección.
+  - **Keyboard nav en stories player (Tab + Enter + Esc)**: **gap real
+    encontrado y corregido** — `UnitStoriesPlayer` (B-04) no tenía NINGÚN
+    listener de teclado (solo tap zones + swipe), así que Esc no cerraba y
+    no había forma de navegar sin mouse/touch. Se agregó un `useEffect` con
+    Escape (cierra, con la misma lógica de confirmación que la X) y ←/→
+    (mismo comportamiento que los tap zones) — mismo patrón que ya existía
+    en `UnitBackToBackPlayer` (B-05). Tab ya funcionaba (botones nativos
+    `<button>` en todos lados) pero ahora también hay una vía 100%
+    teclado sin depender de tabular hasta los tap-zones de los bordes.
+  - **`QuizMatching.tsx` no tenía `aria-pressed`** en los botones de
+    izquierda/derecha — **corregido** (agregado `aria-pressed` +
+    `aria-label` describiendo el estado de emparejado/seleccionado).
+  - **Focus visible**: todos los botones interactivos usan la misma clase
+    `focus-visible:ring-2 focus-visible:ring-hg-amber` del design system
+    (heredada de `Button`/`Chip` existentes) — confirmado por code review,
+    consistente en los 6 sub-componentes de quiz y ambos players.
+  - **Gap conocido, no resuelto**: el focus mode de `UnitBackToBackPlayer`
+    cubre visualmente el sidebar/topbar (`fixed inset-0 z-50`) pero no le
+    pone `aria-hidden` al resto del árbol — un usuario de screen reader
+    tabulando podría llegar a esos links ocultos visualmente. Arreglarlo
+    requiere coordinar estado con el layout de la app (fuera de scope sin
+    un store global nuevo, ver nota de B-05).
+- **12/12 screenshots** en `docs/screenshots/learning-units-fase1/` — **no
+  son mocks ni Storybook**: capturados con headless Chrome real (CDP, sin
+  deps nuevas — mismo approach que la fase de marketing) contra el stack
+  completo corriendo local (backend + frontend + Postgres), logueado como
+  un usuario de seed real, navegando el flujo real. Para el screenshot 07
+  (quiz matching) se creó una unit temporal vía la API admin (ninguna de
+  las 3 units seed de A-09 usa `matching`/`ordering`/`fill_blank` — solo
+  `single_choice`/`multiple_choice`/`true_false`) y se borró al terminar.
+- **Smoke manual**: verificado en la misma sesión de browser real usada
+  para B-08 y para las screenshots — feed con hero+próximas, stories
+  player mobile completo (7 bloques, quiz real, completion card con stats
+  reales), desktop back-to-back con índice + gating + keyboard nav (←/→) +
+  focus mode (F/botón). No se verificó explícitamente "aparece el próximo
+  módulo en /home" (esa página no tiene una sección de módulos — solo
+  muestra el próximo *evento*; los widgets de /home mostrando progreso de
+  Módulos son Fase 2, fuera del alcance de A-01..B-10).
+- **11 tests nuevos** (`BlockRenderer.test.tsx` ×4, `QuizBlockView.test.tsx`
+  ×4 — incluye un test dedicado al filtro de distractors no-UUID, no solo
+  el caso feliz — y `UnitStoriesPlayer.test.tsx` ×3: gating de bloques
+  required, completion flow completo con stats reales, navegación hacia
+  atrás). Suite completa del frontend: **106/106 tests verdes**,
+  `pnpm typecheck` y `pnpm lint` limpios.
 
 ---
 
 # 🎯 Fin de FASE B · Criterios de merge PR-B
 
-- [ ] 10 TASKs commiteadas
-- [ ] Sidebar 5 tabs + drawer "Más"
-- [ ] `/modulos` feed + `/modulos/[slug]` player
-- [ ] StoriesPlayer mobile + BackToBackPlayer desktop
-- [ ] 4 tipos block + 6 tipos quiz renderizados
-- [ ] YouTube embed funcional (marca manual OK)
-- [ ] `/eventos` funcional post-rename
-- [ ] Tests + 12 screenshots + a11y
+- [x] 10 TASKs commiteadas
+- [x] Sidebar 5 tabs + drawer "Más"
+- [x] `/modulos` feed + `/modulos/[slug]` player
+- [x] StoriesPlayer mobile + BackToBackPlayer desktop
+- [x] 4 tipos block + 6 tipos quiz renderizados
+- [x] YouTube embed funcional (marca manual OK)
+- [x] `/eventos` funcional post-rename
+- [x] Tests + 12 screenshots + a11y
 - [ ] PR-B abierto contra `main`
 
 ---
@@ -1667,4 +1728,4 @@ docs/screenshots/learning-units-fase1/
 | B-07 | UnitCompletionCard | `[x]` |
 | B-08 | Wire /modulos/[slug] | `[x]` |
 | B-09 | /eventos rename | `[x]` |
-| B-10 | Tests + screenshots + a11y | `[ ]` |
+| B-10 | Tests + screenshots + a11y | `[x]` |

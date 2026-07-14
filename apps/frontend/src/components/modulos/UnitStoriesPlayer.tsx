@@ -137,6 +137,21 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
     }
   }
 
+  /** A11y (TASK B-10): el player es fullscreen y sin esto quedaba inalcanzable
+   * por teclado — Esc cierra, ←/→ navegan igual que los tap zones. */
+  React.useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+      if (e.key === "Escape") requestClose();
+      else if (e.key === "ArrowRight") goNext();
+      else if (e.key === "ArrowLeft") goPrev();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, canAdvance, isLastBlock, hasProgress]);
+
   function onVideoPressStart() {
     longPressTimer.current = setTimeout(cancelAutoAdvance, LONG_PRESS_MS);
   }

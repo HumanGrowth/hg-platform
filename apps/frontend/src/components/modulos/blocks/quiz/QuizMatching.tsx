@@ -67,6 +67,8 @@ export function QuizMatching({
                 type="button"
                 disabled={disabled}
                 onClick={() => clickLeft(item.id)}
+                aria-pressed={paired || pending}
+                aria-label={paired ? `${item.text} (emparejado)` : pending ? `${item.text} (seleccionado, elegí su par a la derecha)` : item.text}
                 className={cn(
                   "rounded-md border px-3 py-2.5 text-left font-sans text-sm transition-colors disabled:cursor-default",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
@@ -91,6 +93,8 @@ export function QuizMatching({
                 type="button"
                 disabled={disabled}
                 onClick={() => clickRight(item.id)}
+                aria-pressed={paired}
+                aria-label={paired ? `${item.text} (emparejado)` : item.text}
                 className={cn(
                   "rounded-md border px-3 py-2.5 text-left font-sans text-sm transition-colors disabled:cursor-default",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",

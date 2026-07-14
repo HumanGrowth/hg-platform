@@ -54,6 +54,7 @@ export function ReflectionBlockView({
         maxLength={block.max_chars}
         rows={5}
         placeholder="Escribí tu reflexión…"
+        aria-label={block.prompt}
         className="w-full rounded-md border border-border bg-bg px-4 py-3 font-sans text-sm text-fg placeholder:text-fg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
       />
       <div className="flex items-center justify-between">
