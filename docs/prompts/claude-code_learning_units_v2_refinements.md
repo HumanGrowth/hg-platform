@@ -287,7 +287,7 @@ Criterios visuales de la lista:
 
 ---
 
-## TASK lu-refine-A-04 · Seed script con contenido real de la carpeta · `[ ]`
+## TASK lu-refine-A-04 · Seed script con contenido real de la carpeta · `[x]`
 
 Archivo: `apps/backend/scripts/seed_learning_units.py` (reemplazar el existente)
 
@@ -342,11 +342,71 @@ Script chequea `SELECT slug FROM learning_units WHERE slug=$1` antes de insert. 
 Al terminar, setear `published_at = now()` en las 3 units.
 
 ### Criterios
-- [ ] Unit real "Antes de seguir" cargada desde JSON
-- [ ] 2 units adicionales generadas y publicadas
-- [ ] Videos referenciados (locales R2 si aplica, sino placeholders de events)
-- [ ] Script idempotente
-- [ ] Commit: `chore(lu-refine): seed with real content from HG/1.Product/5. Videos Final Version`
+- [x] Unit real "Antes de seguir" cargada desde JSON
+- [x] 2 units adicionales generadas y publicadas
+- [x] Videos referenciados (locales R2 si aplica, sino placeholders de events)
+- [x] Script idempotente
+- [x] Commit: `chore(lu-refine): seed with real content from HG/1.Product/5. Videos Final Version`
+
+**Notas de implementación:**
+- Archivo en `apps/backend/src/hg/scripts/seed_learning_units.py` (reemplaza
+  el de Fase 1 A-09 in-place), no `apps/backend/scripts/` — mismo criterio
+  de siempre, sigue la convención real del repo.
+- **`HG/1.Product/5. Videos Final Version/` NO está en git** (vive fuera
+  de `hg-platform`, es Drive local de Andrés) — no existe en CI ni en la
+  máquina de otro dev. `_resolve_content_dir()` intenta resolver la ruta
+  relativa real (confirmada en esta máquina: `parents[6]` del script) +
+  soporta override por `LU_SEED_CONTENT_DIR`; si no encuentra nada, cae a
+  `_EMBEDDED_UNIT_1` (copia hardcodeada del JSON real) para que el seed
+  nunca rompa por falta del Drive. Verificado explícitamente: **si** se
+  encuentra el directorio real, carga el JSON real (confirmado con log);
+  el fallback embebido no se ejercitó en esta corrida (documentado, no
+  bloqueante — el propósito es robustez para otros entornos).
+- **Bug real encontrado en el JSON de producción**: `HG-P1-L1-001.json`
+  tiene un carácter invisible suelto después del `}` de cierre (`json.load`
+  fallaba con "Extra data" en la línea 66) — se cambió a
+  `json.JSONDecoder().raw_decode()`, que parsea el primer objeto JSON
+  válido e ignora basura de más, en vez de reventar.
+- **Segundo bug real en el JSON de producción**: la citation "Di Stefano et
+  al. (2016) / Edmondson (2024)" tiene `doi_or_url: ""` (vacío) — viola la
+  regla de publish validation (Guía de Diseño §8, ya implementada en A-05
+  de Fase 1) y la unit no podía publicarse tal cual. Di Stefano et al.
+  (2016) es un working paper real de HBS (no un dato inventado) — se
+  parcheó con su URL pública conocida vía `_patch_missing_citation_urls()`,
+  con un log warning explícito documentando el parche para que Andrés lo
+  vea y decida si prefiere otro URL.
+- **Videos**: ningún MP4 de la carpeta está en R2 todavía — `video_url`
+  SIEMPRE queda en un placeholder http(s) reproducible (URL de un `event`
+  existente del mismo pilar vía join con `career_paths`, o una URL
+  genérica si ninguno tiene `video_url` — en esta DB de dev, 0/13 events
+  tienen `video_url` poblado, así que cae al genérico). Un MP4 local nunca
+  se usa como `video_url` directo (no es http(s), no lo reproduciría el
+  browser); en cambio, el nombre del archivo local encontrado
+  (`CP-L1-P1-001 - VID1.mp4` para la unit real) se documenta en
+  `eyebrow_label` (`"[LOCAL: ... · pendiente subir a R2]"`) para que el
+  script de upload de la `PARTE C` (post-merge) sepa qué reemplazar. Las 2
+  units generadas no tienen MP4 local (slugs ficticios) → `eyebrow_label`
+  genérico `[PLACEHOLDER · Andrés reemplaza]`.
+- `duration_seconds` de los videos es un placeholder fijo (30s) — no hay
+  forma de leer la duración real de un MP4 sin una dependencia nueva
+  (ffprobe/moviepy), fuera de alcance por la regla dura de no instalar
+  deps nuevas. Documentado explícitamente como TODO para cuando se suban
+  los videos reales a R2 (ahí sí se puede leer metadata real).
+- Las 2 units generadas (P3 feedback-directo Composición C con reflection
+  como retrieval principal — sin quiz; P4 micro-descansos con quiz mixto
+  multiple_choice+true_false) reusan citas reales ya verificadas en Fase 1
+  (Edmondson 1999, Sianoja et al. 2018) — mismo criterio que la unit real:
+  contenido honesto respaldado por evidencia citable, marcado
+  `[GENERADO POR CLAUDE · Andrés valida]` en vez de inventar datos.
+- **Limpieza de las 3 units placeholder de Fase 1** (`p1-c3-l2-001-...`,
+  etc. — naming distinto, `_delete_if_exists` nunca las hubiera tocado por
+  su cuenta) agregada explícitamente en `run()`: sin esto quedarían 6
+  units en el feed, la mitad todavía con `[COPY PENDIENTE · coach]`. Este
+  script es el reemplazo del de Fase 1, no un agregado.
+- Verificado: corrida 1 y 2 confirmadas idempotentes (3 units, no 6) ·
+  las 3 devuelven 200 con `video_url` en el payload vía
+  `GET /api/v1/modulos/{slug}` · `GET /api/v1/modulos/by-pillar?pillar_code=P1`
+  devuelve la unit real · `ruff check` y `mypy` limpios.
 
 ---
 
@@ -709,7 +769,7 @@ Este paso queda documentado como próximo TODO post-merge.
 | A-01 | Migration youtube_video_id → video_url | `[x]` |
 | A-02 | Models + schemas + admin_router update | `[x]` |
 | A-03 | Endpoint /modulos/by-pillar | `[x]` |
-| A-04 | Seed real content HG-P1-L1-001.json + 2 más | `[ ]` |
+| A-04 | Seed real content HG-P1-L1-001.json + 2 más | `[x]` |
 | A-05 | Tests backend + Bruno collection | `[ ]` |
 | B-01 | Types + API client update | `[ ]` |
 | B-02 | VideoBlockView native player + fullscreen | `[ ]` |
