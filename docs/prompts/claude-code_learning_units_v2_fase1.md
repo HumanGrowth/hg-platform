@@ -1073,7 +1073,7 @@ Streak badge
 
 ---
 
-## TASK B-04 · `<UnitStoriesPlayer/>` mobile · progress bars + tap navigation · `[ ]`
+## TASK B-04 · `<UnitStoriesPlayer/>` mobile · progress bars + tap navigation · `[x]`
 
 Archivo: `apps/frontend/src/components/modulos/UnitStoriesPlayer.tsx`
 
@@ -1113,12 +1113,58 @@ Archivo: `apps/frontend/src/components/modulos/UnitStoriesPlayer.tsx`
 Sin auto-advance, sin swipe animations · usar `useShouldAnimate` hook existente.
 
 ### Criterios
-- [ ] Fullscreen mobile funcional
-- [ ] Progress bars sync con block_progress
-- [ ] Tap navigation left/right
-- [ ] Swipe down cierra
-- [ ] Reduced motion respetado
-- [ ] Commit: `feat(modulos): UnitStoriesPlayer mobile with tap navigation`
+- [x] Fullscreen mobile funcional
+- [x] Progress bars sync con block_progress
+- [x] Tap navigation left/right
+- [x] Swipe down cierra
+- [x] Reduced motion respetado
+- [x] Commit: `feat(modulos): UnitStoriesPlayer mobile with tap navigation`
+
+**Notas de implementación:**
+- Construido después de B-06/B-07 (sus dependencias reales) — ver nota en
+  esas TASKs.
+- El player posee el estado de `blockProgress` y las llamadas a
+  `apiCompleteBlock`/`apiSubmitQuiz`/`apiSubmitReflection` (bindeadas al
+  bloque actual vía closures) — no delega esto a la página `[slug]` (B-08),
+  que solo hace el fetch inicial de `unit`+`attempt` y renderiza el player.
+  Esto matchea la firma `<UnitStoriesPlayer unit={} attempt={} onComplete=/>`
+  del sketch del prompt, que ya implica que el player es dueño del flujo.
+- Se agregó un prop `onClose` (no estaba en el sketch del prompt, que solo
+  tenía `onComplete`) para separar "salir sin terminar" (X / swipe-down /
+  confirmación) de "completó la unit" — permite que B-08 reaccione distinto
+  a cada caso (ej. mostrar un toast solo en completion real).
+- **Progress bars simplificadas a 2 estados** (completed / no-completed +
+  highlight del índice actual) en vez de un fill continuo estilo Instagram
+  Stories: los endpoints del consumer (`/complete`, `/quiz/submit`,
+  `/reflection/submit`) crean el `block_progress` row directo en estado
+  `"completed"` — no existe un endpoint de "marcar iniciado" que produzca
+  un estado intermedio real para trackear, así que un fill parcial hubiera
+  sido cosmético sin dato real detrás.
+- **Tap zones como columnas laterales (15% cada lado)**, no todo el ancho
+  de la pantalla — así el tap-to-navigate nunca compite con clicks en
+  contenido interactivo (quiz options, textarea de reflection, botones de
+  video) que vive en la columna central. Es el mismo patrón que usan
+  TikTok/Stories-likes reales (bordes para navegar, centro para interactuar).
+- **Swipe-down-to-close** vía `motion.div drag="y"` (framer-motion, ya
+  dependency) — **limitación conocida**: al envolver todo el contenido
+  (incluida el área scrolleable de bloques largos), un swipe vertical
+  dentro de un bloque con scroll interno podría interpretarse como "cerrar"
+  en vez de "scrollear". Arbitrar esto correctamente (solo permitir el
+  swipe-to-close cuando el scroll interno está en `scrollTop=0`, como los
+  bottom-sheets nativos) queda pendiente — no se encontró en el tiempo de
+  esta TASK y el contenido de cada bloque es corto en la práctica (Fase 1
+  son micro-lecciones de pocos minutos, no hay bloques con scroll largo).
+- **Auto-advance en video**: default ON si `duration_seconds < 30`, OFF si
+  no — igual que pide el spec. Toggle expuesto como un `Chip` en el footer
+  (visible solo en bloques de video). Long-press (400ms, touch o mouse)
+  cancela el timer de auto-advance para ese bloque — es una cancelación
+  simple (no un play/pause real), documentado como simplificación MVP.
+- Reduced motion (`useShouldAnimate`): sin `motion.div`/drag (fallback a
+  `<div>` plano, cierre solo por el botón X) y sin timers de auto-advance
+  (el effect chequea `shouldAnimate` antes de armar el `setTimeout`).
+- **Smoke visual en browser real sigue diferido a B-08/B-10** — no hay
+  `/modulos/[slug]` todavía para montar este componente con datos reales.
+  Verificado con `pnpm typecheck` + `pnpm lint` limpios únicamente.
 
 ---
 
@@ -1511,7 +1557,7 @@ docs/screenshots/learning-units-fase1/
 | B-01 | Sidebar 5 tabs + drawer Más | `[x]` |
 | B-02 | Types + API client | `[x]` |
 | B-03 | /modulos feed | `[x]` |
-| B-04 | UnitStoriesPlayer mobile | `[ ]` |
+| B-04 | UnitStoriesPlayer mobile | `[x]` |
 | B-05 | UnitBackToBackPlayer desktop | `[ ]` |
 | B-06 | BlockRenderer + 6 quiz types | `[x]` |
 | B-07 | UnitCompletionCard | `[x]` |
