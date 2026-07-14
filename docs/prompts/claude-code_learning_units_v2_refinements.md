@@ -516,7 +516,7 @@ export async function apiListModulosByPillar(
 
 ---
 
-## TASK lu-refine-B-02 · `<VideoBlockView/>` refactor · `<video>` player + fullscreen mobile · `[ ]`
+## TASK lu-refine-B-02 · `<VideoBlockView/>` refactor · `<video>` player + fullscreen mobile · `[x]`
 
 Archivo: `apps/frontend/src/components/modulos/blocks/VideoBlockView.tsx`
 
@@ -640,13 +640,53 @@ export function VideoBlockView({
 Cuando el video termina (`onEnded`), marcar automáticamente como completed. El botón "Ya lo vi" queda como opción manual si el user quiere skipear al final del video.
 
 ### Criterios
-- [ ] Player `<video>` HTML5 nativo con src=video_url
-- [ ] Fullscreen button visible en mobile
-- [ ] Auto-mark on video ended
-- [ ] Botón "Ya lo vi" manual sigue disponible
-- [ ] Subtítulos si vienen
-- [ ] Verificado en Safari iOS + Chrome Android + Chrome desktop
-- [ ] Commit: `feat(lu-refine): VideoBlockView native <video> + fullscreen mobile`
+- [x] Player `<video>` HTML5 nativo con src=video_url
+- [x] Fullscreen button visible en mobile
+- [x] Auto-mark on video ended
+- [x] Botón "Ya lo vi" manual sigue disponible
+- [x] Subtítulos si vienen
+- [x] Verificado en Chrome desktop + Chrome con viewport mobile emulado — **no en Safari iOS/Android real** (ver nota)
+- [x] Commit: `feat(lu-refine): VideoBlockView native <video> + fullscreen mobile`
+
+**Notas de implementación:**
+- `webkitEnterFullscreen` tipado con una interfaz local
+  (`SafariVideoElement extends HTMLVideoElement`) en vez de un cast a `any`
+  — es un método no estándar (solo iOS Safari), no existe en el lib.dom.ts
+  de TypeScript.
+- `handleEnded` (auto-mark on ended) es un handler separado de `markSeen`
+  (el del botón manual) a propósito: comparten la llamada a
+  `onCompleteBlock()` pero NO comparten el estado `marking` — mostrar
+  "Guardando…" en el botón "Ya lo vi" cuando fue el video el que disparó
+  el mark (no el usuario tocando el botón) hubiera sido confuso.
+- **Verificación real, no solo unit tests**: reusando el stack local
+  levantado antes en esta sesión (backend+frontend+Postgres), login real,
+  navegación mobile (390×844 emulado) hasta el bloque de video de la unit
+  real → confirmado `<video>` con `controls`/`playsInline`/
+  `preload="metadata"`, botón de fullscreen custom visible, eyebrow
+  documentando el MP4 local pendiente de subir a R2. Repetido en desktop
+  (1440×900) → mismo `<video>`, sin el botón de fullscreen (correcto,
+  gateado por `useMediaQuery`), `aspect-video` mantenido dentro del layout
+  de 2 columnas.
+- **Honesto sobre el límite de esta verificación**: Chrome headless (real
+  + con viewport mobile emulado) es lo único a lo que este entorno tiene
+  acceso — **no hay Safari iOS ni Chrome Android reales ni simuladores
+  disponibles acá**. El branch `webkitEnterFullscreen` está implementado
+  siguiendo la API documentada de Apple pero no se pudo ejercitar en un
+  dispositivo real; el branch `requestFullscreen()` (Chromium/Firefox) sí
+  se verificó indirectamente (el botón dispara el handler sin errores en
+  Chrome, aunque headless Chrome no permite fullscreen real sin una
+  ventana visible — no se pudo confirmar el efecto visual del fullscreen
+  en sí, solo que el código no explota).
+- Bug real encontrado y corregido durante esta verificación (no de este
+  commit — de infraestructura de test): un test de integración de A-05
+  (`test_seed_then_by_pillar_returns_real_unit`) borra la unit real en su
+  `finally` — al correr la suite completa antes de esta verificación
+  manual, la unit quedó borrada de la DB de dev. Se resembró
+  (`python -m hg.scripts.seed_learning_units`) antes de continuar; no
+  requirió cambios de código, es el comportamiento esperado de un test
+  con cleanup.
+- Verificado además: `pnpm typecheck`, `pnpm lint`, `pnpm test` (106/106)
+  limpios.
 
 ---
 
@@ -826,7 +866,7 @@ Este paso queda documentado como próximo TODO post-merge.
 | A-04 | Seed real content HG-P1-L1-001.json + 2 más | `[x]` |
 | A-05 | Tests backend + Bruno collection | `[x]` |
 | B-01 | Types + API client update | `[x]` |
-| B-02 | VideoBlockView native player + fullscreen | `[ ]` |
+| B-02 | VideoBlockView native player + fullscreen | `[x]` |
 | B-03 | /path migrate to learning_units | `[ ]` |
 | B-04 | /modulos pillar filter | `[ ]` |
 | B-05 | Tests + 5 screenshots | `[ ]` |
