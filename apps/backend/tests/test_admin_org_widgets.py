@@ -13,9 +13,9 @@ from hg.modules.identity.models import UserRole
 from hg.modules.learning.models import (
     CareerLevel,
     CareerPath,
-    Course,
     CourseProgress,
-    CourseTrack,
+    Event,
+    EventTrack,
 )
 
 
@@ -70,13 +70,13 @@ def funnel_org(factory):
     s.commit()
 
     # user con curso en progreso + user con completion
-    u_course = factory.make_user(org=org, full_name="Has Course")
+    u_course = factory.make_user(org=org, full_name="Has Event")
     u_done = factory.make_user(org=org, full_name="Has Completion")
     created: list = []
     for u, completed in [(u_course, False), (u_done, True)]:
-        c = Course(
+        c = Event(
             career_path_id=path.id, title="FC", slug=f"fc-{uuid4().hex[:10]}",
-            order_index=0, career_level=CareerLevel.L1, track=CourseTrack.competency,
+            order_index=0, career_level=CareerLevel.L1, track=EventTrack.competency,
             duration_seconds=600,
         )
         s.add(c)
@@ -91,7 +91,7 @@ def funnel_org(factory):
 
     from types import SimpleNamespace
     yield SimpleNamespace(org=org, admin=admin)
-    s.execute(delete(Course).where(Course.id.in_(created)))
+    s.execute(delete(Event).where(Event.id.in_(created)))
     s.execute(delete(Invitation).where(Invitation.org_id == org.id))
     s.commit()
 

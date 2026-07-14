@@ -1,4 +1,4 @@
-"""Catalog endpoints (B2-06): paths + courses with filters + auth."""
+"""Catalog endpoints (B2-06): paths + events with filters + auth."""
 from __future__ import annotations
 
 import uuid
@@ -12,8 +12,9 @@ from hg.modules.learning.models import (
     CareerLevel,
     CareerPath,
     CompetencyCode,
-    Course,
-    CourseTrack,
+    Event,
+    EventTrack,
+    EventType,
 )
 
 PATHS = [
@@ -39,15 +40,17 @@ def _ensure_paths() -> uuid.UUID:
         s.close()
 
 
-def _make_course(
+def _make_event(
     *, path_id: uuid.UUID, slug: str, level: CareerLevel,
-    competency: CompetencyCode | None, track: CourseTrack,
+    competency: CompetencyCode | None, track: EventTrack,
+    event_type: EventType = EventType.recorded_webinar,
 ) -> None:
     s = SessionLocal()
     try:
-        s.add(Course(
+        s.add(Event(
             career_path_id=path_id, title=slug, slug=slug, order_index=1,
             career_level=level, competency_code=competency, track=track,
+            event_type=event_type,
         ))
         s.commit()
     finally:
@@ -56,7 +59,7 @@ def _make_course(
 
 def _cleanup(slugs: list[str]) -> None:
     s = SessionLocal()
-    s.execute(delete(Course).where(Course.slug.in_(slugs)))
+    s.execute(delete(Event).where(Event.slug.in_(slugs)))
     s.commit()
     s.close()
 
@@ -92,7 +95,7 @@ def test_get_path_unknown_404(client: TestClient, factory, auth_headers) -> None
     assert res.status_code == 404
 
 
-# ─────────────────────────── courses filters ───────────────────────────
+# ─────────────────────────── events filters ───────────────────────────
 
 
 def test_courses_filter_level_and_competency(client: TestClient, factory, auth_headers) -> None:
@@ -100,12 +103,12 @@ def test_courses_filter_level_and_competency(client: TestClient, factory, auth_h
     slug = "test-cat-l1-c1"
     other = "test-cat-l2-c2"
     try:
-        _make_course(path_id=p1, slug=slug, level=CareerLevel.L1,
-                     competency=CompetencyCode.C1, track=CourseTrack.competency)
-        _make_course(path_id=p1, slug=other, level=CareerLevel.L2,
-                     competency=CompetencyCode.C2, track=CourseTrack.competency)
+        _make_event(path_id=p1, slug=slug, level=CareerLevel.L1,
+                     competency=CompetencyCode.C1, track=EventTrack.competency)
+        _make_event(path_id=p1, slug=other, level=CareerLevel.L2,
+                     competency=CompetencyCode.C2, track=EventTrack.competency)
         res = client.get(
-            "/api/v1/courses",
+            "/api/v1/events",
             headers=_auth(factory, auth_headers),
             params={"level": "L1", "competency": "C1", "limit": 100},
         )
@@ -122,12 +125,12 @@ def test_courses_filter_track_foundation(client: TestClient, factory, auth_heade
     fnd = "test-cat-fnd-ai"
     comp = "test-cat-comp"
     try:
-        _make_course(path_id=p1, slug=fnd, level=CareerLevel.L1,
-                     competency=None, track=CourseTrack.foundation_ai)
-        _make_course(path_id=p1, slug=comp, level=CareerLevel.L1,
-                     competency=CompetencyCode.C1, track=CourseTrack.competency)
+        _make_event(path_id=p1, slug=fnd, level=CareerLevel.L1,
+                     competency=None, track=EventTrack.foundation_ai)
+        _make_event(path_id=p1, slug=comp, level=CareerLevel.L1,
+                     competency=CompetencyCode.C1, track=EventTrack.competency)
         res = client.get(
-            "/api/v1/courses",
+            "/api/v1/events",
             headers=_auth(factory, auth_headers),
             params={"track": "foundation_ai", "limit": 100},
         )
@@ -140,5 +143,27 @@ def test_courses_filter_track_foundation(client: TestClient, factory, auth_heade
 
 
 def test_courses_requires_auth(client: TestClient) -> None:
-    res = client.get("/api/v1/courses")
+    res = client.get("/api/v1/events")
     assert res.status_code in (401, 403)
+
+
+def test_events_filter_event_type(client: TestClient, factory, auth_headers) -> None:
+    p1 = _ensure_paths()
+    live = "test-cat-live"
+    recorded = "test-cat-recorded"
+    try:
+        _make_event(path_id=p1, slug=live, level=CareerLevel.L1, competency=CompetencyCode.C1,
+                    track=EventTrack.competency, event_type=EventType.live_webinar)
+        _make_event(path_id=p1, slug=recorded, level=CareerLevel.L1, competency=CompetencyCode.C1,
+                    track=EventTrack.competency, event_type=EventType.recorded_webinar)
+        res = client.get(
+            "/api/v1/events",
+            headers=_auth(factory, auth_headers),
+            params={"event_type": "live_webinar", "limit": 100},
+        )
+        assert res.status_code == 200, res.text
+        slugs = {c["slug"] for c in res.json()["items"]}
+        assert live in slugs
+        assert recorded not in slugs
+    finally:
+        _cleanup([live, recorded])

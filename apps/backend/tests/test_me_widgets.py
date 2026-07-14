@@ -12,9 +12,9 @@ from hg.modules.identity.models import UserRole
 from hg.modules.learning.models import (
     CareerLevel,
     CareerPath,
-    Course,
     CourseProgress,
-    CourseTrack,
+    Event,
+    EventTrack,
 )
 
 
@@ -30,9 +30,9 @@ def widget_env(factory):
 
     def add_progress(*, when: datetime, seconds: int) -> None:
         path = s.scalar(select(CareerPath).where(CareerPath.code == "P1"))
-        c = Course(
+        c = Event(
             career_path_id=path.id, title="WC", slug=f"wc-{uuid4().hex[:10]}",
-            order_index=0, career_level=CareerLevel.L1, track=CourseTrack.competency,
+            order_index=0, career_level=CareerLevel.L1, track=EventTrack.competency,
             duration_seconds=600,
         )
         s.add(c)
@@ -47,7 +47,7 @@ def widget_env(factory):
     from types import SimpleNamespace
     yield SimpleNamespace(s=s, org=org, user=user, add_progress=add_progress)
 
-    s.execute(delete(Course).where(Course.id.in_(created)))
+    s.execute(delete(Event).where(Event.id.in_(created)))
     s.commit()
 
 

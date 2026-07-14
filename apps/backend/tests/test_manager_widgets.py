@@ -12,9 +12,9 @@ from hg.modules.identity.models import UserRole
 from hg.modules.learning.models import (
     CareerLevel,
     CareerPath,
-    Course,
     CourseProgress,
-    CourseTrack,
+    Event,
+    EventTrack,
 )
 
 
@@ -34,9 +34,9 @@ def manager_buckets(factory):
     def report(name: str, gap_days: int | None):
         u = factory.make_user(org=org, manager_id=mgr.id, full_name=name)
         if gap_days is not None:
-            c = Course(
+            c = Event(
                 career_path_id=path.id, title="BC", slug=f"bc-{uuid4().hex[:10]}",
-                order_index=0, career_level=CareerLevel.L1, track=CourseTrack.competency,
+                order_index=0, career_level=CareerLevel.L1, track=EventTrack.competency,
                 duration_seconds=600,
             )
             s.add(c)
@@ -62,7 +62,7 @@ def manager_buckets(factory):
         org=org, mgr=mgr,
         ids={r_active.id, r_1_7.id, r_8_14.id, r_15_30.id, r_gt30.id, r_never.id},
     )
-    s.execute(delete(Course).where(Course.id.in_(created)))
+    s.execute(delete(Event).where(Event.id.in_(created)))
     s.commit()
 
 

@@ -1,0 +1,43 @@
+meta {
+  name: 04 - Admin - Create Block · text_evidence
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/admin/learning-units/{{unit_id}}/blocks
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{superadmin_token}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "block_type": "text_evidence",
+    "position": 2,
+    "required": false,
+    "variant": "evidence",
+    "eyebrow": "EVIDENCIA",
+    "body": "[COPY PENDIENTE · coach] Amy Edmondson (Harvard, 1999) mostró que los equipos con más seguridad psicológica reportan más errores, no menos.",
+    "citation": {
+      "text": "Edmondson, ASQ (1999)",
+      "source": "Amy Edmondson · Harvard Business School",
+      "year": 1999,
+      "doi_or_url": "https://doi.org/10.2307/2666999",
+      "tier": "observational"
+    }
+  }
+}
+
+script:post-response {
+  bru.setEnvVar("evidence_block_id", res.body.id);
+}
+
+docs {
+  201 esperado. citation.doi_or_url es requerido para que la unit pase
+  publish validation (ver TASK A-05).
+}

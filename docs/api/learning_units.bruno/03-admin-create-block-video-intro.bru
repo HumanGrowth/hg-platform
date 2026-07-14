@@ -1,0 +1,35 @@
+meta {
+  name: 03 - Admin - Create Block · video_intro
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/admin/learning-units/{{unit_id}}/blocks
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{superadmin_token}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "block_type": "video_intro",
+    "position": 1,
+    "required": false,
+    "youtube_video_id": "dQw4w9WgXcQ",
+    "duration_seconds": 12
+  }
+}
+
+script:post-response {
+  bru.setEnvVar("video_block_id", res.body.id);
+}
+
+docs {
+  201 esperado. poster_url se auto-completa desde el youtube_video_id
+  (TASK A-06) — verificar en la respuesta.
+}

@@ -1,0 +1,33 @@
+meta {
+  name: 09 - Auth - Login Collaborator
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{base_url}}/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{collaborator_email}}",
+    "password": "{{collaborator_password}}"
+  }
+}
+
+script:post-response {
+  bru.setEnvVar("collaborator_token", res.body.access_token);
+}
+
+docs {
+  Login como usuario collaborator normal — el resto de la colección usa este
+  token para ejercitar el lado consumer (/modulos/*) tal como lo vería un
+  usuario real, no el superadmin. Credenciales reales en
+  docs/dev-credentials.md.
+}

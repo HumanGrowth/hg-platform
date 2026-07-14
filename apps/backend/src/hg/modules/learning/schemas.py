@@ -1,4 +1,9 @@
-"""Pydantic v2 schemas para el catálogo (career paths + courses + progress)."""
+"""Pydantic v2 schemas para el catálogo (career paths + events + progress).
+
+``Event*`` reemplaza a ``Course*`` (TASK A-07). ``CourseProgressIn``/
+``CourseProgressOut`` quedan como están a propósito — ver
+``hg.modules.learning.models`` para el porqué.
+"""
 from __future__ import annotations
 
 from datetime import datetime
@@ -17,7 +22,7 @@ class CareerPathOut(BaseModel):
     order_index: int
 
 
-class CourseOut(BaseModel):
+class EventOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
@@ -32,10 +37,14 @@ class CourseOut(BaseModel):
     competency_code: str | None
     track: str
     is_active: bool
+    event_type: str
+    is_preview: bool
+    presenter_id: UUID | None
+    scheduled_at: datetime | None
 
 
-class CourseListResponse(BaseModel):
-    items: list[CourseOut]
+class EventListResponse(BaseModel):
+    items: list[EventOut]
     total: int
 
 
@@ -48,17 +57,17 @@ class CourseProgressOut(BaseModel):
     completed_at: datetime | None
 
 
-class CourseDetailOut(CourseOut):
-    """Curso + progreso del usuario actual (None si nunca lo abrió)."""
+class EventDetailOut(EventOut):
+    """Event + progreso del usuario actual (None si nunca lo abrió)."""
 
     progress: CourseProgressOut | None = None
     pillar_code: str | None = None  # código del path (P1..P6) para la metadata del player
 
 
-class NextCourseOut(BaseModel):
-    """Siguiente curso del path (o null si es el último)."""
+class NextEventOut(BaseModel):
+    """Siguiente event del path (o null si es el último)."""
 
-    next: CourseOut | None = None
+    next: EventOut | None = None
 
 
 class CourseProgressIn(BaseModel):

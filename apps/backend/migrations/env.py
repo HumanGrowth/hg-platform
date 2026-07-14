@@ -16,6 +16,7 @@ import hg.modules.assessment.models  # noqa: F401
 import hg.modules.identity.invitations  # noqa: F401
 import hg.modules.identity.models  # noqa: F401
 import hg.modules.learning.models  # noqa: F401
+import hg.modules.learning_units.models  # noqa: F401
 import hg.modules.marketing.models  # noqa: F401
 import hg.modules.people.models  # noqa: F401
 

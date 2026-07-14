@@ -2,7 +2,7 @@
 
 Todo el video producido vive bajo **P1 Carrera** (el catálogo del Drive es PMM
 v3, que operativiza P1). Idempotente: upsert de CareerPath por ``code`` y de
-Course por ``slug``. Re-ejecutable con ``make seed-catalog``.
+Event por ``slug``. Re-ejecutable con ``make seed-catalog``.
 
 Corre como ``hg`` (superusuario en dev → BYPASSRLS). El catálogo no tiene RLS.
 """
@@ -21,8 +21,8 @@ from hg.modules.learning.models import (
     CareerLevel,
     CareerPath,
     CompetencyCode,
-    Course,
-    CourseTrack,
+    Event,
+    EventTrack,
 )
 
 log = logging.getLogger("hg.seed_catalog")
@@ -83,14 +83,14 @@ def _upsert_course(db: Session, *, path_id, entry: dict[str, Any], order_index: 
         "is_active": entry.get("is_active", True),
         "career_level": CareerLevel(entry["career_level"]),
         "competency_code": competency,
-        "track": CourseTrack(entry["track"]),
+        "track": EventTrack(entry["track"]),
     }
-    existing = db.execute(select(Course).where(Course.slug == entry["slug"])).scalar_one_or_none()
+    existing = db.execute(select(Event).where(Event.slug == entry["slug"])).scalar_one_or_none()
     if existing:
         for k, v in values.items():
             setattr(existing, k, v)
         return False
-    db.add(Course(slug=entry["slug"], **values))
+    db.add(Event(slug=entry["slug"], **values))
     return True
 
 

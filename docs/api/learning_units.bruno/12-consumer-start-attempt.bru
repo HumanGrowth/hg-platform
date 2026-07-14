@@ -1,0 +1,21 @@
+meta {
+  name: 12 - Consumer - Start Attempt
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{base_url}}/modulos/{{unit_slug}}/attempts/start
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{collaborator_token}}
+}
+
+docs {
+  200 esperado, completed_at null. Idempotente: llamar de nuevo sobre un
+  attempt YA completo lo resetea (replay) — misma row, block_progress
+  borrado, completed_at vuelve a null.
+}

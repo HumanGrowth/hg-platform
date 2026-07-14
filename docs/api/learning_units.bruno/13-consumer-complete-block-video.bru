@@ -1,0 +1,23 @@
+meta {
+  name: 13 - Consumer - Complete Block · video_intro
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{base_url}}/modulos/{{unit_slug}}/blocks/{{video_block_id}}/complete
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{collaborator_token}}
+}
+
+docs {
+  200 esperado. Este bloque es required=false — completarlo no cierra la
+  unit por sí solo (ver request 06), pero demuestra el endpoint genérico de
+  completion. quiz_recall/reflection_write rechazan este endpoint con 400 —
+  solo se completan vía sus propios submit endpoints (requests 14 y
+  reflection/submit).
+}
