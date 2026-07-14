@@ -619,7 +619,7 @@ ya seteado.
 
 ---
 
-## TASK A-07 · Migration events · sumar `event_type` + campos · `[ ]`
+## TASK A-07 · Migration events · sumar `event_type` + campos · `[x]`
 
 Ya cubierto parcialmente en A-01, pero refinar:
 
@@ -633,10 +633,26 @@ Actualizar `apps/backend/src/hg/modules/learning/models.py` para renombrar `Cour
 **Crítico:** grep en backend por `Course` / `course_id` y actualizar refs (schemas, routes, services que apunten a la tabla renombrada). Enrollments siguen apuntando a `career_paths` no a events.
 
 ### Criterios
-- [ ] `class Event(Base)` reemplaza `class Course(Base)`
-- [ ] Grep `Course` en `apps/backend/src/hg/` limpio (0 matches fuera de tests migrados)
-- [ ] Tests backend siguen verdes
-- [ ] Commit: `refactor(events): rename Course model + schema updates`
+- [x] `class Event(Base)` reemplaza `class Course(Base)`
+- [x] Grep `Course` en `apps/backend/src/hg/` limpio (0 matches fuera de `CourseProgress` — ver nota)
+- [x] Tests backend siguen verdes (7 archivos de test migrados: conftest, admin_org_widgets, manager_widgets, catalog, course_progress, home_dashboard, me_widgets)
+- [x] Commit: `refactor(events): rename Course model + schema updates`
+
+**Notas de implementación:**
+- Las columnas nuevas de `events` (`event_type`, `is_preview`, `presenter_id`,
+  `scheduled_at`) ya se crearon en A-01 (se diseñó la migración completa de
+  una — ver LU-01). `event_type` es un enum Postgres, no un CHECK constraint
+  crudo, consistente con el resto del catálogo.
+- `CourseProgress` (clase, columna `course_id`, y la relación `Event.
+  progress_records`/`CourseProgress.course`) queda tal cual a propósito — es
+  el rename explícitamente deferred a Fase 2 (nota en el docstring de LU-01).
+  Por eso el grep de "Course" no da 0 matches literal — los que quedan son
+  ese deferral documentado, no código sin actualizar.
+- `CourseOut`→`EventOut`, `CourseDetailOut`→`EventDetailOut`,
+  `CourseListResponse`→`EventListResponse`, `NextCourseOut`→`NextEventOut`,
+  `CourseTrack`→`EventTrack`. Rutas (`/courses/*`) y nombres de función/
+  variable internos (`_filtered_courses`, `_active_course_or_404`) quedan
+  para A-08 (scope de esa TASK específicamente).
 
 ---
 
@@ -1229,7 +1245,7 @@ docs/screenshots/learning-units-fase1/
 | A-04 | Endpoints consumer | `[x]` |
 | A-05 | Endpoints admin CMS | `[x]` |
 | A-06 | YouTube helper | `[x]` |
-| A-07 | Migration events + Course→Event refactor | `[ ]` |
+| A-07 | Migration events + Course→Event refactor | `[x]` |
 | A-08 | Endpoints events (rename) | `[ ]` |
 | A-09 | Seed 3 units placeholder | `[ ]` |
 | A-10 | Tests + Bruno collection | `[ ]` |

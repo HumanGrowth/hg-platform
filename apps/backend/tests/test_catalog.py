@@ -12,8 +12,8 @@ from hg.modules.learning.models import (
     CareerLevel,
     CareerPath,
     CompetencyCode,
-    Course,
-    CourseTrack,
+    Event,
+    EventTrack,
 )
 
 PATHS = [
@@ -41,11 +41,11 @@ def _ensure_paths() -> uuid.UUID:
 
 def _make_course(
     *, path_id: uuid.UUID, slug: str, level: CareerLevel,
-    competency: CompetencyCode | None, track: CourseTrack,
+    competency: CompetencyCode | None, track: EventTrack,
 ) -> None:
     s = SessionLocal()
     try:
-        s.add(Course(
+        s.add(Event(
             career_path_id=path_id, title=slug, slug=slug, order_index=1,
             career_level=level, competency_code=competency, track=track,
         ))
@@ -56,7 +56,7 @@ def _make_course(
 
 def _cleanup(slugs: list[str]) -> None:
     s = SessionLocal()
-    s.execute(delete(Course).where(Course.slug.in_(slugs)))
+    s.execute(delete(Event).where(Event.slug.in_(slugs)))
     s.commit()
     s.close()
 
@@ -101,9 +101,9 @@ def test_courses_filter_level_and_competency(client: TestClient, factory, auth_h
     other = "test-cat-l2-c2"
     try:
         _make_course(path_id=p1, slug=slug, level=CareerLevel.L1,
-                     competency=CompetencyCode.C1, track=CourseTrack.competency)
+                     competency=CompetencyCode.C1, track=EventTrack.competency)
         _make_course(path_id=p1, slug=other, level=CareerLevel.L2,
-                     competency=CompetencyCode.C2, track=CourseTrack.competency)
+                     competency=CompetencyCode.C2, track=EventTrack.competency)
         res = client.get(
             "/api/v1/courses",
             headers=_auth(factory, auth_headers),
@@ -123,9 +123,9 @@ def test_courses_filter_track_foundation(client: TestClient, factory, auth_heade
     comp = "test-cat-comp"
     try:
         _make_course(path_id=p1, slug=fnd, level=CareerLevel.L1,
-                     competency=None, track=CourseTrack.foundation_ai)
+                     competency=None, track=EventTrack.foundation_ai)
         _make_course(path_id=p1, slug=comp, level=CareerLevel.L1,
-                     competency=CompetencyCode.C1, track=CourseTrack.competency)
+                     competency=CompetencyCode.C1, track=EventTrack.competency)
         res = client.get(
             "/api/v1/courses",
             headers=_auth(factory, auth_headers),

@@ -13,7 +13,7 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from hg.modules.learning.models import CareerPath, Course, CourseProgress, Enrollment
+from hg.modules.learning.models import CareerPath, CourseProgress, Enrollment, Event
 
 INACTIVE_DAYS = 7
 ACTIVE_WINDOW_DAYS = 30
@@ -108,16 +108,16 @@ def org_pillar_metrics(
     cutoff = now_utc() - timedelta(days=ACTIVE_WINDOW_DAYS)
     rows = db.execute(
         select(
-            Course.career_path_id,
+            Event.career_path_id,
             func.count().filter(CourseProgress.watch_pct > 0),
             func.count().filter(CourseProgress.is_completed.is_(True)),
             func.count(func.distinct(CourseProgress.user_id)).filter(
                 CourseProgress.last_played_at >= cutoff
             ),
         )
-        .join(Course, Course.id == CourseProgress.course_id)
+        .join(Event, Event.id == CourseProgress.course_id)
         .where(CourseProgress.user_id.in_(user_ids))
-        .group_by(Course.career_path_id)
+        .group_by(Event.career_path_id)
     ).all()
     return {pid: (int(started), int(completed), int(active)) for pid, started, completed, active in rows}
 
@@ -143,8 +143,8 @@ def pillar_completion_rate(db: Session, user_id: UUID) -> dict[str, float]:
         total = (
             db.scalar(
                 select(func.count())
-                .select_from(Course)
-                .where(Course.career_path_id == path.id, Course.is_active.is_(True))
+                .select_from(Event)
+                .where(Event.career_path_id == path.id, Event.is_active.is_(True))
             )
             or 0
         )
@@ -155,12 +155,12 @@ def pillar_completion_rate(db: Session, user_id: UUID) -> dict[str, float]:
             db.scalar(
                 select(func.count())
                 .select_from(CourseProgress)
-                .join(Course, Course.id == CourseProgress.course_id)
+                .join(Event, Event.id == CourseProgress.course_id)
                 .where(
                     CourseProgress.user_id == user_id,
                     CourseProgress.is_completed.is_(True),
-                    Course.career_path_id == path.id,
-                    Course.is_active.is_(True),
+                    Event.career_path_id == path.id,
+                    Event.is_active.is_(True),
                 )
             )
             or 0

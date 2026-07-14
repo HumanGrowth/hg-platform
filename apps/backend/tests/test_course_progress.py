@@ -1,4 +1,4 @@
-"""Course detail + progress endpoints (B2-07): upsert, completion, RLS."""
+"""Event detail + progress endpoints (B2-07): upsert, completion, RLS."""
 from __future__ import annotations
 
 import uuid
@@ -8,7 +8,7 @@ from sqlalchemy import delete, select
 
 from hg.db import SessionLocal
 from hg.modules.identity.models import UserRole
-from hg.modules.learning.models import CareerLevel, CareerPath, Course, CourseTrack
+from hg.modules.learning.models import CareerLevel, CareerPath, Event, EventTrack
 
 
 def _p1_id() -> uuid.UUID:
@@ -27,9 +27,9 @@ def _p1_id() -> uuid.UUID:
 def _make_course(slug: str, *, is_active: bool = True) -> None:
     s = SessionLocal()
     try:
-        s.add(Course(
+        s.add(Event(
             career_path_id=_p1_id(), title=slug, slug=slug, order_index=1,
-            career_level=CareerLevel.L1, track=CourseTrack.competency, is_active=is_active,
+            career_level=CareerLevel.L1, track=EventTrack.competency, is_active=is_active,
             duration_seconds=300,
         ))
         s.commit()
@@ -39,9 +39,9 @@ def _make_course(slug: str, *, is_active: bool = True) -> None:
 
 def _cleanup(slug: str) -> None:
     s = SessionLocal()
-    cid = s.scalar(select(Course.id).where(Course.slug == slug))
+    cid = s.scalar(select(Event.id).where(Event.slug == slug))
     if cid:
-        s.execute(delete(Course).where(Course.id == cid))  # CASCADE borra progress
+        s.execute(delete(Event).where(Event.id == cid))  # CASCADE borra progress
         s.commit()
     s.close()
 

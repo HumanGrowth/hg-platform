@@ -22,9 +22,9 @@ from hg.modules.learning import enrollments_service
 from hg.modules.learning.enrollments_service import InvalidPathCodeError
 from hg.modules.learning.models import (
     CareerPath,
-    Course,
     CourseProgress,
     Enrollment,
+    Event,
     UserLearningProfile,
 )
 from hg.modules.learning.schemas import EnrollmentIn, EnrollmentOut
@@ -162,8 +162,8 @@ def _course_progress_list(
     db: Session, user_id: UUID, *, completed: bool, limit: int = 10
 ) -> list[CourseProgressDetailOut]:
     rows = db.execute(
-        select(CourseProgress, Course)
-        .join(Course, Course.id == CourseProgress.course_id)
+        select(CourseProgress, Event)
+        .join(Event, Event.id == CourseProgress.course_id)
         .where(
             CourseProgress.user_id == user_id,
             CourseProgress.is_completed.is_(completed),
@@ -375,9 +375,9 @@ def get_my_home_dashboard(
 
     # next_step: curso en progreso (no completado, <80%) jugado más recientemente.
     ns = db.execute(
-        select(CourseProgress, Course, CareerPath)
-        .join(Course, Course.id == CourseProgress.course_id)
-        .join(CareerPath, CareerPath.id == Course.career_path_id)
+        select(CourseProgress, Event, CareerPath)
+        .join(Event, Event.id == CourseProgress.course_id)
+        .join(CareerPath, CareerPath.id == Event.career_path_id)
         .where(
             CourseProgress.user_id == uid,
             CourseProgress.is_completed.is_(False),
@@ -403,9 +403,9 @@ def get_my_home_dashboard(
 
     # recent_activity: últimos 5 eventos (completados + en progreso).
     recent_rows = db.execute(
-        select(CourseProgress, Course, CareerPath)
-        .join(Course, Course.id == CourseProgress.course_id)
-        .join(CareerPath, CareerPath.id == Course.career_path_id)
+        select(CourseProgress, Event, CareerPath)
+        .join(Event, Event.id == CourseProgress.course_id)
+        .join(CareerPath, CareerPath.id == Event.career_path_id)
         .where(CourseProgress.user_id == uid)
         .order_by(CourseProgress.last_played_at.desc())
         .limit(5)

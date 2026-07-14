@@ -129,9 +129,9 @@ def manager_with_reports(factory) -> Generator[SimpleNamespace, None, None]:
     from hg.modules.learning.models import (
         CareerLevel,
         CareerPath,
-        Course,
         CourseProgress,
-        CourseTrack,
+        Event,
+        EventTrack,
     )
 
     s = factory.session
@@ -155,9 +155,9 @@ def manager_with_reports(factory) -> Generator[SimpleNamespace, None, None]:
 
     courses = []
     for i in range(5):
-        c = Course(
-            career_path_id=p1.id, title=f"MWR Course {i}", slug=f"mwr-{uuid4().hex[:10]}",
-            order_index=i, career_level=CareerLevel.L1, track=CourseTrack.competency,
+        c = Event(
+            career_path_id=p1.id, title=f"MWR Event {i}", slug=f"mwr-{uuid4().hex[:10]}",
+            order_index=i, career_level=CareerLevel.L1, track=EventTrack.competency,
             duration_seconds=300,
         )
         s.add(c)
@@ -181,7 +181,7 @@ def manager_with_reports(factory) -> Generator[SimpleNamespace, None, None]:
 
     yield SimpleNamespace(org=org, manager=mgr, r1=r1, r2=r2, r3=r3, courses=courses, path=p1)
 
-    s.execute(delete(Course).where(Course.id.in_(course_ids)))  # CASCADE borra su progress
+    s.execute(delete(Event).where(Event.id.in_(course_ids)))  # CASCADE borra su progress
     s.commit()
 
 

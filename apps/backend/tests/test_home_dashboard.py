@@ -16,10 +16,10 @@ from hg.modules.identity.models import UserRole
 from hg.modules.learning.models import (
     CareerLevel,
     CareerPath,
-    Course,
     CourseProgress,
-    CourseTrack,
     Enrollment,
+    Event,
+    EventTrack,
 )
 
 _PATHS = [
@@ -36,11 +36,11 @@ def _ensure_paths(s) -> None:
     s.commit()
 
 
-def _make_course(s, path_code: str, *, duration: int = 300) -> Course:
+def _make_course(s, path_code: str, *, duration: int = 300) -> Event:
     path = s.scalar(select(CareerPath).where(CareerPath.code == path_code))
-    c = Course(
-        career_path_id=path.id, title=f"Home Course {path_code}", slug=f"hc-{uuid4().hex[:10]}",
-        order_index=0, career_level=CareerLevel.L1, track=CourseTrack.competency,
+    c = Event(
+        career_path_id=path.id, title=f"Home Event {path_code}", slug=f"hc-{uuid4().hex[:10]}",
+        order_index=0, career_level=CareerLevel.L1, track=EventTrack.competency,
         duration_seconds=duration,
     )
     s.add(c)
@@ -77,7 +77,7 @@ def home_env(factory):
     yield SimpleNamespace(s=s, org=org, user=user, course=course, factory=factory)
 
     from sqlalchemy import delete
-    s.execute(delete(Course).where(Course.id.in_(created)))
+    s.execute(delete(Event).where(Event.id.in_(created)))
     s.commit()
 
 

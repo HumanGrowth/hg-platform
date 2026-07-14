@@ -1,9 +1,16 @@
-"""Learning models — catálogo de cursos PMM v3 + perfiles de aprendizaje.
+"""Learning models — catálogo PMM v3 (events) + perfiles de aprendizaje.
 
 Schema productivo. El catálogo es **global al producto** (no multi-tenant):
-los cursos son contenido HG, no por organización. Por eso `CareerPath` y
-`Course` no llevan `org_id` ni RLS. `Enrollment`, `CourseProgress` y
+los events son contenido HG, no por organización. Por eso `CareerPath` y
+`Event` no llevan `org_id` ni RLS. `Enrollment`, `CourseProgress` y
 `UserLearningProfile` SÍ son por usuario/org y se mantienen draft hasta B2-08.
+
+``Event`` reemplaza a ``Course`` (rename real de tabla en LU-01, TASK A-07 —
+ver docs/prompts/claude-code_learning_units_v2_fase1.md). ``CourseProgress``
+queda como está a propósito (nombre de clase + columna ``course_id``): el
+rename de esa tabla/columna es explícitamente Fase 2, documentado en la
+migración LU-01. Su FK apunta a ``events.id`` (la tabla renombrada), solo el
+nombre de columna/clase sigue diciendo "course".
 """
 from __future__ import annotations
 
@@ -45,11 +52,18 @@ class CompetencyCode(str, enum.Enum):
     C5 = "C5"  # Inteligencia Emocional y Social
 
 
-class CourseTrack(str, enum.Enum):
-    competency = "competency"  # Course típico (C1..C5 x L1..L6)
+class EventTrack(str, enum.Enum):
+    competency = "competency"  # Event típico (C1..C5 x L1..L6)
     foundation_ai = "foundation_ai"  # FND - AI literacy
     foundation_eth = "foundation_eth"  # FND - Ethics
     foundation_specifics = "foundation_specifics"  # FND - Specifics
+
+
+class EventType(str, enum.Enum):
+    live_webinar = "live_webinar"
+    recorded_webinar = "recorded_webinar"
+    masterclass_live = "masterclass_live"
+    masterclass_replay = "masterclass_replay"
 
 
 class CareerPath(Base):
@@ -64,16 +78,23 @@ class CareerPath(Base):
     order_index: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    courses: Mapped[list[Course]] = relationship("Course", back_populates="career_path", lazy="raise")
+    events: Mapped[list[Event]] = relationship("Event", back_populates="career_path", lazy="raise")
     enrollments: Mapped[list[Enrollment]] = relationship(
         "Enrollment", back_populates="career_path", lazy="raise"
     )
 
 
-class Course(Base):
-    """A single micro-learning video unit within a career path."""
+class Event(Base):
+    """Un evento del catálogo: replay grabado (legacy "curso") o webinar live.
 
-    __tablename__ = "courses"
+    Renombrado de ``Course`` (LU-01, TASK A-07) — mismo schema PMM v3 más
+    ``event_type``/``is_preview``/``presenter_id``/``scheduled_at`` sumados
+    en esa misma migración. ``is_preview=True`` marca los events migrados
+    desde ``courses`` como preview temporal (decisión 9.5 de la propuesta
+    v2.1) — se limpian cuando haya volumen de Learning Units real.
+    """
+
+    __tablename__ = "events"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     career_path_id: Mapped[uuid.UUID] = mapped_column(
@@ -96,15 +117,24 @@ class Course(Base):
     competency_code: Mapped[CompetencyCode | None] = mapped_column(
         Enum(CompetencyCode, name="competency_code"), nullable=True, index=True
     )
-    track: Mapped[CourseTrack] = mapped_column(
-        Enum(CourseTrack, name="course_track"),
+    track: Mapped[EventTrack] = mapped_column(
+        Enum(EventTrack, name="course_track"),
         nullable=False,
-        default=CourseTrack.competency,
+        default=EventTrack.competency,
         index=True,
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # Sumados en LU-01 (TASK A-01/A-07) para el rebrand courses→events.
+    event_type: Mapped[EventType] = mapped_column(
+        Enum(EventType, name="event_type"), nullable=False, default=EventType.recorded_webinar
+    )
+    is_preview: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    presenter_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
+    scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    career_path: Mapped[CareerPath] = relationship("CareerPath", back_populates="courses", lazy="raise")
+    career_path: Mapped[CareerPath] = relationship("CareerPath", back_populates="events", lazy="raise")
     progress_records: Mapped[list[CourseProgress]] = relationship(
         "CourseProgress", back_populates="course", lazy="raise"
     )
@@ -167,7 +197,7 @@ class CourseProgress(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     course_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True
+        UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True
     )
     last_position_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     watch_pct: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
@@ -180,7 +210,7 @@ class CourseProgress(Base):
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    course: Mapped[Course] = relationship("Course", back_populates="progress_records", lazy="raise")
+    course: Mapped[Event] = relationship("Event", back_populates="progress_records", lazy="raise")
 
 
 class UserLearningProfile(Base):
