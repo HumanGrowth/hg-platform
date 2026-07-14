@@ -690,7 +690,7 @@ Cuando el video termina (`onEnded`), marcar automáticamente como completed. El 
 
 ---
 
-## TASK lu-refine-B-03 · `/path` · migrar de events a learning_units · `[ ]`
+## TASK lu-refine-B-03 · `/path` · migrar de events a learning_units · `[x]`
 
 `apps/frontend/src/components/path/PathLanes.tsx`:
 
@@ -746,11 +746,35 @@ Empty state por pilar si no hay units publicadas: "Aún no hay módulos publicad
 Cambiar el subtítulo de "Cada carril agrupa tus eventos por dimensión" → "Cada carril agrupa tus módulos por dimensión."
 
 ### Criterios
-- [ ] PathLanes muestra learning_units, no events
-- [ ] Empty state por pilar vacío
-- [ ] Copy actualizado
-- [ ] Cero refs a `apiListCoursesForPath` en PathLanes
-- [ ] Commit: `refactor(lu-refine): /path shows learning_units instead of events`
+- [x] PathLanes muestra learning_units, no events
+- [x] Empty state por pilar vacío
+- [x] Copy actualizado
+- [x] Cero refs a `apiListCoursesForPath` en PathLanes
+- [x] Commit: `refactor(lu-refine): /path shows learning_units instead of events`
+
+**Notas de implementación:**
+- `apiListCoursesForPath` no se borró — marcada `@deprecated` con JSDoc (sin
+  callers activos confirmado por grep) siguiendo el mismo criterio que
+  `youtube.py` en A-02 (deprecar, no eliminar código que podría servir
+  después; el endpoint que pega abajo sigue vivo vía el redirect legacy).
+- **Extensión pequeña sobre el sketch del prompt**: además del link
+  genérico "Explorar todos los eventos" al final de la página (sin
+  cambios), se agregó un link "Ver todos →" **por lane** apuntando a
+  `/modulos?pillar={code}` — el criterio de B-04 ("Link 'Ver todos' desde
+  /path apunta a /modulos?pillar=X") implica que cada carril necesita su
+  propio link, no solo uno genérico al fondo de la página. Solo aparece si
+  la lane tiene al menos 1 unit (no tiene sentido "ver todos" de un pilar
+  vacío).
+- `isFixtureCourse` (filtraba slugs de seed/test del catálogo de events)
+  no aplica a learning_units — no hay equivalente de fixture-slugs ahí, así
+  que se sacó del import sin reemplazo.
+- **Verificado en browser real** (no solo build/typecheck): login,
+  `/path` con datos reales — pilar P1 muestra "Antes de seguir" (unit
+  real), P3/P4 muestran las units generadas, P2/P5/P6 (sin units
+  publicadas) muestran correctamente el empty state "Próximamente ·
+  contenido en producción", y los 3 links "Ver todos →" apuntan a
+  `/modulos?pillar=P1`, `?pillar=P3`, `?pillar=P4` respectivamente.
+- Verificado: `pnpm typecheck`, `pnpm lint`, `pnpm test` (106/106) limpios.
 
 ---
 
@@ -867,6 +891,6 @@ Este paso queda documentado como próximo TODO post-merge.
 | A-05 | Tests backend + Bruno collection | `[x]` |
 | B-01 | Types + API client update | `[x]` |
 | B-02 | VideoBlockView native player + fullscreen | `[x]` |
-| B-03 | /path migrate to learning_units | `[ ]` |
+| B-03 | /path migrate to learning_units | `[x]` |
 | B-04 | /modulos pillar filter | `[ ]` |
 | B-05 | Tests + 5 screenshots | `[ ]` |

@@ -221,6 +221,10 @@ export const apiListCourses = async (
   return res.data as { items: Course[]; total: number };
 };
 
+/** @deprecated TASK lu-refine-B-03 — `/path` usa `apiListModulosByPillar`
+ * ahora. Sin callers activos; se deja sin borrar (el endpoint que pega
+ * abajo sigue vivo vía el redirect 308 legacy de A-08) por si algún otro
+ * lugar necesita listar el catálogo de events heredado por pilar. */
 export const apiListCoursesForPath = async (
   pathCode: string,
   filters?: Omit<CourseFilters, "track">,

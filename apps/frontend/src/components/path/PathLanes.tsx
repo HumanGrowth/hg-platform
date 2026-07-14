@@ -1,19 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import * as React from "react";
 
-import { CourseCard } from "@/components/library/CourseCard";
-import { apiListCoursesForPath, apiListPaths } from "@/lib/api";
+import { UnitCardCompact } from "@/components/modulos/UnitCardCompact";
+import { apiListModulosByPillar, apiListPaths } from "@/lib/api";
 import { PILLARS } from "@/lib/pillars";
-import type { CareerPath, Course } from "@/lib/types";
-import { isFixtureCourse } from "@/lib/utils";
+import type { CareerPath, LearningUnitFeedItem } from "@/lib/types";
 
 const DOT: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id, p.dot]));
 
 interface Lane {
   path: CareerPath;
-  courses: Course[];
+  modulos: LearningUnitFeedItem[];
 }
 
 export function PathLanes() {
@@ -26,8 +26,8 @@ export function PathLanes() {
       const paths = await apiListPaths();
       const lanes = await Promise.all(
         paths.map(async (path) => {
-          const { items } = await apiListCoursesForPath(path.code, { limit: 3 });
-          return { path, courses: items.filter((c) => !isFixtureCourse(c.slug)) };
+          const modulos = await apiListModulosByPillar(path.code, undefined, 3);
+          return { path, modulos };
         }),
       );
       setLanes(lanes);
@@ -68,21 +68,31 @@ export function PathLanes() {
 
   return (
     <div className="flex flex-col gap-10">
-      {lanes.map(({ path, courses }) => (
+      {lanes.map(({ path, modulos }) => (
         <section key={path.id} id={`lane-${path.code}`} className="scroll-mt-24">
-          <div className="mb-3 flex items-center gap-3">
-            <span className={`h-3 w-3 shrink-0 rounded-full ${DOT[path.code] ?? "bg-fg-subtle"}`} />
-            <h2 className="font-sans text-lg font-semibold text-fg">{path.name}</h2>
-            <span className="font-mono text-xs text-fg-subtle">{path.code}</span>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className={`h-3 w-3 shrink-0 rounded-full ${DOT[path.code] ?? "bg-fg-subtle"}`} />
+              <h2 className="font-sans text-lg font-semibold text-fg">{path.name}</h2>
+              <span className="font-mono text-xs text-fg-subtle">{path.code}</span>
+            </div>
+            {modulos.length > 0 && (
+              <Link
+                href={`/modulos?pillar=${path.code}` as Route}
+                className="shrink-0 font-sans text-sm font-semibold text-primary"
+              >
+                Ver todos →
+              </Link>
+            )}
           </div>
-          {courses.length === 0 ? (
+          {modulos.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border bg-bg-raised px-5 py-6 text-sm text-fg-muted">
               Próximamente · contenido en producción
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {courses.map((course) => (
-                <CourseCard key={course.id} course={course} />
+              {modulos.map((unit) => (
+                <UnitCardCompact key={unit.id} unit={unit} />
               ))}
             </div>
           )}
