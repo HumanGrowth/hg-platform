@@ -561,7 +561,7 @@ POST   /api/v1/admin/learning-units/{id}/blocks/reorder
 
 ---
 
-## TASK A-06 · YouTube helper + validation · `[ ]`
+## TASK A-06 · YouTube helper + validation · `[x]`
 
 Archivo: `apps/backend/src/hg/modules/learning_units/youtube.py`
 
@@ -608,9 +608,14 @@ Usar en `admin_router.py` cuando el POST/PATCH de video_block recibe `youtube_vi
 - Auto-populate `poster_url` con thumbnail si no viene explícito
 
 ### Criterios
-- [ ] Tests unitarios con URLs válidas + inválidas
-- [ ] Cobertura casos: watch, embed, shorts, youtu.be, ID directo
-- [ ] Commit: `feat(learning-units): YouTube URL parser + thumbnail helper`
+- [x] Tests unitarios con URLs válidas + inválidas — 19 tests puros + 3 end-to-end vía admin API
+- [x] Cobertura casos: watch, embed, shorts, youtu.be, ID directo — + www/m. subdomain, query params extra, whitespace
+- [x] Commit: `feat(learning-units): YouTube URL parser + thumbnail helper`
+
+**Nota:** wireado en ambos POST y PATCH de video blocks en `admin_router.py`
+(no solo POST) — acepta URL completa o ID en los dos, y auto-popula
+`poster_url` con el thumbnail si no viene explícito y el block no tiene uno
+ya seteado.
 
 ---
 
@@ -1223,7 +1228,7 @@ docs/screenshots/learning-units-fase1/
 | A-03 | Pydantic schemas discriminated unions | `[x]` |
 | A-04 | Endpoints consumer | `[x]` |
 | A-05 | Endpoints admin CMS | `[x]` |
-| A-06 | YouTube helper | `[ ]` |
+| A-06 | YouTube helper | `[x]` |
 | A-07 | Migration events + Course→Event refactor | `[ ]` |
 | A-08 | Endpoints events (rename) | `[ ]` |
 | A-09 | Seed 3 units placeholder | `[ ]` |

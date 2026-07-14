@@ -62,6 +62,7 @@ from hg.modules.learning_units.schemas import (
     TextBlockCreate,
     VideoBlockCreate,
 )
+from hg.modules.learning_units.youtube import extract_youtube_video_id, youtube_thumbnail_url
 
 router = APIRouter()
 
@@ -73,6 +74,15 @@ def _unit_or_404(db: Session, unit_id: uuid.UUID) -> LearningUnit:
     if unit is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="unit not found")
     return unit
+
+
+def _parse_youtube_id_or_422(url_or_id: str) -> str:
+    """Acepta URL completa o ID directo (TASK A-06) — 422 con mensaje útil si
+    no matchea ningún formato de YouTube soportado."""
+    try:
+        return extract_youtube_video_id(url_or_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
 
 
 # ─────────────────────────── Unit CRUD ───────────────────────────
@@ -291,8 +301,10 @@ def _resolve_evidence_template_id(db: Session, unit_id: uuid.UUID, unit_block_id
 def _create_block_content(db: Session, unit_id: uuid.UUID, payload: BlockCreate) -> uuid.UUID:
     """Crea el template row correspondiente. Devuelve el id del template."""
     if isinstance(payload, VideoBlockCreate):
+        video_id = _parse_youtube_id_or_422(payload.youtube_video_id)
         video = VideoBlock(
-            youtube_video_id=payload.youtube_video_id, poster_url=payload.poster_url,
+            youtube_video_id=video_id,
+            poster_url=payload.poster_url or youtube_thumbnail_url(video_id),
             duration_seconds=payload.duration_seconds, subtitle_url=payload.subtitle_url,
             transcript_text=payload.transcript_text, eyebrow_label=payload.eyebrow_label,
         )
@@ -396,6 +408,11 @@ def update_block_content(
         db.flush()
         for i, q in enumerate(questions, start=1):
             _create_question(db, obj.id, i, q)
+
+    if "youtube_video_id" in body:
+        body["youtube_video_id"] = _parse_youtube_id_or_422(body["youtube_video_id"])
+        if "poster_url" not in body and not getattr(obj, "poster_url", None):
+            body["poster_url"] = youtube_thumbnail_url(body["youtube_video_id"])
 
     for field, value in body.items():
         setattr(obj, field, value)

@@ -421,3 +421,63 @@ def test_reorder_blocks(client: TestClient, factory, auth_headers) -> None:
         assert [b["id"] for b in blocks] == [b2, b1]
     finally:
         _cleanup(slug)
+
+
+# ─────────────────────────── YouTube parsing (TASK A-06) ───────────────────────────
+
+
+def test_create_video_block_accepts_full_url_and_autofills_poster(
+    client: TestClient, factory, auth_headers
+) -> None:
+    headers = _superadmin_headers(factory, auth_headers)
+    slug = f"admin-test-{uuid.uuid4().hex[:8]}"
+    try:
+        unit = _create_unit(client, headers, slug)
+        r = client.post(
+            f"/api/v1/admin/learning-units/{unit['id']}/blocks", headers=headers,
+            json={
+                "block_type": "video_intro", "position": 1, "duration_seconds": 10,
+                "youtube_video_id": "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=5s",
+            },
+        )
+        assert r.status_code == 201, r.text
+        body = r.json()
+        assert body["youtube_video_id"] == "dQw4w9WgXcQ"
+        assert body["poster_url"] == "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"
+    finally:
+        _cleanup(slug)
+
+
+def test_create_video_block_rejects_invalid_url(client: TestClient, factory, auth_headers) -> None:
+    headers = _superadmin_headers(factory, auth_headers)
+    slug = f"admin-test-{uuid.uuid4().hex[:8]}"
+    try:
+        unit = _create_unit(client, headers, slug)
+        r = client.post(
+            f"/api/v1/admin/learning-units/{unit['id']}/blocks", headers=headers,
+            json={
+                "block_type": "video_intro", "position": 1, "duration_seconds": 10,
+                "youtube_video_id": "https://vimeo.com/12345",
+            },
+        )
+        assert r.status_code == 422
+    finally:
+        _cleanup(slug)
+
+
+def test_create_video_block_respects_explicit_poster_url(client: TestClient, factory, auth_headers) -> None:
+    headers = _superadmin_headers(factory, auth_headers)
+    slug = f"admin-test-{uuid.uuid4().hex[:8]}"
+    try:
+        unit = _create_unit(client, headers, slug)
+        r = client.post(
+            f"/api/v1/admin/learning-units/{unit['id']}/blocks", headers=headers,
+            json={
+                "block_type": "video_intro", "position": 1, "duration_seconds": 10,
+                "youtube_video_id": "dQw4w9WgXcQ", "poster_url": "https://example.com/custom.jpg",
+            },
+        )
+        assert r.status_code == 201, r.text
+        assert r.json()["poster_url"] == "https://example.com/custom.jpg"
+    finally:
+        _cleanup(slug)

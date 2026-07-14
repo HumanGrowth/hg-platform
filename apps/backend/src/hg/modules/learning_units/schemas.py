@@ -383,7 +383,7 @@ class VideoBlockCreate(BaseModel):
     block_type: Literal["video_intro", "video_teaching", "video_closing"]
     position: int
     required: bool = True
-    youtube_video_id: str = Field(min_length=1)  # validado/parseado en A-06
+    youtube_video_id: str = Field(min_length=1)  # URL o ID — parseado en admin_router (A-06)
     poster_url: str | None = None
     duration_seconds: int = Field(gt=0)
     subtitle_url: str | None = None
