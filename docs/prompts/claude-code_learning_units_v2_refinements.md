@@ -778,7 +778,7 @@ Cambiar el subtítulo de "Cada carril agrupa tus eventos por dimensión" → "Ca
 
 ---
 
-## TASK lu-refine-B-04 · Filtro por pilar opcional en `/modulos` · `[ ]`
+## TASK lu-refine-B-04 · Filtro por pilar opcional en `/modulos` · `[x]`
 
 `apps/frontend/src/app/(app)/modulos/page.tsx`:
 
@@ -795,10 +795,45 @@ export default async function ModulosPage({ searchParams }: { searchParams: { pi
 ```
 
 ### Criterios
-- [ ] `/modulos?pillar=P1` filtra a units de P1
-- [ ] Chip visible "Filtrando: Carrera · [X quitar]"
-- [ ] Link "Ver todos" desde `/path` apunta a `/modulos?pillar=X`
-- [ ] Commit: `feat(lu-refine): /modulos pillar filter via query param`
+- [x] `/modulos?pillar=P1` filtra a units de P1
+- [x] Chip visible "Filtrando: Carrera · [X quitar]"
+- [x] Link "Ver todos" desde `/path` apunta a `/modulos?pillar=X`
+- [x] Commit: `feat(lu-refine): /modulos pillar filter via query param`
+
+**Notas de implementación:**
+- El sketch del prompt usa un server component `async function ModulosPage({
+  searchParams })`; esta página sigue siendo client component
+  (`"use client"`, mismo patrón que el resto de `(app)/*`, sin precedente
+  de data-fetching server-side — ver notas de B-03 de Fase 1) — el filtro
+  se lee con `useSearchParams()` de `next/navigation` en vez de la prop
+  `searchParams` de un server component.
+- **`useSearchParams()` en un client component exige un `<Suspense>`**
+  boundary en Next.js App Router — se extrajo el contenido a
+  `ModulosPageContent` y el export default (`ModulosPage`) lo envuelve en
+  `<React.Suspense fallback={...}>`. Confirmado con `next build` limpio
+  (sin este boundary, el build tira warning/error) — la ruta sigue
+  prerenderizada estáticamente (`○`) en el output del build.
+- Chip usa el componente `Chip` del design system existente (no uno nuevo)
+  con el ícono `X` de lucide-react adentro — clickear el chip entero
+  limpia el filtro (`router.push("/modulos")`), no solo la X.
+- Empty state diferenciado: "Todavía no hay módulos publicados para este
+  pilar" (con filtro activo) vs. "Todavía no hay módulos para vos" (feed
+  normal) — mensajes distintos para no confundir "no hay nada para tu
+  pilar filtrado" con "no hay nada en general".
+- **Bug de proceso encontrado durante la verificación** (no de código): un
+  `rm -rf .next` mientras el dev server de Next ya estaba corriendo con
+  ese mismo `.next/` como working dir corrompió su cache de webpack
+  (`ENOENT` en `.next/cache/webpack/...`). Requirió matar y reiniciar el
+  dev server. Documentado para no repetir el mismo error en tasks
+  siguientes — de acá en más, verificar con `next build` en un directorio
+  aparte del dev server activo, o reiniciar el dev server después.
+- **Verificado en browser real**: `/modulos?pillar=P3` muestra el chip
+  "FILTRANDO: RELACIONES" + solo la unit de P3; click en el chip limpia el
+  filtro y vuelve al feed normal (hero + próximas). Confirmado también
+  desde B-03 que los links "Ver todos →" de `/path` apuntan correctamente
+  acá.
+- Verificado: `pnpm typecheck`, `pnpm lint`, `pnpm test` (106/106) y `next
+  build` (producción) limpios.
 
 ---
 
@@ -892,5 +927,5 @@ Este paso queda documentado como próximo TODO post-merge.
 | B-01 | Types + API client update | `[x]` |
 | B-02 | VideoBlockView native player + fullscreen | `[x]` |
 | B-03 | /path migrate to learning_units | `[x]` |
-| B-04 | /modulos pillar filter | `[ ]` |
+| B-04 | /modulos pillar filter | `[x]` |
 | B-05 | Tests + 5 screenshots | `[ ]` |

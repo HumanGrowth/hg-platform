@@ -1,8 +1,9 @@
 "use client";
 
-import { Flame } from "lucide-react";
+import { Flame, X } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
@@ -10,21 +11,33 @@ import { UnitCardCompact } from "@/components/modulos/UnitCardCompact";
 import { UnitCardHero } from "@/components/modulos/UnitCardHero";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Chip } from "@/components/ui/chip";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { apiGetHomeDashboard, apiGetModulosFeed } from "@/lib/api";
-import type { LearningUnitFeed } from "@/lib/types";
+import { apiGetHomeDashboard, apiGetModulosFeed, apiListModulosByPillar } from "@/lib/api";
+import { pillarShortName } from "@/lib/pillars";
+import type { LearningUnitFeed, LearningUnitFeedItem } from "@/lib/types";
 
-export default function ModulosPage() {
+function ModulosPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pillarFilter = searchParams.get("pillar");
+
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [feed, setFeed] = React.useState<LearningUnitFeed | null>(null);
+  const [filteredUnits, setFilteredUnits] = React.useState<LearningUnitFeedItem[] | null>(null);
   const [streakDays, setStreakDays] = React.useState<number | null>(null);
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const data = await apiGetModulosFeed();
-      setFeed(data);
+      if (pillarFilter) {
+        const units = await apiListModulosByPillar(pillarFilter, undefined, 20);
+        setFilteredUnits(units);
+      } else {
+        const data = await apiGetModulosFeed();
+        setFeed(data);
+      }
       setStatus("ok");
     } catch {
       setStatus("error");
@@ -36,13 +49,16 @@ export default function ModulosPage() {
     } catch {
       setStreakDays(null);
     }
-  }, []);
+  }, [pillarFilter]);
 
   React.useEffect(() => {
     void load();
   }, [load]);
 
-  const isEmpty = feed !== null && feed.hero === null && feed.next.length === 0;
+  const isEmpty =
+    pillarFilter
+      ? filteredUnits !== null && filteredUnits.length === 0
+      : feed !== null && feed.hero === null && feed.next.length === 0;
 
   return (
     <main className="mx-auto w-full max-w-app px-6 py-10">
@@ -53,6 +69,15 @@ export default function ModulosPage() {
       <p className="mt-3 max-w-prose text-md text-fg-muted">
         Micro-lecciones de 3 a 10 minutos, con evidencia y práctica.
       </p>
+
+      {pillarFilter && (
+        <div className="mt-4 flex items-center gap-2">
+          <Chip active onClick={() => router.push("/modulos" as Route)} className="pr-2">
+            Filtrando: {pillarShortName(pillarFilter)}
+            <X size={14} strokeWidth={2} />
+          </Chip>
+        </div>
+      )}
 
       {status === "loading" && (
         <Card className="mt-8 flex items-center justify-center py-16">
@@ -69,16 +94,26 @@ export default function ModulosPage() {
         </Card>
       )}
 
-      {status === "ok" && feed && isEmpty && (
+      {status === "ok" && isEmpty && (
         <Card className="mt-8 flex flex-col items-center gap-2 py-16 text-center">
-          <p className="font-sans text-md font-semibold text-fg">Todavía no hay módulos para vos.</p>
+          <p className="font-sans text-md font-semibold text-fg">
+            {pillarFilter ? "Todavía no hay módulos publicados para este pilar." : "Todavía no hay módulos para vos."}
+          </p>
           <p className="max-w-prose text-sm text-fg-muted">
             Volvé más tarde — tu coach está preparando nuevo contenido.
           </p>
         </Card>
       )}
 
-      {status === "ok" && feed && !isEmpty && (
+      {status === "ok" && !isEmpty && pillarFilter && filteredUnits && (
+        <div className="mt-8 flex flex-col gap-3">
+          {filteredUnits.map((unit) => (
+            <UnitCardCompact key={unit.id} unit={unit} />
+          ))}
+        </div>
+      )}
+
+      {status === "ok" && !isEmpty && !pillarFilter && feed && (
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
           <div className="flex min-w-0 flex-col gap-8">
             {feed.hero && <UnitCardHero unit={feed.hero} />}
@@ -139,5 +174,21 @@ export default function ModulosPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function ModulosPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <main className="mx-auto w-full max-w-app px-6 py-10">
+          <Card className="mt-8 flex items-center justify-center py-16">
+            <EmptyRing label="Cargando tus módulos…" />
+          </Card>
+        </main>
+      }
+    >
+      <ModulosPageContent />
+    </React.Suspense>
   );
 }
