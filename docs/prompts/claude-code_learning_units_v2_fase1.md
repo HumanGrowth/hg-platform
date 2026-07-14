@@ -1300,7 +1300,7 @@ Textarea con min/max chars counter · botón submit cuando ≥ min_chars.
 
 ---
 
-## TASK B-07 · `<UnitCompletionCard/>` + refetch related · `[ ]`
+## TASK B-07 · `<UnitCompletionCard/>` + refetch related · `[x]`
 
 Archivo: `apps/frontend/src/components/modulos/UnitCompletionCard.tsx`
 
@@ -1316,9 +1316,36 @@ Card mostrada al completar la unit:
 Al render: llamar `apiGetModulosFeed()` para invalidar cache y actualizar el próximo módulo del `/home` (via SWR mutate o Next router.refresh).
 
 ### Criterios
-- [ ] Card con check + resumen + CTAs
-- [ ] Refetch feed post-completion
-- [ ] Commit: `feat(modulos): UnitCompletionCard`
+- [x] Card con check + resumen + CTAs
+- [x] Refetch feed post-completion
+- [x] Commit: `feat(modulos): UnitCompletionCard`
+
+**Notas de implementación:**
+- **Reordenado antes que B-04/B-05** por la misma razón que B-06: ambos
+  players renderizan `<UnitCompletionCard/>` al terminar la unit — igual
+  que con BlockRenderer, construirlo después hubiera dejado un hueco entre
+  commits. Numeración/mensaje de commit sin cambios.
+- El proyecto no tiene SWR ni usa react-query para cache compartida (aunque
+  está instalado como dependency, no hay ningún `useQuery` en el código —
+  confirmado en la investigación de B-02) — "invalidar cache" se interpretó
+  como: refetchear `apiGetModulosFeed()` al montar la card para poder
+  linkear "Siguiente módulo" a un slug concreto (el primer item del feed
+  que no sea la unit recién completada). No hay `router.refresh()` porque
+  no se usa un server component acá.
+- Micro-animación de check con `motion.div` de `framer-motion` (import
+  completo, NO `m` de `LazyMotion`) — `MotionProvider`/`LazyMotion` está
+  scoped únicamente a `(marketing)/layout` (confirmado leyendo el
+  componente), así que `m.div` fallaría fuera de ese árbol. Gateado por
+  `useShouldAnimate()` (el hook general, no el `useInMotionScope`
+  marketing-only) — sin animación, renderiza el ícono estático.
+- `completedSteps`/`totalSteps` se calculan de `attempt.block_progress`
+  (status `"completed"`) vs `unit.blocks.length` — no de un contador
+  separado, para que siempre reflejen el estado real del attempt tal como
+  lo tiene el player en ese momento.
+- **NO auto-navega** al siguiente módulo (P5 desirable difficulties,
+  explícito en el spec) — el CTA "Siguiente módulo" es un link, nunca un
+  redirect automático ni un timer.
+- Verificado: `pnpm typecheck` y `pnpm lint` limpios.
 
 ---
 
@@ -1487,7 +1514,7 @@ docs/screenshots/learning-units-fase1/
 | B-04 | UnitStoriesPlayer mobile | `[ ]` |
 | B-05 | UnitBackToBackPlayer desktop | `[ ]` |
 | B-06 | BlockRenderer + 6 quiz types | `[x]` |
-| B-07 | UnitCompletionCard | `[ ]` |
+| B-07 | UnitCompletionCard | `[x]` |
 | B-08 | Wire /modulos/[slug] | `[ ]` |
 | B-09 | /eventos rename | `[ ]` |
 | B-10 | Tests + screenshots + a11y | `[ ]` |
