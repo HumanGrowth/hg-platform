@@ -4,15 +4,18 @@ Catálogo **global** (no multi-tenant): se sirve a cualquier usuario autenticado
 Las queries corren bajo ``hg_superadmin`` (no hay RLS sobre estas tablas); la
 autenticación la impone ``get_current_user`` (token válido). GETs cacheables.
 
-Rutas `/courses/*` (nombres heredados) — el rename a `/events/*` + redirect
-308 es TASK A-08, separado de este archivo por el rename de modelo (A-07).
+Rutas renombradas `/courses/*` → `/events/*` (TASK A-08). Las rutas viejas
+quedan como redirect 308 (preservan query string) durante un sprint por si
+hay clientes viejos en vuelo — sin features nuevas de live/streaming acá,
+eso es Fase 3+ (decisión F).
 """
 from __future__ import annotations
 
 from datetime import UTC, datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
@@ -62,13 +65,14 @@ def get_path(
     return path
 
 
-def _filtered_courses(
+def _filtered_events(
     db: Session,
     *,
     career_path_id: UUID | None = None,
     level: str | None,
     competency: str | None,
     track: str | None,
+    event_type: str | None = None,
     q: str | None,
     limit: int,
     offset: int,
@@ -82,6 +86,8 @@ def _filtered_courses(
         conds.append(Event.competency_code == competency)
     if track:
         conds.append(Event.track == track)
+    if event_type:
+        conds.append(Event.event_type == event_type)
     if q:
         conds.append(Event.title.ilike(f"%{q}%"))
 
@@ -96,8 +102,8 @@ def _filtered_courses(
     return list(rows), total
 
 
-@router.get("/paths/{code}/courses", response_model=EventListResponse)
-def list_path_courses(
+@router.get("/paths/{code}/events", response_model=EventListResponse)
+def list_path_events(
     code: str,
     response: Response,
     level: str | None = Query(default=None),
@@ -111,7 +117,7 @@ def list_path_courses(
     path = db.scalar(select(CareerPath).where(CareerPath.code == code))
     if path is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="path not found")
-    rows, total = _filtered_courses(
+    rows, total = _filtered_events(
         db,
         career_path_id=path.id,
         level=level,
@@ -129,47 +135,47 @@ def list_path_courses(
 # tiene RLS. Los events (globales, sin RLS) son legibles bajo hg_app por el grant.
 
 
-def _active_course_or_404(db: Session, slug: str) -> Event:
-    course = db.scalar(select(Event).where(Event.slug == slug, Event.is_active.is_(True)))
-    if course is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="course not found")
-    return course
+def _active_event_or_404(db: Session, slug: str) -> Event:
+    event = db.scalar(select(Event).where(Event.slug == slug, Event.is_active.is_(True)))
+    if event is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="event not found")
+    return event
 
 
-@router.get("/courses/{slug}", response_model=EventDetailOut)
-def get_course_detail(
+@router.get("/events/{slug}", response_model=EventDetailOut)
+def get_event_detail(
     slug: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> EventDetailOut:
-    course = _active_course_or_404(db, slug)
+    event = _active_event_or_404(db, slug)
     prog = db.scalar(
         select(CourseProgress).where(
-            CourseProgress.course_id == course.id,
+            CourseProgress.course_id == event.id,
             CourseProgress.user_id == current_user.id,
         )
     )
-    path = db.get(CareerPath, course.career_path_id)
+    path = db.get(CareerPath, event.career_path_id)
     return EventDetailOut(
-        **EventOut.model_validate(course).model_dump(),
+        **EventOut.model_validate(event).model_dump(),
         progress=CourseProgressOut.model_validate(prog) if prog else None,
         pillar_code=path.code if path else None,
     )
 
 
-@router.get("/courses/{slug}/next", response_model=NextEventOut)
-def get_next_course(
+@router.get("/events/{slug}/next", response_model=NextEventOut)
+def get_next_event(
     slug: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> NextEventOut:
-    course = _active_course_or_404(db, slug)
+    event = _active_event_or_404(db, slug)
     nxt = db.scalar(
         select(Event)
         .where(
-            Event.career_path_id == course.career_path_id,
+            Event.career_path_id == event.career_path_id,
             Event.is_active.is_(True),
-            Event.order_index > course.order_index,
+            Event.order_index > event.order_index,
         )
         .order_by(Event.order_index)
         .limit(1)
@@ -177,17 +183,17 @@ def get_next_course(
     return NextEventOut(next=EventOut.model_validate(nxt) if nxt else None)
 
 
-@router.post("/courses/{slug}/progress", response_model=CourseProgressOut)
+@router.post("/events/{slug}/progress", response_model=CourseProgressOut)
 def upsert_progress(
     slug: str,
     payload: CourseProgressIn,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> CourseProgressOut:
-    course = _active_course_or_404(db, slug)
+    event = _active_event_or_404(db, slug)
     prog = db.scalar(
         select(CourseProgress).where(
-            CourseProgress.course_id == course.id,
+            CourseProgress.course_id == event.id,
             CourseProgress.user_id == current_user.id,
         )
     )
@@ -195,7 +201,7 @@ def upsert_progress(
         prog = CourseProgress(
             org_id=current_user.org_id,
             user_id=current_user.id,
-            course_id=course.id,
+            course_id=event.id,
             last_position_seconds=payload.position_seconds,
             watch_pct=payload.watch_pct,
         )
@@ -212,12 +218,13 @@ def upsert_progress(
     return CourseProgressOut.model_validate(prog)
 
 
-@router.get("/courses", response_model=EventListResponse)
-def list_courses(
+@router.get("/events", response_model=EventListResponse)
+def list_events(
     response: Response,
     level: str | None = Query(default=None),
     competency: str | None = Query(default=None),
     track: str | None = Query(default=None),
+    event_type: str | None = Query(default=None),
     q: str | None = Query(default=None),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
@@ -225,13 +232,47 @@ def list_courses(
     _: User = Depends(get_current_user),
 ) -> EventListResponse:
     response.headers["Cache-Control"] = _CACHE
-    rows, total = _filtered_courses(
+    rows, total = _filtered_events(
         db,
         level=level,
         competency=competency,
         track=track,
+        event_type=event_type,
         q=q,
         limit=limit,
         offset=offset,
     )
     return EventListResponse(items=[EventOut.model_validate(r) for r in rows], total=total)
+
+
+# ─────────────────────────── Redirects /courses/* → /events/* (legacy) ───────────────────────────
+
+
+def _redirect_308(request: Request, new_path: str) -> RedirectResponse:
+    target = request.url.replace(path=new_path)
+    return RedirectResponse(url=str(target), status_code=status.HTTP_308_PERMANENT_REDIRECT)
+
+
+@router.get("/paths/{code}/courses", include_in_schema=False)
+def redirect_path_courses(code: str, request: Request) -> RedirectResponse:
+    return _redirect_308(request, f"/api/v1/paths/{code}/events")
+
+
+@router.get("/courses", include_in_schema=False)
+def redirect_list_courses(request: Request) -> RedirectResponse:
+    return _redirect_308(request, "/api/v1/events")
+
+
+@router.get("/courses/{slug}", include_in_schema=False)
+def redirect_course_detail(slug: str, request: Request) -> RedirectResponse:
+    return _redirect_308(request, f"/api/v1/events/{slug}")
+
+
+@router.get("/courses/{slug}/next", include_in_schema=False)
+def redirect_next_course(slug: str, request: Request) -> RedirectResponse:
+    return _redirect_308(request, f"/api/v1/events/{slug}/next")
+
+
+@router.post("/courses/{slug}/progress", include_in_schema=False)
+def redirect_course_progress(slug: str, request: Request) -> RedirectResponse:
+    return _redirect_308(request, f"/api/v1/events/{slug}/progress")

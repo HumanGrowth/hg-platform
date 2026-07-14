@@ -656,17 +656,24 @@ Actualizar `apps/backend/src/hg/modules/learning/models.py` para renombrar `Cour
 
 ---
 
-## TASK A-08 · Endpoints events (heredados) + rename routes · `[ ]`
+## TASK A-08 · Endpoints events (heredados) + rename routes · `[x]`
 
 - Renombrar `/api/v1/courses/*` → `/api/v1/events/*` con **redirect 308** en el router (por si hay clientes viejos)
 - Wire con el nuevo `event_type` filter
 - **NO agregar features nuevas** de live/streaming en esta fase · solo rename
 
 ### Criterios
-- [ ] Endpoints `/api/v1/events/*` funcionales
-- [ ] Redirect 308 `/api/v1/courses/*` → `/api/v1/events/*` durante 1 sprint
-- [ ] Tests actualizados
-- [ ] Commit: `refactor(events): rename API routes courses→events with redirect`
+- [x] Endpoints `/api/v1/events/*` funcionales
+- [x] Redirect 308 `/api/v1/courses/*` → `/api/v1/events/*` durante 1 sprint
+- [x] Tests actualizados — test_catalog.py/test_course_progress.py migrados a `/events`, + test_events_redirect.py nuevo (4 tests dedicados a los redirects, incluida preservación de query string y de method+body en el POST)
+- [x] Commit: `refactor(events): rename API routes courses→events with redirect`
+
+**Nota:** los redirects usan `RedirectResponse` + `request.url.replace(path=...)`
+(preserva query string) con `status.HTTP_308_PERMANENT_REDIRECT` — 308 en vez
+de 301/302 es deliberado: es el único código que garantiza que un cliente
+viejo posteando a `/courses/{slug}/progress` no pierda el body/method al
+seguir la redirección. Rutas viejas quedan `include_in_schema=False` (no
+ensucian el OpenAPI con endpoints deprecados).
 
 ---
 
@@ -1246,7 +1253,7 @@ docs/screenshots/learning-units-fase1/
 | A-05 | Endpoints admin CMS | `[x]` |
 | A-06 | YouTube helper | `[x]` |
 | A-07 | Migration events + Course→Event refactor | `[x]` |
-| A-08 | Endpoints events (rename) | `[ ]` |
+| A-08 | Endpoints events (rename) | `[x]` |
 | A-09 | Seed 3 units placeholder | `[ ]` |
 | A-10 | Tests + Bruno collection | `[ ]` |
 
