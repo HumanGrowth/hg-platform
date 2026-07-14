@@ -7,6 +7,7 @@ import type {
   AssessmentPillarCode,
   AssessmentSession,
   AuthResult,
+  BlockProgressOut,
   CareerPath,
   Course,
   CourseDetail,
@@ -18,6 +19,9 @@ import type {
   FinalizeResult,
   HomeDashboard,
   InviteInfo,
+  LearningUnitAttempt,
+  LearningUnitDetail,
+  LearningUnitFeed,
   ManagerWidgets,
   Me,
   MeWidgets,
@@ -26,6 +30,8 @@ import type {
   OrgWidgets,
   PaginatedUsers,
   PillarResult,
+  QuizSubmitPayload,
+  QuizSubmitResponse,
   SessionKind,
   TeamFilters,
   TeamMemberDetail,
@@ -365,4 +371,56 @@ export const apiConfirmResult = async (pillar: AssessmentPillarCode): Promise<Pi
     `/api/v1/assessment/me/results/${pillar}/confirm`,
   );
   return res.data;
+};
+
+// ─────────────── Learning Units / Módulos (Fase 1, B-02) ───────────────
+
+export const apiGetModulosFeed = async (): Promise<LearningUnitFeed> => {
+  const res = await backend.get<LearningUnitFeed>("/api/v1/modulos/feed");
+  return res.data;
+};
+
+export const apiGetModulo = async (slug: string): Promise<LearningUnitDetail> => {
+  const res = await backend.get<LearningUnitDetail>(`/api/v1/modulos/${slug}`);
+  return res.data;
+};
+
+export const apiStartAttempt = async (slug: string): Promise<LearningUnitAttempt> => {
+  const res = await backend.post<LearningUnitAttempt>(`/api/v1/modulos/${slug}/attempts/start`);
+  return res.data;
+};
+
+export const apiGetAttempt = async (slug: string): Promise<LearningUnitAttempt> => {
+  const res = await backend.get<LearningUnitAttempt>(`/api/v1/modulos/${slug}/attempt`);
+  return res.data;
+};
+
+export const apiCompleteBlock = async (
+  slug: string,
+  blockId: string,
+): Promise<BlockProgressOut> => {
+  const res = await backend.post<BlockProgressOut>(
+    `/api/v1/modulos/${slug}/blocks/${blockId}/complete`,
+  );
+  return res.data;
+};
+
+export const apiSubmitQuiz = async (
+  slug: string,
+  blockId: string,
+  responses: QuizSubmitPayload[],
+): Promise<QuizSubmitResponse> => {
+  const res = await backend.post<QuizSubmitResponse>(
+    `/api/v1/modulos/${slug}/blocks/${blockId}/quiz/submit`,
+    { responses },
+  );
+  return res.data;
+};
+
+export const apiSubmitReflection = async (
+  slug: string,
+  blockId: string,
+  text: string,
+): Promise<void> => {
+  await backend.post(`/api/v1/modulos/${slug}/blocks/${blockId}/reflection/submit`, { text });
 };

@@ -410,3 +410,229 @@ export interface FinalizeResult {
   session_id: string;
   results: PillarResult[];
 }
+
+// ─────────────── Learning Units / Módulos (Fase 1, B-02) ───────────────
+// Espejo de apps/backend/src/hg/modules/learning_units/schemas.py — solo el
+// lado consumer (feed/detail/attempts/submit). El CMS admin es Fase 2.
+
+export interface CitationOut {
+  text: string;
+  source: string;
+  year: number;
+  doi_or_url: string;
+  tier: "meta_analysis" | "rct" | "observational" | "expert_opinion";
+}
+
+interface BlockBase {
+  id: string;
+  position: number;
+  required: boolean;
+}
+
+export interface VideoBlock extends BlockBase {
+  block_type: "video_intro" | "video_teaching" | "video_closing";
+  youtube_video_id: string;
+  poster_url: string | null;
+  duration_seconds: number;
+  subtitle_url: string | null;
+  transcript_text: string | null;
+  eyebrow_label: string | null;
+}
+
+export interface TextBlock extends BlockBase {
+  block_type: "text_context" | "text_evidence" | "text_solution";
+  variant: "context" | "evidence" | "solution";
+  eyebrow: string;
+  body: string;
+  citation: CitationOut | null;
+  applies_to: string[] | null;
+  requires_evidence_block_id: string | null;
+}
+
+export interface QuizOptionOut {
+  id: string;
+  position: number;
+  text: string;
+}
+
+interface QuizQuestionBase {
+  id: string;
+  position: number;
+  prompt: string;
+}
+
+export interface QuizQuestionSingleChoice extends QuizQuestionBase {
+  question_type: "single_choice";
+  options: QuizOptionOut[];
+}
+
+export interface QuizQuestionMultipleChoice extends QuizQuestionBase {
+  question_type: "multiple_choice";
+  options: QuizOptionOut[];
+  scoring: "all_or_nothing" | "partial";
+}
+
+export interface QuizQuestionTrueFalse extends QuizQuestionBase {
+  question_type: "true_false";
+  // correct_answer NO se expone acá — solo en el feedback post-submit.
+}
+
+export interface OrderingItemOut {
+  id: string;
+  text: string;
+}
+
+export interface QuizQuestionOrdering extends QuizQuestionBase {
+  question_type: "ordering";
+  items: OrderingItemOut[]; // shuffled por el backend, sin correct_position
+}
+
+export interface MatchingItemOut {
+  /** No siempre es un UUID válido: los distractors llevan sufijo -L/-R
+   * (ver router.py::_build_matching_items) para que nunca puedan enviarse
+   * como un par real al submit — QuizMatching.tsx debe filtrarlos. */
+  id: string;
+  text: string;
+}
+
+export interface QuizQuestionMatching extends QuizQuestionBase {
+  question_type: "matching";
+  left_items: MatchingItemOut[];
+  right_items: MatchingItemOut[];
+}
+
+export interface QuizQuestionFillBlank extends QuizQuestionBase {
+  question_type: "fill_blank";
+  blanks_count: number;
+}
+
+export type QuizQuestion =
+  | QuizQuestionSingleChoice
+  | QuizQuestionMultipleChoice
+  | QuizQuestionTrueFalse
+  | QuizQuestionOrdering
+  | QuizQuestionMatching
+  | QuizQuestionFillBlank;
+
+export interface QuizBlock extends BlockBase {
+  block_type: "quiz_recall";
+  eyebrow: string;
+  questions: QuizQuestion[];
+}
+
+export interface ReflectionBlock extends BlockBase {
+  block_type: "reflection_write";
+  eyebrow: string;
+  prompt: string;
+  min_chars: number;
+  max_chars: number;
+  example: string | null;
+}
+
+export type Block = VideoBlock | TextBlock | QuizBlock | ReflectionBlock;
+
+export interface LearningUnitDetail {
+  id: string;
+  slug: string;
+  title: string;
+  pillar_code: string;
+  competency_code: string | null;
+  level_code: string;
+  mentor_id: string | null;
+  published_at: string | null;
+  estimated_duration_seconds: number | null;
+  blocks: Block[];
+}
+
+export type LearningUnitAttemptStatus = "not_started" | "in_progress" | "completed";
+
+export interface LearningUnitFeedItem {
+  id: string;
+  slug: string;
+  title: string;
+  pillar_code: string;
+  level_code: string;
+  estimated_duration_seconds: number | null;
+  blocks_count: number;
+  attempt_status: LearningUnitAttemptStatus;
+  poster_url: string | null;
+}
+
+export interface LearningUnitFeed {
+  hero: LearningUnitFeedItem | null;
+  next: LearningUnitFeedItem[];
+}
+
+export interface BlockProgressOut {
+  unit_block_id: string;
+  status: "started" | "completed";
+  submitted_at: string | null;
+}
+
+export interface LearningUnitAttempt {
+  id: string;
+  unit_id: string;
+  started_at: string | null;
+  completed_at: string | null;
+  block_progress: BlockProgressOut[];
+}
+
+// ─── Quiz submit (discriminado por question_type, un shape por tipo) ───
+
+export interface QuizSubmitSingleChoice {
+  question_id: string;
+  question_type: "single_choice";
+  selected_option_ids: string[];
+}
+
+export interface QuizSubmitMultipleChoice {
+  question_id: string;
+  question_type: "multiple_choice";
+  selected_option_ids: string[];
+}
+
+export interface QuizSubmitTrueFalse {
+  question_id: string;
+  question_type: "true_false";
+  boolean_answer: boolean;
+}
+
+export interface QuizSubmitOrdering {
+  question_id: string;
+  question_type: "ordering";
+  ordering: string[];
+}
+
+export interface QuizSubmitMatching {
+  question_id: string;
+  question_type: "matching";
+  /** Tuplas [left_id, right_id] — SOLO ids de pares reales (UUID puro), los
+   * distractors (id con sufijo -L/-R) nunca deben incluirse acá. */
+  matching: [string, string][];
+}
+
+export interface QuizSubmitFillBlank {
+  question_id: string;
+  question_type: "fill_blank";
+  fill_blank_answers: string[];
+}
+
+export type QuizSubmitPayload =
+  | QuizSubmitSingleChoice
+  | QuizSubmitMultipleChoice
+  | QuizSubmitTrueFalse
+  | QuizSubmitOrdering
+  | QuizSubmitMatching
+  | QuizSubmitFillBlank;
+
+export interface QuizSubmitResult {
+  question_id: string;
+  is_correct: boolean;
+  explanation: string | null;
+  correct_answer: Record<string, unknown> | null;
+}
+
+export interface QuizSubmitResponse {
+  results: QuizSubmitResult[];
+  block_completed: boolean;
+}

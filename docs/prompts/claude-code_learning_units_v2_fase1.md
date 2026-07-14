@@ -931,7 +931,7 @@ Reglas:
 
 ---
 
-## TASK B-02 · Types + API client · `[ ]`
+## TASK B-02 · Types + API client · `[x]`
 
 Archivo: `apps/frontend/src/lib/api/modulos.ts` + `src/lib/types/modulos.ts`
 
@@ -961,9 +961,43 @@ export async function apiGetAttempt(slug: string): Promise<LearningUnitAttempt>;
 ```
 
 ### Criterios
-- [ ] Types match backend schemas
-- [ ] Client con manejo de errores (ApiError)
-- [ ] Commit: `feat(modulos): TypeScript types + API client`
+- [x] Types match backend schemas
+- [x] Client con manejo de errores (ApiError)
+- [x] Commit: `feat(modulos): TypeScript types + API client`
+
+**Notas de implementación:**
+- Se agregaron los tipos a `src/lib/types.ts` y las funciones a
+  `src/lib/api.ts` (archivos únicos y planos existentes) en vez de crear
+  `src/lib/api/modulos.ts` + `src/lib/types/modulos.ts` — el frontend no
+  tiene un patrón de un-archivo-por-dominio; todo vive en esos dos archivos
+  planos organizados por comment banners (confirmado: ningún `src/lib/api/`
+  ni `src/lib/types/` existe como directorio en el resto del código). Mismo
+  criterio que A-09 (`src/hg/scripts/` en vez del path literal del prompt):
+  seguir la convención real del repo en vez del path sugerido.
+- Solo tipos del lado **consumer** (feed/detail/attempts/submit) — el CMS
+  admin es explícitamente Fase 2 según los "Signed decisions" del prompt
+  (`SuperadminGate` + API-only en Fase 1), así que no hay
+  `LearningUnitCreate`/`BlockCreate` en TS todavía.
+- `QuizSubmitPayload`/`QuizQuestion`/`Block` son discriminated unions reales
+  (primer precedente de este patrón en el codebase — antes solo había
+  string-literal unions sueltas, sin discriminación estructural). Elegido
+  porque es el mirror directo de los `Annotated[Union[...], discriminator]`
+  del backend y es lo que hace posible un `switch` exhaustivo type-safe en
+  `BlockRenderer`/`QuizBlockView` (B-06).
+- `MatchingItemOut.id` está documentado inline como "no siempre válido como
+  UUID" — los distractors llevan sufijo `-L`/`-R` (ver
+  `router.py::_build_matching_items`) para que el front nunca pueda
+  enviarlos como par real; `QuizSubmitMatching.matching` deja explícito en
+  el comment que solo van los ids de pares reales. Documentado ahora para
+  que B-06 (`QuizMatching.tsx`) no lo redescubra a los tumbos.
+- "Manejo de errores (ApiError)" ya existe a nivel del `backend` axios
+  instance compartido (interceptor de 401 + auto-refresh + redirect duro) —
+  las funciones nuevas lo heredan gratis al usar `backend.get/post`, igual
+  que el resto de los ~30 endpoints existentes en el archivo (ninguno de
+  ellos envuelve manualmente en `ApiError`; ese wrapper solo se usa para las
+  dos rutas que NO pasan por la instancia axios: `postJson` y
+  `apiSubmitInquiry`).
+- Verificado: `pnpm typecheck` y `pnpm lint` limpios.
 
 ---
 
@@ -1382,7 +1416,7 @@ docs/screenshots/learning-units-fase1/
 | ID | Subject | Status |
 |---|---|---|
 | B-01 | Sidebar 5 tabs + drawer Más | `[x]` |
-| B-02 | Types + API client | `[ ]` |
+| B-02 | Types + API client | `[x]` |
 | B-03 | /modulos feed | `[ ]` |
 | B-04 | UnitStoriesPlayer mobile | `[ ]` |
 | B-05 | UnitBackToBackPlayer desktop | `[ ]` |
