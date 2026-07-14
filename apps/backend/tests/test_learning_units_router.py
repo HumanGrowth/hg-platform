@@ -306,7 +306,7 @@ def test_full_admin_create_to_consumer_complete_flow(client: TestClient, factory
 
         client.post(
             f"/api/v1/admin/learning-units/{uid}/blocks", headers=admin_headers,
-            json={"block_type": "video_intro", "position": 1, "youtube_video_id": "dQw4w9WgXcQ", "duration_seconds": 10},
+            json={"block_type": "video_intro", "position": 1, "video_url": "https://cdn.example.com/v.mp4", "duration_seconds": 10},
         )
         evidence = client.post(
             f"/api/v1/admin/learning-units/{uid}/blocks", headers=admin_headers,
@@ -496,3 +496,120 @@ def test_quiz_submit_all_five_remaining_question_types(client: TestClient, facto
         assert submit.json()["block_completed"] is True
     finally:
         _cleanup(unit_id)
+
+
+# ─────────────────────── /modulos/by-pillar (TASK lu-refine-A-03) ───────────────────────
+
+
+def _make_minimal_unit(
+    slug: str, *, pillar_code: str, level_code: str, superseded_by: uuid.UUID | None = None
+) -> uuid.UUID:
+    """Unit publicada sin bloques — alcanza para probar filtro/orden/attempt_status
+    de /modulos/by-pillar, que no toca el contenido de los bloques."""
+    s = SessionLocal()
+    try:
+        unit = LearningUnit(
+            slug=slug, title=slug, pillar_code=pillar_code, level_code=level_code,
+            published_at=datetime.now(UTC), superseded_by_unit_id=superseded_by,
+        )
+        s.add(unit)
+        s.commit()
+        return unit.id
+    finally:
+        s.close()
+
+
+def test_by_pillar_filters_and_orders_by_level_then_created_at(
+    client: TestClient, factory, auth_headers
+) -> None:
+    _, headers = _auth(factory, auth_headers)
+    slugs = [f"bp-test-{uuid.uuid4().hex[:8]}" for _ in range(4)]
+    ids = []
+    try:
+        # L2 creado primero, L1 después, otro L1 después de ese (más nuevo),
+        # y uno de otro pilar que no debe aparecer.
+        ids.append(_make_minimal_unit(slugs[0], pillar_code="P2", level_code="L2"))
+        ids.append(_make_minimal_unit(slugs[1], pillar_code="P2", level_code="L1"))
+        ids.append(_make_minimal_unit(slugs[2], pillar_code="P2", level_code="L1"))
+        ids.append(_make_minimal_unit(slugs[3], pillar_code="P3", level_code="L1"))
+
+        res = client.get("/api/v1/modulos/by-pillar", headers=headers, params={"pillar_code": "P2"})
+        assert res.status_code == 200, res.text
+        body = res.json()
+        returned_slugs = [u["slug"] for u in body]
+        assert slugs[3] not in returned_slugs  # otro pilar, excluido
+        # L1s primero (orden ASC por level_code), y entre los dos L1 el más
+        # nuevo (slugs[2]) antes que el más viejo (slugs[1]) — tie-break DESC.
+        assert returned_slugs.index(slugs[2]) < returned_slugs.index(slugs[1])
+        assert returned_slugs.index(slugs[1]) < returned_slugs.index(slugs[0])
+        assert all(u["attempt_status"] == "not_started" for u in body)
+    finally:
+        for uid in ids:
+            s = SessionLocal()
+            s.execute(delete(LearningUnit).where(LearningUnit.id == uid))
+            s.commit()
+            s.close()
+
+
+def test_by_pillar_level_filter_and_excludes_superseded(
+    client: TestClient, factory, auth_headers
+) -> None:
+    _, headers = _auth(factory, auth_headers)
+    slug_old = f"bp-test-{uuid.uuid4().hex[:8]}"
+    slug_new = f"bp-test-{uuid.uuid4().hex[:8]}"
+    slug_other_level = f"bp-test-{uuid.uuid4().hex[:8]}"
+    ids = []
+    try:
+        new_id = _make_minimal_unit(slug_new, pillar_code="P4", level_code="L1")
+        old_id = _make_minimal_unit(slug_old, pillar_code="P4", level_code="L1", superseded_by=new_id)
+        other_level_id = _make_minimal_unit(slug_other_level, pillar_code="P4", level_code="L3")
+        ids = [new_id, old_id, other_level_id]
+
+        res = client.get(
+            "/api/v1/modulos/by-pillar", headers=headers,
+            params={"pillar_code": "P4", "level_code": "L1"},
+        )
+        assert res.status_code == 200, res.text
+        returned_slugs = {u["slug"] for u in res.json()}
+        assert slug_new in returned_slugs
+        assert slug_old not in returned_slugs  # superseded, excluida
+        assert slug_other_level not in returned_slugs  # level_code no matchea
+    finally:
+        for uid in ids:
+            s = SessionLocal()
+            s.execute(delete(LearningUnit).where(LearningUnit.id == uid))
+            s.commit()
+            s.close()
+
+
+def test_by_pillar_requires_valid_pillar_code(client: TestClient, factory, auth_headers) -> None:
+    _, headers = _auth(factory, auth_headers)
+    res = client.get("/api/v1/modulos/by-pillar", headers=headers, params={"pillar_code": "P9"})
+    assert res.status_code == 422
+
+
+def test_seed_then_by_pillar_returns_real_unit(client: TestClient, factory, auth_headers) -> None:
+    """Integración de punta a punta (TASK lu-refine-A-05): corre el seed real
+    (o su fallback embebido, según la máquina) y confirma que la unit real
+    "Antes de seguir" aparece en /modulos/by-pillar?pillar_code=P1 — mismo
+    flujo que un usuario real vería en /path."""
+    from hg.scripts.seed_learning_units import _load_unit_1_spec, _seed_unit
+
+    _, headers = _auth(factory, auth_headers)
+    s = SessionLocal()
+    try:
+        spec, content_dir = _load_unit_1_spec()
+        _seed_unit(s, spec, content_dir)
+        s.commit()
+
+        res = client.get("/api/v1/modulos/by-pillar", headers=headers, params={"pillar_code": "P1"})
+        assert res.status_code == 200, res.text
+        units = res.json()
+        matching = [u for u in units if u["slug"] == "hg-p1-l1-001-antes-de-seguir"]
+        assert len(matching) == 1
+        assert matching[0]["title"] == "Antes de seguir"
+        assert matching[0]["level_code"] == "L1"
+    finally:
+        s.execute(delete(LearningUnit).where(LearningUnit.slug == "hg-p1-l1-001-antes-de-seguir"))
+        s.commit()
+        s.close()

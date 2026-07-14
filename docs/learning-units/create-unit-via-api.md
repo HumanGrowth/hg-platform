@@ -58,15 +58,14 @@ POST /admin/learning-units/{unit_id}/blocks
 {
   "block_type": "video_intro",
   "position": 1,
-  "youtube_video_id": "dQw4w9WgXcQ",
+  "video_url": "https://cdn.humangrowth.app/videos/mi-unit/vid1.mp4",
   "duration_seconds": 12
 }
 ```
 
-`youtube_video_id` acepta una URL completa (`youtube.com/watch?v=...`,
-`youtu.be/...`, `/shorts/...`) o el ID de 11 caracteres directo — se
-normaliza server-side. `poster_url` se auto-completa desde el thumbnail de
-YouTube si no lo mandás.
+`video_url` es cualquier URL http(s) completa (típicamente un MP4 servido
+desde R2 — YouTube salió de scope). `poster_url` **no** se auto-genera —
+si querés un thumbnail, hay que mandarlo explícito.
 
 ### Texto (evidencia)
 

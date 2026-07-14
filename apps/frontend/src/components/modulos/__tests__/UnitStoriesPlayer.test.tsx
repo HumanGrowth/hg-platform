@@ -25,12 +25,12 @@ const unit: LearningUnitDetail = {
   blocks: [
     {
       id: "block-a", position: 1, required: true, block_type: "video_intro",
-      youtube_video_id: "dQw4w9WgXcQ", poster_url: null, duration_seconds: 45,
+      video_url: "https://cdn.example.com/v.mp4", poster_url: null, duration_seconds: 45,
       subtitle_url: null, transcript_text: null, eyebrow_label: null,
     },
     {
       id: "block-b", position: 2, required: true, block_type: "video_closing",
-      youtube_video_id: "dQw4w9WgXcQ", poster_url: null, duration_seconds: 45,
+      video_url: "https://cdn.example.com/v.mp4", poster_url: null, duration_seconds: 45,
       subtitle_url: null, transcript_text: null, eyebrow_label: null,
     },
   ],

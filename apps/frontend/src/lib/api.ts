@@ -22,6 +22,7 @@ import type {
   LearningUnitAttempt,
   LearningUnitDetail,
   LearningUnitFeed,
+  LearningUnitFeedItem,
   ManagerWidgets,
   Me,
   MeWidgets,
@@ -220,6 +221,10 @@ export const apiListCourses = async (
   return res.data as { items: Course[]; total: number };
 };
 
+/** @deprecated TASK lu-refine-B-03 — `/path` usa `apiListModulosByPillar`
+ * ahora. Sin callers activos; se deja sin borrar (el endpoint que pega
+ * abajo sigue vivo vía el redirect 308 legacy de A-08) por si algún otro
+ * lugar necesita listar el catálogo de events heredado por pilar. */
 export const apiListCoursesForPath = async (
   pathCode: string,
   filters?: Omit<CourseFilters, "track">,
@@ -382,6 +387,19 @@ export const apiGetModulosFeed = async (): Promise<LearningUnitFeed> => {
 
 export const apiGetModulo = async (slug: string): Promise<LearningUnitDetail> => {
   const res = await backend.get<LearningUnitDetail>(`/api/v1/modulos/${slug}`);
+  return res.data;
+};
+
+/** TASK lu-refine-A-03/B-01 — usado por /path (B-03) para reemplazar el
+ * lane de `apiListCoursesForPath` (events) por units reales del pilar. */
+export const apiListModulosByPillar = async (
+  pillarCode: string,
+  levelCode?: string,
+  limit = 10,
+): Promise<LearningUnitFeedItem[]> => {
+  const res = await backend.get<LearningUnitFeedItem[]>("/api/v1/modulos/by-pillar", {
+    params: { pillar_code: pillarCode, level_code: levelCode, limit },
+  });
   return res.data;
 };
 

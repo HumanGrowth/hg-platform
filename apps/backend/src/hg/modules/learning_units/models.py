@@ -132,12 +132,18 @@ class UnitBlock(Base):
 
 
 class VideoBlock(Base):
-    """Template ``video_intro`` / ``video_teaching`` / ``video_closing``. YouTube-only."""
+    """Template ``video_intro`` / ``video_teaching`` / ``video_closing``.
+
+    ``video_url`` apunta a un MP4 servido desde R2 (mismo pattern que
+    ``events``/``event_streams``) — YouTube embed salió de scope
+    (lu-refine-A-01/A-02): un ``<video src>` nativo no depende de un host
+    externo ni de su iframe/JSAPI.
+    """
 
     __tablename__ = "video_blocks"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    youtube_video_id: Mapped[str] = mapped_column(String(11), nullable=False)
+    video_url: Mapped[str] = mapped_column(Text, nullable=False)
     poster_url: Mapped[str | None] = mapped_column(String(2048))
     duration_seconds: Mapped[int] = mapped_column(Integer, nullable=False)
     subtitle_url: Mapped[str | None] = mapped_column(String(2048))

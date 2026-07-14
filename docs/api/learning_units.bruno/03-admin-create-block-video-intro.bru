@@ -20,7 +20,7 @@ body:json {
     "block_type": "video_intro",
     "position": 1,
     "required": false,
-    "youtube_video_id": "dQw4w9WgXcQ",
+    "video_url": "https://cdn.humangrowth.app/videos/bruno-smoke-test/vid1.mp4",
     "duration_seconds": 12
   }
 }
@@ -30,6 +30,8 @@ script:post-response {
 }
 
 docs {
-  201 esperado. poster_url se auto-completa desde el youtube_video_id
-  (TASK A-06) — verificar en la respuesta.
+  201 esperado. video_url acepta cualquier URL http(s) — ya no hay
+  auto-fill de poster_url (YouTube salió de scope en TASK lu-refine-A-02,
+  video_blocks apuntan a un MP4 en R2). poster_url queda null si no se
+  manda explícito.
 }

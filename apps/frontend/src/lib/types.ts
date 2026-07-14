@@ -431,7 +431,7 @@ interface BlockBase {
 
 export interface VideoBlock extends BlockBase {
   block_type: "video_intro" | "video_teaching" | "video_closing";
-  youtube_video_id: string;
+  video_url: string;
   poster_url: string | null;
   duration_seconds: number;
   subtitle_url: string | null;

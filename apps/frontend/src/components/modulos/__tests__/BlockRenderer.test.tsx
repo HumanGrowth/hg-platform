@@ -20,7 +20,7 @@ const videoBlock: Block = {
   position: 1,
   required: true,
   block_type: "video_intro",
-  youtube_video_id: "dQw4w9WgXcQ",
+  video_url: "https://cdn.example.com/v.mp4",
   poster_url: null,
   duration_seconds: 10,
   subtitle_url: null,
@@ -74,9 +74,12 @@ const reflectionBlock: Block = {
 };
 
 describe("BlockRenderer", () => {
-  it("renders VideoBlockView for video_intro/video_teaching/video_closing", () => {
+  it("renders VideoBlockView for video_intro/video_teaching/video_closing as a native <video>, not <iframe>", () => {
     render(<BlockRenderer block={videoBlock} {...handlers} />);
-    expect(screen.getByTitle("Video del módulo")).toBeTruthy();
+    const video = screen.getByTitle("Video del módulo");
+    expect(video.tagName).toBe("VIDEO");
+    expect(video.getAttribute("src")).toBe("https://cdn.example.com/v.mp4");
+    expect(document.querySelector("iframe")).toBeNull();
     expect(screen.getByText("Ya lo vi")).toBeTruthy();
   });
 
