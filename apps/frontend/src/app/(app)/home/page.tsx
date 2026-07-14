@@ -141,7 +141,7 @@ export default function HomePage() {
                 <p className="font-mono text-2xl font-semibold text-fg">
                   {data.stats.courses_completed}
                 </p>
-                <p className="text-xs text-fg-muted">cursos completados</p>
+                <p className="text-xs text-fg-muted">eventos completados</p>
               </div>
             </Card>
           </div>
@@ -183,7 +183,7 @@ export default function HomePage() {
                     Explorá los eventos
                   </h2>
                   <p className="mt-1 text-sm text-fg-muted">
-                    Todavía no empezaste ningún curso. Elegí una dimensión y arrancá.
+                    Todavía no empezaste ningún evento. Elegí una dimensión y arrancá.
                   </p>
                 </div>
                 <Link

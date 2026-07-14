@@ -1487,7 +1487,7 @@ Client wrapper para manejar navigation + state.
 
 ---
 
-## TASK B-09 · `/eventos` redirect + player heredado · `[ ]`
+## TASK B-09 · `/eventos` redirect + player heredado · `[x]`
 
 - `/eventos` = catálogo actual (era `/library`)
 - `/eventos/[slug]` = player HLS actual (era `/library/[slug]`)
@@ -1499,10 +1499,41 @@ Grep en el frontend:
 - Sidebar breadcrumbs
 
 ### Criterios
-- [ ] `/eventos` accesible desde drawer "Más"
-- [ ] Player heredado funcional
-- [ ] Cero "curso" en UI de eventos
-- [ ] Commit: `refactor(eventos): rename UI courses→eventos + preserve player`
+- [x] `/eventos` accesible desde drawer "Más"
+- [x] Player heredado funcional
+- [x] Cero "curso" en UI de eventos
+- [x] Commit: `refactor(eventos): rename UI courses→eventos + preserve player`
+
+**Notas de implementación:**
+- El rename de rutas (`/library`→`/eventos`, redirects 308, mover el
+  directorio `app/(app)/library/`→`app/(app)/eventos/`, "Biblioteca"→
+  "Eventos" en el sidebar) ya se hizo en B-01 — esta TASK cubre lo que
+  quedaba pendiente por diseño: el wording "curso"/"Curso" dentro del
+  contenido de esas páginas (ver nota de B-01 sobre el split, igual que
+  A-07 vs A-08 en el backend).
+- Cambiado en `eventos/page.tsx` (2 strings) y `CourseDetailView.tsx` (6
+  strings: toasts de error/success, empty states, "volver").
+- **Extensión de scope deliberada, documentada acá**: el criterio dice
+  literalmente "curso/Curso en `/eventos/*`", pero `home/page.tsx` ("cursos
+  completados", "ningún curso") y `path/page.tsx` ("tus cursos por
+  dimensión") también hablan del mismo catálogo de eventos y quedaban
+  inconsistentes al lado del "Ver eventos"/"Explorá los eventos" que B-01
+  ya había renombrado ahí mismo. Se corrigieron esos 4 strings también —
+  son 1-2 palabras cada uno, no una feature nueva, y dejarlos así se
+  hubiera visto como un bug de copy a medio hacer.
+- **NO se tocó** `team/[id]/page.tsx` ("Cursos en progreso" / "Cursos
+  completados" en la vista de detalle de un reporte para el manager) —
+  es una vista de manager/RRHH, más cerca de "admin general" que de
+  `/eventos/*`, y la regla dura dice no tocar esa superficie sin pedido
+  explícito. Tampoco se tocó `PricingTable.tsx` (marketing, "Biblioteca de
+  contenido HG" — ya excluido en B-01 por la misma razón).
+- No se renombró `src/components/library/` (el folder de componentes) ni
+  `CourseCard`/`CourseDetailView`/`Course` (nombres de tipos/componentes
+  internos) — son identificadores de código, no "UI"; cambiar nombres de
+  componentes/archivos en este punto es un refactor de naming sin
+  beneficio funcional, fuera del scope real del criterio ("cero curso en
+  UI", no "cero Course en el código").
+- Verificado: `pnpm typecheck`, `pnpm lint` y `pnpm test` (95/95) limpios.
 
 ---
 
@@ -1635,5 +1666,5 @@ docs/screenshots/learning-units-fase1/
 | B-06 | BlockRenderer + 6 quiz types | `[x]` |
 | B-07 | UnitCompletionCard | `[x]` |
 | B-08 | Wire /modulos/[slug] | `[x]` |
-| B-09 | /eventos rename | `[ ]` |
+| B-09 | /eventos rename | `[x]` |
 | B-10 | Tests + screenshots + a11y | `[ ]` |

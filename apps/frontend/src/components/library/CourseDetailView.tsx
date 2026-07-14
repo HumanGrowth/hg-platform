@@ -45,7 +45,7 @@ export function CourseDetailView({ slug }: { slug: string }) {
       setStatus("ok");
     } catch (e) {
       if (e instanceof ApiError && e.status === 404) {
-        toast("Curso no encontrado", "danger");
+        toast("Evento no encontrado", "danger");
         router.replace("/eventos");
         return;
       }
@@ -74,9 +74,9 @@ export function CourseDetailView({ slug }: { slug: string }) {
     try {
       await apiSaveProgress(slug, { position_seconds: course.duration_seconds, watch_pct: 100 });
       setCompleted(true);
-      toast("¡Curso completado!", "success");
+      toast("¡Evento completado!", "success");
     } catch {
-      toast("No pudimos marcar el curso. Probá de nuevo.", "danger");
+      toast("No pudimos marcar el evento. Probá de nuevo.", "danger");
     } finally {
       setMarking(false);
     }
@@ -96,7 +96,7 @@ export function CourseDetailView({ slug }: { slug: string }) {
   if (status === "error") {
     return (
       <div className="mx-auto max-w-app px-6 py-20 text-center">
-        <p className="mb-4 font-sans text-md font-semibold text-fg">No pudimos cargar el curso.</p>
+        <p className="mb-4 font-sans text-md font-semibold text-fg">No pudimos cargar el evento.</p>
         <div className="flex justify-center gap-3">
           <button
             type="button"
@@ -173,7 +173,7 @@ export function CourseDetailView({ slug }: { slug: string }) {
                 <ArrowRight size={18} strokeWidth={1.75} className="shrink-0 text-primary" />
               </Link>
             ) : (
-              <p className="text-sm text-fg-muted">Completaste todos los cursos de esta ruta.</p>
+              <p className="text-sm text-fg-muted">Completaste todos los eventos de esta ruta.</p>
             )}
           </div>
         </div>
@@ -187,7 +187,7 @@ export function CourseDetailView({ slug }: { slug: string }) {
           <div className="w-full max-w-sm rounded-lg border border-border bg-bg-raised p-6 text-center">
             <h2 className="mb-2 font-sans text-lg font-semibold text-fg">¿Dónde querés seguir?</h2>
             <p className="mb-5 text-sm text-fg-muted">
-              Dejaste este curso en {formatDuration(course.progress?.last_position_seconds ?? 0)}.
+              Dejaste este evento en {formatDuration(course.progress?.last_position_seconds ?? 0)}.
             </p>
             <div className="flex flex-col gap-2">
               <button
