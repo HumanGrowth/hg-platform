@@ -63,17 +63,17 @@ describe("HomePage", () => {
     getHome.mockResolvedValue(base);
     render(<HomePage />);
     const link = await screen.findByRole("link", { name: /Continuar/ });
-    expect(link.getAttribute("href")).toBe("/library/l1-c1-demo");
+    expect(link.getAttribute("href")).toBe("/eventos/l1-c1-demo");
     // El título aparece en el próximo paso y en actividad reciente.
     expect(screen.getAllByText("Comunicación efectiva").length).toBeGreaterThan(0);
   });
 
-  it("shows library fallback when there is no next_step", async () => {
+  it("shows eventos fallback when there is no next_step", async () => {
     getHome.mockResolvedValue({ ...base, next_step: null });
     render(<HomePage />);
-    expect(await screen.findByText("Explorá la biblioteca")).toBeTruthy();
-    expect(screen.getByRole("link", { name: /Ver biblioteca/ }).getAttribute("href")).toBe(
-      "/library",
+    expect(await screen.findByText("Explorá los eventos")).toBeTruthy();
+    expect(screen.getByRole("link", { name: /Ver eventos/ }).getAttribute("href")).toBe(
+      "/eventos",
     );
   });
 

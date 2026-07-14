@@ -6,7 +6,7 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 export const metadata = { title: "Mi Ruta — Human Growth" };
 
 // Mi Ruta: los 6 pilares como carriles, con los 3 primeros cursos por pilar
-// desde el backend. La Biblioteca completa vive en /library.
+// desde el backend. El catálogo completo de eventos vive en /eventos.
 export default function PathPage() {
   return (
     <div className="mx-auto max-w-app px-6 py-10">

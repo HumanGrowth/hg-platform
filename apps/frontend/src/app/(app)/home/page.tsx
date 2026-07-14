@@ -168,7 +168,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 <Link
-                  href={`/library/${data.next_step.course_slug}` as Route}
+                  href={`/eventos/${data.next_step.course_slug}` as Route}
                   className={cn(buttonVariants({ size: "lg" }), "shrink-0")}
                 >
                   Continuar
@@ -180,17 +180,17 @@ export default function HomePage() {
                 <div>
                   <Eyebrow>Tu próximo paso</Eyebrow>
                   <h2 className="mt-1 font-sans text-xl font-semibold text-fg">
-                    Explorá la biblioteca
+                    Explorá los eventos
                   </h2>
                   <p className="mt-1 text-sm text-fg-muted">
                     Todavía no empezaste ningún curso. Elegí una dimensión y arrancá.
                   </p>
                 </div>
                 <Link
-                  href={"/library" as Route}
+                  href={"/eventos" as Route}
                   className={cn(buttonVariants({ size: "lg" }), "shrink-0")}
                 >
-                  Ver biblioteca
+                  Ver eventos
                   <ArrowRight size={18} strokeWidth={1.75} />
                 </Link>
               </>
@@ -237,7 +237,7 @@ export default function HomePage() {
                       <Progress value={pct(rate)} label={`Completado ${p.name}`} />
                     </div>
                     <Link
-                      href={"/library" as Route}
+                      href={"/eventos" as Route}
                       className={cn(
                         buttonVariants({ variant: "ghost", size: "sm" }),
                         "self-start px-0 hover:bg-transparent",
@@ -273,7 +273,7 @@ export default function HomePage() {
                 {data.recent_activity.map((a) => (
                   <li key={a.course_id}>
                     <Link
-                      href={`/library/${a.course_slug}` as Route}
+                      href={`/eventos/${a.course_slug}` as Route}
                       className="flex items-center gap-3 rounded-lg border border-border bg-surface-card px-4 py-3 transition-colors hover:bg-bg-raised"
                     >
                       <Badge variant={pillarBadge(a.pillar_code)}>{pillarShortName(a.pillar_code)}</Badge>

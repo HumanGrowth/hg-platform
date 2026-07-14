@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, ShieldCheck, UserCog, Users } from "lucide-react";
+import { Calendar, LogOut, ShieldCheck, UserCog, Users } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -32,6 +32,13 @@ export function MoreDrawer({ open, onClose }: { open: boolean; onClose: () => vo
         aria-label="Más opciones"
       >
         <div className="eyebrow mb-4">Más opciones</div>
+        <Link
+          href={"/eventos" as Route}
+          onClick={onClose}
+          className="flex items-center gap-3 rounded-md px-3 py-3 text-fg hover:bg-bg-sunken"
+        >
+          <Calendar size={18} strokeWidth={1.75} /> Eventos (live)
+        </Link>
         {showTeam(user) && (
           <Link
             href={"/team" as Route}

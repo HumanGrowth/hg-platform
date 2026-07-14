@@ -846,7 +846,7 @@ Script chequea `SELECT slug FROM learning_units WHERE slug=...` antes de insert 
 
 Rama: `feat/learning-units-frontend` (post PR-A merged)
 
-## TASK B-01 · Sidebar rework · 5 tabs + drawer "Más" con Eventos · `[ ]`
+## TASK B-01 · Sidebar rework · 5 tabs + drawer "Más" con Eventos · `[x]`
 
 Archivo: `apps/frontend/src/components/nav/SideNav.tsx` + `BottomNav.tsx`
 
@@ -882,11 +882,52 @@ Reglas:
 - Labels: "Biblioteca" → "Eventos" en cualquier lugar visible
 
 ### Criterios
-- [ ] Sidebar renderiza 5 primary + drawer "Más" con Eventos
-- [ ] Mobile bottom nav 4 + "Más"
-- [ ] `/library/*` redirects a `/eventos/*`
-- [ ] Cero refs a "Biblioteca" en UI
-- [ ] Commit: `refactor(app): sidebar 5 tabs + drawer Más · rename library→eventos`
+- [x] Sidebar renderiza 5 primary + drawer "Más" con Eventos
+- [x] Mobile bottom nav 4 + "Más"
+- [x] `/library/*` redirects a `/eventos/*`
+- [x] Cero refs a "Biblioteca" en UI
+- [x] Commit: `refactor(app): sidebar 5 tabs + drawer Más · rename library→eventos`
+
+**Notas de implementación:**
+- `MoreDrawer.tsx` no usa un array `MORE_NAV_ITEMS` data-driven (no existe ese
+  patrón en el código — el drawer actual es links hardcodeados con checks de
+  rol inline: `showTeam(user)`, `isAdminPlus`). Se agregó el link "Eventos
+  (live)" siguiendo ese mismo estilo hardcodeado en vez de introducir un
+  array nuevo — matchea la convención existente en vez de refactorizar sin
+  necesidad.
+- `SIDE_NAV_ITEMS`/`BOTTOM_NAV_ITEMS_BASE` comparten el mismo array de 4
+  items fijos (Inicio/Mi Ruta/Módulos/Perfil) — "Mi equipo" solo aparece en
+  desktop sidebar (role-gated) y en el drawer mobile (`showTeam` ya
+  filtraba esto antes de esta TASK, sin cambios).
+- Redirects en `next.config.mjs` vía `redirects()` (edge, `permanent: true`
+  → 308) siguiendo el mismo patrón que `/ciencia`→`/metodo` — más robusto
+  que un `redirect()` de página bajo static generation (comentario existente
+  en el archivo). `middleware.ts` también actualizado (`PROTECTED` +
+  `config.matcher`): `/library`→`/eventos`, y se agregó `/modulos` de una vez
+  ya que el nuevo item de sidebar apunta ahí (la página en sí se construye en
+  B-03/B-08).
+- Movido `app/(app)/library/` → `app/(app)/eventos/` y actualizadas todas las
+  refs de ruta (`href`/`router.replace`) a `/eventos` en
+  `CourseDetailView.tsx`, `CourseCard.tsx`, `PathLanes.tsx`, `home/page.tsx`.
+  **Deliberadamente NO** se renombró `src/components/library/` (el folder de
+  componentes internos) ni el wording "curso"/"Curso" dentro de esas vistas
+  — eso es el scope explícito de B-09 ("Grep curso/Curso en /eventos/\*").
+  Este split mantiene el mismo patrón que A-07 (rename de modelo) vs A-08
+  (rename de rutas) en el backend.
+- "Cero refs a Biblioteca" se interpretó como cero texto visible en UI, no
+  solo el label del nav: se encontraron y corrigieron 4 instancias
+  adicionales de copy visible ("Explorá la biblioteca"→"Explorá los
+  eventos", "Ver biblioteca"→"Ver eventos" en `home/page.tsx`; "Explorar la
+  biblioteca completa"→"Explorar todos los eventos" en `PathLanes.tsx`;
+  "Volver a biblioteca"→"Volver a eventos" ×2 en `CourseDetailView.tsx`) más
+  un comentario de código en `path/page.tsx`. Los tests de `home/page.tsx`
+  que aserteaban el texto viejo se actualizaron. `PricingTable.tsx`
+  (marketing, "Biblioteca de contenido HG") se dejó sin tocar — fuera de
+  scope por la regla "NO tocar marketing".
+- Verificado: `pnpm typecheck` limpio (requirió `rm -rf .next && next build`
+  una vez para regenerar `next/types/routes.d.ts` — el cache de rutas
+  tipadas seguía apuntando a `/library`), `pnpm lint` sin warnings, `pnpm
+  test` 95/95 verdes.
 
 ---
 
@@ -1340,7 +1381,7 @@ docs/screenshots/learning-units-fase1/
 ## Fase B · Frontend
 | ID | Subject | Status |
 |---|---|---|
-| B-01 | Sidebar 5 tabs + drawer Más | `[ ]` |
+| B-01 | Sidebar 5 tabs + drawer Más | `[x]` |
 | B-02 | Types + API client | `[ ]` |
 | B-03 | /modulos feed | `[ ]` |
 | B-04 | UnitStoriesPlayer mobile | `[ ]` |

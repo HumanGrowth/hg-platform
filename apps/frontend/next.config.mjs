@@ -22,6 +22,11 @@ const nextConfig = {
       { source: "/ciencia", destination: "/metodo", permanent: true },
       // web-v3 decisión A: Blog vive dentro de Perspectivas (CMS content type).
       { source: "/blog", destination: "/perspectivas", permanent: true },
+      // Learning Units v2 Fase 1 (TASK B-01): /library era el catálogo de
+      // eventos/webinars grabados — ahora vive en /eventos (Módulos ocupa el
+      // slot de "contenido" en el sidebar principal).
+      { source: "/library", destination: "/eventos", permanent: true },
+      { source: "/library/:slug*", destination: "/eventos/:slug*", permanent: true },
     ];
   },
 };

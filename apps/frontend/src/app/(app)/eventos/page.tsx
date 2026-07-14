@@ -49,7 +49,7 @@ export default function LibraryPage() {
 
   return (
     <main className="mx-auto w-full max-w-app px-6 py-10">
-      <Eyebrow accent>Biblioteca</Eyebrow>
+      <Eyebrow accent>Eventos</Eyebrow>
       <Display variant="display-2" className="mt-2">
         Carrera
       </Display>

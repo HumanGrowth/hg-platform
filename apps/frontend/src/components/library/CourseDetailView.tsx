@@ -46,7 +46,7 @@ export function CourseDetailView({ slug }: { slug: string }) {
     } catch (e) {
       if (e instanceof ApiError && e.status === 404) {
         toast("Curso no encontrado", "danger");
-        router.replace("/library");
+        router.replace("/eventos");
         return;
       }
       setStatus("error");
@@ -106,10 +106,10 @@ export function CourseDetailView({ slug }: { slug: string }) {
             Reintentar
           </button>
           <Link
-            href="/library"
+            href="/eventos"
             className="rounded-md border border-border px-5 py-2 font-sans text-sm font-semibold text-fg hover:bg-bg-sunken"
           >
-            Volver a biblioteca
+            Volver a eventos
           </Link>
         </div>
       </div>
@@ -121,11 +121,11 @@ export function CourseDetailView({ slug }: { slug: string }) {
   return (
     <div className="mx-auto max-w-app px-6 py-8">
       <Link
-        href="/library"
+        href="/eventos"
         className="mb-5 inline-flex items-center gap-1.5 font-sans text-sm font-semibold text-fg-muted hover:text-fg"
       >
         <ArrowLeft size={16} strokeWidth={1.75} />
-        Volver a biblioteca
+        Volver a eventos
       </Link>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
@@ -161,7 +161,7 @@ export function CourseDetailView({ slug }: { slug: string }) {
 
             {nextCourse ? (
               <Link
-                href={`/library/${nextCourse.slug}` as Route}
+                href={`/eventos/${nextCourse.slug}` as Route}
                 className="flex items-center gap-3 rounded-lg border border-border bg-bg-raised px-4 py-3 transition-colors hover:bg-bg-sunken"
               >
                 <div className="min-w-0 flex-1">
