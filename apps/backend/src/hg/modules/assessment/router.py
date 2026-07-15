@@ -160,7 +160,9 @@ def abandon(
     session = _get_session(db, session_id, current_user)
     if session.status == SessionStatus.in_progress:
         session.status = SessionStatus.abandoned
-        db.commit()
+        # No explicit commit: get_db()'s wrapper commits once the request
+        # completes successfully (see AssessmentSession.start_session for
+        # why a mid-request commit here would be actively harmful).
 
 
 @router.get("/me/results", response_model=MeResultsOut)

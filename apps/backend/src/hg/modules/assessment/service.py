@@ -123,8 +123,13 @@ def start_session(
         expires_at=now + timedelta(days=SESSION_TTL_DAYS),
     )
     db.add(session)
-    db.commit()
-    db.refresh(session)
+    # flush (no commit): populates server defaults (started_at) via RETURNING
+    # while keeping the transaction open, so the SET LOCAL ROLE hg_app +
+    # app.current_org_id set by get_current_user stays valid for the RLS
+    # queries the router runs right after this returns (_session_out).
+    # A commit here would end the transaction and reset both SET LOCAL
+    # values, breaking every subsequent RLS-scoped query in the request.
+    db.flush()
     return session
 
 
@@ -153,6 +158,10 @@ def record_response(
         raise AssessmentError("la sesión no está activa")
     if session.expires_at < now_utc():
         session.status = SessionStatus.expired
+        # Deliberate commit: we want the expiry to persist even though we're
+        # about to raise (which the router turns into a 422, never reaching
+        # _session_out), so there's no later RLS query in this request that
+        # a reset SET LOCAL context could break.
         db.commit()
         raise AssessmentError("la sesión expiró")
 
@@ -180,7 +189,7 @@ def record_response(
         existing.response_value = value
         existing.qualitative_text = qualitative_text
         existing.response_time_ms = response_time_ms
-        db.commit()
+        db.flush()
         return existing
 
     resp = AssessmentResponse(
@@ -192,8 +201,7 @@ def record_response(
         response_time_ms=response_time_ms,
     )
     db.add(resp)
-    db.commit()
-    db.refresh(resp)
+    db.flush()
     return resp
 
 
@@ -251,11 +259,13 @@ def finalize_session(db: Session, session: AssessmentSession) -> list[PillarResu
 
     session.status = SessionStatus.completed
     session.completed_at = now_utc()
+    # flush (not commit): populates each result's server default (derived_at)
+    # via RETURNING while keeping the transaction — and its SET LOCAL ROLE
+    # hg_app / app.current_org_id — open for _update_profile below and for
+    # the router's subsequent _result_out(...) calls.
     db.flush()
     _update_profile(db, session, results)
-    db.commit()
-    for res in results:
-        db.refresh(res)
+    db.flush()
     return results
 
 
@@ -320,8 +330,12 @@ def confirm_pillar(db: Session, user: User, pillar: PillarCode) -> PillarResult:
         )
         states[pillar.value] = st
         profile.pillar_states = states
-    db.commit()
-    db.refresh(latest)
+    # flush (not commit): latest's mutated fields are already in memory, no
+    # refresh needed — a commit here would end the transaction and reset
+    # SET LOCAL ROLE hg_app / app.current_org_id before the router's
+    # _result_out(result) read (harmless here since it's plain attrs, but
+    # keeping the pattern consistent avoids re-introducing this class of bug).
+    db.flush()
     return latest
 
 
@@ -334,7 +348,8 @@ def reset_retake(db: Session, user_id: uuid.UUID, pillar: PillarCode) -> None:
     )
     if latest is not None:
         latest.next_retake_eligible_at = now_utc()
-        db.commit()
+        # No explicit commit: get_db()'s wrapper commits once the request
+        # completes successfully.
 
 
 # ─────────────────────────── Catálogo (instrumentos) ───────────────────────────
