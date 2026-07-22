@@ -44,6 +44,12 @@ dependencies = [
 
     # Storage
     "boto3>=1.35",
+
+    # Content import scripts (Google Drive → R2 · hg.scripts.sync_units_from_drive,
+    # scripts/migrate_videos_to_r2.py). Sólo los usan los scripts batch de import;
+    # ambos hacen import perezoso, así que el servidor arranca aunque falten.
+    "google-api-python-client>=2.198.0",
+    "google-auth>=2.56.1",
 ]
 
 [dependency-groups]
