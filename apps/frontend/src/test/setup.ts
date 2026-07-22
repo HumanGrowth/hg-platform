@@ -24,6 +24,14 @@ if (!globalThis.ResizeObserver) {
   globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
 }
 
+// jsdom no implementa los métodos de HTMLMediaElement (play/pause/load) —
+// VideoBlockView llama a pause() al abrir el overlay fullscreen.
+if (!window.HTMLMediaElement.prototype.play) {
+  window.HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
+}
+window.HTMLMediaElement.prototype.pause = vi.fn();
+window.HTMLMediaElement.prototype.load = vi.fn();
+
 // framer-motion (whileInView) necesita IntersectionObserver; jsdom no lo trae.
 class IntersectionObserverStub {
   observe() {}
