@@ -164,7 +164,7 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }) {
 
 ---
 
-## TASK polish-02 · Markdown en text_blocks para personalidad · `[ ]`
+## TASK polish-02 · Markdown en text_blocks para personalidad · `[x]`
 
 ### Setup
 
@@ -279,12 +279,42 @@ Los coach pueden usar en el `body` de cualquier text_block:
 ```
 
 ### Criterios
-- [ ] react-markdown + remark-gfm instalados
-- [ ] TextBlockView renderiza markdown con estilos DS v2
-- [ ] Eyebrow color diferenciado por variant (context/evidence/solution)
-- [ ] Fade-in animation sutil
-- [ ] Guía de templates actualizada con sintaxis markdown
-- [ ] Commit: `feat(polish): markdown rendering in text_blocks with variant styling`
+- [x] react-markdown + remark-gfm instalados
+- [x] TextBlockView renderiza markdown con estilos DS v2
+- [x] Eyebrow color diferenciado por variant (context/evidence/solution)
+- [x] Fade-in animation sutil
+- [x] Guía de templates actualizada con sintaxis markdown
+- [x] Commit: `feat(polish): markdown rendering in text_blocks with variant styling`
+
+**Notas de implementación:**
+- Deps: `react-markdown@^10` + `remark-gfm@^4` (la instalación tardó varios
+  minutos — red lenta del entorno, no un error).
+- Renderer extraído a un componente reusable `MarkdownBody.tsx` (no inline en
+  TextBlockView) con un mapa de `components` atado al DS: `p/strong/em/del/
+  ul/ol/li/blockquote/a/code/mark` + `h1-3` degradados a negrita (la guía
+  prohíbe headers). **No hay `@tailwindcss/typography`** (plugins: []), así que
+  NO se usa `prose`; cada elemento se estila a mano.
+- **`==resaltado==` no está en GFM** → plugin propio `remarkHighlight.ts` (sin
+  dep nueva: camina el árbol mdast a mano y emite un nodo con
+  `data.hName="mark"`, que mdast-to-hast renderiza como `<mark>` ámbar). El
+  sketch listaba un `components.mark` pero eso solo no alcanza sin el plugin.
+- Eyebrow por variante con clases directas (mismas que el componente `Eyebrow`:
+  `text-micro tracking-meta`) para poder overridear el color sin pelear con las
+  clases internas de `Eyebrow`: context→`text-fg-muted`, evidence→`text-hg-amber`,
+  solution→`text-primary`.
+- Se **conservó la citation card** existente (Badge de tier + source + "Ver
+  fuente") en vez de la citación inline más pobre del sketch.
+- Fade-in vía `useShouldAnimate()` (ya existía en `lib/motion/`) — reduced
+  motion devuelve el contenido sin `motion.div`.
+- **XSS**: `react-markdown` no ejecuta HTML raw (sin `rehype-raw`) — test
+  explícito confirma que un `<script>` en el body no crea un elemento script.
+- Guía `HG/Docs/HG_Guia_Diseno_Modulos_Templates.md` §4.9 nueva (tabla de
+  sintaxis + reglas + ejemplo). Está **fuera del repo git** (vive en `HG/Docs/`,
+  no en `hg-platform/`) → no entra en el PR; se agregó además una nota tracked
+  en `docs/learning-units/create-unit-via-api.md` para que el PR la refleje.
+- Tests: `MarkdownBody.test.tsx` (4: bold/italic/==mark==, listas+blockquote,
+  XSS-safe, links target/rel). 23/23 tests de `modulos` verdes · tsc + eslint
+  limpios.
 
 ---
 

@@ -1,11 +1,14 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 import * as React from "react";
 
+import { MarkdownBody } from "@/components/modulos/blocks/MarkdownBody";
 import { Badge } from "@/components/ui/badge";
-import { Eyebrow } from "@/components/ui/eyebrow";
+import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import type { TextBlock } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const CITATION_TIER_LABEL: Record<string, string> = {
   meta_analysis: "Meta-análisis",
@@ -14,10 +17,19 @@ const CITATION_TIER_LABEL: Record<string, string> = {
   expert_opinion: "Opinión experta",
 };
 
+/** Color del eyebrow por variante (TASK polish-02) — situación neutra,
+ * evidencia ámbar, solución verde primary. */
+const EYEBROW_COLOR: Record<TextBlock["variant"], string> = {
+  context: "text-fg-muted",
+  evidence: "text-hg-amber",
+  solution: "text-primary",
+};
+
 const AUTO_COMPLETE_MS = 3000;
 
 /** text_context/text_evidence/text_solution — no bloquea navegación: se
- * marca completed automáticamente a los 3s de estar montado (TASK B-06). */
+ * marca completed automáticamente a los 3s de estar montado (TASK B-06). El
+ * `body` se renderiza como markdown (TASK polish-02). */
 export function TextBlockView({
   block,
   isCompleted,
@@ -27,6 +39,8 @@ export function TextBlockView({
   isCompleted: boolean;
   onCompleteBlock: () => Promise<void>;
 }) {
+  const shouldAnimate = useShouldAnimate();
+
   React.useEffect(() => {
     if (isCompleted) return;
     const timer = setTimeout(() => {
@@ -40,10 +54,17 @@ export function TextBlockView({
 
   const isValidUrl = block.citation && /^https?:\/\//.test(block.citation.doi_or_url);
 
-  return (
+  const content = (
     <div className="flex flex-col gap-3">
-      <Eyebrow accent>{block.eyebrow}</Eyebrow>
-      <p className="whitespace-pre-line font-sans text-base text-fg">{block.body}</p>
+      <p
+        className={cn(
+          "font-sans text-micro font-semibold uppercase tracking-meta",
+          EYEBROW_COLOR[block.variant],
+        )}
+      >
+        {block.eyebrow}
+      </p>
+      <MarkdownBody>{block.body}</MarkdownBody>
       {block.citation && (
         <div className="mt-2 flex flex-col gap-2 rounded-md border border-border bg-bg-sunken p-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -66,5 +87,17 @@ export function TextBlockView({
         </div>
       )}
     </div>
+  );
+
+  if (!shouldAnimate) return content;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {content}
+    </motion.div>
   );
 }
