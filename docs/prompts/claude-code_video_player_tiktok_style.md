@@ -529,7 +529,7 @@ browser.
 
 ---
 
-## TASK player-05 · Progress bar del stories player NO tape el video · `[ ]`
+## TASK player-05 · Progress bar del stories player NO tape el video · `[x]`
 
 El stories player tiene una progress bar top (segmentada por block). Actualmente puede tapar la parte superior del video full-bleed.
 
@@ -541,9 +541,16 @@ Fix:
 Decisión: **overlay transparente z-10** sobre el video (no ocupa espacio en el layout).
 
 ### Criterios
-- [ ] Progress bar top no ocupa altura vertical
-- [ ] Se ve sobre el video pero no lo tapa (opacity blend)
-- [ ] Commit: `fix(player): stories progress bar overlays video without taking space`
+- [x] Progress bar top no ocupa altura vertical
+- [x] Se ve sobre el video pero no lo tapa (opacity blend)
+- [x] Commit: `fix(player): stories progress bar overlays video without taking space`
+
+**Notas:** el header (barras + X) del `UnitStoriesPlayer` pasa a overlay
+`absolute inset-x-0 top-0 z-20` → no ocupa altura (el body usa toda la altura).
+`pointer-events-none` en la barra (el tap cae al video/nav), sólo la X es
+`pointer-events-auto`. Scrim `from-black/40` + barras `bg-white/30` + X
+`text-white/80` **sólo sobre video** (legibilidad); sobre text/quiz se mantiene
+el estilo claro y el body recibe `pt-14` para no quedar bajo el overlay.
 
 ---
 
@@ -629,5 +636,5 @@ docs/screenshots/player-tiktok/
 | player-02 | Layout stories player mobile | `[x]` |
 | player-03 | Layout back-to-back desktop | `[x]` |
 | player-04 | Autoplay policies cross-browser | `[x]` |
-| player-05 | Progress bar top no tape video | `[ ]` |
+| player-05 | Progress bar top no tape video | `[x]` |
 | player-06 | Tests + screenshots | `[ ]` |
