@@ -42,6 +42,7 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
   const [quizStats, setQuizStats] = React.useState({ correct: 0, total: 0 });
 
   const currentBlock = unit.blocks[currentIndex];
+  const isVideoBlock = currentBlock.block_type.startsWith("video_");
   const currentProgress = blockProgress.find((bp) => bp.unit_block_id === currentBlock.id);
   const isCurrentCompleted = currentProgress?.status === "completed";
   const canAdvance = !currentBlock.required || isCurrentCompleted;
@@ -165,7 +166,13 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
       <div className={cn("grid gap-6", focusMode ? "flex-1 grid-cols-1 place-items-center" : "grid-cols-[1fr_280px]")}>
         <div
           className={cn(
-            "min-w-0 overflow-y-auto rounded-lg border border-border bg-bg-raised p-8",
+            "min-w-0",
+            // Video full-bleed (TASK player-03): llena el ancho del panel sin
+            // padding ni borde (el video ES el panel); aspect-video fija el alto
+            // → self-start para no estirarse al alto de la columna del índice.
+            isVideoBlock
+              ? "self-start overflow-hidden rounded-lg bg-black"
+              : "overflow-y-auto rounded-lg border border-border bg-bg-raised p-8",
             focusMode && "w-full max-w-2xl",
           )}
         >

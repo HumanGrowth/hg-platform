@@ -476,15 +476,21 @@ auto-advance sigue funcionando (bubbling). tsc/eslint/tests verdes.
 
 ---
 
-## TASK player-03 · Adaptar layout del bloque en `<UnitBackToBackPlayer/>` desktop · `[ ]`
+## TASK player-03 · Adaptar layout del bloque en `<UnitBackToBackPlayer/>` desktop · `[x]`
 
 Similar a TASK 02 pero para el desktop back-to-back player. El panel izquierdo tiene 60% del ancho · el video block llena ese 60% al 100% (con aspect-video calculando la altura).
 
 ### Criterios
-- [ ] Video llena el ancho del panel 60% en desktop
-- [ ] Sin padding entre el edge del panel y el video
-- [ ] Text/quiz/reflection blocks mantienen padding
-- [ ] Commit: `refactor(player): full-bleed video block in back-to-back desktop`
+- [x] Video llena el ancho del panel 60% en desktop
+- [x] Sin padding entre el edge del panel y el video
+- [x] Text/quiz/reflection blocks mantienen padding
+- [x] Commit: `refactor(player): full-bleed video block in back-to-back desktop`
+
+**Notas:** panel izquierdo condicional en `UnitBackToBackPlayer`: video →
+`self-start overflow-hidden rounded-lg bg-black` (sin `p-8`/borde, el video
+`aspect-video w-full` llena el ancho del panel `1fr`; `self-start` evita que
+se estire al alto de la columna del índice). Text/quiz/reflection mantienen
+`border p-8 bg-bg-raised`. tsc/eslint limpios (no hay tests de este componente).
 
 ---
 
@@ -612,7 +618,7 @@ docs/screenshots/player-tiktok/
 |---|---|---|
 | player-01 | Rediseñar VideoBlockView full-bleed | `[x]` |
 | player-02 | Layout stories player mobile | `[x]` |
-| player-03 | Layout back-to-back desktop | `[ ]` |
+| player-03 | Layout back-to-back desktop | `[x]` |
 | player-04 | Autoplay policies cross-browser | `[ ]` |
 | player-05 | Progress bar top no tape video | `[ ]` |
 | player-06 | Tests + screenshots | `[ ]` |
