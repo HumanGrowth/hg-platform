@@ -52,6 +52,10 @@ export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionC
   const pillarDot = PILLARS.find((p) => p.id === pillarBaseCode(unit.pillar_code))?.dot;
   const completedSteps = attempt.block_progress.filter((bp) => bp.status === "completed").length;
   const totalSteps = unit.blocks.length;
+  // TASK polish-06: el resumen del quiz se muestra en positivo/verde (nunca
+  // rojo) — "respondiste bien X de Y" + barra verde, sin penalizar visualmente.
+  const quizPct =
+    quizStats && quizStats.total > 0 ? Math.round((quizStats.correct / quizStats.total) * 100) : 0;
 
   return (
     <Card className="flex flex-col items-center gap-5 py-10 text-center">
@@ -78,8 +82,17 @@ export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionC
         <h2 className="mt-2 font-sans text-xl font-semibold text-fg">{unit.title}</h2>
         <p className="mt-2 font-sans text-sm text-fg-muted">
           {completedSteps}/{totalSteps} pasos · {formatApproxMinutes(unit.estimated_duration_seconds)}
-          {quizStats && ` · ${quizStats.correct}/${quizStats.total} correctas`}
         </p>
+        {quizStats && quizStats.total > 0 && (
+          <div className="mt-3 flex flex-col items-center gap-1.5">
+            <p className="font-sans text-sm font-semibold text-success">
+              Respondiste bien {quizStats.correct} de {quizStats.total}
+            </p>
+            <div className="h-1.5 w-40 overflow-hidden rounded-full bg-bg-sunken">
+              <div className="h-full rounded-full bg-success" style={{ width: `${quizPct}%` }} />
+            </div>
+          </div>
+        )}
       </div>
       <div className="mt-2 flex flex-col gap-3 sm:flex-row">
         {nextUnit && (

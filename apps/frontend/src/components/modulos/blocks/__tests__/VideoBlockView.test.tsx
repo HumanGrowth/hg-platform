@@ -74,15 +74,47 @@ describe("VideoBlockView", () => {
     expect(screen.queryByText("Ya lo vi")).toBeNull();
   });
 
-  it("shows the custom fullscreen button only on mobile viewports", () => {
+  it("opens a fullscreen overlay when the inline video plays on mobile", () => {
     mockMatchMedia(true);
     render(<VideoBlockView block={block} isCompleted={false} onCompleteBlock={vi.fn()} />);
-    expect(screen.getByLabelText("Ver en pantalla completa")).toBeTruthy();
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    fireEvent.play(screen.getByTitle("Video del módulo"));
+
+    expect(screen.getByRole("dialog", { name: "Video en pantalla completa" })).toBeTruthy();
+    expect(screen.getByLabelText("Cerrar video")).toBeTruthy();
   });
 
-  it("hides the custom fullscreen button on desktop viewports", () => {
+  it("does not open the overlay when playing on desktop", () => {
     mockMatchMedia(false);
     render(<VideoBlockView block={block} isCompleted={false} onCompleteBlock={vi.fn()} />);
-    expect(screen.queryByLabelText("Ver en pantalla completa")).toBeNull();
+
+    fireEvent.play(screen.getByTitle("Video del módulo"));
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("closing the overlay with X does not mark the block complete", () => {
+    mockMatchMedia(true);
+    const onCompleteBlock = vi.fn(async () => {});
+    render(<VideoBlockView block={block} isCompleted={false} onCompleteBlock={onCompleteBlock} />);
+
+    fireEvent.play(screen.getByTitle("Video del módulo"));
+    fireEvent.click(screen.getByLabelText("Cerrar video"));
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(onCompleteBlock).not.toHaveBeenCalled();
+  });
+
+  it("closes the overlay and marks complete when the fullscreen video ends", async () => {
+    mockMatchMedia(true);
+    const onCompleteBlock = vi.fn(async () => {});
+    render(<VideoBlockView block={block} isCompleted={false} onCompleteBlock={onCompleteBlock} />);
+
+    fireEvent.play(screen.getByTitle("Video del módulo"));
+    fireEvent.ended(screen.getByTitle("Video en pantalla completa"));
+
+    await vi.waitFor(() => expect(onCompleteBlock).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });

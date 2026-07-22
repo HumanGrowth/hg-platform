@@ -1,4 +1,14 @@
-import { Home, Menu, Route as RouteIcon, Sparkles, User, Users, type LucideIcon } from "lucide-react";
+import {
+  Calendar,
+  Home,
+  Menu,
+  Route as RouteIcon,
+  ShieldCheck,
+  Sparkles,
+  User,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
 import type { User as MeUser, UserRole } from "@/lib/types";
 
@@ -14,13 +24,19 @@ export interface NavItem {
 }
 
 const MANAGER_ROLES: UserRole[] = ["manager", "admin", "superadmin"];
+const ADMIN_ROLES: UserRole[] = ["admin", "superadmin"];
 
+// Desktop (TASK polish-04, Opción B): se suma "Eventos" — en desktop no hay
+// drawer "Más", así que sin esto el acceso a eventos se perdía. En mobile,
+// Eventos vive en el MoreDrawer (ver BOTTOM_NAV_ITEMS_BASE + MoreDrawer).
 export const SIDE_NAV_ITEMS: NavItem[] = [
   { href: "/home", label: "Inicio", icon: Home },
   { href: "/path", label: "Mi Ruta", icon: RouteIcon },
   { href: "/modulos", label: "Módulos", icon: Sparkles },
+  { href: "/eventos", label: "Eventos", icon: Calendar },
   { href: "/perfil", label: "Mi Perfil", icon: User },
   { href: "/team", label: "Mi equipo", icon: Users, roles: MANAGER_ROLES },
+  { href: "/admin/org", label: "Modo admin", icon: ShieldCheck, roles: ADMIN_ROLES },
 ];
 
 /** BottomNav mobile: 4 ítems fijos + botón "Más" (drawer, incluye Eventos). */

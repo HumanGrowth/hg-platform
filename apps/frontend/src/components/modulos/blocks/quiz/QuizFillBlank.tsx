@@ -47,7 +47,8 @@ export function QuizFillBlank({
                   result
                     ? result.is_correct
                       ? "border-success bg-success-bg"
-                      : "border-danger bg-danger-bg"
+                      : // TASK polish-06: incorrecta en neutro, no rojo.
+                        "border-border-strong bg-bg-sunken"
                     : "border-border-strong bg-bg",
                 )}
               />

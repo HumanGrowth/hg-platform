@@ -89,6 +89,13 @@ si querés un thumbnail, hay que mandarlo explícito.
 `tier` es uno de `meta_analysis | rct | observational | expert_opinion`.
 Guardá el `id` de la respuesta — es el que necesita el bloque `text_solution`.
 
+> **Markdown en `body`** (TASK polish-02): el `body` de cualquier `text_block`
+> se renderiza como markdown — `**negrita**`, `*cursiva*` (verde), `==resaltado==`
+> (ámbar), listas (`-`/`1.`), citas (`> …`), links `[label](url)` y tachado
+> `~~…~~`. HTML raw está bloqueado (sin `rehype-raw`) y el backend loguea un
+> warning si detecta tags sospechosos. Sin headers ni imágenes inline. Detalle
+> completo en `HG/Docs/HG_Guia_Diseno_Modulos_Templates.md` §4.9.
+
 ### Texto (solución)
 
 ```json

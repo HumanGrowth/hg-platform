@@ -346,11 +346,18 @@ _UNIT_2_FEEDBACK_DIRECTO: dict[str, Any] = {
         {
             "type": "text_evidence",
             "required": True,
+            # TASK polish-09: ejemplo vivo de markdown en un text_evidence
+            # (negrita, cursiva, ==resaltado==, cita y lista) — referencia para
+            # el coach al crear units nuevas. Ver HG_Guia_Diseno §4.9.
             "body": (
-                f"{GENERATED_TAG} Amy Edmondson (Harvard, 1999) mostró que los equipos con más "
-                "seguridad psicológica reportan MÁS errores — no menos. La seguridad hace "
-                "visible el problema, no lo elimina; por eso dar feedback rápido es más seguro "
-                "de lo que se siente."
+                f"{GENERATED_TAG} Amy Edmondson (Harvard, 1999) mostró que los equipos con "
+                "**más seguridad psicológica** reportan *más* errores — no menos. La seguridad "
+                "hace ==visible el problema==, no lo elimina.\n\n"
+                "> Dar feedback rápido es más seguro de lo que se siente.\n\n"
+                "El patrón aplica a:\n\n"
+                "- Equipos de producto\n"
+                "- Equipos de salud\n"
+                "- Equipos de manufactura"
             ),
             "citation": {
                 "text": "Edmondson, Administrative Science Quarterly (1999)",
