@@ -440,7 +440,7 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
 
 ---
 
-## TASK player-02 · Adaptar layout del bloque en `<UnitStoriesPlayer/>` mobile · `[ ]`
+## TASK player-02 · Adaptar layout del bloque en `<UnitStoriesPlayer/>` mobile · `[x]`
 
 El stories player mobile actualmente wrappea el bloque con padding. Cambiar para que el video ocupe el ancho completo del viewport.
 
@@ -462,10 +462,17 @@ const isVideo = block.block_type.startsWith("video_");
 O aún mejor: cada block-view internamente decide su padding · el wrapper del stories player no impone.
 
 ### Criterios
-- [ ] Video block ocupa el ancho completo del viewport mobile
-- [ ] Text/quiz/reflection blocks mantienen padding de lectura
-- [ ] Sin regresión visual en desktop
-- [ ] Commit: `refactor(player): remove padding wrapper for video blocks in stories player`
+- [x] Video block ocupa el ancho completo del viewport mobile
+- [x] Text/quiz/reflection blocks mantienen padding de lectura
+- [~] Sin regresión visual en desktop (smoke — player-06)
+- [x] Commit: `refactor(player): remove padding wrapper for video blocks in stories player`
+
+**Notas:** el wrapper del bloque en `UnitStoriesPlayer` ahora es condicional:
+video → `relative z-0 w-full` (sin `max-w-md`/`px-6`/`py-6`), el resto mantiene
+`mx-auto max-w-md px-6 py-6`. Las tap-zones de nav prev/next (left/right 15%,
+`z-10`) quedan por encima del tap-zone del video (`z-[1]` dentro del bloque),
+así que left/right navegan y el centro hace play/pause. Long-press para pausar
+auto-advance sigue funcionando (bubbling). tsc/eslint/tests verdes.
 
 ---
 
@@ -604,7 +611,7 @@ docs/screenshots/player-tiktok/
 | ID | Subject | Status |
 |---|---|---|
 | player-01 | Rediseñar VideoBlockView full-bleed | `[x]` |
-| player-02 | Layout stories player mobile | `[ ]` |
+| player-02 | Layout stories player mobile | `[x]` |
 | player-03 | Layout back-to-back desktop | `[ ]` |
 | player-04 | Autoplay policies cross-browser | `[ ]` |
 | player-05 | Progress bar top no tape video | `[ ]` |

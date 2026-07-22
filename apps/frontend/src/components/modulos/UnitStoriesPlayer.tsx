@@ -224,7 +224,14 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
           className="absolute inset-y-0 right-0 z-10 w-[15%] focus-visible:outline-none"
         />
         <div
-          className="relative z-0 mx-auto w-full max-w-md overflow-y-auto px-6 py-6"
+          // Video full-bleed (TASK player-02): sin padding ni max-w — el video
+          // ocupa el ancho completo del viewport (aspect-video se encarga del
+          // alto). Text/quiz/reflection mantienen el ancho de lectura + padding.
+          className={
+            isVideoBlock
+              ? "relative z-0 w-full"
+              : "relative z-0 mx-auto w-full max-w-md overflow-y-auto px-6 py-6"
+          }
           onTouchStart={isVideoBlock ? onVideoPressStart : undefined}
           onTouchEnd={isVideoBlock ? onVideoPressEnd : undefined}
           onMouseDown={isVideoBlock ? onVideoPressStart : undefined}
