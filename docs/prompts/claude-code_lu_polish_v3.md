@@ -666,7 +666,7 @@ Backend no cambia (body ya es TEXT). Pero **validación de admin_router** deber�
 
 ---
 
-## TASK polish-09 · Update seed con markdown de ejemplo · `[ ]`
+## TASK polish-09 · Update seed con markdown de ejemplo · `[x]`
 
 Actualizar 1 de los text_blocks del seed para mostrar markdown en acción:
 
@@ -680,9 +680,20 @@ Actualizar 1 de los text_blocks del seed para mostrar markdown en acción:
 Sirve como referencia para el coach cuando cree units nuevas.
 
 ### Criterios
-- [ ] Al menos 1 text_evidence del seed con markdown
-- [ ] Preview visual OK en desktop + mobile
-- [ ] Commit: `chore(polish): update seed with markdown example in text_evidence`
+- [x] Al menos 1 text_evidence del seed con markdown
+- [~] Preview visual OK en desktop + mobile (smoke — polish-10)
+- [x] Commit: `chore(polish): update seed with markdown example in text_evidence`
+
+**Notas de implementación:**
+- El text_evidence de `_UNIT_2_FEEDBACK_DIRECTO` (Edmondson 1999) en
+  `src/hg/scripts/seed_learning_units.py` ahora usa markdown: `**negrita**`,
+  `*cursiva*`, `==resaltado==`, blockquote (`> …`) y lista — el mismo ejemplo
+  de la guía §4.9, sirve de referencia viva para el coach.
+- El seed vive en `src/hg/scripts/` (no `apps/backend/scripts/` del sketch) —
+  convención real del repo. `ruff` + `mypy` limpios.
+- **No corrí el seed** para no pisar en la DB local compartida el import de las
+  16 units de A-11 (es idempotente y reproducible, pero innecesario acá). El
+  preview visual del markdown seedeado se hace en el smoke de polish-10.
 
 ---
 
