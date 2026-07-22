@@ -1,157 +1,324 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Loader2, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import * as React from "react";
-import { createPortal } from "react-dom";
 
-import { Button } from "@/components/ui/button";
-import { Eyebrow } from "@/components/ui/eyebrow";
-import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
+import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import type { VideoBlock } from "@/lib/types";
 
-/**
- * `<video>` HTML5 nativo apuntando a un MP4 en R2 (TASK lu-refine-B-02).
- *
- * Fullscreen mobile (TASK polish-01): al dar play en un viewport chico, el
- * video pasa a un **overlay propio** (`fixed inset-0`, portal a `document.body`)
- * con el video 16:9 centrado sobre negro y una `X` para volver a la unit — en
- * vez del fullscreen nativo de iOS (`webkitEnterFullscreen`), que rompía el
- * flujo del stories player. En desktop el video reproduce inline dentro de su
- * contenedor `aspect-video`. Auto-mark on ended (cerrando el overlay si estaba
- * abierto); "Ya lo vi" sigue disponible como alternativa manual.
- */
-export function VideoBlockView({
-  block,
-  isCompleted,
-  onCompleteBlock,
-}: {
+interface Props {
   block: VideoBlock;
   isCompleted: boolean;
   onCompleteBlock: () => Promise<void>;
-}) {
-  const inlineRef = React.useRef<HTMLVideoElement>(null);
-  const [marking, setMarking] = React.useState(false);
-  const [isFullscreen, setIsFullscreen] = React.useState(false);
-  const isMobile = useMediaQuery("(max-width: 768px)");
+}
 
-  // Escape cierra el overlay + lock del scroll del body mientras está abierto.
+type PlayerState = "loading" | "ready" | "playing" | "paused" | "ended" | "error";
+
+function formatTime(sec: number): string {
+  const safe = Number.isFinite(sec) && sec > 0 ? sec : 0;
+  const m = Math.floor(safe / 60);
+  const s = Math.floor(safe % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+const UI_HIDE_MS = 2500;
+const UNMUTE_HINT_MS = 4000;
+
+/**
+ * Reproductor full-bleed estilo TikTok/Reels para video 16:9 horizontal
+ * (TASK player-01). El `<video>` **ES** el div del bloque (`aspect-video
+ * w-full`, `object-cover`, sin bordes) — sin `controls` nativos, sin overlay
+ * fullscreen ni portal (eso era el approach anterior, polish-01). Controles
+ * custom sobrepuestos: tap central play/pause, progress bar minimalista +
+ * timer abajo, hint de "activar sonido" al primer play (autoplay muted).
+ *
+ * Autoplay muted al entrar en viewport (IntersectionObserver). `prefers-
+ * reduced-motion` (via `useShouldAnimate`) desactiva el autoplay **y** el
+ * auto-hide de controles.
+ */
+export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
+  const shouldAnimate = useShouldAnimate();
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const uiTimerRef = React.useRef<number | null>(null);
+  const hintShownRef = React.useRef(false);
+
+  const [state, setState] = React.useState<PlayerState>("loading");
+  const [muted, setMuted] = React.useState(true);
+  const [showUnmuteHint, setShowUnmuteHint] = React.useState(false);
+  const [currentTime, setCurrentTime] = React.useState(0);
+  const [duration, setDuration] = React.useState(block.duration_seconds || 0);
+  const [uiVisible, setUiVisible] = React.useState(true);
+
+  const stateRef = React.useRef<PlayerState>(state);
+  stateRef.current = state;
+
+  function safePlay() {
+    videoRef.current?.play().catch(() => {
+      // El browser bloqueó el play (autoplay policy / sin gesto) → estado manual.
+      setState((s) => (s === "playing" ? s : "ready"));
+    });
+  }
+
+  // Auto-hide de la UI a los 2.5s reproduciendo (salvo reduced motion).
+  const resetUiTimer = React.useCallback(() => {
+    setUiVisible(true);
+    if (uiTimerRef.current) window.clearTimeout(uiTimerRef.current);
+    if (shouldAnimate && stateRef.current === "playing") {
+      uiTimerRef.current = window.setTimeout(() => setUiVisible(false), UI_HIDE_MS);
+    }
+  }, [shouldAnimate]);
+
   React.useEffect(() => {
-    if (!isFullscreen) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setIsFullscreen(false);
-    }
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKey);
+    resetUiTimer();
     return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener("keydown", onKey);
+      if (uiTimerRef.current) window.clearTimeout(uiTimerRef.current);
     };
-  }, [isFullscreen]);
+  }, [state, resetUiTimer]);
 
-  async function complete() {
-    if (isCompleted) return;
-    await onCompleteBlock();
-  }
+  // Autoplay muted al entrar en viewport (pausa al salir).
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const video = videoRef.current;
+        if (!video) return;
+        if (entry.isIntersecting) {
+          if (!shouldAnimate) return; // reduced motion → sin autoplay
+          safePlay();
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.5 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [shouldAnimate]);
 
-  async function markSeen() {
-    // Botón manual "Ya lo vi" — usa `marking` para el estado "Guardando…".
-    if (isCompleted || marking) return;
-    setMarking(true);
-    try {
-      await onCompleteBlock();
-    } finally {
-      setMarking(false);
+  function togglePlay() {
+    const video = videoRef.current;
+    if (!video || stateRef.current === "error") return;
+    if (stateRef.current === "ended") {
+      video.currentTime = 0;
+      safePlay();
+      return;
     }
+    if (video.paused) safePlay();
+    else video.pause();
   }
 
-  function handleInlinePlay() {
-    // Mobile: el play inline abre el overlay fullscreen (y pausa el inline
-    // para que no queden dos reproducciones/audios superpuestos).
-    if (!isMobile) return;
-    inlineRef.current?.pause();
-    setIsFullscreen(true);
+  function unmute() {
+    setMuted(false);
+    setShowUnmuteHint(false);
+    if (videoRef.current) videoRef.current.muted = false;
   }
 
-  async function handleInlineEnded() {
-    // Desktop: el video reproduce inline; al terminar marca completed. En
-    // mobile el inline está pausado (juega el overlay), así que no dispara acá.
-    await complete();
+  function toggleMute() {
+    setMuted((m) => {
+      const next = !m;
+      if (videoRef.current) videoRef.current.muted = next;
+      if (!next) setShowUnmuteHint(false);
+      return next;
+    });
   }
 
-  async function handleOverlayEnded() {
-    setIsFullscreen(false);
-    await complete();
+  async function handleEnded() {
+    setState("ended");
+    setUiVisible(true);
+    if (!isCompleted) await onCompleteBlock();
   }
+
+  function handleSeek(e: React.MouseEvent<HTMLButtonElement>) {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video || !Number.isFinite(duration) || duration <= 0) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    video.currentTime = ratio * duration;
+    setCurrentTime(video.currentTime);
+  }
+
+  // Keyboard: espacio (play/pause), flechas (±5s), M (mute).
+  React.useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const video = videoRef.current;
+      if (!video) return;
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.key === "ArrowRight") {
+        video.currentTime = Math.min(video.currentTime + 5, duration || video.duration || 0);
+      } else if (e.key === "ArrowLeft") {
+        video.currentTime = Math.max(video.currentTime - 5, 0);
+      } else if (e.key === "m" || e.key === "M") {
+        toggleMute();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [duration]);
+
+  const pct = Number.isFinite(duration) && duration > 0 ? (currentTime / duration) * 100 : 0;
+  const showCentralIcon = state === "paused" || state === "ready" || state === "ended";
+  const showBottomUi = state === "playing" || state === "paused" || state === "ended";
 
   return (
-    <div className="flex flex-col gap-4">
-      {block.eyebrow_label && <Eyebrow accent>{block.eyebrow_label}</Eyebrow>}
-      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-hg-ink">
-        <video
-          ref={inlineRef}
-          className="h-full w-full bg-hg-ink object-contain"
-          src={block.video_url}
-          title="Video del módulo"
-          poster={block.poster_url ?? undefined}
-          controls
-          playsInline
-          preload="metadata"
-          onPlay={handleInlinePlay}
-          onEnded={() => void handleInlineEnded()}
-        >
-          {block.subtitle_url && (
-            <track kind="subtitles" srcLang="es" label="Español" src={block.subtitle_url} default />
-          )}
-          Tu navegador no soporta video HTML5.
-        </video>
-      </div>
-      {isCompleted ? (
-        <div className="flex items-center gap-2 self-start font-sans text-sm font-semibold text-success">
-          <Check size={18} strokeWidth={2} /> Visto
-        </div>
-      ) : (
-        <Button variant="secondary" size="sm" onClick={() => void markSeen()} disabled={marking} className="self-start">
-          {marking ? "Guardando…" : "Ya lo vi"}
-        </Button>
+    <div
+      ref={containerRef}
+      className="relative aspect-video w-full select-none overflow-hidden bg-black"
+      onMouseMove={resetUiTimer}
+    >
+      <video
+        ref={videoRef}
+        className="absolute inset-0 h-full w-full object-cover"
+        src={block.video_url}
+        title="Video del módulo"
+        poster={block.poster_url ?? undefined}
+        muted={muted}
+        playsInline
+        preload="metadata"
+        onLoadedMetadata={(e) => {
+          const d = e.currentTarget.duration;
+          if (Number.isFinite(d) && d > 0) setDuration(d);
+        }}
+        onPlay={() => {
+          setState("playing");
+          if (muted && !hintShownRef.current) {
+            hintShownRef.current = true;
+            setShowUnmuteHint(true);
+            window.setTimeout(() => setShowUnmuteHint(false), UNMUTE_HINT_MS);
+          }
+        }}
+        onPause={() => setState((s) => (s === "ended" ? s : "paused"))}
+        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+        onEnded={() => void handleEnded()}
+        onError={() => setState("error")}
+        onWaiting={() => setState((s) => (s === "playing" ? "loading" : s))}
+        onCanPlay={() => setState((s) => (s === "loading" ? "ready" : s))}
+      >
+        {block.subtitle_url && (
+          <track kind="subtitles" srcLang="es" label="Español" src={block.subtitle_url} default />
+        )}
+        Tu navegador no soporta video HTML5.
+      </video>
+
+      {/* Tap zone: toggle play/pause. Debajo de los controles (hermanos
+          posteriores en el DOM), encima del video. */}
+      {state !== "error" && (
+        <button
+          type="button"
+          onClick={togglePlay}
+          aria-label={state === "playing" ? "Pausar video" : "Reproducir video"}
+          className="absolute inset-0 z-[1] h-full w-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/60"
+        />
       )}
 
-      {isFullscreen && isMobile && typeof document !== "undefined"
-        ? createPortal(
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Video en pantalla completa"
-              className="fixed inset-0 z-[60] flex items-center justify-center bg-black"
+      {/* Loading spinner */}
+      {state === "loading" && (
+        <div className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center bg-black/40">
+          <Loader2 size={40} className="animate-spin text-white/80" />
+        </div>
+      )}
+
+      {/* Error state */}
+      {state === "error" && (
+        <div className="absolute inset-0 z-[3] flex flex-col items-center justify-center gap-3 bg-black/80 px-4 text-center text-white">
+          <p className="text-sm">No pudimos cargar el video.</p>
+          <button
+            type="button"
+            onClick={() => {
+              setState("loading");
+              videoRef.current?.load();
+            }}
+            className="rounded-md bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {/* Ícono central play / replay (pointer-events-none → el tap llega al botón). */}
+      <AnimatePresence>
+        {showCentralIcon && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.85 }}
+            transition={{ duration: 0.15 }}
+            className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center"
+          >
+            <div className="rounded-full bg-white/20 p-5 backdrop-blur-sm">
+              {state === "ended" ? (
+                <RotateCcw size={40} className="text-white" strokeWidth={2.25} />
+              ) : (
+                <Play size={44} className="text-white" strokeWidth={2.25} fill="white" />
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Hint "Activar sonido" prominente al primer play (muted). */}
+      <AnimatePresence>
+        {showUnmuteHint && muted && state === "playing" && (
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            onClick={unmute}
+            className="absolute right-3 top-3 z-[4] flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-sm hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          >
+            <VolumeX size={16} /> Activar sonido
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Mute/unmute discreto (persistente) mientras reproduce. */}
+      {state === "playing" && !showUnmuteHint && (
+        <button
+          type="button"
+          onClick={toggleMute}
+          aria-label={muted ? "Activar sonido" : "Silenciar"}
+          className="absolute right-3 top-3 z-[4] rounded-full bg-black/40 p-2 text-white/80 backdrop-blur-sm transition-opacity hover:bg-black/60 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          style={{ opacity: uiVisible ? 1 : 0, pointerEvents: uiVisible ? "auto" : "none" }}
+        >
+          {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+        </button>
+      )}
+
+      {/* Progress bar minimalista + timer (bottom). */}
+      <AnimatePresence>
+        {showBottomUi && uiVisible && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-x-0 bottom-0 z-[3] flex flex-col gap-1 bg-gradient-to-t from-black/60 to-transparent px-3 pb-2 pt-6"
+          >
+            <button
+              type="button"
+              onClick={handleSeek}
+              aria-label="Barra de progreso · click para saltar"
+              className="group h-1 w-full cursor-pointer overflow-hidden rounded-full bg-white/25"
             >
-              <button
-                type="button"
-                aria-label="Cerrar video"
-                onClick={() => setIsFullscreen(false)}
-                className="absolute right-3 top-3 z-10 rounded-full bg-white/10 p-2 text-white"
-              >
-                <X size={24} strokeWidth={1.75} />
-              </button>
-              <div className="aspect-video max-h-full w-full">
-                <video
-                  className="h-full w-full bg-black object-contain"
-                  src={block.video_url}
-                  title="Video en pantalla completa"
-                  poster={block.poster_url ?? undefined}
-                  autoPlay
-                  controls
-                  playsInline
-                  onEnded={() => void handleOverlayEnded()}
-                >
-                  {block.subtitle_url && (
-                    <track kind="subtitles" srcLang="es" label="Español" src={block.subtitle_url} default />
-                  )}
-                </video>
-              </div>
-            </div>,
-            document.body,
-          )
-        : null}
+              <div className="h-full bg-primary transition-[width] duration-100" style={{ width: `${pct}%` }} />
+            </button>
+            <div className="flex items-center justify-between text-[11px] font-medium text-white/90">
+              <span>
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </span>
+              {isCompleted && <span className="font-semibold text-primary">✓ Completado</span>}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

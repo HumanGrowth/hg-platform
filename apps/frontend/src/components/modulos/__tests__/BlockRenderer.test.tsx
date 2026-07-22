@@ -80,7 +80,9 @@ describe("BlockRenderer", () => {
     expect(video.tagName).toBe("VIDEO");
     expect(video.getAttribute("src")).toBe("https://cdn.example.com/v.mp4");
     expect(document.querySelector("iframe")).toBeNull();
-    expect(screen.getByText("Ya lo vi")).toBeTruthy();
+    // Player full-bleed (player-01): controles custom, sin botón "Ya lo vi" ni controls nativos.
+    expect(video.hasAttribute("controls")).toBe(false);
+    expect(screen.queryByText("Ya lo vi")).toBeNull();
   });
 
   it("renders TextBlockView for text_context/text_evidence/text_solution", () => {

@@ -47,26 +47,29 @@ beforeEach(() => {
   getModulosFeed.mockResolvedValue({ hero: null, next: [] });
 });
 
+// El player full-bleed (player-01) completa el bloque de video on `ended`
+// (sin botón "Ya lo vi"). Los tests usan los args de completeBlock (block-a /
+// block-b) como fuente de verdad de en qué bloque estamos.
+function endVideo() {
+  fireEvent.ended(screen.getByTitle("Video del módulo"));
+}
+
 describe("UnitStoriesPlayer navigation", () => {
   it("blocks advancing past a required block until it's completed", async () => {
     completeBlock.mockResolvedValue({ unit_block_id: "block-a", status: "completed", submitted_at: null });
-    const onComplete = vi.fn();
-    const onClose = vi.fn();
-    render(<UnitStoriesPlayer unit={unit} attempt={attempt} onComplete={onComplete} onClose={onClose} />);
+    render(<UnitStoriesPlayer unit={unit} attempt={attempt} onComplete={vi.fn()} onClose={vi.fn()} />);
 
-    // Bloque A activo: tap-next no debería avanzar (required, sin completar).
+    // Bloque A activo (required, sin completar): tap-next no debe avanzar. Si
+    // avanzara, el ended siguiente completaría block-b — al completar block-a
+    // confirmamos que seguimos en A.
     fireEvent.click(screen.getByLabelText("Siguiente bloque"));
-    expect(screen.getByText("Ya lo vi")).toBeTruthy(); // seguimos en el mismo bloque
-
-    // Completar bloque A habilita avanzar.
-    fireEvent.click(screen.getByText("Ya lo vi"));
+    endVideo();
     await waitFor(() => expect(completeBlock).toHaveBeenCalledWith("test-unit", "block-a"));
+    expect(completeBlock).not.toHaveBeenCalledWith("test-unit", "block-b");
 
+    // Ahora sí avanza a B; completarlo dispara completeBlock con el nuevo id.
     fireEvent.click(screen.getByLabelText("Siguiente bloque"));
-    // Seguimos viendo "Ya lo vi" (bloque B, video también) pero ahora es un
-    // bloque distinto — confirmamos vía la llamada a completeBlock con el
-    // nuevo id cuando lo marquemos.
-    fireEvent.click(screen.getByText("Ya lo vi"));
+    endVideo();
     await waitFor(() => expect(completeBlock).toHaveBeenCalledWith("test-unit", "block-b"));
   });
 
@@ -74,15 +77,13 @@ describe("UnitStoriesPlayer navigation", () => {
     completeBlock.mockImplementation(async (_slug: string, blockId: string) => ({
       unit_block_id: blockId, status: "completed", submitted_at: null,
     }));
-    render(
-      <UnitStoriesPlayer unit={unit} attempt={attempt} onComplete={vi.fn()} onClose={vi.fn()} />,
-    );
+    render(<UnitStoriesPlayer unit={unit} attempt={attempt} onComplete={vi.fn()} onClose={vi.fn()} />);
 
-    fireEvent.click(screen.getByText("Ya lo vi"));
+    endVideo();
     await waitFor(() => expect(completeBlock).toHaveBeenCalledWith("test-unit", "block-a"));
     fireEvent.click(screen.getByLabelText("Siguiente bloque"));
 
-    fireEvent.click(screen.getByText("Ya lo vi"));
+    endVideo();
     await waitFor(() => expect(completeBlock).toHaveBeenCalledWith("test-unit", "block-b"));
     fireEvent.click(screen.getByLabelText("Siguiente bloque"));
 
@@ -94,13 +95,16 @@ describe("UnitStoriesPlayer navigation", () => {
     completeBlock.mockResolvedValue({ unit_block_id: "block-a", status: "completed", submitted_at: null });
     render(<UnitStoriesPlayer unit={unit} attempt={attempt} onComplete={vi.fn()} onClose={vi.fn()} />);
 
-    fireEvent.click(screen.getByText("Ya lo vi"));
-    await waitFor(() => expect(completeBlock).toHaveBeenCalled());
-    fireEvent.click(screen.getByLabelText("Siguiente bloque"));
+    endVideo();
+    await waitFor(() => expect(completeBlock).toHaveBeenCalledWith("test-unit", "block-a"));
+    fireEvent.click(screen.getByLabelText("Siguiente bloque")); // → bloque B
 
-    fireEvent.click(screen.getByLabelText("Bloque anterior"));
-    // De vuelta en bloque A, ya completado → el botón "Ya lo vi" no vuelve a
-    // aparecer (isCompleted true para ese bloque).
-    expect(screen.getByText("Visto")).toBeTruthy();
+    fireEvent.click(screen.getByLabelText("Bloque anterior")); // ← vuelta a A
+    // De vuelta en A (ya completado): un `ended` no vuelve a llamar a
+    // completeBlock (isCompleted), y nunca se completó block-b.
+    endVideo();
+    await Promise.resolve();
+    expect(completeBlock).toHaveBeenCalledTimes(1);
+    expect(completeBlock).not.toHaveBeenCalledWith("test-unit", "block-b");
   });
 });
