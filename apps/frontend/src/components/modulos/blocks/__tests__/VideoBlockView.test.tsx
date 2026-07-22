@@ -122,4 +122,21 @@ describe("VideoBlockView · full-bleed player (TASK player-01)", () => {
     expect(screen.getByText(/No pudimos cargar el video/)).toBeTruthy();
     expect(screen.getByText("Reintentar")).toBeTruthy();
   });
+
+  it("'m' toggles mute", () => {
+    render(<VideoBlockView block={block} isCompleted={false} onCompleteBlock={vi.fn()} />);
+    const video = screen.getByTitle("Video del módulo") as HTMLVideoElement;
+    expect(video.muted).toBe(true);
+    fireEvent.keyDown(window, { key: "m" });
+    expect(video.muted).toBe(false);
+  });
+
+  it("arrow keys seek ±5s", () => {
+    render(<VideoBlockView block={block} isCompleted={false} onCompleteBlock={vi.fn()} />);
+    const video = screen.getByTitle("Video del módulo") as HTMLVideoElement;
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(video.currentTime).toBe(5);
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    expect(video.currentTime).toBe(0);
+  });
 });

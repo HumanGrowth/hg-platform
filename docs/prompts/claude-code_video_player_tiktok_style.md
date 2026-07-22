@@ -554,7 +554,7 @@ el estilo claro y el body recibe `pt-14` para no quedar bajo el overlay.
 
 ---
 
-## TASK player-06 · Tests + smoke + screenshots · `[ ]`
+## TASK player-06 · Tests + smoke + screenshots · `[x]` (screenshots N/A — ver nota)
 
 ### Tests unitarios
 
@@ -592,10 +592,28 @@ docs/screenshots/player-tiktok/
 ```
 
 ### Criterios
-- [ ] Tests unitarios verdes
-- [ ] 7 screenshots
-- [ ] Cross-browser verificado (TASK 04)
-- [ ] Commit: `test(player): unit tests + 7 screenshots + cross-browser notes`
+- [x] Tests unitarios verdes
+- [ ] 7 screenshots (N/A — sin browser automation, ver nota)
+- [~] Cross-browser (code-level + build; devices reales N/A — TASK 04)
+- [x] Commit: `test(player): unit tests + build smoke + cross-browser notes`
+
+**Notas de implementación:**
+- **Tests**: `VideoBlockView.test.tsx` cubre 11 casos — `<video>` sin
+  controls/iframe, autoplay on IntersectionObserver-entry, NO autoplay bajo
+  reduced motion, pause off-viewport, tap→play, espacio→play, **M→mute toggle**,
+  **flechas ±5s**, ended→completed+replay, unmute-hint→muted false, error+retry.
+  IntersectionObserver mockeable + `useShouldAnimate` mockeado; media methods
+  stubbeados en `src/test/setup.ts`. Suite frontend completa **141/141**,
+  `tsc`/`next lint` limpios, `next build` OK.
+- **Límite**: `pause()` real no se testea (jsdom mantiene `video.paused=true`),
+  y el scrub de la progress bar depende de `getBoundingClientRect` (0 en jsdom)
+  — cubiertos a nivel de handler pero no end-to-end; documentado.
+- **7 screenshots + smoke visual + cross-browser reales (Chrome desktop/Android,
+  Safari iOS/macOS): NO capturables en este entorno** (sin Playwright/Puppeteer
+  ni devices; la regla dura prohíbe instalar deps nuevas). Mismo disclaimer que
+  polish-10/player-04. El `next build` (todas las rutas prerenderan) + los unit
+  tests son el smoke feasible; matriz cross-browser en
+  `docs/frontend/video-player-autoplay.md`.
 
 ---
 
@@ -637,4 +655,4 @@ docs/screenshots/player-tiktok/
 | player-03 | Layout back-to-back desktop | `[x]` |
 | player-04 | Autoplay policies cross-browser | `[x]` |
 | player-05 | Progress bar top no tape video | `[x]` |
-| player-06 | Tests + screenshots | `[ ]` |
+| player-06 | Tests + screenshots | `[x]` |
