@@ -494,7 +494,7 @@ Grep + tests para descartar loops.
 
 ---
 
-## TASK polish-05 · Assessment · botón "← Anterior" · `[ ]`
+## TASK polish-05 · Assessment · botón "← Anterior" · `[x]`
 
 Archivo: `apps/frontend/src/app/(onboarding)/onboarding/session/` (verificar path exacto)
 
@@ -520,12 +520,42 @@ Agregar en cada pregunta del assessment:
 - Keyboard: `Shift+Tab` respeta orden natural
 
 ### Criterios
-- [ ] Botón "Anterior" visible en preguntas 2..N
-- [ ] Disabled en pregunta 1
-- [ ] Respuestas preservadas al ir atrás/adelante
-- [ ] Progress bar refleja el movimiento
-- [ ] Tests actualizados
-- [ ] Commit: `feat(polish): back button in assessment questions`
+- [x] Botón "Anterior" visible en preguntas 2..N
+- [x] Disabled en pregunta 1
+- [x] Respuestas preservadas al ir atrás/adelante
+- [x] Progress bar refleja el movimiento
+- [x] Tests actualizados
+- [x] Commit: `feat(polish): back button in assessment questions`
+
+**Notas de implementación:**
+- **El assessment NO es una lista fija en el cliente** como asumía el sketch
+  ("array de respuestas por index"): es **server-driven** — el backend sirve
+  `next_item` de a uno y el `SessionOut` sólo expone el item actual (no el
+  historial ni sus valores). Verifiqué el `service.py`: el orden es **fijo**
+  (`order_index`, no adaptativo) y `record_response` hace **update idempotente**
+  si el item ya fue respondido → ir atrás y re-responder es seguro (no reordena
+  la secuencia).
+- Como la API no expone items previos, implementé un **stack de historial en el
+  cliente** (`history: {item,value}[]` + `reviewIndex`): al responder la
+  pregunta viva se hace push; "Anterior" mueve `reviewIndex` hacia atrás y
+  muestra el item con su valor resaltado (`selectedValue`, `aria-pressed`);
+  editar una respuesta previa la actualiza en el server y avanza por el
+  historial. Sin cambios de backend (respeta la regla "no tocar assessment
+  salvo el back button").
+- `TraditionalForm` es tap-to-submit (no hay botón "Siguiente" — tocar un valor
+  envía). Se sumó: `selectedValue` (resalta la opción elegida), `onBack` +
+  `canGoBack` (botón "← Anterior" con `aria-label="Pregunta anterior"`,
+  disabled en la primera pregunta). El botón sólo aparece si se pasa `onBack`
+  (los tests viejos que no lo pasan siguen viendo N botones, no N+1).
+- Progress bar refleja la posición revisada (`answered = reviewIndex` al
+  revisar, `session.answered_items` en la viva).
+- **Límite honesto**: el historial es de ESTA carga de página. Si el usuario
+  recarga a mitad del assessment, sólo puede volver por los items respondidos
+  en el mount actual (la API no permite recuperar items previos + sus valores
+  sin un endpoint nuevo, fuera de scope). Documentado.
+- Tests: 4 nuevos en `TraditionalForm.test.tsx` (selectedValue → aria-pressed,
+  back ausente sin onBack, back disabled en 1ª, onBack on click). 9/9 verdes ·
+  tsc + eslint limpios.
 
 ---
 

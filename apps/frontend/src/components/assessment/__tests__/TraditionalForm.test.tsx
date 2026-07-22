@@ -58,4 +58,29 @@ describe("TraditionalForm", () => {
     const btn = screen.getByText("Opción A").closest("button") as HTMLButtonElement;
     expect(btn.disabled).toBe(true);
   });
+
+  // TASK polish-05
+  it("marks the previously-selected value as pressed (likert)", () => {
+    render(<TraditionalForm item={likert("likert_1_7", 1, 7)} onSubmit={vi.fn()} selectedValue={5} />);
+    expect(screen.getByLabelText(/^5 —/).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByLabelText(/^4 —/).getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("does not render the back button when onBack is absent", () => {
+    render(<TraditionalForm item={mc} onSubmit={vi.fn()} />);
+    expect(screen.queryByLabelText("Pregunta anterior")).toBeNull();
+  });
+
+  it("renders a disabled back button on the first question (canGoBack=false)", () => {
+    render(<TraditionalForm item={mc} onSubmit={vi.fn()} onBack={vi.fn()} canGoBack={false} />);
+    const back = screen.getByLabelText("Pregunta anterior") as HTMLButtonElement;
+    expect(back.disabled).toBe(true);
+  });
+
+  it("calls onBack when the back button is clicked (canGoBack=true)", () => {
+    const onBack = vi.fn();
+    render(<TraditionalForm item={mc} onSubmit={vi.fn()} onBack={onBack} canGoBack />);
+    fireEvent.click(screen.getByLabelText("Pregunta anterior"));
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
 });

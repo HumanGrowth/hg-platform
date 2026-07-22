@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
 import * as React from "react";
 
 import { Progress } from "@/components/ui/progress";
@@ -13,6 +14,12 @@ interface Props {
   isLoading?: boolean;
   answered?: number;
   total?: number;
+  /** Valor ya elegido para este item (al revisar una respuesta previa). */
+  selectedValue?: number | null;
+  /** Volver a la pregunta anterior (TASK polish-05). */
+  onBack?: () => void;
+  /** false → primera pregunta, botón "Anterior" deshabilitado. */
+  canGoBack?: boolean;
 }
 
 /**
@@ -20,7 +27,16 @@ interface Props {
  * Botones táctiles ≥44px. El adapter pattern habilita Capa 2 (conversacional)
  * sin rework (ver ADR-0012).
  */
-export function TraditionalForm({ item, onSubmit, isLoading, answered = 0, total = 0 }: Props) {
+export function TraditionalForm({
+  item,
+  onSubmit,
+  isLoading,
+  answered = 0,
+  total = 0,
+  selectedValue = null,
+  onBack,
+  canGoBack = false,
+}: Props) {
   const isLikert = item.response_type !== "multiple_choice";
   const labels = labelsForScale(item.response_type);
   const min = item.scale_min ?? 0;
@@ -57,12 +73,16 @@ export function TraditionalForm({ item, onSubmit, isLoading, answered = 0, total
                 type="button"
                 onClick={() => onSubmit(v)}
                 disabled={isLoading}
+                aria-pressed={selectedValue === v}
                 aria-label={labels[idx] ? `${v} — ${labels[idx]}` : String(v)}
                 className={cn(
-                  "flex min-h-[44px] min-w-[44px] flex-1 items-center justify-center rounded-md border border-border-strong",
-                  "px-3 py-2 font-mono text-base font-semibold text-fg transition-colors",
-                  "hover:bg-hg-green-100 hover:border-primary focus-visible:outline-none",
+                  "flex min-h-[44px] min-w-[44px] flex-1 items-center justify-center rounded-md border",
+                  "px-3 py-2 font-mono text-base font-semibold transition-colors",
+                  "hover:border-primary hover:bg-hg-green-100 focus-visible:outline-none",
                   "focus-visible:ring-2 focus-visible:ring-hg-amber disabled:opacity-40",
+                  selectedValue === v
+                    ? "border-primary bg-hg-green-100 text-fg"
+                    : "border-border-strong text-fg",
                 )}
               >
                 {v}
@@ -84,16 +104,35 @@ export function TraditionalForm({ item, onSubmit, isLoading, answered = 0, total
               type="button"
               onClick={() => onSubmit(opt.value)}
               disabled={isLoading}
+              aria-pressed={selectedValue === opt.value}
               className={cn(
-                "min-h-[44px] rounded-lg border border-border-strong bg-surface-card px-4 py-3 text-left",
+                "min-h-[44px] rounded-lg border bg-surface-card px-4 py-3 text-left",
                 "font-sans text-sm text-fg transition-colors hover:border-primary hover:bg-hg-green-100",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber disabled:opacity-40",
+                selectedValue === opt.value ? "border-primary bg-hg-green-100" : "border-border-strong",
               )}
             >
               {opt.label}
             </button>
           ))}
         </div>
+      )}
+
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={!canGoBack || isLoading}
+          aria-label="Pregunta anterior"
+          className={cn(
+            "inline-flex w-fit items-center gap-1.5 rounded-md px-3 py-2 font-sans text-sm font-semibold",
+            "text-fg-muted transition-colors hover:bg-bg-sunken hover:text-fg",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
+            "disabled:pointer-events-none disabled:opacity-40",
+          )}
+        >
+          <ArrowLeft size={16} strokeWidth={2} /> Anterior
+        </button>
       )}
     </div>
   );
