@@ -15,6 +15,8 @@ la especifica el prompt:
 """
 from __future__ import annotations
 
+import logging
+import re
 import uuid
 from datetime import UTC, datetime
 from typing import Any
@@ -64,8 +66,34 @@ from hg.modules.learning_units.schemas import (
 )
 
 router = APIRouter()
+log = logging.getLogger("hg.learning_units.admin")
 
 _QUESTION_ADAPTER: TypeAdapter[Any] = TypeAdapter(QuizQuestionCreateUnion)
+
+# El `body` de los text_blocks se renderiza como **markdown** en el frontend
+# (TASK polish-02) con `react-markdown`, que NO ejecuta HTML raw — así que esto
+# NO es una defensa contra XSS (ya la da el renderer). Es defense-in-depth /
+# content-review: si un `body` trae tags HTML sospechosos (script, iframe,
+# handlers on*, etc.) probablemente sea un error de autoría (pegar HTML en vez
+# de markdown) y conviene loguearlo para revisión, sin rechazar el contenido.
+_SUSPICIOUS_HTML_RE = re.compile(
+    r"<\s*(script|iframe|object|embed|style|link|form|img|svg)\b|"  # tags peligrosos/no permitidos
+    r"\son\w+\s*=|"  # event handlers inline (onclick=, onerror=, ...)
+    r"javascript:",  # protocolo javascript en un href
+    re.IGNORECASE,
+)
+
+
+def _warn_suspicious_html(body: str, context: str) -> None:
+    """Loguea un warning (no bloquea) si el body parece traer HTML no permitido."""
+    match = _SUSPICIOUS_HTML_RE.search(body)
+    if match is not None:
+        log.warning(
+            "text_block body con HTML sospechoso en %s — patrón %r. El body se "
+            "renderiza como markdown (sin HTML raw), pero conviene revisar el "
+            "contenido: los coach escriben markdown, no HTML.",
+            context, match.group(0),
+        )
 
 
 def _unit_or_404(db: Session, unit_id: uuid.UUID) -> LearningUnit:
@@ -301,6 +329,7 @@ def _create_block_content(db: Session, unit_id: uuid.UUID, payload: BlockCreate)
         db.flush()
         return video.id
     if isinstance(payload, TextBlockCreate):
+        _warn_suspicious_html(payload.body, f"create unit={unit_id} variant={payload.variant}")
         evidence_template_id = (
             _resolve_evidence_template_id(db, unit_id, payload.requires_evidence_block_id)
             if payload.requires_evidence_block_id is not None
@@ -390,6 +419,9 @@ def update_block_content(
     unknown = set(body) - allowed
     if unknown:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"unknown fields: {sorted(unknown)}")
+
+    if isinstance(obj, TextBlock) and isinstance(body.get("body"), str):
+        _warn_suspicious_html(body["body"], f"update {block_type} id={block_id}")
 
     if parsed_type == UnitBlockType.quiz_recall and "questions" in body:
         questions = [_QUESTION_ADAPTER.validate_python(q) for q in body.pop("questions")]

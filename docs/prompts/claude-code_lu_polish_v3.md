@@ -636,16 +636,33 @@ Al agregar "Eventos" al sidebar desktop (TASK 04), verificar que el drawer "Más
 
 ---
 
-## TASK polish-08 · Consumer endpoints support markdown · `[ ]`
+## TASK polish-08 · Consumer endpoints support markdown · `[x]`
 
 Backend no cambia (body ya es TEXT). Pero **validación de admin_router** debería:
 - Aceptar cualquier string en `body` (markdown válido o texto plano · ambos funcionan)
 - Warning en logs si el body tiene `<script>` u otro HTML sospechoso (defense-in-depth · no XSS pero flag para content review)
 
 ### Criterios
-- [ ] Backend acepta markdown sin cambios
-- [ ] Log warning si detecta HTML tags no permitidos
-- [ ] Commit: `feat(polish): backend detects suspicious HTML in text_block body`
+- [x] Backend acepta markdown sin cambios
+- [x] Log warning si detecta HTML tags no permitidos
+- [x] Commit: `feat(polish): backend detects suspicious HTML in text_block body`
+
+**Notas de implementación:**
+- Sin cambios de schema: `body` sigue siendo `str` y acepta markdown o texto
+  plano. Se agregó `_warn_suspicious_html(body, context)` en `admin_router.py`,
+  llamado al **crear** un text_block (`_create_block_content`) y al **actualizar**
+  su `body` (`update_block_content`). No bloquea — sólo loguea `warning`.
+- Regex `_SUSPICIOUS_HTML_RE`: tags peligrosos/no permitidos
+  (`script|iframe|object|embed|style|link|form|img|svg`), event handlers inline
+  (`\son\w+\s*=` → `onclick=`, `onerror=`, ...) y `javascript:`. NO matchea
+  `<` / `>` sueltos en prosa (`a < b`, `3 > 2`) ni el markdown normal.
+- **No es defensa anti-XSS** (eso ya lo da `react-markdown` sin `rehype-raw`,
+  ver polish-02) — es content-review: si aparece HTML es casi seguro un error
+  de autoría (pegar HTML en vez de markdown), y el warning lo marca para
+  revisión sin romper el flujo.
+- Tests: `test_text_block_html_warning.py` (11 casos con `caplog`: 6 maliciosos
+  → warning, 5 markdown limpio → sin warning). `ruff` + `mypy` limpios · 11/11
+  verdes contra Postgres local.
 
 ---
 
