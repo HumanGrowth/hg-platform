@@ -34,13 +34,16 @@ export function SideNav({ className }: { className?: string }) {
   return (
     <aside
       className={cn(
-        "shrink-0 flex-col justify-between border-r border-border bg-bg-raised py-5 transition-[width] duration-base ease-state",
+        // h-full + min-h-0: la sidebar ocupa toda la altura del shell (que ya
+        // es h-screen overflow-hidden) y NO scrollea con el body — solo su
+        // propia lista de ítems scrollea si hace falta (TASK polish-04).
+        "flex h-full min-h-0 shrink-0 flex-col justify-between border-r border-border bg-bg-raised py-5 transition-[width] duration-base ease-state",
         collapsed ? "w-16 px-2" : "w-60 px-4",
         className,
       )}
     >
-      <div className="flex flex-col gap-6">
-        <Link href="/home" aria-label="Human Growth — inicio" className="flex items-center px-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-6">
+        <Link href="/home" aria-label="Human Growth — inicio" className="flex shrink-0 items-center px-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={collapsed ? "/isotype/isotype-oscuro.svg" : "/logo/nav/logo-nav-negro@2x.png"}
@@ -48,7 +51,7 @@ export function SideNav({ className }: { className?: string }) {
             className="h-7 w-auto"
           />
         </Link>
-        <nav className="flex flex-col gap-1">
+        <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
           {items.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = item.icon;
@@ -76,7 +79,8 @@ export function SideNav({ className }: { className?: string }) {
         onClick={toggle}
         aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
         className={cn(
-          "flex items-center gap-3 rounded-md px-3 py-2.5 font-sans text-sm font-medium text-fg-muted hover:bg-bg-sunken hover:text-fg",
+          // shrink-0 + mt-2: siempre visible abajo, no lo empuja el scroll de la nav.
+          "mt-2 flex shrink-0 items-center gap-3 rounded-md px-3 py-2.5 font-sans text-sm font-medium text-fg-muted hover:bg-bg-sunken hover:text-fg",
           collapsed && "justify-center",
         )}
       >

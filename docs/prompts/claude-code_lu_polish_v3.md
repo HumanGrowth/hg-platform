@@ -384,7 +384,7 @@ Sumar micro-animaciones a los blocks para dar más "vida":
 
 ---
 
-## TASK polish-04 · SideNav app · sticky fixed + fix items por rol · `[ ]`
+## TASK polish-04 · SideNav app · sticky fixed + fix items por rol · `[x]`
 
 ### A · Bug: sidebar se desliza con el body
 
@@ -458,13 +458,39 @@ Andrés reporta "hay rutas que parece que van cíclicas". Investigar:
 Grep + tests para descartar loops.
 
 ### Criterios
-- [ ] Sidebar sticky top-0 h-screen · scroll interno
-- [ ] Botón collapse siempre visible al bottom
-- [ ] Eventos visible en sidebar desktop (además de drawer mobile)
-- [ ] Mi Equipo condicional (rol + reports_count > 0)
-- [ ] Sin loops de redirects
-- [ ] Verificar en desktop 1440px, laptop 1024px, tablet 768px
-- [ ] Commit: `fix(polish): sidebar sticky + roles items + include Eventos on desktop`
+- [x] Sidebar sticky top-0 h-screen · scroll interno
+- [x] Botón collapse siempre visible al bottom
+- [x] Eventos visible en sidebar desktop (además de drawer mobile)
+- [x] Mi Equipo condicional (rol + reports_count > 0)
+- [x] Sin loops de redirects
+- [~] Verificar en desktop 1440px, laptop 1024px, tablet 768px (pendiente smoke visual — polish-10)
+- [x] Commit: `fix(polish): sidebar sticky + roles items + include Eventos on desktop`
+
+**Notas de implementación:**
+- **A (sticky) ya estaba resuelto a nivel layout**: `(app)/layout.tsx` usa
+  `h-screen flex-col overflow-hidden` con solo el `<main>` scrolleando (fix de
+  un polish anterior). El sketch del prompt proponía `sticky top-0` sobre body
+  scroll, pero este layout es mejor (nada scrollea salvo main). Se **endureció**
+  la `SideNav`: `h-full min-h-0`, la lista de ítems `flex-1 overflow-y-auto`
+  (scroll interno si hay muchos), y el botón Colapsar `shrink-0` (siempre
+  visible abajo, no lo empuja el scroll).
+- **C · items**: se sumó **Eventos** (`/eventos`, `Calendar`) al sidebar
+  desktop (Opción B del prompt — en desktop no hay drawer "Más") y **Modo admin**
+  (`/admin/org`, `ShieldCheck`, roles admin/superadmin). "Mi equipo" ya estaba
+  gateado por `showTeam` (manager + `reports_count>0`).
+- **D · loops**: investigado, **no hay loops**. Los redirects de `next.config`
+  (`/ciencia→/metodo`, `/blog→/perspectivas`, `/library→/eventos`,
+  `/library/:slug*→/eventos/:slug*`) y los de página (`/profile`,`/radar→/perfil`)
+  apuntan a destinos que NO son a su vez `source` → sin cadenas. `PathLanes`
+  carga con `load = useCallback([])` + `useEffect([load])` → corre 1 sola vez,
+  sin request loop. Los links del sidebar a la página actual son no-op de Next
+  `<Link>` (marca `active` sin re-navegar). La sensación "cíclica" no viene de
+  un loop real.
+- Tests: `nav/__tests__/items.test.ts` (7: Eventos siempre presente, gating de
+  team/admin, `showTeam`, `isActive` exacto + nested sin falsos positivos).
+  `tsc` + `eslint` limpios.
+- **Límite honesto**: verificación visual en 1440/1024/768 queda para el smoke
+  de polish-10 (necesita el dev server + browser).
 
 ---
 
