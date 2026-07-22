@@ -610,7 +610,7 @@ Copy sugerido en lugar de "X incorrectas":
 
 ---
 
-## TASK polish-07 · Ítems condicionales en drawer "Más" mobile · `[ ]`
+## TASK polish-07 · Ítems condicionales en drawer "Más" mobile · `[x]`
 
 Al agregar "Eventos" al sidebar desktop (TASK 04), verificar que el drawer "Más" mobile:
 - **Mantenga** Eventos (para consistencia · aunque en desktop está en sidebar)
@@ -619,8 +619,20 @@ Al agregar "Eventos" al sidebar desktop (TASK 04), verificar que el drawer "Más
 - Logout siempre al bottom con divider
 
 ### Criterios
-- [ ] Drawer mobile con lista completa por rol
-- [ ] Commit: `fix(polish): mobile drawer includes all role-appropriate items`
+- [x] Drawer mobile con lista completa por rol
+- [x] Commit: `fix(polish): mobile drawer includes all role-appropriate items`
+
+**Notas de implementación:**
+- El `MoreDrawer.tsx` **ya cumplía** todos los criterios (venía de un polish
+  anterior): Eventos (live) siempre; Mi equipo gateado por `showTeam(user)`
+  (manager + `reports_count>0`); Modo admin (`/admin/org`) para admin/superadmin;
+  Editar mi información; y Cerrar sesión al fondo con `mt-auto border-t`
+  (divider). No hizo falta cambiar el componente.
+- Se agregó cobertura que faltaba: `nav/__tests__/MoreDrawer.test.tsx` (5 tests
+  mockeando `useAuthStore`): closed → null, collaborator (sin team/admin),
+  manager con/sin reportes (team condicional), admin (Modo admin). Verifica que
+  el drawer queda consistente con el sidebar desktop de polish-04.
+- `eslint` limpio · 5/5 verdes.
 
 ---
 
