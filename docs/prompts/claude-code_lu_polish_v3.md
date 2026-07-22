@@ -697,7 +697,7 @@ Sirve como referencia para el coach cuando cree units nuevas.
 
 ---
 
-## TASK polish-10 · Tests + smoke + screenshots · `[ ]`
+## TASK polish-10 · Tests + smoke + screenshots · `[x]` (screenshots N/A — ver nota)
 
 - Tests: markdown rendering, animation reduced-motion fallback, sidebar sticky
 - Smoke manual:
@@ -718,28 +718,59 @@ Sirve como referencia para el coach cuando cree units nuevas.
   - `08-assessment-back-button.png`
 
 ### Criterios
-- [ ] Tests + typecheck + lint verdes
-- [ ] 8 screenshots
-- [ ] Cross-browser Safari iOS + Chrome Android + Chrome desktop
-- [ ] Commit: `test(polish): tests + 8 screenshots + a11y verification`
+- [x] Tests + typecheck + lint verdes
+- [ ] 8 screenshots (N/A — sin herramienta de browser automation, ver nota)
+- [~] Cross-browser (solo build; Safari iOS + Chrome Android no verificables acá)
+- [x] Commit: `test(polish): full suite green + production build smoke`
+
+**Notas de implementación:**
+- **Tests + typecheck + lint verdes**: frontend `pnpm test` = **138/138** (30
+  files, incluye los nuevos de este batch: VideoBlockView overlay, MarkdownBody,
+  nav items, MoreDrawer, TraditionalForm back button); `tsc --noEmit` limpio;
+  `next lint` = "No ESLint warnings or errors". Backend: `test_text_block_html_
+  warning.py` 11/11 + `ruff`/`mypy` limpios.
+- **Smoke = `next build` de producción** (el más fuerte disponible sin browser):
+  compila y prerenderiza TODAS las rutas cambiadas sin errores —
+  `/modulos/[slug]` (video portal + markdown + quiz), `/onboarding/session/[id]`
+  (back button), `/path`, `/home`/`/eventos` (sidebar). Confirma que el
+  `createPortal` es SSR-safe, que `react-markdown` compila, y que el layout del
+  sidebar y el assessment prerenderean OK.
+- **8 screenshots — NO capturados**: este entorno no tiene Playwright/Puppeteer
+  ni un tool de browser automation, y la regla dura sólo permite
+  `react-markdown`+`remark-gfm` como deps nuevas (instalar Playwright + bajar un
+  browser la violaría). No se fabrican screenshots. Chrome.app existe pero sin
+  un harness CDP no hay captura reproducible acá.
+- **Cross-browser**: Chrome desktop cubierto por el build + los unit tests
+  (jsdom). **Safari iOS y Chrome Android reales NO verificables** (sin devices
+  ni simuladores) — mismo disclaimer honesto que polish-01/B-02. El overlay de
+  video (polish-01) justamente reduce la dependencia del fullscreen nativo de
+  iOS, bajando el riesgo cross-browser.
+- Los smokes visuales pendientes de otras tasks (sidebar 1440/1024/768,
+  completion card 100/50/0%, markdown preview del seed) requieren el mismo
+  browser automation faltante — quedan documentados como pendientes de una
+  corrida manual de Andrés o de un entorno con Playwright.
 
 ---
 
 # 🎯 Criterios globales
 
-- [ ] 10 TASKs commiteadas
-- [ ] Video mobile/desktop responsive con overlay
-- [ ] Markdown en text_blocks · estilos DS v2
-- [ ] Animaciones sutiles + icons por variant
-- [ ] Sidebar sticky · items por rol correctos · Eventos en desktop
-- [ ] Assessment con back button
-- [ ] Completion card sin rojos
-- [ ] Tests + 8 screenshots
-- [ ] PR contra `main`
+- [x] 10 TASKs commiteadas
+- [x] Video mobile/desktop responsive con overlay
+- [x] Markdown en text_blocks · estilos DS v2
+- [x] Animaciones sutiles + icons por variant
+- [x] Sidebar sticky · items por rol correctos · Eventos en desktop
+- [x] Assessment con back button
+- [x] Completion card sin rojos
+- [x] Tests verdes (138 front + backend) · `next build` OK · [~] 8 screenshots N/A (ver polish-10)
+- [ ] PR contra `main` (rama `feat/lu-polish-v3` lista, sin push todavía)
 
 # 📤 Entrega
 
-- SHA + PR
-- 8 screenshots
-- Guía de templates actualizada con sintaxis markdown
-- Nota cross-browser mobile
+- Rama `feat/lu-polish-v3` · 10 commits (`fix/feat/chore(polish): ...`), 1 por TASK
+- Screenshots: **N/A en este entorno** (sin browser automation — ver polish-10)
+- Guía de templates actualizada con sintaxis markdown (`HG/Docs/…` §4.9 +
+  nota tracked en `docs/learning-units/create-unit-via-api.md`)
+- Nota cross-browser: Chrome desktop (build + tests jsdom) OK · Safari iOS +
+  Chrome Android reales NO verificables acá (documentado)
+- Verificación: `pnpm test` 138/138 · `tsc` limpio · `next lint` limpio ·
+  `next build` (producción) OK · backend `ruff`/`mypy`/tests limpios
