@@ -1,10 +1,12 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { type TargetAndTransition, motion } from "framer-motion";
+import { Check, Sparkles } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import type {
   QuizBlock,
   QuizQuestion,
@@ -13,6 +15,28 @@ import type {
   QuizSubmitResult,
 } from "@/lib/types";
 import { isValidUuid } from "@/lib/utils";
+
+/** Feedback visual al corregir (TASK polish-03): pulse verde si la respuesta
+ * fue correcta, shake horizontal si fue incorrecta. Respeta reduced motion. */
+function AnimatedQuestion({
+  result,
+  animate,
+  children,
+}: {
+  result: QuizSubmitResult | undefined;
+  animate: boolean;
+  children: React.ReactNode;
+}) {
+  const target: TargetAndTransition = React.useMemo(() => {
+    if (!animate || !result) return {};
+    return result.is_correct ? { scale: [1, 1.03, 1] } : { x: [0, -8, 8, -8, 8, 0] };
+  }, [animate, result]);
+  return (
+    <motion.div animate={target} transition={{ duration: 0.4, ease: "easeInOut" }}>
+      {children}
+    </motion.div>
+  );
+}
 
 import { QuizFillBlank } from "./quiz/QuizFillBlank";
 import { QuizMatching } from "./quiz/QuizMatching";
@@ -103,6 +127,7 @@ export function QuizBlockView({
   isCompleted: boolean;
   onSubmitQuiz: (responses: QuizSubmitPayload[]) => Promise<QuizSubmitResponse>;
 }) {
+  const shouldAnimate = useShouldAnimate();
   const [answers, setAnswers] = React.useState<Record<string, AnswerValue>>(() =>
     Object.fromEntries(block.questions.map((q) => [q.id, initialAnswer(q)])),
   );
@@ -143,17 +168,20 @@ export function QuizBlockView({
 
   return (
     <div className="flex flex-col gap-6">
-      <Eyebrow accent>{block.eyebrow}</Eyebrow>
+      <div className="flex items-center gap-2 text-hg-amber">
+        <Sparkles size={16} strokeWidth={2} aria-hidden />
+        <Eyebrow accent>{block.eyebrow}</Eyebrow>
+      </div>
       {block.questions.map((q) => {
         const result = results?.[q.id];
         const value = answers[q.id];
         const setValue = (v: AnswerValue) => setAnswers((prev) => ({ ...prev, [q.id]: v }));
 
+        let questionEl: React.ReactNode;
         switch (q.question_type) {
           case "single_choice":
-            return (
+            questionEl = (
               <QuizSingleChoice
-                key={q.id}
                 question={q}
                 value={value as string}
                 onChange={setValue}
@@ -161,10 +189,10 @@ export function QuizBlockView({
                 disabled={disabled}
               />
             );
+            break;
           case "multiple_choice":
-            return (
+            questionEl = (
               <QuizMultipleChoice
-                key={q.id}
                 question={q}
                 value={value as string[]}
                 onChange={setValue}
@@ -172,10 +200,10 @@ export function QuizBlockView({
                 disabled={disabled}
               />
             );
+            break;
           case "true_false":
-            return (
+            questionEl = (
               <QuizTrueFalse
-                key={q.id}
                 question={q}
                 value={value as boolean}
                 onChange={setValue}
@@ -183,10 +211,10 @@ export function QuizBlockView({
                 disabled={disabled}
               />
             );
+            break;
           case "ordering":
-            return (
+            questionEl = (
               <QuizOrdering
-                key={q.id}
                 question={q}
                 value={value as string[]}
                 onChange={setValue}
@@ -194,10 +222,10 @@ export function QuizBlockView({
                 disabled={disabled}
               />
             );
+            break;
           case "matching":
-            return (
+            questionEl = (
               <QuizMatching
-                key={q.id}
                 question={q}
                 value={value as [string, string][]}
                 onChange={setValue}
@@ -205,10 +233,10 @@ export function QuizBlockView({
                 disabled={disabled}
               />
             );
+            break;
           case "fill_blank":
-            return (
+            questionEl = (
               <QuizFillBlank
-                key={q.id}
                 question={q}
                 value={value as string[]}
                 onChange={setValue}
@@ -216,7 +244,14 @@ export function QuizBlockView({
                 disabled={disabled}
               />
             );
+            break;
         }
+
+        return (
+          <AnimatedQuestion key={q.id} result={result} animate={shouldAnimate}>
+            {questionEl}
+          </AnimatedQuestion>
+        );
       })}
 
       {!results && (

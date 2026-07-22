@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ExternalLink } from "lucide-react";
+import { BookOpen, ExternalLink, Lightbulb, MessageCircle, type LucideIcon } from "lucide-react";
 import * as React from "react";
 
 import { MarkdownBody } from "@/components/modulos/blocks/MarkdownBody";
@@ -23,6 +23,13 @@ const EYEBROW_COLOR: Record<TextBlock["variant"], string> = {
   context: "text-fg-muted",
   evidence: "text-hg-amber",
   solution: "text-primary",
+};
+
+/** Icono lateral por variante (TASK polish-03) — situación / evidencia / acción. */
+const VARIANT_ICON: Record<TextBlock["variant"], LucideIcon> = {
+  context: MessageCircle,
+  evidence: BookOpen,
+  solution: Lightbulb,
 };
 
 const AUTO_COMPLETE_MS = 3000;
@@ -54,16 +61,16 @@ export function TextBlockView({
 
   const isValidUrl = block.citation && /^https?:\/\//.test(block.citation.doi_or_url);
 
+  const Icon = VARIANT_ICON[block.variant];
+
   const content = (
     <div className="flex flex-col gap-3">
-      <p
-        className={cn(
-          "font-sans text-micro font-semibold uppercase tracking-meta",
-          EYEBROW_COLOR[block.variant],
-        )}
-      >
-        {block.eyebrow}
-      </p>
+      <div className={cn("flex items-center gap-1.5", EYEBROW_COLOR[block.variant])}>
+        <Icon size={14} strokeWidth={2} aria-hidden />
+        <span className="font-sans text-micro font-semibold uppercase tracking-meta">
+          {block.eyebrow}
+        </span>
+      </div>
       <MarkdownBody>{block.body}</MarkdownBody>
       {block.citation && (
         <div className="mt-2 flex flex-col gap-2 rounded-md border border-border bg-bg-sunken p-4">

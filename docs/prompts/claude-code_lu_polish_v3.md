@@ -318,7 +318,7 @@ Los coach pueden usar en el `body` de cualquier text_block:
 
 ---
 
-## TASK polish-03 · Animaciones sutiles + elementos visuales en templates · `[ ]`
+## TASK polish-03 · Animaciones sutiles + elementos visuales en templates · `[x]`
 
 Sumar micro-animaciones a los blocks para dar más "vida":
 
@@ -350,12 +350,37 @@ Sumar micro-animaciones a los blocks para dar más "vida":
 - Al iniciar play: fade out del overlay
 
 ### Criterios
-- [ ] Cada text variant con icon lateral distintivo
-- [ ] Quiz feedback con pulse/shake apropiado
-- [ ] Reflection focus/submit con feedback visual
-- [ ] Video overlay con play pulse
-- [ ] Reduced motion respetado (sin transforms cuando aplica)
-- [ ] Commit: `feat(polish): personality micro-animations + iconography per block variant`
+- [x] Cada text variant con icon lateral distintivo
+- [x] Quiz feedback con pulse/shake apropiado
+- [x] Reflection focus/submit con feedback visual
+- [~] Video overlay con play pulse (ver nota — no aplica con controles nativos)
+- [x] Reduced motion respetado (sin transforms cuando aplica)
+- [x] Commit: `feat(polish): personality micro-animations + iconography per block variant`
+
+**Notas de implementación:**
+- **Text**: icono lateral por variante (`MessageCircle`/`BookOpen`/`Lightbulb`)
+  junto al eyebrow, en el color de la variante. El `whileHover` en las negritas
+  del sketch se omitió (las negritas viven dentro de `MarkdownBody` — meter
+  motion por cada `<strong>` era ruido; el icono es el diferenciador principal).
+- **Quiz**: cada pregunta envuelta en `AnimatedQuestion` (framer): pulse
+  `scale:[1,1.03,1]` si `result.is_correct`, shake `x:[0,-8,8,-8,8,0]` si no —
+  disparado cuando llega el `result` del submit. Icono `Sparkles` ámbar junto
+  al eyebrow del quiz. Se movió el `key` del child al wrapper (React key en el
+  `AnimatedQuestion`). El "explanation slide-down" del sketch NO se tocó: las
+  explicaciones se renderizan dentro de los 6 componentes hijos de quiz
+  (`QuizSingleChoice`, etc.) — animarlas era tocar 6 archivos por un detalle
+  menor; el pulse/shake a nivel pregunta ya da el feedback correcto/incorrecto.
+- **Reflection**: focus ring pasa de ámbar a `primary/50` con glow suave
+  (`transition-shadow`); barra de progreso que se llena hacia `min_chars`
+  (ámbar → verde `bg-success` al alcanzar el mínimo); check de "Guardado" con
+  spring scale-in al completar.
+- **Video (D)**: "poster con overlay + play pulse" NO aplica — polish-01 dejó
+  el `<video>` con **controles nativos** (sin poster-overlay custom); meter un
+  overlay de play encima chocaría con el botón nativo. Documentado como
+  no-aplicable dado el approach de polish-01.
+- Todo gateado por `useShouldAnimate()` (reduced motion → sin transforms:
+  quiz `target={}`, reflection `initial={false}`).
+- Verificado: `tsc` + `eslint` limpios · 23/23 tests de `modulos` verdes.
 
 ---
 
