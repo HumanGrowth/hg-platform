@@ -559,7 +559,7 @@ Agregar en cada pregunta del assessment:
 
 ---
 
-## TASK polish-06 · UnitCompletionCard · cambiar rojos por verdes/primary · `[ ]`
+## TASK polish-06 · UnitCompletionCard · cambiar rojos por verdes/primary · `[x]`
 
 ### Investigación
 
@@ -582,10 +582,31 @@ Copy sugerido en lugar de "X incorrectas":
 - Barra de progreso verde llena hasta el % correctas
 
 ### Criterios
-- [ ] Cero refs a `text-danger`/`bg-danger` en UnitCompletionCard y sub-componentes que aparezcan al completar
-- [ ] Copy positivo (no resaltar incorrectas)
-- [ ] Verificar visualmente con quiz 100% correct, 50% correct, 0% correct
-- [ ] Commit: `fix(polish): remove confusing red elements from UnitCompletionCard`
+- [x] Cero refs a `text-danger`/`bg-danger` en UnitCompletionCard y sub-componentes que aparezcan al completar
+- [x] Copy positivo (no resaltar incorrectas)
+- [~] Verificar visualmente con quiz 100%/50%/0% (smoke — polish-10)
+- [x] Commit: `fix(polish): remove confusing red elements from UnitCompletionCard`
+
+**Notas de implementación:**
+- **El `UnitCompletionCard` ya no tenía reds** (grep vacío) y el contador de
+  quiz ya era neutro. Los rojos "confusos al completar" estaban en el **feedback
+  de las preguntas de quiz** (los 5 componentes hijos: `QuizSingleChoice`,
+  `QuizMultipleChoice`, `QuizTrueFalse`, `QuizOrdering`, `QuizFillBlank`), que
+  pintaban la elección incorrecta con `border-danger bg-danger-bg text-danger`.
+- **Fix**: la elección incorrecta pasa a un neutro (`border-border-strong
+  bg-bg-sunken text-fg-muted`) — sólo se resalta la **correcta en verde**
+  (`border-success`). El ícono `X` de la elección propia se conserva (en muted,
+  no rojo) para que el usuario sepa qué eligió, sin la carga punitiva del rojo.
+  Esto implementa "sin resaltar incorrectas · no penalizar visualmente".
+- **Completion card**: el resumen del quiz ahora es explícitamente positivo y
+  verde — "Respondiste bien X de Y" (`text-success`) + **barra de progreso
+  verde** al `%` correcto (reemplaza el "X/Y correctas" muted inline).
+- **Se preservó el rojo del mensaje de ERROR de red** en `QuizBlockView` ("No
+  pudimos enviar tus respuestas") — es un error real, no feedback de quiz, y
+  sólo aparece ante un fallo, no al completar. `text-danger` ahí es correcto.
+- Verificado: grep confirma 0 `*-danger` en completion card + feedback de quiz
+  (excepto el error de red) · `tsc` + `eslint` limpios · 23/23 tests de
+  `modulos` verdes. Verificación visual con 100/50/0% queda para polish-10.
 
 ---
 

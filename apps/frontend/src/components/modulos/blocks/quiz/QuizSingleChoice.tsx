@@ -40,7 +40,9 @@ export function QuizSingleChoice({
                   ? isCorrectOpt
                     ? "border-success bg-success-bg text-success"
                     : isWrongPick
-                      ? "border-danger bg-danger-bg text-danger"
+                      ? // TASK polish-06: la elección incorrecta se muestra neutra
+                        // (no roja/punitiva) — sólo se resalta la correcta en verde.
+                        "border-border-strong bg-bg-sunken text-fg-muted"
                       : "border-border text-fg-muted"
                   : selected
                     ? "border-primary bg-hg-green-100 text-primary"

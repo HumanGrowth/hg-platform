@@ -41,7 +41,8 @@ export function QuizTrueFalse({
                 "rounded-md border px-4 py-6 text-center font-sans text-base font-semibold transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber disabled:cursor-default",
                 state === "correct" && "border-success bg-success-bg text-success",
-                state === "wrong" && "border-danger bg-danger-bg text-danger",
+                // TASK polish-06: incorrecta en neutro, no rojo.
+                state === "wrong" && "border-border-strong bg-bg-sunken text-fg-muted",
                 state === "selected" && "border-primary bg-hg-green-100 text-primary",
                 state === "idle" && "border-border text-fg hover:bg-bg-sunken",
               )}
