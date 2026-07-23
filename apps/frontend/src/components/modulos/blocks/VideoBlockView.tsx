@@ -37,6 +37,14 @@ export function VideoBlockView({
   // Escape cierra el overlay + lock del scroll del body mientras está abierto.
   React.useEffect(() => {
     if (!isFullscreen) return;
+
+    // Si el viewport deja de ser mobile (resize/rotate), cerramos para evitar
+    // quedar con scroll-lock sin overlay visible.
+    if (!isMobile) {
+      setIsFullscreen(false);
+      return;
+    }
+
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setIsFullscreen(false);
     }
@@ -47,7 +55,7 @@ export function VideoBlockView({
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKey);
     };
-  }, [isFullscreen]);
+  }, [isFullscreen, isMobile]);
 
   async function complete() {
     if (isCompleted) return;
