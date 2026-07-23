@@ -324,6 +324,16 @@ def upload_mp4_to_r2(local_path: Path, slug: str, vid_num: int) -> str:
     return upload_file(local_path, key, _VIDEO_MIME)
 
 
+def existing_r2_url(slug: str, vid_num: int) -> str:
+    """URL pública del MP4 YA subido a R2 (misma key que ``upload_mp4_to_r2``),
+    sin subir nada. Para ``--skip-upload`` (poblar una DB nueva cuando los
+    videos ya están en R2 — p.ej. prod). Reusa `_public_url` de storage para
+    que la URL sea byte-idéntica a la que persistió el upload original."""
+    from hg.core.storage import _public_url
+
+    return _public_url(f"{R2_KEY_PREFIX}/{slug}/VID{vid_num}.mp4")
+
+
 # ─────────────────────────── Fuente de folders (Drive / local) ───────────────────────────
 
 
@@ -564,19 +574,25 @@ def _process_folder(
         log.info("  [DRY RUN] no se sube a R2 ni se escribe en DB")
         return
 
-    # 1. Descargar (si Drive) + subir MP4 a R2. Un fallo acá (download de Drive
-    #    o upload a R2) no debe abortar el lote — se saltea el folder.
-    try:
-        with tempfile.TemporaryDirectory(prefix=f"lu_{slug}_") as tmp:
-            mp4_paths = folder.mp4_paths(Path(tmp))
-            video_urls = [
-                upload_mp4_to_r2(path, slug, i) for i, path in enumerate(mp4_paths, start=1)
-            ]
-    except Exception as exc:
-        hint = _drive_error_hint(exc)
-        log.error("  %s: fallo al descargar/subir videos: %s — se saltea", slug, hint or exc)
-        stats.failed += 1
-        return
+    # 1. URLs de los videos en R2. Con --skip-upload (los MP4 ya están subidos,
+    #    p.ej. poblar la DB de prod) se reusan las URLs deterministas sin
+    #    descargar de Drive ni re-subir a R2 — sólo se hace el upsert.
+    if args.skip_upload:
+        video_urls = [existing_r2_url(slug, i) for i in range(1, folder.mp4_count + 1)]
+    else:
+        # Descargar (si Drive) + subir MP4 a R2. Un fallo acá (download de Drive
+        # o upload a R2) no debe abortar el lote — se saltea el folder.
+        try:
+            with tempfile.TemporaryDirectory(prefix=f"lu_{slug}_") as tmp:
+                mp4_paths = folder.mp4_paths(Path(tmp))
+                video_urls = [
+                    upload_mp4_to_r2(path, slug, i) for i, path in enumerate(mp4_paths, start=1)
+                ]
+        except Exception as exc:
+            hint = _drive_error_hint(exc)
+            log.error("  %s: fallo al descargar/subir videos: %s — se saltea", slug, hint or exc)
+            stats.failed += 1
+            return
 
     # 2. Armar dict + upsert + publish (resiliente).
     unit_dict = assemble_unit_dict(unit_json, video_urls)
@@ -649,6 +665,10 @@ def main() -> None:
                         help="no usar Drive API (implica modo carpeta local, default cwd)")
     parser.add_argument("--no-publish", action="store_true",
                         help="crear las units como borrador sin intentar publicarlas")
+    parser.add_argument("--skip-upload", action="store_true",
+                        help="no descarga de Drive ni sube a R2; reusa las URLs de R2 ya "
+                             "subidas (para poblar una DB nueva, p.ej. prod, con los videos "
+                             "ya presentes en R2)")
     run(parser.parse_args())
 
 
