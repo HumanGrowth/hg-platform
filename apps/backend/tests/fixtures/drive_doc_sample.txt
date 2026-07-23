@@ -1,0 +1,74 @@
+CP-L1-P2-002 — Propósito diario
+
+Documento de contenido · Jorge Araya · v2
+
+Este es el texto tal como lo exporta Google Docs a texto plano: la prosa de
+arriba y de abajo NO es parte del JSON, y el bloque JSON viene con los escapes
+de markdown que Docs mete sobre los guiones bajos y corchetes (\_, \[, \]).
+
+{
+  "slug": "hg-p2-l1-002-proposito-diario",
+  "title": "Propósito diario",
+  "pillar_code": "P2",
+  "competency_code": "C2",
+  "level_code": "L1",
+  "mentor_name": "Jorge",
+  "estimated_duration_seconds": 240,
+  "blocks": [
+    {
+      "type": "text_context",
+      "required": true,
+      "body": "Arrancás el día abriendo el mail y ya estás reaccionando a lo urgente \[1\]. A las 6 de la tarde no sabés bien en qué se te fue el día."
+    },
+    {
+      "type": "text_evidence",
+      "required": true,
+      "body": "Definir una intención concreta antes de empezar (implementation\_intentions) aumenta la probabilidad de completar la tarea clave del día \[1\].",
+      "citation": {
+        "text": "Gollwitzer & Sheeran (2006)",
+        "source": "Advances in Experimental Social Psychology",
+        "year": 2006,
+        "doi_or_url": "https://doi.org/10.1016/S0065-2601(06)38002-1",
+        "tier": "meta_analysis"
+      }
+    },
+    {
+      "type": "text_solution",
+      "required": true,
+      "body": "Antes de abrir el mail, escribí en una línea: 'Hoy el día sale bien si logro \_\_\_'. Una sola cosa, concreta.",
+      "applies_to": ["P2"],
+      "requires_evidence_position": 2
+    },
+    {
+      "type": "quiz_recall",
+      "required": true,
+      "questions": [
+        {
+          "type": "single_choice",
+          "prompt": "¿Cuándo conviene definir la intención del día? \[2\]",
+          "options": [
+            { "text": "Antes de abrir el mail.", "is_correct": true, "explanation": "Correcto: la intención guía la reacción, no al revés." },
+            { "text": "Al final del día.", "is_correct": false, "explanation": "Tarde: el día ya se te fue en lo urgente." }
+          ]
+        },
+        {
+          "type": "true_false",
+          "prompt": "Definir una intención concreta es lo mismo que armar una lista de 10 tareas.",
+          "correct_answer": false,
+          "explanation_true": "No: la evidencia es sobre una intención única y concreta, no un backlog.",
+          "explanation_false": "Correcto: es una sola cosa concreta, no una lista larga."
+        }
+      ]
+    },
+    {
+      "type": "reflection_write",
+      "required": true,
+      "prompt": "Escribí la intención de mañana en una sola línea, empezando por 'Mañana el día sale bien si logro...'.",
+      "min_chars": 30,
+      "max_chars": 500,
+      "example": "Mañana el día sale bien si logro cerrar el informe antes del mediodía sin abrir Slack."
+    }
+  ]
+}
+
+FIN — cualquier texto después del JSON debe ser ignorado por el parser.

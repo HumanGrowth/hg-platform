@@ -46,7 +46,8 @@ export function QuizMultipleChoice({
                   ? isCorrectOpt
                     ? "border-success bg-success-bg text-success"
                     : isWrongPick
-                      ? "border-danger bg-danger-bg text-danger"
+                      ? // TASK polish-06: incorrecta en neutro, no rojo.
+                        "border-border-strong bg-bg-sunken text-fg-muted"
                       : "border-border text-fg-muted"
                   : selected
                     ? "border-primary bg-hg-green-100 text-primary"

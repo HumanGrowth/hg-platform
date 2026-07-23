@@ -39,7 +39,11 @@ export function QuizOrdering({
             key={id}
             className={cn(
               "flex items-center gap-3 rounded-md border border-border px-4 py-3 font-sans text-sm text-fg",
-              result && (result.is_correct ? "border-success bg-success-bg" : "border-danger bg-danger-bg"),
+              // TASK polish-06: orden incorrecto en neutro, no rojo.
+              result &&
+                (result.is_correct
+                  ? "border-success bg-success-bg"
+                  : "border-border-strong bg-bg-sunken"),
             )}
           >
             <span className="font-mono text-xs text-fg-muted">{index + 1}</span>

@@ -15,6 +15,9 @@ Thumbs.db
 .env.*
 !.env.example
 docs/dev-credentials.md
+.secrets/
+service_account*.json
+*-sa.json
 
 # ─── Python ───
 __pycache__/

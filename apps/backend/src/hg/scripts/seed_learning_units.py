@@ -30,10 +30,12 @@ queda documentada en ``eyebrow_label``, para que el script de upload a R2
 no hay forma de leer la duración real de un MP4 sin una dependencia nueva
 (ffprobe/moviepy), fuera de alcance (regla dura: sin deps nuevas).
 
-Reusa ``create_unit``/``create_block``/``publish_unit`` de
-``admin_router.py`` como callables Python planos (mismo patrón que Fase 1
-A-09) — garantiza que las 3 units pasan la misma validación de publish que
-la API real.
+El armado dict → DB lo hace ``hg.modules.learning_units.services``
+(``upsert_unit_from_dict``, compartido con el bulk import de A-11) — reusa
+``create_unit``/``create_block``/``publish_unit`` de ``admin_router.py`` como
+callables planos, así que las 3 units pasan la misma validación de publish que
+la API real. Este script sólo aporta el contenido (JSON real + 2 generadas) y
+la inyección de los video placeholders.
 
 Idempotente: si el slug ya existe, se borra la unit entera (CASCADE se
 lleva los bloques) y se recrea desde cero.
@@ -44,38 +46,21 @@ import json
 import logging
 import os
 import re
-import uuid
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from hg.db import SessionLocal
-from hg.modules.identity.models import User
 from hg.modules.learning.models import CareerPath, Event
-from hg.modules.learning_units.admin_router import create_block, create_unit, publish_unit
-from hg.modules.learning_units.models import LearningUnit
-from hg.modules.learning_units.schemas import (
-    LearningUnitCreate,
-    QuizBlockCreate,
-    QuizOptionCreate,
-    QuizQuestionCreateUnion,
-    QuizQuestionMultipleChoiceCreate,
-    QuizQuestionSingleChoiceCreate,
-    QuizQuestionTrueFalseCreate,
-    ReflectionBlockCreate,
-    TextBlockCreate,
-    VideoBlockCreate,
+from hg.modules.learning_units.services import (
+    delete_unit_if_exists,
+    splice_blocks,
+    upsert_unit_from_dict,
 )
 
 log = logging.getLogger("hg.seed_learning_units")
-
-# Los endpoints admin exigen `_: User = Depends(require_role("superadmin"))`
-# como parámetro de autorización; al llamarlos directo (bypass de FastAPI DI)
-# no hay un User real en manos del script. `cast` en vez de `None` satisface
-# mypy sin tocar la firma de admin_router.py — es un no-op en runtime.
-_SEED_ACTOR = cast(User, None)
 
 GENERATED_TAG = "[GENERADO POR CLAUDE · Andrés valida]"
 PLACEHOLDER_VIDEO_TAG = "[PLACEHOLDER · Andrés reemplaza]"
@@ -361,11 +346,18 @@ _UNIT_2_FEEDBACK_DIRECTO: dict[str, Any] = {
         {
             "type": "text_evidence",
             "required": True,
+            # TASK polish-09: ejemplo vivo de markdown en un text_evidence
+            # (negrita, cursiva, ==resaltado==, cita y lista) — referencia para
+            # el coach al crear units nuevas. Ver HG_Guia_Diseno §4.9.
             "body": (
-                f"{GENERATED_TAG} Amy Edmondson (Harvard, 1999) mostró que los equipos con más "
-                "seguridad psicológica reportan MÁS errores — no menos. La seguridad hace "
-                "visible el problema, no lo elimina; por eso dar feedback rápido es más seguro "
-                "de lo que se siente."
+                f"{GENERATED_TAG} Amy Edmondson (Harvard, 1999) mostró que los equipos con "
+                "**más seguridad psicológica** reportan *más* errores — no menos. La seguridad "
+                "hace ==visible el problema==, no lo elimina.\n\n"
+                "> Dar feedback rápido es más seguro de lo que se siente.\n\n"
+                "El patrón aplica a:\n\n"
+                "- Equipos de producto\n"
+                "- Equipos de salud\n"
+                "- Equipos de manufactura"
             ),
             "citation": {
                 "text": "Edmondson, Administrative Science Quarterly (1999)",
@@ -502,128 +494,30 @@ _UNIT_3_MICRO_DESCANSOS: dict[str, Any] = {
 }
 
 
-# ─────────────────────────── Traducción JSON → schemas admin ───────────────────────────
-
-
-def _translate_question(q: dict[str, Any]) -> QuizQuestionCreateUnion:
-    qtype = q["type"]
-    if qtype == "single_choice":
-        return QuizQuestionSingleChoiceCreate(
-            question_type="single_choice",
-            prompt=q["prompt"],
-            options=[QuizOptionCreate(**o) for o in q["options"]],
-        )
-    if qtype == "multiple_choice":
-        return QuizQuestionMultipleChoiceCreate(
-            question_type="multiple_choice",
-            prompt=q["prompt"],
-            options=[QuizOptionCreate(**o) for o in q["options"]],
-            scoring=q.get("scoring", "partial"),
-        )
-    if qtype == "true_false":
-        return QuizQuestionTrueFalseCreate(
-            question_type="true_false",
-            prompt=q["prompt"],
-            correct_answer=q["correct_answer"],
-            explanation_true=q["explanation_true"],
-            explanation_false=q["explanation_false"],
-        )
-    raise ValueError(f"tipo de pregunta no soportado en el JSON de seed: {qtype!r}")
-
-
-def _delete_if_exists(db: Session, slug: str) -> None:
-    existing = db.scalar(select(LearningUnit).where(LearningUnit.slug == slug))
-    if existing is not None:
-        db.delete(existing)
-        db.flush()
+# ─────────────────────────── Armado de la unit (delega en services) ───────────────────────────
 
 
 def _seed_unit(db: Session, spec: dict[str, Any], content_dir: Path | None) -> None:
-    slug = spec["slug"]
-    _delete_if_exists(db, slug)
+    """Inyecta los video placeholders en el spec y delega el armado dict → DB en
+    ``upsert_unit_from_dict``.
 
-    unit = create_unit(
-        body=LearningUnitCreate(
-            slug=slug,
-            title=spec["title"],
-            pillar_code=spec["pillar_code"],
-            competency_code=spec.get("competency_code"),
-            level_code=spec["level_code"],
-            estimated_duration_seconds=spec.get("estimated_duration_seconds"),
-        ),
-        db=db, _=_SEED_ACTOR,
-    )
-
+    Composición (regla A-04): el/los video_teaching van **después** del
+    ``text_context`` si existe, si no primero. ``splice_blocks`` corrige de paso
+    los ``requires_evidence_position`` que quedan corridos por la inyección.
+    """
     json_blocks: list[dict[str, Any]] = spec["blocks"]
-    video_specs = _build_video_specs(db, content_dir, slug, spec["pillar_code"])
-    # Composición: video_teaching va después de text_context si existe, sino primero.
-    video_insert_at = 1 if json_blocks and json_blocks[0]["type"] == "text_context" else 0
+    video_specs = _build_video_specs(db, content_dir, spec["slug"], spec["pillar_code"])
+    video_blocks = [
+        {"type": "video_teaching", "required": True, **vspec} for vspec in video_specs
+    ]
+    insert_at = 1 if json_blocks and json_blocks[0]["type"] == "text_context" else 0
+    blocks = splice_blocks(json_blocks, video_blocks, insert_at)
 
-    # position 1-indexed en json_blocks -> unit_block id devuelto (para
-    # resolver requires_evidence_position -> requires_evidence_block_id).
-    evidence_ids_by_json_position: dict[int, uuid.UUID] = {}
-
-    position = 1
-    for json_pos, b in enumerate(json_blocks, start=1):
-        if json_pos - 1 == video_insert_at:
-            for vspec in video_specs:
-                create_block(
-                    unit.id,
-                    VideoBlockCreate(block_type="video_teaching", position=position, required=True, **vspec),
-                    db=db, _=_SEED_ACTOR,
-                )
-                position += 1
-
-        btype = b["type"]
-        if btype == "text_context":
-            create_block(unit.id, TextBlockCreate(
-                block_type="text_context", position=position, variant="context",
-                eyebrow="SITUACIÓN", body=b["body"], required=b.get("required", True),
-            ), db=db, _=_SEED_ACTOR)
-        elif btype == "text_evidence":
-            created = create_block(unit.id, TextBlockCreate(
-                block_type="text_evidence", position=position, variant="evidence",
-                eyebrow="EVIDENCIA", body=b["body"], citation=b["citation"],
-                required=b.get("required", True),
-            ), db=db, _=_SEED_ACTOR)
-            evidence_ids_by_json_position[json_pos] = created.id
-        elif btype == "text_solution":
-            evidence_pos = b.get("requires_evidence_position")
-            evidence_id = evidence_ids_by_json_position.get(evidence_pos) if evidence_pos else None
-            create_block(unit.id, TextBlockCreate(
-                block_type="text_solution", position=position, variant="solution",
-                eyebrow="PROBÁ ESTO", body=b["body"], applies_to=b.get("applies_to"),
-                requires_evidence_block_id=evidence_id, required=b.get("required", True),
-            ), db=db, _=_SEED_ACTOR)
-        elif btype == "quiz_recall":
-            create_block(unit.id, QuizBlockCreate(
-                block_type="quiz_recall", position=position, required=b.get("required", True),
-                questions=[_translate_question(q) for q in b["questions"]],
-            ), db=db, _=_SEED_ACTOR)
-        elif btype == "reflection_write":
-            create_block(unit.id, ReflectionBlockCreate(
-                block_type="reflection_write", position=position, required=b.get("required", True),
-                prompt=b["prompt"], min_chars=b["min_chars"], max_chars=b["max_chars"],
-                example=b.get("example"),
-            ), db=db, _=_SEED_ACTOR)
-        else:
-            raise ValueError(f"tipo de bloque no soportado en el JSON de seed: {btype!r}")
-        position += 1
-
-    if video_insert_at >= len(json_blocks):
-        for vspec in video_specs:
-            create_block(
-                unit.id,
-                VideoBlockCreate(block_type="video_teaching", position=position, required=True, **vspec),
-                db=db, _=_SEED_ACTOR,
-            )
-            position += 1
-
-    publish_unit(unit.id, db=db, _=_SEED_ACTOR)
+    upsert_unit_from_dict(db, {**spec, "blocks": blocks}, publish=True)
 
 
 # Slugs de las 3 units placeholder de Fase 1 (A-09) — naming distinto al
-# de este script (`pX-cY-lZ-...` vs `hg-pX-lY-...`), así que `_delete_if_exists`
+# de este script (`pX-cY-lZ-...` vs `hg-pX-lY-...`), así que el upsert por slug
 # nunca las tocaría por su cuenta. Se borran acá explícitamente para no
 # terminar con 6 units en el feed, la mitad todavía con
 # "[COPY PENDIENTE · coach]" — este script es el reemplazo, no un agregado.
@@ -639,7 +533,7 @@ def run() -> None:
     db = SessionLocal()
     try:
         for slug in _LEGACY_FASE1_SLUGS:
-            _delete_if_exists(db, slug)
+            delete_unit_if_exists(db, slug)
 
         unit_1_spec, content_dir = _load_unit_1_spec()
         if content_dir is None:
