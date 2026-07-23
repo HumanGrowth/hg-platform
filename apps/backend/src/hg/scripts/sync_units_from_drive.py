@@ -490,6 +490,7 @@ class SyncStats:
     published: int = 0
     drafts: int = 0
     failed: int = 0
+    skipped: int = 0
 
 
 def _service_account_email() -> str | None:
@@ -598,6 +599,18 @@ def _process_folder(
     unit_dict = assemble_unit_dict(unit_json, video_urls)
     db = SessionLocal()
     try:
+        if args.skip_existing:
+            # Add-only: no tocar units que ya existen (preserva su contenido y,
+            # sobre todo, los attempts/progreso de usuarios). Clave para poblar
+            # prod sin pisar lo que ya está publicado y en uso.
+            from sqlalchemy import select
+
+            from hg.modules.learning_units.models import LearningUnit
+
+            if db.scalar(select(LearningUnit.id).where(LearningUnit.slug == slug)) is not None:
+                log.info("  ⏭️  %s ya existe — se saltea (--skip-existing)", slug)
+                stats.skipped += 1
+                return
         unit = upsert_unit_from_dict(db, unit_dict, publish=False)
         db.flush()
         if args.no_publish:
@@ -647,8 +660,8 @@ def run(args: argparse.Namespace) -> SyncStats:
         return stats
 
     log.info(
-        "listo · folders=%d · mp4s=%d · publicadas=%d · borradores=%d · fallidas=%d",
-        stats.folders, stats.mp4s, stats.published, stats.drafts, stats.failed,
+        "listo · folders=%d · mp4s=%d · publicadas=%d · borradores=%d · fallidas=%d · saltadas=%d",
+        stats.folders, stats.mp4s, stats.published, stats.drafts, stats.failed, stats.skipped,
     )
     return stats
 
@@ -669,6 +682,9 @@ def main() -> None:
                         help="no descarga de Drive ni sube a R2; reusa las URLs de R2 ya "
                              "subidas (para poblar una DB nueva, p.ej. prod, con los videos "
                              "ya presentes en R2)")
+    parser.add_argument("--skip-existing", action="store_true",
+                        help="add-only: no re-crea units cuyo slug ya existe en la DB "
+                             "(preserva su contenido y los attempts/progreso de usuarios)")
     run(parser.parse_args())
 
 
