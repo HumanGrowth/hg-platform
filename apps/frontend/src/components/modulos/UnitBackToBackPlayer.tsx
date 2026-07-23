@@ -167,13 +167,13 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
         <div
           className={cn(
             "min-w-0",
-            // Video full-bleed (TASK player-03): llena el ancho del panel sin
-            // padding ni borde (el video ES el panel); aspect-video fija el alto
-            // → self-start para no estirarse al alto de la columna del índice.
+            // Video 9:16 vertical (TASK player-03 · corregido): panel portrait
+            // de alto fijo (70vh) y ancho derivado por el aspect, centrado en
+            // la columna; el VideoBlockView (h-full) lo llena. Sin padding/borde.
             isVideoBlock
-              ? "self-start overflow-hidden rounded-lg bg-black"
+              ? "mx-auto aspect-[9/16] h-[70vh] max-h-full self-start overflow-hidden rounded-lg bg-black"
               : "overflow-y-auto rounded-lg border border-border bg-bg-raised p-8",
-            focusMode && "w-full max-w-2xl",
+            !isVideoBlock && focusMode && "w-full max-w-2xl",
           )}
         >
           <BlockRenderer

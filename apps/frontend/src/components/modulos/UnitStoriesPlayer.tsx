@@ -181,29 +181,15 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
   }
 
   const content = (
-    <div className="relative flex h-full flex-col">
-      {/* Header: progress bars + X. Overlay absoluto (TASK player-05): no ocupa
-          altura vertical → el video full-bleed usa toda la altura del body y los
-          segmentos se ven por encima sin taparlo. `pointer-events-none` en la
-          barra para que el tap caiga al video/nav; sólo la X es interactiva.
-          Scrim sutil sólo sobre video (legibilidad de barra/X sobre negro). */}
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center gap-3 px-4 pb-4 pt-4",
-          isVideoBlock && "bg-gradient-to-b from-black/40 to-transparent",
-        )}
-      >
+    <div className="flex h-full flex-col">
+      {/* Header: progress marker + X — en flujo, arriba de todo. El video 9:16
+          se ubica DEBAJO de este marcador (no lo tapa). */}
+      <div className="flex items-center gap-3 px-4 pt-4">
         <div className="flex flex-1 gap-1">
           {unit.blocks.map((b, i) => {
             const completed = blockProgress.some((bp) => bp.unit_block_id === b.id && bp.status === "completed");
             return (
-              <div
-                key={b.id}
-                className={cn(
-                  "h-1 flex-1 overflow-hidden rounded-full",
-                  isVideoBlock ? "bg-white/30" : "bg-bg-sunken",
-                )}
-              >
+              <div key={b.id} className="h-1 flex-1 overflow-hidden rounded-full bg-bg-sunken">
                 <div
                   className={cn(
                     "h-full rounded-full transition-[width] duration-base",
@@ -218,24 +204,15 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
           type="button"
           onClick={requestClose}
           aria-label="Cerrar"
-          className={cn(
-            "pointer-events-auto rounded-full p-1.5",
-            isVideoBlock ? "text-white/80 hover:bg-white/10" : "text-fg-muted hover:bg-bg-sunken",
-          )}
+          className="rounded-full p-1.5 text-fg-muted hover:bg-bg-sunken"
         >
           <X size={22} strokeWidth={1.75} />
         </button>
       </div>
 
-      {/* Body: tap zones a los costados + card centrada. `pt-14` sólo para
-          bloques no-video (para no quedar bajo el header overlay); el video va
-          full-bleed bajo la barra. */}
-      <div
-        className={cn(
-          "relative flex min-h-0 flex-1 items-center",
-          !isVideoBlock && "pt-14",
-        )}
-      >
+      {/* Body: tap zones a los costados + bloque. El video 9:16 llena la altura
+          disponible debajo del marcador (aspect-[9/16] centrado). */}
+      <div className="relative flex min-h-0 flex-1 items-center">
         <button
           type="button"
           aria-label="Bloque anterior"
@@ -249,12 +226,12 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
           className="absolute inset-y-0 right-0 z-10 w-[15%] focus-visible:outline-none"
         />
         <div
-          // Video full-bleed (TASK player-02): sin padding ni max-w — el video
-          // ocupa el ancho completo del viewport (aspect-video se encarga del
-          // alto). Text/quiz/reflection mantienen el ancho de lectura + padding.
+          // Video 9:16 (TASK player-02 · corregido): el wrapper es `h-full`
+          // (le da altura al box 9:16 que se centra dentro) sin padding ni
+          // max-w. Text/quiz/reflection mantienen ancho de lectura + padding.
           className={
             isVideoBlock
-              ? "relative z-0 w-full"
+              ? "relative z-0 flex h-full w-full items-center justify-center"
               : "relative z-0 mx-auto w-full max-w-md overflow-y-auto px-6 py-6"
           }
           onTouchStart={isVideoBlock ? onVideoPressStart : undefined}

@@ -26,9 +26,9 @@ const UI_HIDE_MS = 2500;
 const UNMUTE_HINT_MS = 4000;
 
 /**
- * Reproductor full-bleed estilo TikTok/Reels para video 16:9 horizontal
- * (TASK player-01). El `<video>` **ES** el div del bloque (`aspect-video
- * w-full`, `object-cover`, sin bordes) — sin `controls` nativos, sin overlay
+ * Reproductor full-bleed estilo TikTok/Reels para video **9:16 vertical**
+ * (TASK player-01). El `<video>` **ES** el div del bloque (`aspect-[9/16]`,
+ * `object-cover`, sin bordes) — sin `controls` nativos, sin overlay
  * fullscreen ni portal (eso era el approach anterior, polish-01). Controles
  * custom sobrepuestos: tap central play/pause, progress bar minimalista +
  * timer abajo, hint de "activar sonido" al primer play (autoplay muted).
@@ -171,7 +171,10 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
   return (
     <div
       ref={containerRef}
-      className="relative aspect-video w-full select-none overflow-hidden bg-black"
+      // 9:16 vertical (TikTok). El box se ajusta a la altura del contenedor
+      // padre (que le da la altura) y se centra; `max-w-full` recorta con
+      // object-cover en pantallas más angostas que 9:16 (mobile ≈ full-screen).
+      className="relative mx-auto aspect-[9/16] h-full max-h-full w-auto max-w-full select-none overflow-hidden bg-black"
       onMouseMove={resetUiTimer}
     >
       <video

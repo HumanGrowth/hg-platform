@@ -438,6 +438,21 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
   ajustados (completan el video vía `ended`, ya no via "Ya lo vi"). 139/139
   frontend verdes · `tsc`/`eslint` limpios.
 
+**🔧 CORRECCIÓN post-review (ratio 9:16):** Andrés aclaró que el player debe
+ser **9:16 vertical** (TikTok real), NO 16:9, y con el video **debajo del
+marcador de progreso**. Cambios:
+- `VideoBlockView`: contenedor `aspect-video` → `aspect-[9/16]`, height-driven
+  y centrado (`mx-auto h-full max-h-full w-auto max-w-full`) — se ajusta al alto
+  del padre; en mobile (más angosto que 9:16) llena la pantalla con object-cover.
+- `UnitStoriesPlayer`: se **revirtió el overlay de player-05** — el marcador de
+  progreso vuelve a estar **en flujo, arriba**, y el video 9:16 va **debajo**,
+  llenando la altura disponible (wrapper `flex h-full items-center justify-center`).
+- `UnitBackToBackPlayer`: panel de video → `aspect-[9/16] h-[70vh]` portrait
+  centrado (en vez del 16:9 full-width).
+- Verificado: `tsc`/`eslint` limpios · 26/26 tests de `modulos` · `next build` OK.
+  (Nota: player-05 "overlay que no ocupa espacio" queda superado por esta
+  corrección — el marcador ahora sí ocupa su fila arriba, por diseño.)
+
 ---
 
 ## TASK player-02 · Adaptar layout del bloque en `<UnitStoriesPlayer/>` mobile · `[x]`
