@@ -170,7 +170,7 @@ def _build_block_union(db: Session, unit_block: UnitBlock):  # union de 4 tipos
             **base, block_type=btype, video_url=content.video_url,
             poster_url=content.poster_url, duration_seconds=content.duration_seconds,
             subtitle_url=content.subtitle_url, transcript_text=content.transcript_text,
-            eyebrow_label=content.eyebrow_label,
+            eyebrow_label=content.eyebrow_label, chapters=content.chapters,
         )
     if isinstance(content, TextBlock):
         variant = content.variant.value if hasattr(content.variant, "value") else content.variant
@@ -178,6 +178,7 @@ def _build_block_union(db: Session, unit_block: UnitBlock):  # union de 4 tipos
             **base, block_type=btype, variant=variant, eyebrow=content.eyebrow, body=content.body,
             citation=content.citation, applies_to=content.applies_to,
             requires_evidence_block_id=content.requires_evidence_block_id,
+            hero_stat=content.hero_stat, checklist_items=content.checklist_items,
         )
     if isinstance(content, QuizBlock):
         questions = sorted(content.questions, key=lambda q: q.position)
@@ -200,6 +201,7 @@ def _load_unit_detail(db: Session, unit: LearningUnit) -> LearningUnitDetail:
         competency_code=unit.competency_code.value if unit.competency_code else None,
         level_code=unit.level_code, mentor_id=unit.mentor_id, published_at=unit.published_at,
         estimated_duration_seconds=unit.estimated_duration_seconds,
+        narrative_tone=unit.narrative_tone, keywords=unit.keywords,
         blocks=[_build_block_union(db, b) for b in blocks],
     )
 

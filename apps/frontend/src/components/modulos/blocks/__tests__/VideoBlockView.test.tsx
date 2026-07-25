@@ -19,6 +19,7 @@ const block: VideoBlock = {
   subtitle_url: null,
   transcript_text: null,
   eyebrow_label: "INTRO",
+  chapters: null,
 };
 
 // IntersectionObserver controlable — el stub de setup.ts ignora el callback.

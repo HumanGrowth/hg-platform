@@ -82,6 +82,13 @@ class LearningUnit(Base):
     """Cabecera de un módulo de aprendizaje: meta + secuencia ordenada de bloques."""
 
     __tablename__ = "learning_units"
+    __table_args__ = (
+        CheckConstraint(
+            "narrative_tone IS NULL OR narrative_tone IN "
+            "('active', 'contemplative', 'analytical', 'warm')",
+            name="ck_learning_units_narrative_tone",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     slug: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
@@ -101,6 +108,11 @@ class LearningUnit(Base):
         UUID(as_uuid=True), ForeignKey("learning_units.id", ondelete="SET NULL")
     )
     estimated_duration_seconds: Mapped[int | None] = mapped_column(Integer)
+    # Capa visual opcional (Sprint UI Identidad · TASK 12) — backward compat.
+    # narrative_tone: escala la duración de las transiciones entre bloques.
+    narrative_tone: Mapped[str | None] = mapped_column(String(20))
+    # keywords: tags unit-level (search / AI futuro).
+    keywords: Mapped[list[str] | None] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -149,6 +161,9 @@ class VideoBlock(Base):
     subtitle_url: Mapped[str | None] = mapped_column(String(2048))
     transcript_text: Mapped[str | None] = mapped_column(Text)
     eyebrow_label: Mapped[str | None] = mapped_column(String(60))
+    # Capítulos opcionales para videos largos (Sprint UI · TASK 3/12) —
+    # [{start_sec: int, label: str}], max 5 (validado en el schema).
+    chapters: Mapped[list[dict] | None] = mapped_column(JSONB)
 
 
 class TextBlock(Base):
@@ -171,6 +186,11 @@ class TextBlock(Base):
     requires_evidence_block_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("text_blocks.id", ondelete="SET NULL")
     )
+    # Capa visual opcional (Sprint UI · TASK 5/6/12) — backward compat.
+    # hero_stat: {value, label, source} para el data-point de variant=evidence.
+    hero_stat: Mapped[dict | None] = mapped_column(JSONB)
+    # checklist_items: [{title, detail?}] para el checklist de variant=solution.
+    checklist_items: Mapped[list[dict] | None] = mapped_column(JSONB)
 
 
 class QuizBlock(Base):

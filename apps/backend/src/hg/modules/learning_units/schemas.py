@@ -16,6 +16,33 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+# ─── Capa visual opcional (Sprint UI Identidad · TASK 12) — backward compat ───
+
+NarrativeTone = Literal["active", "contemplative", "analytical", "warm"]
+
+
+class Chapter(BaseModel):
+    """Capítulo de un video largo (TASK 3)."""
+
+    start_sec: int = Field(ge=0)
+    label: str = Field(min_length=1, max_length=30)
+
+
+class HeroStat(BaseModel):
+    """Data-point destacado de un text_evidence (TASK 5)."""
+
+    value: str = Field(min_length=1, max_length=20)
+    label: str = Field(min_length=1, max_length=80)
+    source: str | None = Field(default=None, max_length=120)
+
+
+class ChecklistItem(BaseModel):
+    """Paso accionable de un text_solution (TASK 6)."""
+
+    title: str = Field(min_length=1, max_length=120)
+    detail: str | None = Field(default=None, max_length=500)
+
+
 # ─────────────────────────── Bloques · read ───────────────────────────
 
 
@@ -36,6 +63,7 @@ class VideoBlockRead(BlockRead):
     subtitle_url: str | None
     transcript_text: str | None
     eyebrow_label: str | None
+    chapters: list[Chapter] | None = None
 
 
 class CitationOut(BaseModel):
@@ -54,6 +82,8 @@ class TextBlockRead(BlockRead):
     citation: CitationOut | None
     applies_to: list[str] | None
     requires_evidence_block_id: UUID | None
+    hero_stat: HeroStat | None = None
+    checklist_items: list[ChecklistItem] | None = None
 
 
 # ─────────────────────────── Quiz · 6 tipos ───────────────────────────
@@ -164,6 +194,8 @@ class LearningUnitDetail(BaseModel):
     mentor_id: UUID | None
     published_at: datetime | None
     estimated_duration_seconds: int | None
+    narrative_tone: NarrativeTone | None = None
+    keywords: list[str] | None = None
     blocks: list[BlockUnion]
 
 
@@ -295,6 +327,8 @@ class LearningUnitCreate(BaseModel):
     level_code: str = Field(pattern=_LEVEL_CODE_RE)
     mentor_id: UUID | None = None
     estimated_duration_seconds: int | None = Field(default=None, ge=0)
+    narrative_tone: NarrativeTone | None = None
+    keywords: list[str] | None = Field(default=None, max_length=20)
 
 
 class LearningUnitUpdate(BaseModel):
@@ -304,6 +338,8 @@ class LearningUnitUpdate(BaseModel):
     level_code: str | None = Field(default=None, pattern=_LEVEL_CODE_RE)
     mentor_id: UUID | None = None
     estimated_duration_seconds: int | None = Field(default=None, ge=0)
+    narrative_tone: NarrativeTone | None = None
+    keywords: list[str] | None = Field(default=None, max_length=20)
 
 
 class QuizOptionCreate(BaseModel):
@@ -393,6 +429,7 @@ class VideoBlockCreate(BaseModel):
     subtitle_url: str | None = None
     transcript_text: str | None = None
     eyebrow_label: str | None = None
+    chapters: list[Chapter] | None = Field(default=None, max_length=5)
 
 
 class TextBlockCreate(BaseModel):
@@ -405,6 +442,8 @@ class TextBlockCreate(BaseModel):
     citation: CitationOut | None = None
     applies_to: list[str] | None = None
     requires_evidence_block_id: UUID | None = None
+    hero_stat: HeroStat | None = None
+    checklist_items: list[ChecklistItem] | None = Field(default=None, max_length=5)
 
 
 class QuizBlockCreate(BaseModel):
