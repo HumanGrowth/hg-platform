@@ -178,6 +178,7 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
         >
           <BlockRenderer
             block={currentBlock}
+            pillarCode={unit.pillar_code}
             isCompleted={isCurrentCompleted}
             onCompleteBlock={onCompleteBlock}
             onSubmitQuiz={onSubmitQuiz}

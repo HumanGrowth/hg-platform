@@ -45,6 +45,7 @@ export function TextBlockView({
   block: TextBlock;
   isCompleted: boolean;
   onCompleteBlock: () => Promise<void>;
+  pillarCode?: string;
 }) {
   const shouldAnimate = useShouldAnimate();
 

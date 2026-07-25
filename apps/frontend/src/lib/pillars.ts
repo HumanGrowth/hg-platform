@@ -76,6 +76,31 @@ export function pillarBaseCode(code: string): string {
   return code.startsWith("P6") ? "P6" : code;
 }
 
+// ─────────── Estilo por pilar para los templates de LU (Sprint UI) ───────────
+// Clases Tailwind estáticas (no dinámicas, para no romper el purge) + la CSS
+// var del hue del pilar (para glows/gradients vía `--glow-color`).
+export interface PillarStyle {
+  text: string;
+  bg: string;
+  border: string;
+  /** valor CSS del hue, ej. "var(--pillar-p1)" — para --glow-color / gradients. */
+  glow: string;
+}
+
+const PILLAR_STYLE: Record<string, PillarStyle> = {
+  P1: { text: "text-pillar-p1", bg: "bg-pillar-p1", border: "border-pillar-p1", glow: "var(--pillar-p1)" },
+  P2: { text: "text-pillar-p2", bg: "bg-pillar-p2", border: "border-pillar-p2", glow: "var(--pillar-p2)" },
+  P3: { text: "text-pillar-p3", bg: "bg-pillar-p3", border: "border-pillar-p3", glow: "var(--pillar-p3)" },
+  P4: { text: "text-pillar-p4", bg: "bg-pillar-p4", border: "border-pillar-p4", glow: "var(--pillar-p4)" },
+  P5: { text: "text-pillar-p5", bg: "bg-pillar-p5", border: "border-pillar-p5", glow: "var(--pillar-p5)" },
+  P6: { text: "text-pillar-p6", bg: "bg-pillar-p6", border: "border-pillar-p6", glow: "var(--pillar-p6)" },
+};
+
+/** Estilo del pilar (default P3/primary si el código no matchea). */
+export function pillarStyle(code: string | undefined): PillarStyle {
+  return PILLAR_STYLE[pillarBaseCode(code ?? "P3")] ?? PILLAR_STYLE.P3;
+}
+
 /** Ruta del ícono hexagonal del pilar (acepta P1..P6 y P6A/P6B). */
 export function pillarIconSrc(code: string): string | null {
   return PILLAR_ICON_SRC[pillarBaseCode(code)] ?? null;

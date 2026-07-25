@@ -126,6 +126,7 @@ export function QuizBlockView({
   block: QuizBlock;
   isCompleted: boolean;
   onSubmitQuiz: (responses: QuizSubmitPayload[]) => Promise<QuizSubmitResponse>;
+  pillarCode?: string;
 }) {
   const shouldAnimate = useShouldAnimate();
   const [answers, setAnswers] = React.useState<Record<string, AnswerValue>>(() =>

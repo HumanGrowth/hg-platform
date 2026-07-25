@@ -18,6 +18,7 @@ export function ReflectionBlockView({
   block: ReflectionBlock;
   isCompleted: boolean;
   onSubmitReflection: (text: string) => Promise<void>;
+  pillarCode?: string;
 }) {
   const shouldAnimate = useShouldAnimate();
   const [text, setText] = React.useState("");

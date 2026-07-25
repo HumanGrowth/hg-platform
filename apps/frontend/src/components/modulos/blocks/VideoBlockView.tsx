@@ -11,6 +11,8 @@ interface Props {
   block: VideoBlock;
   isCompleted: boolean;
   onCompleteBlock: () => Promise<void>;
+  /** Pilar de la unit (Sprint UI) — reservado para marcadores de capítulos. */
+  pillarCode?: string;
 }
 
 type PlayerState = "loading" | "ready" | "playing" | "paused" | "ended" | "error";
