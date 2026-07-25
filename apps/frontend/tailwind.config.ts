@@ -220,10 +220,25 @@ const config: Config = {
           from: { opacity: "0", transform: "translateY(8px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        // Sprint UI Identidad · TASK 0. "Brillo de estrella" para success (NO
+        // confetti): pulso de box-shadow. El color lo pone el componente vía
+        // `--glow-color` (color del pilar); fallback verde primary.
+        "star-glow": {
+          "0%, 100%": { boxShadow: "0 0 8px 0 var(--glow-color, rgba(74,122,84,0.35))" },
+          "50%": { boxShadow: "0 0 24px 6px var(--glow-color, rgba(74,122,84,0.55))" },
+        },
+        // Feedback de respuesta incorrecta en quiz (TASK 7).
+        shake: {
+          "0%, 100%": { transform: "translateX(0)" },
+          "20%, 60%": { transform: "translateX(-6px)" },
+          "40%, 80%": { transform: "translateX(6px)" },
+        },
       },
       animation: {
         "ring-spin": "ring-spin 2.4s linear infinite",
         "fade-up": "fade-up 220ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "star-glow": "star-glow 1.2s ease-in-out infinite",
+        shake: "shake 300ms cubic-bezier(0.36, 0.07, 0.19, 0.97)",
       },
     },
   },
