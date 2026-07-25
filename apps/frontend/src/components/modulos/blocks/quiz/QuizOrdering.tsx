@@ -3,6 +3,9 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import type { QuizQuestionOrdering, QuizSubmitResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+import { QuizPrompt } from "./QuizPrompt";
+import { Typewriter } from "./Typewriter";
+
 /** @dnd-kit no está instalado en el proyecto (confirmado — no se agrega
  * sin consultar, per hard rule) — fallback de botones up/down, tal como
  * el propio spec de B-06 lo permite explícitamente. */
@@ -31,7 +34,7 @@ export function QuizOrdering({
 
   return (
     <fieldset className="flex flex-col gap-3">
-      <legend className="font-sans text-base font-semibold text-fg">{question.prompt}</legend>
+      <QuizPrompt>{question.prompt}</QuizPrompt>
       <p className="text-xs text-fg-muted">Ordená los pasos con las flechas.</p>
       <ol className="flex flex-col gap-2">
         {value.map((id, index) => (
@@ -79,7 +82,7 @@ export function QuizOrdering({
             .join(" → ")}
         </p>
       )}
-      {result?.explanation && <p className="text-sm text-fg-muted">{result.explanation}</p>}
+      {result?.explanation && <Typewriter text={result.explanation} className="text-sm text-fg-muted" />}
     </fieldset>
   );
 }

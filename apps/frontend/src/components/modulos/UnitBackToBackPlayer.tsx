@@ -4,7 +4,9 @@ import { Check, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from "lucide-r
 import * as React from "react";
 
 import { BlockRenderer } from "@/components/modulos/BlockRenderer";
+import { BlockTransition } from "@/components/modulos/BlockTransition";
 import { UnitCompletionCard } from "@/components/modulos/UnitCompletionCard";
+import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Button } from "@/components/ui/button";
 import { apiCompleteBlock, apiSubmitQuiz, apiSubmitReflection } from "@/lib/api";
 import type {
@@ -176,13 +178,20 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
             !isVideoBlock && focusMode && "w-full max-w-2xl",
           )}
         >
-          <BlockRenderer
-            block={currentBlock}
-            isCompleted={isCurrentCompleted}
-            onCompleteBlock={onCompleteBlock}
-            onSubmitQuiz={onSubmitQuiz}
-            onSubmitReflection={onSubmitReflection}
-          />
+          <BlockTransition
+            blockKey={currentBlock.id}
+            tone={unit.narrative_tone}
+            className={isVideoBlock ? "h-full w-full" : "w-full"}
+          >
+            <BlockRenderer
+              block={currentBlock}
+              pillarCode={unit.pillar_code}
+              isCompleted={isCurrentCompleted}
+              onCompleteBlock={onCompleteBlock}
+              onSubmitQuiz={onSubmitQuiz}
+              onSubmitReflection={onSubmitReflection}
+            />
+          </BlockTransition>
         </div>
 
         {!focusMode && (
@@ -218,6 +227,12 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
                 </button>
               );
             })}
+            <AISoonBadge
+              variant="pill"
+              label="Chatear con este pilar"
+              pillarCode={unit.pillar_code}
+              className="mt-2 self-start"
+            />
           </nav>
         )}
       </div>

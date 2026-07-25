@@ -407,11 +407,22 @@ def _drive_download_media(service: Any, file_id: str, dest: Path) -> None:
             _, done = downloader.next_chunk()
 
 
-def _drive_folders(root_folder_id: str, only: str | None) -> Iterator[FolderPayload]:
-    service = _drive_service()
-    for entry in _drive_list_children(service, root_folder_id):
+def _iter_unit_folder_entries(service: Any, folder_id: str, depth: int = 0) -> Iterator[dict[str, Any]]:
+    """Entradas de folder que matchean ``CP-Lx-Py-seq`` — recursando en las que
+    NO matchean (p.ej. las carpetas de nivel ``L1 - Junior`` que agrupan units)
+    hasta 2 niveles. Soporta tanto el layout plano viejo como el anidado nuevo."""
+    for entry in _drive_list_children(service, folder_id):
         if entry["mimeType"] != _FOLDER_MIME:
             continue
+        if _FOLDER_NAME_RE.match(entry["name"]):
+            yield entry
+        elif depth < 2:
+            yield from _iter_unit_folder_entries(service, entry["id"], depth + 1)
+
+
+def _drive_folders(root_folder_id: str, only: str | None) -> Iterator[FolderPayload]:
+    service = _drive_service()
+    for entry in _iter_unit_folder_entries(service, root_folder_id):
         name = entry["name"]
         if only and name != only:
             continue

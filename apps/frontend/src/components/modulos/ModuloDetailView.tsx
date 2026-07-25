@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { UnitBackToBackPlayer } from "@/components/modulos/UnitBackToBackPlayer";
+import { UnitOpeningScreen } from "@/components/modulos/UnitOpeningScreen";
 import { UnitStoriesPlayer } from "@/components/modulos/UnitStoriesPlayer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -27,6 +28,9 @@ export function ModuloDetailView({ slug }: { slug: string }) {
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [unit, setUnit] = React.useState<LearningUnitDetail | null>(null);
   const [attempt, setAttempt] = React.useState<LearningUnitAttempt | null>(null);
+  // Pantalla de apertura (TASK 10) sólo en un arranque fresco; al retomar una
+  // unit con progreso se entra directo al player.
+  const [started, setStarted] = React.useState(false);
   const isDesktop = useMediaQuery("(min-width: 769px)");
 
   const load = React.useCallback(async () => {
@@ -78,6 +82,12 @@ export function ModuloDetailView({ slug }: { slug: string }) {
         </Card>
       </div>
     );
+  }
+
+  // Arranque fresco (sin progreso previo) → pantalla de apertura del pilar.
+  const isFreshStart = attempt.block_progress.length === 0;
+  if (isFreshStart && !started) {
+    return <UnitOpeningScreen unit={unit} onStart={() => setStarted(true)} />;
   }
 
   if (isDesktop) {

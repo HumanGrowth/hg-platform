@@ -1,16 +1,31 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import {
+  ChevronsLeft,
+  ChevronsRight,
+  List,
+  Loader2,
+  Maximize,
+  Minimize,
+  Play,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import * as React from "react";
 
+import { ChapterList } from "@/components/modulos/blocks/ChapterList";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
+import { pillarStyle } from "@/lib/pillars";
 import type { VideoBlock } from "@/lib/types";
 
 interface Props {
   block: VideoBlock;
   isCompleted: boolean;
   onCompleteBlock: () => Promise<void>;
+  /** Pilar de la unit (Sprint UI) — color de la barra + marcadores de capítulos. */
+  pillarCode?: string;
 }
 
 type PlayerState = "loading" | "ready" | "playing" | "paused" | "ended" | "error";
@@ -22,34 +37,46 @@ function formatTime(sec: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-const UI_HIDE_MS = 2500;
+const UI_HIDE_MS = 3000; // auto-hide de controles (Sprint UI T2)
 const UNMUTE_HINT_MS = 4000;
+const DOUBLE_TAP_MS = 300;
+const SEEK_STEP = 10; // doble-tap ±10s (Sprint UI T1)
 
 /**
  * Reproductor full-bleed estilo TikTok/Reels para video **9:16 vertical**
- * (TASK player-01). El `<video>` **ES** el div del bloque (`aspect-[9/16]`,
- * `object-cover`, sin bordes) — sin `controls` nativos, sin overlay
- * fullscreen ni portal (eso era el approach anterior, polish-01). Controles
- * custom sobrepuestos: tap central play/pause, progress bar minimalista +
- * timer abajo, hint de "activar sonido" al primer play (autoplay muted).
+ * (TASK player-01, evolucionado en Sprint UI T1/T2/T3 — NO reemplazado).
+ * El `<video>` **ES** el bloque (`aspect-[9/16]`, `object-cover`, sin bordes),
+ * sin `controls` nativos. Controles custom: tap central play/pause (56px),
+ * doble-tap lateral ±10s con overlay, barra scrubbable con buffered + marcadores
+ * de capítulos, timer, fullscreen y lista de capítulos.
  *
  * Autoplay muted al entrar en viewport (IntersectionObserver). `prefers-
  * reduced-motion` (via `useShouldAnimate`) desactiva el autoplay **y** el
  * auto-hide de controles.
  */
-export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
+export function VideoBlockView({ block, isCompleted, onCompleteBlock, pillarCode }: Props) {
   const shouldAnimate = useShouldAnimate();
+  const glow = pillarStyle(pillarCode).glow;
+  const chapters = block.chapters ?? null;
+
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const progressBarRef = React.useRef<HTMLDivElement>(null);
   const uiTimerRef = React.useRef<number | null>(null);
   const hintShownRef = React.useRef(false);
+  const lastTapRef = React.useRef<{ time: number; side: number }>({ time: 0, side: 0 });
+  const scrubbingRef = React.useRef(false);
 
   const [state, setState] = React.useState<PlayerState>("loading");
   const [muted, setMuted] = React.useState(true);
   const [showUnmuteHint, setShowUnmuteHint] = React.useState(false);
   const [currentTime, setCurrentTime] = React.useState(0);
   const [duration, setDuration] = React.useState(block.duration_seconds || 0);
+  const [bufferedEnd, setBufferedEnd] = React.useState(0);
   const [uiVisible, setUiVisible] = React.useState(true);
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const [showChapters, setShowChapters] = React.useState(false);
+  const [seekFeedback, setSeekFeedback] = React.useState<{ dir: number; id: number } | null>(null);
 
   const stateRef = React.useRef<PlayerState>(state);
   stateRef.current = state;
@@ -61,7 +88,7 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
     });
   }
 
-  // Auto-hide de la UI a los 2.5s reproduciendo (salvo reduced motion).
+  // Auto-hide de la UI a los 3s reproduciendo (salvo reduced motion).
   const resetUiTimer = React.useCallback(() => {
     setUiVisible(true);
     if (uiTimerRef.current) window.clearTimeout(uiTimerRef.current);
@@ -98,6 +125,22 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
     return () => observer.disconnect();
   }, [shouldAnimate]);
 
+  // Sincroniza el estado de fullscreen con el documento.
+  React.useEffect(() => {
+    function onFsChange() {
+      setIsFullscreen(document.fullscreenElement === containerRef.current);
+    }
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
+
+  // Limpia el overlay de doble-tap tras un instante.
+  React.useEffect(() => {
+    if (!seekFeedback) return;
+    const t = window.setTimeout(() => setSeekFeedback(null), 550);
+    return () => window.clearTimeout(t);
+  }, [seekFeedback]);
+
   function togglePlay() {
     const video = videoRef.current;
     if (!video || stateRef.current === "error") return;
@@ -108,6 +151,35 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
     }
     if (video.paused) safePlay();
     else video.pause();
+  }
+
+  function seekBy(delta: number) {
+    const video = videoRef.current;
+    if (!video) return;
+    const dur = duration || video.duration || 0;
+    const next = Math.max(0, dur > 0 ? Math.min(video.currentTime + delta, dur) : video.currentTime + delta);
+    video.currentTime = next;
+    setCurrentTime(next);
+    resetUiTimer();
+  }
+
+  // Tap central = play/pause. Doble-tap en el tercio izq/der = ∓10s. Los dos
+  // toggles del doble-tap se cancelan entre sí (net: sólo el seek).
+  function handleTapZone(e: React.MouseEvent<HTMLButtonElement>) {
+    const now = Date.now();
+    const rect = containerRef.current?.getBoundingClientRect();
+    const w = rect?.width ?? 0;
+    const x = rect && w > 0 ? (e.clientX - rect.left) / w : 0.5;
+    const side = x < 0.35 ? -1 : x > 0.65 ? 1 : 0;
+    const dt = now - lastTapRef.current.time;
+    if (dt < DOUBLE_TAP_MS && side !== 0 && side === lastTapRef.current.side) {
+      seekBy(side * SEEK_STEP);
+      setSeekFeedback({ dir: side, id: now });
+      lastTapRef.current = { time: 0, side: 0 };
+    } else {
+      lastTapRef.current = { time: now, side };
+    }
+    togglePlay();
   }
 
   function unmute() {
@@ -125,20 +197,46 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
     });
   }
 
+  function toggleFullscreen() {
+    const el = containerRef.current;
+    if (!el) return;
+    if (document.fullscreenElement === el) void document.exitFullscreen?.();
+    else void el.requestFullscreen?.();
+  }
+
   async function handleEnded() {
     setState("ended");
     setUiVisible(true);
     if (!isCompleted) await onCompleteBlock();
   }
 
-  function handleSeek(e: React.MouseEvent<HTMLButtonElement>) {
-    e.stopPropagation();
+  // Scrub: click o drag sobre la barra de progreso.
+  function scrubToClientX(clientX: number) {
+    const bar = progressBarRef.current;
     const video = videoRef.current;
-    if (!video || !Number.isFinite(duration) || duration <= 0) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-    video.currentTime = ratio * duration;
+    if (!bar || !video) return;
+    const rect = bar.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+    const dur = duration || video.duration || 0;
+    if (dur <= 0) return;
+    video.currentTime = ratio * dur;
     setCurrentTime(video.currentTime);
+  }
+
+  function onScrubPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    e.stopPropagation();
+    scrubbingRef.current = true;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    scrubToClientX(e.clientX);
+    resetUiTimer();
+  }
+  function onScrubPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (scrubbingRef.current) scrubToClientX(e.clientX);
+  }
+  function onScrubPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    scrubbingRef.current = false;
+    e.currentTarget.releasePointerCapture?.(e.pointerId);
   }
 
   // Keyboard: espacio (play/pause), flechas (±5s), M (mute).
@@ -165,8 +263,13 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
   }, [duration]);
 
   const pct = Number.isFinite(duration) && duration > 0 ? (currentTime / duration) * 100 : 0;
+  const bufferedPct = Number.isFinite(duration) && duration > 0 ? (bufferedEnd / duration) * 100 : 0;
   const showCentralIcon = state === "paused" || state === "ready" || state === "ended";
   const showBottomUi = state === "playing" || state === "paused" || state === "ended";
+  const currentChapter =
+    chapters && chapters.length > 0
+      ? chapters.reduce((acc, c) => (currentTime >= c.start_sec ? c : acc), chapters[0])
+      : null;
 
   return (
     <div
@@ -190,6 +293,10 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
           const d = e.currentTarget.duration;
           if (Number.isFinite(d) && d > 0) setDuration(d);
         }}
+        onProgress={(e) => {
+          const b = e.currentTarget.buffered;
+          if (b.length > 0) setBufferedEnd(b.end(b.length - 1));
+        }}
         onPlay={() => {
           setState("playing");
           if (muted && !hintShownRef.current) {
@@ -211,16 +318,35 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
         Tu navegador no soporta video HTML5.
       </video>
 
-      {/* Tap zone: toggle play/pause. Debajo de los controles (hermanos
-          posteriores en el DOM), encima del video. */}
+      {/* Tap zone: toggle play/pause + doble-tap lateral. Debajo de los controles
+          (hermanos posteriores en el DOM), encima del video. */}
       {state !== "error" && (
         <button
           type="button"
-          onClick={togglePlay}
+          onClick={handleTapZone}
           aria-label={state === "playing" ? "Pausar video" : "Reproducir video"}
           className="absolute inset-0 z-[1] h-full w-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/60"
         />
       )}
+
+      {/* Overlay de doble-tap ±10s. */}
+      <AnimatePresence>
+        {seekFeedback && (
+          <motion.div
+            key={seekFeedback.id}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.18 }}
+            className={`pointer-events-none absolute inset-y-0 z-[2] flex w-1/3 flex-col items-center justify-center gap-1 text-white ${
+              seekFeedback.dir < 0 ? "left-0 bg-gradient-to-r" : "right-0 bg-gradient-to-l"
+            } from-black/40 to-transparent`}
+          >
+            {seekFeedback.dir < 0 ? <ChevronsLeft size={32} /> : <ChevronsRight size={32} />}
+            <span className="text-sm font-semibold">{seekFeedback.dir < 0 ? "−10s" : "+10s"}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Loading spinner */}
       {state === "loading" && (
@@ -246,7 +372,7 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
         </div>
       )}
 
-      {/* Ícono central play / replay (pointer-events-none → el tap llega al botón). */}
+      {/* Ícono central play / replay 56px (pointer-events-none → el tap llega al botón). */}
       <AnimatePresence>
         {showCentralIcon && (
           <motion.div
@@ -256,11 +382,11 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
             transition={{ duration: 0.15 }}
             className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center"
           >
-            <div className="rounded-full bg-white/20 p-5 backdrop-blur-sm">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
               {state === "ended" ? (
-                <RotateCcw size={40} className="text-white" strokeWidth={2.25} />
+                <RotateCcw size={28} className="text-white" strokeWidth={2.25} />
               ) : (
-                <Play size={44} className="text-white" strokeWidth={2.25} fill="white" />
+                <Play size={30} className="text-white" strokeWidth={2.25} fill="white" />
               )}
             </div>
           </motion.div>
@@ -289,35 +415,108 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock }: Props) {
           type="button"
           onClick={toggleMute}
           aria-label={muted ? "Activar sonido" : "Silenciar"}
-          className="absolute right-3 top-3 z-[4] rounded-full bg-black/40 p-2 text-white/80 backdrop-blur-sm transition-opacity hover:bg-black/60 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          className="absolute right-3 top-3 z-[4] flex h-11 w-11 items-center justify-center rounded-full bg-black/40 text-white/80 backdrop-blur-sm transition-opacity hover:bg-black/60 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
           style={{ opacity: uiVisible ? 1 : 0, pointerEvents: uiVisible ? "auto" : "none" }}
         >
-          {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+          {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
         </button>
       )}
 
-      {/* Progress bar minimalista + timer (bottom). */}
+      {/* Lista de capítulos (overlay). */}
+      <AnimatePresence>
+        {showChapters && chapters && chapters.length > 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[6]">
+            <ChapterList
+              chapters={chapters}
+              currentTime={currentTime}
+              onSeek={(sec) => {
+                if (videoRef.current) {
+                  videoRef.current.currentTime = sec;
+                  setCurrentTime(sec);
+                }
+                setShowChapters(false);
+              }}
+              onClose={() => setShowChapters(false)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Progress bar scrubbable + buffered + marcadores + timer + fullscreen (bottom). */}
       <AnimatePresence>
         {showBottomUi && uiVisible && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-x-0 bottom-0 z-[3] flex flex-col gap-1 bg-gradient-to-t from-black/60 to-transparent px-3 pb-2 pt-6"
+            className="absolute inset-x-0 bottom-0 z-[3] flex flex-col gap-1.5 bg-gradient-to-t from-black/60 to-transparent px-3 pb-2 pt-6"
           >
-            <button
-              type="button"
-              onClick={handleSeek}
-              aria-label="Barra de progreso · click para saltar"
-              className="group h-1 w-full cursor-pointer overflow-hidden rounded-full bg-white/25"
+            {currentChapter && (
+              <span className="truncate text-[11px] font-semibold text-white/90">{currentChapter.label}</span>
+            )}
+            <div
+              ref={progressBarRef}
+              role="slider"
+              tabIndex={0}
+              aria-label="Barra de progreso"
+              aria-valuemin={0}
+              aria-valuemax={Math.round(duration) || 0}
+              aria-valuenow={Math.round(currentTime)}
+              onPointerDown={onScrubPointerDown}
+              onPointerMove={onScrubPointerMove}
+              onPointerUp={onScrubPointerUp}
+              className="relative h-2 w-full cursor-pointer touch-none py-[3px]"
             >
-              <div className="h-full bg-primary transition-[width] duration-100" style={{ width: `${pct}%` }} />
-            </button>
+              <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 overflow-hidden rounded-full bg-white/25">
+                {/* buffered */}
+                <div className="absolute inset-y-0 left-0 bg-white/30" style={{ width: `${bufferedPct}%` }} />
+                {/* progreso (color del pilar) */}
+                <div className="absolute inset-y-0 left-0" style={{ width: `${pct}%`, backgroundColor: glow }} />
+              </div>
+              {/* marcadores de capítulos */}
+              {chapters?.map((c, i) => {
+                const left = duration > 0 ? Math.min(100, (c.start_sec / duration) * 100) : 0;
+                return (
+                  <span
+                    key={`${c.start_sec}-${i}`}
+                    aria-hidden
+                    className="absolute top-1/2 h-2 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/70"
+                    style={{ left: `${left}%` }}
+                  />
+                );
+              })}
+            </div>
             <div className="flex items-center justify-between text-[11px] font-medium text-white/90">
-              <span>
+              <span className="tabular-nums">
                 {formatTime(currentTime)} / {formatTime(duration)}
+                {isCompleted && <span className="ml-2 font-semibold text-primary">✓ Completado</span>}
               </span>
-              {isCompleted && <span className="font-semibold text-primary">✓ Completado</span>}
+              <div className="flex items-center gap-1">
+                {chapters && chapters.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowChapters((s) => !s);
+                    }}
+                    aria-label="Capítulos"
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-white/80 hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                  >
+                    <List size={16} />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFullscreen();
+                  }}
+                  aria-label={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-white/80 hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                >
+                  {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+                </button>
+              </div>
             </div>
           </motion.div>
         )}

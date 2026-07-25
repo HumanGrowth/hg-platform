@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import * as React from "react";
 
 import { BlockRenderer } from "@/components/modulos/BlockRenderer";
+import { BlockTransition } from "@/components/modulos/BlockTransition";
 import { UnitCompletionCard } from "@/components/modulos/UnitCompletionCard";
 import { Chip } from "@/components/ui/chip";
 import { Dialog } from "@/components/ui/dialog";
@@ -239,13 +240,20 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
           onMouseDown={isVideoBlock ? onVideoPressStart : undefined}
           onMouseUp={isVideoBlock ? onVideoPressEnd : undefined}
         >
-          <BlockRenderer
-            block={currentBlock}
-            isCompleted={isCurrentCompleted}
-            onCompleteBlock={onCompleteBlock}
-            onSubmitQuiz={onSubmitQuiz}
-            onSubmitReflection={onSubmitReflection}
-          />
+          <BlockTransition
+            blockKey={currentBlock.id}
+            tone={unit.narrative_tone}
+            className={isVideoBlock ? "h-full w-full" : "w-full"}
+          >
+            <BlockRenderer
+              block={currentBlock}
+              pillarCode={unit.pillar_code}
+              isCompleted={isCurrentCompleted}
+              onCompleteBlock={onCompleteBlock}
+              onSubmitQuiz={onSubmitQuiz}
+              onSubmitReflection={onSubmitReflection}
+            />
+          </BlockTransition>
         </div>
       </div>
 

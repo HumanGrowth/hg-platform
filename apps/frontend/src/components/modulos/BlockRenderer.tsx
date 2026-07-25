@@ -14,10 +14,13 @@ export interface BlockRendererHandlers {
 
 export interface BlockRendererProps extends BlockRendererHandlers {
   block: Block;
+  /** Pilar de la unit — para la identidad visual por pilar de los templates
+   * (Sprint UI). Opcional: default primary si no se pasa. */
+  pillarCode?: string;
 }
 
 /** Router polimórfico por block_type (TASK B-06) — 4 sub-vistas. */
-export function BlockRenderer({ block, ...handlers }: BlockRendererProps) {
+export function BlockRenderer({ block, pillarCode, ...handlers }: BlockRendererProps) {
   switch (block.block_type) {
     case "video_intro":
     case "video_teaching":
@@ -25,6 +28,7 @@ export function BlockRenderer({ block, ...handlers }: BlockRendererProps) {
       return (
         <VideoBlockView
           block={block}
+          pillarCode={pillarCode}
           isCompleted={handlers.isCompleted}
           onCompleteBlock={handlers.onCompleteBlock}
         />
@@ -35,6 +39,7 @@ export function BlockRenderer({ block, ...handlers }: BlockRendererProps) {
       return (
         <TextBlockView
           block={block}
+          pillarCode={pillarCode}
           isCompleted={handlers.isCompleted}
           onCompleteBlock={handlers.onCompleteBlock}
         />
@@ -43,6 +48,7 @@ export function BlockRenderer({ block, ...handlers }: BlockRendererProps) {
       return (
         <QuizBlockView
           block={block}
+          pillarCode={pillarCode}
           isCompleted={handlers.isCompleted}
           onSubmitQuiz={handlers.onSubmitQuiz}
         />
@@ -51,6 +57,7 @@ export function BlockRenderer({ block, ...handlers }: BlockRendererProps) {
       return (
         <ReflectionBlockView
           block={block}
+          pillarCode={pillarCode}
           isCompleted={handlers.isCompleted}
           onSubmitReflection={handlers.onSubmitReflection}
         />
