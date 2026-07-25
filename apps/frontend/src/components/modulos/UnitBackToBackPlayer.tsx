@@ -6,6 +6,7 @@ import * as React from "react";
 import { BlockRenderer } from "@/components/modulos/BlockRenderer";
 import { BlockTransition } from "@/components/modulos/BlockTransition";
 import { UnitCompletionCard } from "@/components/modulos/UnitCompletionCard";
+import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Button } from "@/components/ui/button";
 import { apiCompleteBlock, apiSubmitQuiz, apiSubmitReflection } from "@/lib/api";
 import type {
@@ -226,6 +227,12 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
                 </button>
               );
             })}
+            <AISoonBadge
+              variant="pill"
+              label="Chatear con este pilar"
+              pillarCode={unit.pillar_code}
+              className="mt-2 self-start"
+            />
           </nav>
         )}
       </div>

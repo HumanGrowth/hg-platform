@@ -7,6 +7,7 @@ import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
 import { MiniRadar } from "@/components/radar/MiniRadar";
+import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -196,6 +197,14 @@ export default function HomePage() {
               </>
             )}
           </Card>
+
+          {/* Placeholder AI (Sprint UI · TASK 11) — sin captura de nada. */}
+          <AISoonBadge
+            variant="card"
+            label="Próximamente: tu recomendación diaria"
+            pillarCode={data.next_step?.pillar_code}
+            className="mt-4"
+          />
 
           {/* Mini radar */}
           <Card className="mt-4 flex items-center gap-5 bg-bg-raised">

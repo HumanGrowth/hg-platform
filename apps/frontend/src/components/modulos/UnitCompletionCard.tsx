@@ -1,17 +1,18 @@
 "use client";
 
-import { Check } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 
+import { PillarMetaphor } from "@/components/modulos/PillarMetaphor";
+import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Card } from "@/components/ui/card";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { buttonVariants } from "@/components/ui/button";
 import { apiGetModulosFeed } from "@/lib/api";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
-import { PILLARS, pillarBaseCode } from "@/lib/pillars";
+import { pillarStyle } from "@/lib/pillars";
 import type { LearningUnitAttempt, LearningUnitDetail, LearningUnitFeedItem } from "@/lib/types";
 import { cn, formatApproxMinutes } from "@/lib/utils";
 
@@ -49,7 +50,7 @@ export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionC
     };
   }, [unit.slug]);
 
-  const pillarDot = PILLARS.find((p) => p.id === pillarBaseCode(unit.pillar_code))?.dot;
+  const style = pillarStyle(unit.pillar_code);
   const completedSteps = attempt.block_progress.filter((bp) => bp.status === "completed").length;
   const totalSteps = unit.blocks.length;
   // TASK polish-06: el resumen del quiz se muestra en positivo/verde (nunca
@@ -59,24 +60,24 @@ export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionC
 
   return (
     <Card className="flex flex-col items-center gap-5 py-10 text-center">
-      <div
+      {/* TASK 14: la metáfora del pilar con "brillo de estrella" (star-glow) —
+          el momento de logro, sin confetti. */}
+      <motion.div
+        initial={shouldAnimate ? { scale: 0.6, opacity: 0 } : false}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 18 }}
+        style={{
+          color: style.glow,
+          background: `color-mix(in srgb, ${style.glow} 10%, transparent)`,
+          ["--glow-color" as string]: `color-mix(in srgb, ${style.glow} 50%, transparent)`,
+        } as React.CSSProperties}
         className={cn(
-          "flex h-16 w-16 items-center justify-center rounded-full",
-          pillarDot ?? "bg-bg-sunken",
+          "flex h-20 w-20 items-center justify-center rounded-full",
+          shouldAnimate && "animate-star-glow",
         )}
       >
-        {shouldAnimate ? (
-          <motion.div
-            initial={{ scale: 0, rotate: -45 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 260, damping: 18 }}
-          >
-            <Check size={32} strokeWidth={2.5} className="text-white" />
-          </motion.div>
-        ) : (
-          <Check size={32} strokeWidth={2.5} className="text-white" />
-        )}
-      </div>
+        <PillarMetaphor code={unit.pillar_code} className="h-12 w-12" />
+      </motion.div>
       <div>
         <Eyebrow accent>Módulo completado</Eyebrow>
         <h2 className="mt-2 font-sans text-xl font-semibold text-fg">{unit.title}</h2>
@@ -94,6 +95,12 @@ export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionC
           </div>
         )}
       </div>
+      <AISoonBadge
+        variant="card"
+        label="Próximamente: síntesis personalizada por AI"
+        pillarCode={unit.pillar_code}
+        className="w-full max-w-sm"
+      />
       <div className="mt-2 flex flex-col gap-3 sm:flex-row">
         {nextUnit && (
           <Link href={`/modulos/${nextUnit.slug}` as Route} className={cn(buttonVariants({ size: "lg" }))}>

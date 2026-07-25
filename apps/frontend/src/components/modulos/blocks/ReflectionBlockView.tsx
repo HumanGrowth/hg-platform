@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import * as React from "react";
 
 import { CircularCounter } from "@/components/modulos/blocks/CircularCounter";
+import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
@@ -85,6 +86,8 @@ export function ReflectionBlockView({
           style={{ lineHeight: "28px" }}
         />
       </div>
+      <AISoonBadge variant="inline" label="Próximamente: reflexión guiada por AI" pillarCode={pillarCode} />
+
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <CircularCounter current={trimmed} min={block.min_chars} reached={reachedMin} />

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import * as React from "react";
 
 import { PillarMetaphor } from "@/components/modulos/PillarMetaphor";
+import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Button } from "@/components/ui/button";
 import { useNarrativeTone } from "@/lib/motion/useNarrativeTone";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
@@ -70,6 +71,12 @@ export function UnitOpeningScreen({ unit, onStart }: { unit: LearningUnitDetail;
         <Button size="lg" onClick={onStart} className="mt-2">
           Comenzar
         </Button>
+
+        <AISoonBadge
+          variant="inline"
+          label="Próximamente: adaptar dificultad a tu ritmo"
+          pillarCode={unit.pillar_code}
+        />
       </Wrapper>
     </div>
   );

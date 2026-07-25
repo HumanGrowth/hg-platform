@@ -4,6 +4,7 @@ import { type TargetAndTransition, motion } from "framer-motion";
 import { Check, Sparkles } from "lucide-react";
 import * as React from "react";
 
+import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
@@ -279,6 +280,13 @@ export function QuizBlockView({
         <Button onClick={() => void submit()} disabled={!allAnswered || submitting} className="self-start">
           {submitting ? "Enviando…" : "Enviar respuestas"}
         </Button>
+      )}
+      {results && (
+        <AISoonBadge
+          variant="inline"
+          label="Próximamente: por qué la respuesta correcta funciona para vos"
+          pillarCode={pillarCode}
+        />
       )}
       {error && <p className="text-sm text-danger">No pudimos enviar tus respuestas. Probá de nuevo.</p>}
     </div>
