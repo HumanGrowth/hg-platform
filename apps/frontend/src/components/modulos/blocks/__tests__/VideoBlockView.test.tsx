@@ -140,4 +140,25 @@ describe("VideoBlockView · full-bleed player (TASK player-01)", () => {
     fireEvent.keyDown(window, { key: "ArrowLeft" });
     expect(video.currentTime).toBe(0);
   });
+
+  it("shows a chapter list to jump when the unit has chapters (T3)", () => {
+    const withChapters: VideoBlock = {
+      ...block,
+      chapters: [
+        { start_sec: 0, label: "Intro" },
+        { start_sec: 10, label: "La idea central" },
+      ],
+    };
+    render(<VideoBlockView block={withChapters} isCompleted={false} onCompleteBlock={vi.fn()} pillarCode="P3" />);
+    const video = screen.getByTitle("Video del módulo") as HTMLVideoElement;
+    fireEvent.play(video); // muestra la UI inferior (estado playing)
+    fireEvent.click(screen.getByLabelText("Capítulos"));
+    expect(screen.getByText("La idea central")).toBeTruthy();
+  });
+
+  it("does NOT render a chapters button when there are no chapters (backward compat)", () => {
+    render(<VideoBlockView block={block} isCompleted={false} onCompleteBlock={vi.fn()} />);
+    fireEvent.play(screen.getByTitle("Video del módulo"));
+    expect(screen.queryByLabelText("Capítulos")).toBeNull();
+  });
 });
