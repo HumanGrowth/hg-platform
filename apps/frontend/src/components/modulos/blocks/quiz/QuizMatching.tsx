@@ -3,6 +3,9 @@ import * as React from "react";
 import type { QuizQuestionMatching, QuizSubmitResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+import { QuizPrompt } from "./QuizPrompt";
+import { Typewriter } from "./Typewriter";
+
 /** Click-to-select-pair fallback (drag-and-drop no está en scope sin
  * @dnd-kit instalado — el propio spec de B-06 acepta este fallback).
  * `value` puede incluir pares que involucran distractors (la UI no puede
@@ -54,7 +57,7 @@ export function QuizMatching({
 
   return (
     <fieldset className="flex flex-col gap-3">
-      <legend className="font-sans text-base font-semibold text-fg">{question.prompt}</legend>
+      <QuizPrompt>{question.prompt}</QuizPrompt>
       <p className="text-xs text-fg-muted">Tocá un ítem de la izquierda y después su par a la derecha.</p>
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-2">
@@ -115,6 +118,7 @@ export function QuizMatching({
           {correctPairs.map(([l, r]) => `${textById.get(l)} → ${textById.get(r)}`).join(" · ")}
         </p>
       )}
+      {result?.explanation && <Typewriter text={result.explanation} className="text-sm text-fg-muted" />}
     </fieldset>
   );
 }

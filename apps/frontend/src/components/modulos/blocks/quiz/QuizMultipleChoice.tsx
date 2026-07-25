@@ -3,6 +3,9 @@ import { Check, X } from "lucide-react";
 import type { QuizQuestionMultipleChoice, QuizSubmitResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+import { QuizPrompt } from "./QuizPrompt";
+import { Typewriter } from "./Typewriter";
+
 export function QuizMultipleChoice({
   question,
   value,
@@ -24,7 +27,7 @@ export function QuizMultipleChoice({
 
   return (
     <fieldset className="flex flex-col gap-3">
-      <legend className="font-sans text-base font-semibold text-fg">{question.prompt}</legend>
+      <QuizPrompt>{question.prompt}</QuizPrompt>
       <p className="text-xs text-fg-muted">Elegí todas las que correspondan.</p>
       <div className="flex flex-col gap-2">
         {question.options.map((opt) => {
@@ -61,7 +64,7 @@ export function QuizMultipleChoice({
           );
         })}
       </div>
-      {result?.explanation && <p className="text-sm text-fg-muted">{result.explanation}</p>}
+      {result?.explanation && <Typewriter text={result.explanation} className="text-sm text-fg-muted" />}
     </fieldset>
   );
 }

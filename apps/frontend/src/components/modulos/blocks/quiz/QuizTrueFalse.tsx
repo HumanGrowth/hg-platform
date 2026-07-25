@@ -1,6 +1,9 @@
 import type { QuizQuestionTrueFalse, QuizSubmitResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+import { QuizPrompt } from "./QuizPrompt";
+import { Typewriter } from "./Typewriter";
+
 export function QuizTrueFalse({
   question,
   value,
@@ -26,7 +29,7 @@ export function QuizTrueFalse({
 
   return (
     <fieldset className="flex flex-col gap-3">
-      <legend className="font-sans text-base font-semibold text-fg">{question.prompt}</legend>
+      <QuizPrompt>{question.prompt}</QuizPrompt>
       <div className="grid grid-cols-2 gap-3">
         {[true, false].map((option) => {
           const state = stateFor(option);
@@ -52,7 +55,7 @@ export function QuizTrueFalse({
           );
         })}
       </div>
-      {result?.explanation && <p className="text-sm text-fg-muted">{result.explanation}</p>}
+      {result?.explanation && <Typewriter text={result.explanation} className="text-sm text-fg-muted" />}
     </fieldset>
   );
 }
