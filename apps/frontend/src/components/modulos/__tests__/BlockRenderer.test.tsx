@@ -26,6 +26,7 @@ const videoBlock: Block = {
   subtitle_url: null,
   transcript_text: null,
   eyebrow_label: "INTRO",
+  chapters: null,
 };
 
 const textBlock: Block = {
@@ -39,6 +40,8 @@ const textBlock: Block = {
   citation: null,
   applies_to: null,
   requires_evidence_block_id: null,
+  hero_stat: null,
+  checklist_items: null,
 };
 
 const quizBlock: Block = {

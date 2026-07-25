@@ -324,6 +324,7 @@ def _create_block_content(db: Session, unit_id: uuid.UUID, payload: BlockCreate)
             poster_url=payload.poster_url,
             duration_seconds=payload.duration_seconds, subtitle_url=payload.subtitle_url,
             transcript_text=payload.transcript_text, eyebrow_label=payload.eyebrow_label,
+            chapters=[c.model_dump() for c in payload.chapters] if payload.chapters else None,
         )
         db.add(video)
         db.flush()
@@ -339,6 +340,12 @@ def _create_block_content(db: Session, unit_id: uuid.UUID, payload: BlockCreate)
             variant=TextBlockVariant(payload.variant), eyebrow=payload.eyebrow, body=payload.body,
             citation=payload.citation.model_dump() if payload.citation else None,
             applies_to=payload.applies_to, requires_evidence_block_id=evidence_template_id,
+            hero_stat=payload.hero_stat.model_dump() if payload.hero_stat else None,
+            checklist_items=(
+                [i.model_dump() for i in payload.checklist_items]
+                if payload.checklist_items
+                else None
+            ),
         )
         db.add(text)
         db.flush()

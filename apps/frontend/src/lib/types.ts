@@ -429,6 +429,22 @@ interface BlockBase {
   required: boolean;
 }
 
+/** Capa visual opcional del mentor (Sprint UI Identidad · TASK 12). */
+export interface Chapter {
+  start_sec: number;
+  label: string;
+}
+export interface HeroStat {
+  value: string;
+  label: string;
+  source: string | null;
+}
+export interface ChecklistItem {
+  title: string;
+  detail: string | null;
+}
+export type NarrativeTone = "active" | "contemplative" | "analytical" | "warm";
+
 export interface VideoBlock extends BlockBase {
   block_type: "video_intro" | "video_teaching" | "video_closing";
   video_url: string;
@@ -437,6 +453,7 @@ export interface VideoBlock extends BlockBase {
   subtitle_url: string | null;
   transcript_text: string | null;
   eyebrow_label: string | null;
+  chapters: Chapter[] | null;
 }
 
 export interface TextBlock extends BlockBase {
@@ -447,6 +464,8 @@ export interface TextBlock extends BlockBase {
   citation: CitationOut | null;
   applies_to: string[] | null;
   requires_evidence_block_id: string | null;
+  hero_stat: HeroStat | null;
+  checklist_items: ChecklistItem[] | null;
 }
 
 export interface QuizOptionOut {
@@ -541,6 +560,8 @@ export interface LearningUnitDetail {
   mentor_id: string | null;
   published_at: string | null;
   estimated_duration_seconds: number | null;
+  narrative_tone: NarrativeTone | null;
+  keywords: string[] | null;
   blocks: Block[];
 }
 

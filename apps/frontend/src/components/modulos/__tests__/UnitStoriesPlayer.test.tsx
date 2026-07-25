@@ -22,16 +22,18 @@ const unit: LearningUnitDetail = {
   id: "u1", slug: "test-unit", title: "Unit de prueba", pillar_code: "P1",
   competency_code: null, level_code: "L1", mentor_id: null, published_at: null,
   estimated_duration_seconds: 60,
+  narrative_tone: null,
+  keywords: null,
   blocks: [
     {
       id: "block-a", position: 1, required: true, block_type: "video_intro",
       video_url: "https://cdn.example.com/v.mp4", poster_url: null, duration_seconds: 45,
-      subtitle_url: null, transcript_text: null, eyebrow_label: null,
+      subtitle_url: null, transcript_text: null, eyebrow_label: null, chapters: null,
     },
     {
       id: "block-b", position: 2, required: true, block_type: "video_closing",
       video_url: "https://cdn.example.com/v.mp4", poster_url: null, duration_seconds: 45,
-      subtitle_url: null, transcript_text: null, eyebrow_label: null,
+      subtitle_url: null, transcript_text: null, eyebrow_label: null, chapters: null,
     },
   ],
 };

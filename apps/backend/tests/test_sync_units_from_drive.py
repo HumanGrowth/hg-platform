@@ -259,6 +259,7 @@ def test_run_local_dry_run_counts_units(tmp_path: Path) -> None:
     args = argparse.Namespace(
         root_folder_id="x", only=None, dry_run=True,
         local_folder=str(tmp_path), skip_drive_download=True, no_publish=False,
+        skip_upload=False, skip_existing=False,
     )
     stats = run(args)
     assert stats.folders == 1
