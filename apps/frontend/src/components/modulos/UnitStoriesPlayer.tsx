@@ -218,13 +218,21 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
           type="button"
           aria-label="Bloque anterior"
           onClick={goPrev}
-          className="absolute inset-y-0 left-0 z-10 w-[15%] focus-visible:outline-none"
+          // TASK 2: en video, zonas IG-style más anchas (30%) para navegar;
+          // el centro (40%) queda para el play/pause del propio video.
+          className={cn(
+            "absolute inset-y-0 left-0 z-10 focus-visible:outline-none",
+            isVideoBlock ? "w-[30%]" : "w-[15%]",
+          )}
         />
         <button
           type="button"
           aria-label="Siguiente bloque"
           onClick={goNext}
-          className="absolute inset-y-0 right-0 z-10 w-[15%] focus-visible:outline-none"
+          className={cn(
+            "absolute inset-y-0 right-0 z-10 focus-visible:outline-none",
+            isVideoBlock ? "w-[30%]" : "w-[15%]",
+          )}
         />
         <div
           // Video 9:16 (TASK player-02 · corregido): el wrapper es `h-full`

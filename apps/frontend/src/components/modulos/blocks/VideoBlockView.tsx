@@ -68,7 +68,10 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
   const scrubbingRef = React.useRef(false);
 
   const [state, setState] = React.useState<PlayerState>("loading");
-  const [muted, setMuted] = React.useState(true);
+  // TASK 2: intentamos autoplay CON sonido; si el browser lo bloquea (autoplay
+  // policy), safePlay cae a mutado + badge "Activar sonido" (nunca deja el
+  // video pausado esperando gesto).
+  const [muted, setMuted] = React.useState(false);
   const [showUnmuteHint, setShowUnmuteHint] = React.useState(false);
   const [currentTime, setCurrentTime] = React.useState(0);
   const [duration, setDuration] = React.useState(block.duration_seconds || 0);
@@ -82,9 +85,17 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
   stateRef.current = state;
 
   function safePlay() {
-    videoRef.current?.play().catch(() => {
-      // El browser bloqueó el play (autoplay policy / sin gesto) → estado manual.
-      setState((s) => (s === "playing" ? s : "ready"));
+    const video = videoRef.current;
+    if (!video) return;
+    video.play().catch(() => {
+      // Autoplay con sonido bloqueado (sin gesto de usuario) → mutear y
+      // reintentar. El onPlay muestra el badge "Activar sonido" al ver muted.
+      video.muted = true;
+      setMuted(true);
+      video.play().catch(() => {
+        // Ni mutado pudo (raro) → estado manual, el usuario toca para reproducir.
+        setState((s) => (s === "playing" ? s : "ready"));
+      });
     });
   }
 
@@ -264,7 +275,9 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
 
   const pct = Number.isFinite(duration) && duration > 0 ? (currentTime / duration) * 100 : 0;
   const bufferedPct = Number.isFinite(duration) && duration > 0 ? (bufferedEnd / duration) * 100 : 0;
-  const showCentralIcon = state === "paused" || state === "ready" || state === "ended";
+  // TASK 2: el botón de play NO aparece en el estado inicial de autoplay — solo
+  // tras una pausa manual (paused) o al terminar (ended, para el replay).
+  const showCentralIcon = state === "paused" || state === "ended";
   const showBottomUi = state === "playing" || state === "paused" || state === "ended";
   const currentChapter =
     chapters && chapters.length > 0
@@ -274,10 +287,11 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
   return (
     <div
       ref={containerRef}
-      // 9:16 vertical (TikTok). El box se ajusta a la altura del contenedor
-      // padre (que le da la altura) y se centra; `max-w-full` recorta con
-      // object-cover en pantallas más angostas que 9:16 (mobile ≈ full-screen).
-      className="relative mx-auto aspect-[9/16] h-full max-h-full w-auto max-w-full select-none overflow-hidden bg-black"
+      // TASK 2 · full-bleed: el player LLENA su contenedor padre (sin aspect
+      // propio ni centrado). El padre define la forma: en mobile (stories) es
+      // el viewport completo (object-cover recorta), en desktop es el panel
+      // 9:16. El `<video>` usa object-cover, así que nunca hay barras negras.
+      className="relative h-full w-full select-none overflow-hidden bg-black"
       onMouseMove={resetUiTimer}
     >
       <video
@@ -288,7 +302,7 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
         poster={block.poster_url ?? undefined}
         muted={muted}
         playsInline
-        preload="metadata"
+        preload="auto"
         onLoadedMetadata={(e) => {
           const d = e.currentTarget.duration;
           if (Number.isFinite(d) && d > 0) setDuration(d);
@@ -297,9 +311,11 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
           const b = e.currentTarget.buffered;
           if (b.length > 0) setBufferedEnd(b.end(b.length - 1));
         }}
-        onPlay={() => {
+        onPlay={(e) => {
           setState("playing");
-          if (muted && !hintShownRef.current) {
+          // Lee el estado real del elemento (muted puede haber cambiado en el
+          // fallback de safePlay antes de que el state se actualice).
+          if (e.currentTarget.muted && !hintShownRef.current) {
             hintShownRef.current = true;
             setShowUnmuteHint(true);
             window.setTimeout(() => setShowUnmuteHint(false), UNMUTE_HINT_MS);
