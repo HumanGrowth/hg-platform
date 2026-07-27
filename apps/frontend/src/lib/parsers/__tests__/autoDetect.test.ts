@@ -42,6 +42,20 @@ describe("detectChecklistItems", () => {
     expect(r?.map((i) => i.n)).toEqual([1, 2, 3]);
   });
 
+  it("detects parenthesized markers (1) (2) (3) — Bug #2", () => {
+    const r = detectChecklistItems(
+      "Preguntá: (1) ¿Qué pasa si no lo hago?, (2) ¿De qué depende?, (3) ¿Dónde falla?",
+    );
+    expect(r?.map((i) => i.n)).toEqual([1, 2, 3]);
+    expect(r?.[0].title).toContain("¿Qué pasa si no lo hago?");
+  });
+
+  it("detects '1)' paren-close markers — Bug #2", () => {
+    const r = detectChecklistItems("Pasos: 1) Respirá 2) Escuchá 3) Respondé");
+    expect(r?.length).toBe(3);
+    expect(r?.[2].title).toBe("Respondé");
+  });
+
   it("detects a multiline 5-item list", () => {
     const r = detectChecklistItems("1. Uno\n2. Dos\n3. Tres\n4. Cuatro\n5. Cinco");
     expect(r).toHaveLength(5);

@@ -79,7 +79,9 @@ export interface ChecklistItemDetection {
 export function detectChecklistItems(text: string): ChecklistItemDetection[] | null {
   if (!text) return null;
 
-  const re = /(\d+)\.\s+(.+?)(?=\s+\d+\.\s|\n|$)/g;
+  // Acepta "1.", "1)" y "(1)" como marcador de paso (fixes-módulos · Bug #2):
+  // varios Docs escriben los pasos con paréntesis en vez de punto.
+  const re = /\(?(\d+)[.)]\s+(.+?)(?=\s+\(?\d+[.)]\s|\n|$)/g;
   const raw: ChecklistItemDetection[] = [];
   let m: RegExpExecArray | null;
   while ((m = re.exec(text)) !== null) {
