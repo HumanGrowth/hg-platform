@@ -93,9 +93,14 @@ class LearningUnit(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     slug: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
-    pillar_code: Mapped[str] = mapped_column(
-        String(10), ForeignKey("career_paths.code"), nullable=False, index=True
-    )
+    # Dimensión del Drive (CP, PR, …). TASK 1: antes se llamaba `pillar_code` y
+    # (mal) guardaba el PILAR del Drive; ahora guarda la DIMENSIÓN, sin FK a
+    # career_paths (los códigos Drive no viven en esa tabla). El mapeo
+    # dimensión→color/label del DS se resuelve en el frontend.
+    dimension_code: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
+    # Pilar (P<n>) y correlativo del código Drive `<DIM>-L<n>-P<n>-<seq>`.
+    pillar_number: Mapped[int | None] = mapped_column(nullable=True)
+    unit_number: Mapped[int | None] = mapped_column(nullable=True)
     competency_code: Mapped[CompetencyCode | None] = mapped_column(
         Enum(CompetencyCode, name="competency_code", create_type=False), nullable=True
     )

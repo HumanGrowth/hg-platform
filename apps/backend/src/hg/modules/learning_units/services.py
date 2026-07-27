@@ -17,7 +17,9 @@ video opcionales)::
     {
       "slug": "hg-p1-l1-001-antes-de-seguir",
       "title": "Antes de seguir",
-      "pillar_code": "P1",
+      "dimension_code": "CP",            # dimensión Drive (TASK 1); antes pillar_code
+      "pillar_number": 1,                # opcional — el P<n> del código Drive
+      "unit_number": 1,                  # opcional — el seq del código Drive
       "competency_code": "C1",           # opcional
       "level_code": "L1",
       "estimated_duration_seconds": 300,  # opcional
@@ -291,7 +293,9 @@ def upsert_unit_from_dict(
         body=LearningUnitCreate(
             slug=slug,
             title=unit_dict["title"],
-            pillar_code=unit_dict["pillar_code"],
+            dimension_code=unit_dict["dimension_code"],
+            pillar_number=unit_dict.get("pillar_number"),
+            unit_number=unit_dict.get("unit_number"),
             competency_code=unit_dict.get("competency_code"),
             level_code=unit_dict["level_code"],
             estimated_duration_seconds=unit_dict.get("estimated_duration_seconds"),
