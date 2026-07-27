@@ -8,7 +8,7 @@ import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Button } from "@/components/ui/button";
 import { useNarrativeTone } from "@/lib/motion/useNarrativeTone";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
-import { PILLARS, pillarBaseCode, pillarStyle } from "@/lib/pillars";
+import { PILLARS, dimensionStyle, dimensionToPillar } from "@/lib/pillars";
 import type { LearningUnitDetail } from "@/lib/types";
 
 function fmtDuration(sec: number | null): string | null {
@@ -25,8 +25,8 @@ function fmtDuration(sec: number | null): string | null {
 export function UnitOpeningScreen({ unit, onStart }: { unit: LearningUnitDetail; onStart: () => void }) {
   const shouldAnimate = useShouldAnimate();
   const { transition } = useNarrativeTone(unit.narrative_tone);
-  const style = pillarStyle(unit.pillar_code);
-  const pillarName = PILLARS.find((p) => p.id === pillarBaseCode(unit.pillar_code))?.name ?? "";
+  const style = dimensionStyle(unit.dimension_code);
+  const pillarName = PILLARS.find((p) => p.id === dimensionToPillar(unit.dimension_code))?.name ?? "";
   const duration = fmtDuration(unit.estimated_duration_seconds);
   const steps = unit.blocks.length;
 
@@ -52,7 +52,7 @@ export function UnitOpeningScreen({ unit, onStart }: { unit: LearningUnitDetail;
             boxShadow: `0 0 32px 0 color-mix(in srgb, ${style.glow} 30%, transparent)`,
           }}
         >
-          <PillarMetaphor code={unit.pillar_code} className="h-20 w-20" />
+          <PillarMetaphor code={unit.dimension_code} className="h-20 w-20" />
         </motion.div>
 
         <div className="flex flex-col items-center gap-2">
@@ -75,7 +75,7 @@ export function UnitOpeningScreen({ unit, onStart }: { unit: LearningUnitDetail;
         <AISoonBadge
           variant="inline"
           label="Próximamente: adaptar dificultad a tu ritmo"
-          pillarCode={unit.pillar_code}
+          dimensionCode={unit.dimension_code}
         />
       </Wrapper>
     </div>

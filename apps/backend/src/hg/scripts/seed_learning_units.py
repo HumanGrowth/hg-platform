@@ -54,6 +54,7 @@ from sqlalchemy.orm import Session
 
 from hg.db import SessionLocal
 from hg.modules.learning.models import CareerPath, Event
+from hg.modules.learning_units.dimensions import career_path_for_dimension
 from hg.modules.learning_units.services import (
     delete_unit_if_exists,
     splice_blocks,
@@ -144,7 +145,7 @@ def _build_video_specs(db: Session, content_dir: Path | None, slug: str, pillar_
 _EMBEDDED_UNIT_1: dict[str, Any] = {
     "slug": "hg-p1-l1-001-antes-de-seguir",
     "title": "Antes de seguir",
-    "pillar_code": "P1",
+    "dimension_code": "CP", "pillar_number": 1,
     "competency_code": "C1",
     "level_code": "L1",
     "mentor_name": "Seba",
@@ -329,7 +330,7 @@ def _load_unit_1_spec() -> tuple[dict[str, Any], Path | None]:
 _UNIT_2_FEEDBACK_DIRECTO: dict[str, Any] = {
     "slug": "hg-p3-l1-001-feedback-directo",
     "title": f"{GENERATED_TAG} Feedback directo sin drama",
-    "pillar_code": "P3",
+    "dimension_code": "CP", "pillar_number": 3,
     "competency_code": "C4",
     "level_code": "L1",
     "estimated_duration_seconds": 80,
@@ -398,7 +399,7 @@ _UNIT_2_FEEDBACK_DIRECTO: dict[str, Any] = {
 _UNIT_3_MICRO_DESCANSOS: dict[str, Any] = {
     "slug": "hg-p4-l1-001-micro-descansos",
     "title": f"{GENERATED_TAG} Micro-descansos que sí funcionan",
-    "pillar_code": "P4",
+    "dimension_code": "CP", "pillar_number": 4,
     "competency_code": "C2",
     "level_code": "L1",
     "estimated_duration_seconds": 65,
@@ -506,7 +507,11 @@ def _seed_unit(db: Session, spec: dict[str, Any], content_dir: Path | None) -> N
     los ``requires_evidence_position`` que quedan corridos por la inyección.
     """
     json_blocks: list[dict[str, Any]] = spec["blocks"]
-    video_specs = _build_video_specs(db, content_dir, spec["slug"], spec["pillar_code"])
+    # El fallback de video busca un evento del career path; traducimos la
+    # dimensión Drive (CP) a su career path (P1) para esa búsqueda.
+    video_specs = _build_video_specs(
+        db, content_dir, spec["slug"], career_path_for_dimension(spec["dimension_code"])
+    )
     video_blocks = [
         {"type": "video_teaching", "required": True, **vspec} for vspec in video_specs
     ]

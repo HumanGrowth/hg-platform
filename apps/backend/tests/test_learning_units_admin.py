@@ -46,7 +46,7 @@ def _cleanup(slug: str) -> None:
 def _create_unit(client: TestClient, headers: dict, slug: str) -> dict:
     r = client.post(
         "/api/v1/admin/learning-units", headers=headers,
-        json={"slug": slug, "title": "t", "pillar_code": "P1", "level_code": "L2"},
+        json={"slug": slug, "title": "t", "dimension_code": "CP", "level_code": "L2"},
     )
     assert r.status_code == 201, r.text
     return r.json()
@@ -59,7 +59,7 @@ def test_non_superadmin_blocked(client: TestClient, factory, auth_headers) -> No
     headers = _collaborator_headers(factory, auth_headers)
     r = client.post(
         "/api/v1/admin/learning-units", headers=headers,
-        json={"slug": "x", "title": "t", "pillar_code": "P1", "level_code": "L2"},
+        json={"slug": "x", "title": "t", "dimension_code": "CP", "level_code": "L2"},
     )
     assert r.status_code == 403
 
@@ -80,7 +80,7 @@ def test_create_unit_then_duplicate_slug_conflicts(client: TestClient, factory, 
         assert unit["blocks"] == []
         dup = client.post(
             "/api/v1/admin/learning-units", headers=headers,
-            json={"slug": slug, "title": "other", "pillar_code": "P1", "level_code": "L2"},
+            json={"slug": slug, "title": "other", "dimension_code": "CP", "level_code": "L2"},
         )
         assert dup.status_code == 409
     finally:
@@ -91,7 +91,7 @@ def test_create_unit_rejects_bad_level_code(client: TestClient, factory, auth_he
     headers = _superadmin_headers(factory, auth_headers)
     r = client.post(
         "/api/v1/admin/learning-units", headers=headers,
-        json={"slug": f"admin-test-{uuid.uuid4().hex[:8]}", "title": "t", "pillar_code": "P1", "level_code": "L9"},
+        json={"slug": f"admin-test-{uuid.uuid4().hex[:8]}", "title": "t", "dimension_code": "CP", "level_code": "L9"},
     )
     assert r.status_code == 422
 

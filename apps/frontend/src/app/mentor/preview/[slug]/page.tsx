@@ -158,7 +158,7 @@ export default function MentorPreviewPage({ params }: { params: { slug: string }
                       <BlockTransition blockKey={b.id} tone={previewUnit.narrative_tone} className="h-full w-full">
                         <BlockRenderer
                           block={b}
-                          pillarCode={previewUnit.pillar_code}
+                          dimensionCode={previewUnit.dimension_code}
                           isCompleted={false}
                           onCompleteBlock={noopComplete}
                           onSubmitQuiz={noopQuiz}
@@ -170,7 +170,7 @@ export default function MentorPreviewPage({ params }: { params: { slug: string }
                     <BlockTransition blockKey={b.id} tone={previewUnit.narrative_tone} className="w-full">
                       <BlockRenderer
                         block={b}
-                        pillarCode={previewUnit.pillar_code}
+                        dimensionCode={previewUnit.dimension_code}
                         isCompleted={false}
                         onCompleteBlock={noopComplete}
                         onSubmitQuiz={noopQuiz}

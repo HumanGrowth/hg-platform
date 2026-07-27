@@ -185,7 +185,7 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
           >
             <BlockRenderer
               block={currentBlock}
-              pillarCode={unit.pillar_code}
+              dimensionCode={unit.dimension_code}
               isCompleted={isCurrentCompleted}
               onCompleteBlock={onCompleteBlock}
               onSubmitQuiz={onSubmitQuiz}
@@ -230,7 +230,7 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
             <AISoonBadge
               variant="pill"
               label="Chatear con este pilar"
-              pillarCode={unit.pillar_code}
+              dimensionCode={unit.dimension_code}
               className="mt-2 self-start"
             />
           </nav>

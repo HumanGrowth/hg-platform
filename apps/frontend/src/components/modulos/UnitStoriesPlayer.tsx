@@ -247,7 +247,7 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
           >
             <BlockRenderer
               block={currentBlock}
-              pillarCode={unit.pillar_code}
+              dimensionCode={unit.dimension_code}
               isCompleted={isCurrentCompleted}
               onCompleteBlock={onCompleteBlock}
               onSubmitQuiz={onSubmitQuiz}

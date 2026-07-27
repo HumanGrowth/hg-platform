@@ -28,7 +28,7 @@ const unit: LearningUnitFeedItem = {
   id: "u1",
   slug: "hg-p1-l1-001-antes-de-seguir",
   title: "Antes de seguir",
-  pillar_code: "P1",
+  dimension_code: "CP", pillar_number: null, unit_number: null,
   level_code: "L1",
   estimated_duration_seconds: 300,
   blocks_count: 5,

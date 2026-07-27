@@ -35,7 +35,7 @@ def _cleanup(slug: str) -> None:
 
 
 def _unit_payload(slug: str, **extra) -> dict:
-    return {"slug": slug, "title": "t", "pillar_code": "P1", "level_code": "L2", **extra}
+    return {"slug": slug, "title": "t", "dimension_code": "CP", "level_code": "L2", **extra}
 
 
 def _create_unit(client, headers, **extra) -> dict:

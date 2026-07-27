@@ -554,7 +554,9 @@ export interface LearningUnitDetail {
   id: string;
   slug: string;
   title: string;
-  pillar_code: string;
+  dimension_code: string;
+  pillar_number: number | null;
+  unit_number: number | null;
   competency_code: string | null;
   level_code: string;
   mentor_id: string | null;
@@ -571,7 +573,9 @@ export interface LearningUnitFeedItem {
   id: string;
   slug: string;
   title: string;
-  pillar_code: string;
+  dimension_code: string;
+  pillar_number: number | null;
+  unit_number: number | null;
   level_code: string;
   estimated_duration_seconds: number | null;
   blocks_count: number;

@@ -202,7 +202,7 @@ export default function HomePage() {
           <AISoonBadge
             variant="card"
             label="Próximamente: tu recomendación diaria"
-            pillarCode={data.next_step?.pillar_code}
+            dimensionCode={data.next_step?.pillar_code}
             className="mt-4"
           />
 

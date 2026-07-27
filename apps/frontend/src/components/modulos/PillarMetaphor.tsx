@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { pillarBaseCode } from "@/lib/pillars";
+import { dimensionToPillar } from "@/lib/pillars";
 
 /**
  * Ilustración-metáfora line-art por pilar (Sprint UI · TASK 10). Una por
@@ -59,7 +59,7 @@ const PATHS: Record<string, React.ReactNode> = {
 };
 
 export function PillarMetaphor({ code, className }: { code: string; className?: string }) {
-  const paths = PATHS[pillarBaseCode(code)] ?? PATHS.P3;
+  const paths = PATHS[dimensionToPillar(code)] ?? PATHS.P3;
   return (
     <svg
       viewBox="0 0 120 120"

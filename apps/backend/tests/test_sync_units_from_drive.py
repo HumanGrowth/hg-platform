@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 from hg.modules.learning_units.services import UnitDictError
+from hg.modules.learning_units.unit_code import UnitCode
 from hg.scripts.sync_units_from_drive import (
     assemble_unit_dict,
     build_video_blocks,
@@ -29,19 +30,21 @@ _FIXTURE = Path(__file__).parent / "fixtures" / "drive_doc_sample.txt"
 @pytest.mark.parametrize(
     "name,expected",
     [
-        ("CP-L1-P1-001", ("L1", "P1", "001")),
-        ("CP-L1-P4-004", ("L1", "P4", "004")),
-        ("CP-L2-P3-012 - descripción extra", ("L2", "P3", "012")),
+        ("CP-L1-P1-001", UnitCode("CP", 1, 1, 1)),
+        ("CP-L1-P4-004", UnitCode("CP", 1, 4, 4)),
+        ("CP-L2-P3-012 - descripción extra", UnitCode("CP", 2, 3, 12)),
+        # TASK 1: ya NO hardcodea CP — cualquier dimensión de 2-3 letras.
+        ("PR-L1-P2-003", UnitCode("PR", 1, 2, 3)),
     ],
 )
-def test_parse_folder_name_ok(name: str, expected: tuple[str, str, str]) -> None:
+def test_parse_folder_name_ok(name: str, expected: UnitCode) -> None:
     assert parse_folder_name(name) == expected
 
 
 @pytest.mark.parametrize("bad", ["random-folder", "P1-L1-001", "CP-X1-P1-001", ""])
 def test_parse_folder_name_rejects_bad(bad: str) -> None:
-    with pytest.raises(ValueError):
-        parse_folder_name(bad)
+    # Fuera de convención → None (el sync lo reporta y saltea, no revienta).
+    assert parse_folder_name(bad) is None
 
 
 # ─────────────────────────── extract_json_from_doc_text ───────────────────────────

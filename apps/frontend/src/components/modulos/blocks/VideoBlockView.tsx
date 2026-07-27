@@ -17,7 +17,7 @@ import * as React from "react";
 
 import { ChapterList } from "@/components/modulos/blocks/ChapterList";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
-import { pillarStyle } from "@/lib/pillars";
+import { dimensionStyle } from "@/lib/pillars";
 import type { VideoBlock } from "@/lib/types";
 
 interface Props {
@@ -25,7 +25,7 @@ interface Props {
   isCompleted: boolean;
   onCompleteBlock: () => Promise<void>;
   /** Pilar de la unit (Sprint UI) — color de la barra + marcadores de capítulos. */
-  pillarCode?: string;
+  dimensionCode?: string;
 }
 
 type PlayerState = "loading" | "ready" | "playing" | "paused" | "ended" | "error";
@@ -54,9 +54,9 @@ const SEEK_STEP = 10; // doble-tap ±10s (Sprint UI T1)
  * reduced-motion` (via `useShouldAnimate`) desactiva el autoplay **y** el
  * auto-hide de controles.
  */
-export function VideoBlockView({ block, isCompleted, onCompleteBlock, pillarCode }: Props) {
+export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionCode }: Props) {
   const shouldAnimate = useShouldAnimate();
-  const glow = pillarStyle(pillarCode).glow;
+  const glow = dimensionStyle(dimensionCode).glow;
   const chapters = block.chapters ?? null;
 
   const videoRef = React.useRef<HTMLVideoElement>(null);

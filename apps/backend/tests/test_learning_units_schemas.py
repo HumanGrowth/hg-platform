@@ -21,7 +21,7 @@ from hg.modules.learning_units.schemas import (
 
 def _unit_payload(blocks: list[dict]) -> dict:
     return {
-        "id": str(uuid4()), "slug": "s", "title": "t", "pillar_code": "P1",
+        "id": str(uuid4()), "slug": "s", "title": "t", "dimension_code": "CP",
         "competency_code": None, "level_code": "L2", "mentor_id": None,
         "published_at": None, "estimated_duration_seconds": 90, "blocks": blocks,
     }

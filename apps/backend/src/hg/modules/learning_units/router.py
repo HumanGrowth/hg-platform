@@ -16,6 +16,7 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import false as sa_false
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -24,6 +25,7 @@ from hg.db import get_db
 from hg.modules.identity.models import User
 from hg.modules.learning.models import CareerPath, Enrollment
 from hg.modules.learning_units import quiz_grading
+from hg.modules.learning_units.dimensions import dimensions_for_career_paths
 from hg.modules.learning_units.models import (
     BLOCK_TYPE_TO_MODEL,
     BlockProgress,
@@ -197,7 +199,8 @@ def _build_block_union(db: Session, unit_block: UnitBlock):  # union de 4 tipos
 def _load_unit_detail(db: Session, unit: LearningUnit) -> LearningUnitDetail:
     blocks = sorted(unit.blocks, key=lambda b: b.position)
     return LearningUnitDetail(
-        id=unit.id, slug=unit.slug, title=unit.title, pillar_code=unit.pillar_code,
+        id=unit.id, slug=unit.slug, title=unit.title, dimension_code=unit.dimension_code,
+        pillar_number=unit.pillar_number, unit_number=unit.unit_number,
         competency_code=unit.competency_code.value if unit.competency_code else None,
         level_code=unit.level_code, mentor_id=unit.mentor_id, published_at=unit.published_at,
         estimated_duration_seconds=unit.estimated_duration_seconds,
@@ -223,7 +226,8 @@ def _feed_item(db: Session, unit: LearningUnit, user: User) -> LearningUnitFeedI
         video = db.get(VideoBlock, first_video_block.block_id)
         poster_url = video.poster_url if video else None
     return LearningUnitFeedItem(
-        id=unit.id, slug=unit.slug, title=unit.title, pillar_code=unit.pillar_code,
+        id=unit.id, slug=unit.slug, title=unit.title, dimension_code=unit.dimension_code,
+        pillar_number=unit.pillar_number, unit_number=unit.unit_number,
         level_code=unit.level_code, estimated_duration_seconds=unit.estimated_duration_seconds,
         blocks_count=n_blocks, attempt_status=_attempt_status(attempt), poster_url=poster_url,
     )
@@ -266,7 +270,12 @@ def _select_feed_units(db: Session, user: User) -> tuple[LearningUnit | None, li
     if completed_unit_ids:
         candidates_q = candidates_q.where(LearningUnit.id.notin_(completed_unit_ids))
     if enrolled_pillars:
-        candidates_q = candidates_q.where(LearningUnit.pillar_code.in_(enrolled_pillars))
+        # units guardan el código Drive (CP…); traducimos los career paths
+        # inscriptos (P1..P6) a sus dimensiones Drive. Si ninguna mapea, no se
+        # filtra por dimensión (mejor mostrar algo que nada).
+        enrolled_dims = dimensions_for_career_paths(enrolled_pillars)
+        if enrolled_dims:
+            candidates_q = candidates_q.where(LearningUnit.dimension_code.in_(enrolled_dims))
     candidates = list(db.scalars(candidates_q.order_by(LearningUnit.created_at)).all())
 
     if hero is None and candidates:
@@ -305,8 +314,11 @@ def list_modulos_by_pillar(
     dentro de un mismo nivel). Excluye units reemplazadas por una versión
     más nueva (`superseded_by_unit_id IS NOT NULL`) — nunca se le muestra al
     usuario una unit obsoleta que ya tiene sucesora."""
+    # El frontend sigue pidiendo por career path (P1..P6); traducimos a las
+    # dimensiones Drive correspondientes (hoy P1→CP). Sin mapeo → sin resultados.
+    dims = dimensions_for_career_paths([pillar_code])
     conds = [
-        LearningUnit.pillar_code == pillar_code,
+        LearningUnit.dimension_code.in_(dims) if dims else sa_false(),
         LearningUnit.published_at.isnot(None),
         LearningUnit.superseded_by_unit_id.is_(None),
     ]

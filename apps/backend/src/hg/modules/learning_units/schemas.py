@@ -188,7 +188,9 @@ class LearningUnitDetail(BaseModel):
     id: UUID
     slug: str
     title: str
-    pillar_code: str
+    dimension_code: str
+    pillar_number: int | None = None
+    unit_number: int | None = None
     competency_code: str | None
     level_code: str
     mentor_id: UUID | None
@@ -203,7 +205,9 @@ class LearningUnitFeedItem(BaseModel):
     id: UUID
     slug: str
     title: str
-    pillar_code: str
+    dimension_code: str
+    pillar_number: int | None = None
+    unit_number: int | None = None
     level_code: str
     estimated_duration_seconds: int | None
     blocks_count: int
@@ -322,7 +326,9 @@ _LEVEL_CODE_RE = r"^L[1-6]$"
 class LearningUnitCreate(BaseModel):
     slug: str = Field(pattern=r"^[a-z0-9]+(-[a-z0-9]+)*$", min_length=3, max_length=120)
     title: str = Field(min_length=1, max_length=200)
-    pillar_code: str
+    dimension_code: str
+    pillar_number: int | None = None
+    unit_number: int | None = None
     competency_code: str | None = None
     level_code: str = Field(pattern=_LEVEL_CODE_RE)
     mentor_id: UUID | None = None
@@ -333,7 +339,9 @@ class LearningUnitCreate(BaseModel):
 
 class LearningUnitUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=200)
-    pillar_code: str | None = None
+    dimension_code: str | None = None
+    pillar_number: int | None = None
+    unit_number: int | None = None
     competency_code: str | None = None
     level_code: str | None = Field(default=None, pattern=_LEVEL_CODE_RE)
     mentor_id: UUID | None = None
