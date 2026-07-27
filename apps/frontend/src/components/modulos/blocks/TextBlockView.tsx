@@ -10,6 +10,7 @@ import { MarkdownBody } from "@/components/modulos/blocks/MarkdownBody";
 import { Badge } from "@/components/ui/badge";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { detectChecklistItems, detectHeroStat } from "@/lib/parsers/autoDetect";
+import { stripCitationMarkers } from "@/lib/parsers/stripCitationMarkers";
 import { dimensionStyle } from "@/lib/pillars";
 import type { TextBlock } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -38,9 +39,9 @@ const VARIANT_ICON: Record<TextBlock["variant"], LucideIcon> = {
 
 const AUTO_COMPLETE_MS = 3000;
 
-/** Índice (0-based) del inicio de la lista numerada `1. ` dentro del body. */
+/** Índice (0-based) del inicio de la lista de pasos (`1.`, `1)` o `(1)`). */
 function numberedListStart(body: string): number {
-  const m = /(^|\n|\s)1\.\s/.exec(body);
+  const m = /(^|\n|\s)\(?1[.)]\s/.exec(body);
   return m ? m.index + (m[1] ? m[1].length : 0) : -1;
 }
 
@@ -138,10 +139,12 @@ function ContextBody({
   eyebrow: React.ReactNode;
   citation: React.ReactNode;
 }) {
-  const quote = isQuoteBody(block.body);
+  // Bug #1: limpiamos los markers de citación [n] antes de renderizar.
+  const clean = stripCitationMarkers(block.body);
+  const quote = isQuoteBody(clean);
   // Si es una cita, quitamos los marcadores `>` para renderizarla como
   // pull-quote (con el quote-mark decorativo) en vez de blockquote default.
-  const body = quote ? block.body.replace(/^\s*>\s?/gm, "").trim() : block.body;
+  const body = quote ? clean.replace(/^\s*>\s?/gm, "").trim() : clean;
   const marker = String(block.position + 1).padStart(2, "0");
 
   return (
@@ -192,13 +195,15 @@ function EvidenceBody({
   eyebrow: React.ReactNode;
   citation: React.ReactNode;
 }) {
-  const hero = block.hero_stat ?? detectHeroStat(block.body);
+  // Bug #1/#3: limpiar [n] antes de detectar (label del hero sin markers) y de renderizar.
+  const clean = stripCitationMarkers(block.body);
+  const hero = block.hero_stat ?? detectHeroStat(clean);
 
   return (
     <div className="flex flex-col gap-3">
       {eyebrow}
       {hero && <HeroDataPoint value={hero.value} label={hero.label} dimensionCode={dimensionCode} />}
-      <MarkdownBody>{block.body}</MarkdownBody>
+      <MarkdownBody>{clean}</MarkdownBody>
       {citation}
     </div>
   );
@@ -221,19 +226,21 @@ function SolutionBody({
   eyebrow: React.ReactNode;
   citation: React.ReactNode;
 }) {
+  // Bug #1: limpiar [n] antes de detectar la lista y de renderizar la intro.
+  const clean = stripCitationMarkers(block.body);
   const explicit = block.checklist_items;
-  const detected = explicit ? null : detectChecklistItems(block.body);
+  const detected = explicit ? null : detectChecklistItems(clean);
 
   const entries: ChecklistEntry[] | null = explicit
     ? explicit.map((c) => ({ title: c.title, detail: c.detail }))
     : (detected?.map((d) => ({ title: d.title })) ?? null);
 
-  // Cuando la lista se auto-detecta del body, el body ya contiene "1. 2. 3.":
+  // Cuando la lista se auto-detecta del body, el body ya contiene los pasos:
   // mostramos sólo la intro (texto antes de la lista) para no duplicarla.
-  let introBody = block.body;
+  let introBody = clean;
   if (detected) {
-    const start = numberedListStart(block.body);
-    introBody = start > 0 ? block.body.slice(0, start).trim() : "";
+    const start = numberedListStart(clean);
+    introBody = start > 0 ? clean.slice(0, start).trim() : "";
   }
 
   return (
