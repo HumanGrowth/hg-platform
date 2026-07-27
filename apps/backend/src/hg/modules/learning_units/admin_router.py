@@ -179,11 +179,14 @@ def _validate_for_publish(db: Session, unit: LearningUnit) -> list[str]:
         if text is None:
             continue
         evidence_ids.add(text.id)
-        doi = (text.citation or {}).get("doi_or_url") if text.citation else None
-        if doi:
+        # fixes-módulos: basta con que el text_evidence tenga citación bien
+        # formada (text/source/year/tier). `doi_or_url` es OPCIONAL — no toda
+        # fuente tiene DOI/URL público (ej. working paper); el frontend ya omite
+        # el link "Ver fuente" cuando está vacío.
+        if text.citation:
             has_valid_evidence = True
     if not has_valid_evidence:
-        errors.append("falta al menos 1 bloque text_evidence con citation.doi_or_url no vacío")
+        errors.append("falta al menos 1 bloque text_evidence con citation")
 
     has_valid_solution = False
     for b in blocks:
