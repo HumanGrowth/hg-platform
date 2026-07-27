@@ -3,7 +3,6 @@
 import * as React from "react";
 
 import { UnitCardCompact } from "@/components/modulos/UnitCardCompact";
-import { Card } from "@/components/ui/card";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { HexIcon } from "@/components/ui/hex-icon";
 import { apiListModulosByPillar } from "@/lib/api";
