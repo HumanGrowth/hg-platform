@@ -1,10 +1,10 @@
 import { Check, Play } from "lucide-react";
-import type { Route } from "next";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { dimensionToPillar, pillarBadgeVariant, pillarShortName } from "@/lib/pillars";
 import type { LearningUnitFeedItem } from "@/lib/types";
+import { unitCanonicalPath } from "@/lib/modulos";
 import { formatApproxMinutes } from "@/lib/utils";
 
 export function UnitCardCompact({ unit }: { unit: LearningUnitFeedItem }) {
@@ -12,7 +12,7 @@ export function UnitCardCompact({ unit }: { unit: LearningUnitFeedItem }) {
   const pillar = dimensionToPillar(unit.dimension_code);
   return (
     <Link
-      href={`/modulos/${unit.slug}` as Route}
+      href={unitCanonicalPath(unit)}
       className="group flex items-center gap-4 rounded-lg border border-border bg-bg-raised p-4 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
     >
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-bg-sunken text-fg-subtle">

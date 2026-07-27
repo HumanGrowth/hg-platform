@@ -14,6 +14,7 @@ import { apiGetModulosFeed } from "@/lib/api";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { dimensionStyle } from "@/lib/pillars";
 import type { LearningUnitAttempt, LearningUnitDetail, LearningUnitFeedItem } from "@/lib/types";
+import { unitCanonicalPath } from "@/lib/modulos";
 import { cn, formatApproxMinutes } from "@/lib/utils";
 
 export interface UnitCompletionCardProps {
@@ -103,7 +104,7 @@ export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionC
       />
       <div className="mt-2 flex flex-col gap-3 sm:flex-row">
         {nextUnit && (
-          <Link href={`/modulos/${nextUnit.slug}` as Route} className={cn(buttonVariants({ size: "lg" }))}>
+          <Link href={unitCanonicalPath(nextUnit)} className={cn(buttonVariants({ size: "lg" }))}>
             Siguiente módulo
           </Link>
         )}

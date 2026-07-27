@@ -1,5 +1,4 @@
 import { ArrowRight } from "lucide-react";
-import type { Route } from "next";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +7,7 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { HexIcon } from "@/components/ui/hex-icon";
 import { PILLARS, dimensionToPillar, pillarBadgeVariant, pillarShortName } from "@/lib/pillars";
 import type { LearningUnitFeedItem } from "@/lib/types";
+import { unitCanonicalPath } from "@/lib/modulos";
 import { cn, formatApproxMinutes } from "@/lib/utils";
 
 const CTA_LABEL: Record<LearningUnitFeedItem["attempt_status"], string> = {
@@ -43,7 +43,7 @@ export function UnitCardHero({ unit }: { unit: LearningUnitFeedItem }) {
         <div className="flex shrink-0 items-center gap-4">
           <HexIcon pillar={pillar} size={56} className="hidden sm:block" />
           <Link
-            href={`/modulos/${unit.slug}` as Route}
+            href={unitCanonicalPath(unit)}
             className={cn(buttonVariants({ size: "lg" }), "shrink-0")}
           >
             {CTA_LABEL[unit.attempt_status]}

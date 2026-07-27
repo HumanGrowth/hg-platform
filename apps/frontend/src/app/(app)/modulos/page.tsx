@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
+import { DimensionCatalog } from "@/components/modulos/DimensionCatalog";
 import { UnitCardCompact } from "@/components/modulos/UnitCardCompact";
 import { UnitCardHero } from "@/components/modulos/UnitCardHero";
 import { Button } from "@/components/ui/button";
@@ -137,6 +138,12 @@ function ModulosPageContent() {
                 </div>
               </section>
             )}
+
+            {/* Catálogo agrupado por Dimensión → Pilar (TASK 1) */}
+            <section>
+              <Eyebrow className="mb-3">Explorá por dimensión</Eyebrow>
+              <DimensionCatalog />
+            </section>
 
             <Link
               href={"/eventos" as Route}
