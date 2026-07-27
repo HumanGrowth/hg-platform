@@ -101,6 +101,23 @@ export function pillarStyle(code: string | undefined): PillarStyle {
   return PILLAR_STYLE[pillarBaseCode(code ?? "P3")] ?? PILLAR_STYLE.P3;
 }
 
+// ─────────── Dimensiones del Drive ↔ pilar del DS (TASK 1 · fixes módulos) ───────────
+// Las units guardan el código Drive (`dimension_code` = "CP", …). El DS colorea
+// por pilar (P1..P6). Este registro puentea ambos para color/label. Hoy solo CP.
+const DIMENSION_TO_PILLAR: Record<string, string> = { CP: "P1" };
+
+/** Código de pilar DS (P1..P6) de una dimensión Drive; si ya es P1..P6, passthrough. */
+export function dimensionToPillar(code: string | undefined): string {
+  if (!code) return "P3";
+  const up = code.toUpperCase();
+  return DIMENSION_TO_PILLAR[up] ?? up;
+}
+
+/** Estilo del DS para una dimensión Drive (CP→P1) o un código de pilar directo. */
+export function dimensionStyle(code: string | undefined): PillarStyle {
+  return pillarStyle(dimensionToPillar(code));
+}
+
 /** Ruta del ícono hexagonal del pilar (acepta P1..P6 y P6A/P6B). */
 export function pillarIconSrc(code: string): string | null {
   return PILLAR_ICON_SRC[pillarBaseCode(code)] ?? null;

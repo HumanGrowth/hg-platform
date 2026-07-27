@@ -149,7 +149,7 @@ describe("VideoBlockView · full-bleed player (TASK player-01)", () => {
         { start_sec: 10, label: "La idea central" },
       ],
     };
-    render(<VideoBlockView block={withChapters} isCompleted={false} onCompleteBlock={vi.fn()} pillarCode="P3" />);
+    render(<VideoBlockView block={withChapters} isCompleted={false} onCompleteBlock={vi.fn()} dimensionCode="P3" />);
     const video = screen.getByTitle("Video del módulo") as HTMLVideoElement;
     fireEvent.play(video); // muestra la UI inferior (estado playing)
     fireEvent.click(screen.getByLabelText("Capítulos"));

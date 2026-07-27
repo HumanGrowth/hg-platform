@@ -3,12 +3,12 @@
 import * as React from "react";
 
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
-import { pillarStyle } from "@/lib/pillars";
+import { dimensionStyle } from "@/lib/pillars";
 
 interface Props {
   value: string;
   label: string;
-  pillarCode?: string;
+  dimensionCode?: string;
 }
 
 /** Extrae el prefijo numérico de un value ("23%" → 23, "3 de cada 4" → 3). */
@@ -24,9 +24,9 @@ function leadingNumber(value: string): number | null {
  * en font display + color del pilar, con counter animation (0 → target). El
  * sufijo no numérico ("%", "x", " de cada 4") se mantiene fijo.
  */
-export function HeroDataPoint({ value, label, pillarCode }: Props) {
+export function HeroDataPoint({ value, label, dimensionCode }: Props) {
   const shouldAnimate = useShouldAnimate();
-  const color = pillarStyle(pillarCode).glow;
+  const color = dimensionStyle(dimensionCode).glow;
   const target = leadingNumber(value);
   const isInteger = target !== null && Number.isInteger(target);
 

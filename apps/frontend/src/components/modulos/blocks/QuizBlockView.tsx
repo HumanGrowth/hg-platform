@@ -15,7 +15,7 @@ import type {
   QuizSubmitResponse,
   QuizSubmitResult,
 } from "@/lib/types";
-import { pillarStyle } from "@/lib/pillars";
+import { dimensionStyle } from "@/lib/pillars";
 import { cn, isValidUuid } from "@/lib/utils";
 
 /** Feedback visual al corregir (TASK polish-03 · Sprint UI T7): al acertar,
@@ -141,15 +141,15 @@ export function QuizBlockView({
   block,
   isCompleted,
   onSubmitQuiz,
-  pillarCode,
+  dimensionCode,
 }: {
   block: QuizBlock;
   isCompleted: boolean;
   onSubmitQuiz: (responses: QuizSubmitPayload[]) => Promise<QuizSubmitResponse>;
-  pillarCode?: string;
+  dimensionCode?: string;
 }) {
   const shouldAnimate = useShouldAnimate();
-  const glow = pillarStyle(pillarCode).glow;
+  const glow = dimensionStyle(dimensionCode).glow;
   const [answers, setAnswers] = React.useState<Record<string, AnswerValue>>(() =>
     Object.fromEntries(block.questions.map((q) => [q.id, initialAnswer(q)])),
   );
@@ -285,7 +285,7 @@ export function QuizBlockView({
         <AISoonBadge
           variant="inline"
           label="Próximamente: por qué la respuesta correcta funciona para vos"
-          pillarCode={pillarCode}
+          dimensionCode={dimensionCode}
         />
       )}
       {error && <p className="text-sm text-danger">No pudimos enviar tus respuestas. Probá de nuevo.</p>}

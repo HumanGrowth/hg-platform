@@ -5,7 +5,7 @@ import { UnitOpeningScreen } from "../UnitOpeningScreen";
 import type { LearningUnitDetail } from "@/lib/types";
 
 const unit: LearningUnitDetail = {
-  id: "u1", slug: "test-unit", title: "El que no habla no existe", pillar_code: "P4",
+  id: "u1", slug: "test-unit", title: "El que no habla no existe", dimension_code: "CP", pillar_number: null, unit_number: null,
   competency_code: null, level_code: "L1", mentor_id: null, published_at: null,
   estimated_duration_seconds: 180, narrative_tone: "warm", keywords: null,
   blocks: [
@@ -19,7 +19,8 @@ describe("UnitOpeningScreen", () => {
     const onStart = vi.fn();
     render(<UnitOpeningScreen unit={unit} onStart={onStart} />);
     expect(screen.getByRole("heading", { name: "El que no habla no existe" })).toBeTruthy();
-    expect(screen.getByText("Salud y bienestar")).toBeTruthy();
+    // dimension_code "CP" → pilar P1 del DS → "Carrera e impacto".
+    expect(screen.getByText("Carrera e impacto")).toBeTruthy();
     expect(screen.getByText(/2 pasos · ~3 min/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Comenzar" }));
     expect(onStart).toHaveBeenCalledTimes(1);

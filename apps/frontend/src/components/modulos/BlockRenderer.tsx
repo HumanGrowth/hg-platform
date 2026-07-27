@@ -16,11 +16,11 @@ export interface BlockRendererProps extends BlockRendererHandlers {
   block: Block;
   /** Pilar de la unit — para la identidad visual por pilar de los templates
    * (Sprint UI). Opcional: default primary si no se pasa. */
-  pillarCode?: string;
+  dimensionCode?: string;
 }
 
 /** Router polimórfico por block_type (TASK B-06) — 4 sub-vistas. */
-export function BlockRenderer({ block, pillarCode, ...handlers }: BlockRendererProps) {
+export function BlockRenderer({ block, dimensionCode, ...handlers }: BlockRendererProps) {
   switch (block.block_type) {
     case "video_intro":
     case "video_teaching":
@@ -28,7 +28,7 @@ export function BlockRenderer({ block, pillarCode, ...handlers }: BlockRendererP
       return (
         <VideoBlockView
           block={block}
-          pillarCode={pillarCode}
+          dimensionCode={dimensionCode}
           isCompleted={handlers.isCompleted}
           onCompleteBlock={handlers.onCompleteBlock}
         />
@@ -39,7 +39,7 @@ export function BlockRenderer({ block, pillarCode, ...handlers }: BlockRendererP
       return (
         <TextBlockView
           block={block}
-          pillarCode={pillarCode}
+          dimensionCode={dimensionCode}
           isCompleted={handlers.isCompleted}
           onCompleteBlock={handlers.onCompleteBlock}
         />
@@ -48,7 +48,7 @@ export function BlockRenderer({ block, pillarCode, ...handlers }: BlockRendererP
       return (
         <QuizBlockView
           block={block}
-          pillarCode={pillarCode}
+          dimensionCode={dimensionCode}
           isCompleted={handlers.isCompleted}
           onSubmitQuiz={handlers.onSubmitQuiz}
         />
@@ -57,7 +57,7 @@ export function BlockRenderer({ block, pillarCode, ...handlers }: BlockRendererP
       return (
         <ReflectionBlockView
           block={block}
-          pillarCode={pillarCode}
+          dimensionCode={dimensionCode}
           isCompleted={handlers.isCompleted}
           onSubmitReflection={handlers.onSubmitReflection}
         />

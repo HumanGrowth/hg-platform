@@ -3,7 +3,7 @@
 import { Sparkles } from "lucide-react";
 import * as React from "react";
 
-import { pillarStyle } from "@/lib/pillars";
+import { dimensionStyle } from "@/lib/pillars";
 import { cn } from "@/lib/utils";
 
 type Variant = "pill" | "inline" | "card";
@@ -13,7 +13,7 @@ interface Props {
   variant?: Variant;
   label: string;
   /** Pilar para el tinte del gradient (Sprint UI). Default primary. */
-  pillarCode?: string;
+  dimensionCode?: string;
   className?: string;
 }
 
@@ -22,8 +22,8 @@ interface Props {
  * anuncia** — no captura email ni pide nada. Sparkle + tinte del pilar +
  * tooltip nativo "Próximamente". Estático (sin animación) → reduced-motion safe.
  */
-export function AISoonBadge({ variant = "pill", label, pillarCode, className }: Props) {
-  const glow = pillarStyle(pillarCode).glow;
+export function AISoonBadge({ variant = "pill", label, dimensionCode, className }: Props) {
+  const glow = dimensionStyle(dimensionCode).glow;
   // Tinte muy sutil del pilar como fondo (color-mix con el surface).
   const tint: React.CSSProperties = {
     background: `color-mix(in srgb, ${glow} 10%, transparent)`,

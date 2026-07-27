@@ -10,7 +10,7 @@ import { MarkdownBody } from "@/components/modulos/blocks/MarkdownBody";
 import { Badge } from "@/components/ui/badge";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { detectChecklistItems, detectHeroStat } from "@/lib/parsers/autoDetect";
-import { pillarStyle } from "@/lib/pillars";
+import { dimensionStyle } from "@/lib/pillars";
 import type { TextBlock } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -57,15 +57,15 @@ export function TextBlockView({
   block,
   isCompleted,
   onCompleteBlock,
-  pillarCode,
+  dimensionCode,
 }: {
   block: TextBlock;
   isCompleted: boolean;
   onCompleteBlock: () => Promise<void>;
-  pillarCode?: string;
+  dimensionCode?: string;
 }) {
   const shouldAnimate = useShouldAnimate();
-  const style = pillarStyle(pillarCode);
+  const style = dimensionStyle(dimensionCode);
 
   React.useEffect(() => {
     if (isCompleted) return;
@@ -93,12 +93,12 @@ export function TextBlockView({
   if (block.variant === "context") {
     inner = <ContextBody block={block} style={style} eyebrow={eyebrow} citation={citation} />;
   } else if (block.variant === "evidence") {
-    inner = <EvidenceBody block={block} pillarCode={pillarCode} eyebrow={eyebrow} citation={citation} />;
+    inner = <EvidenceBody block={block} dimensionCode={dimensionCode} eyebrow={eyebrow} citation={citation} />;
   } else {
     inner = (
       <SolutionBody
         block={block}
-        pillarCode={pillarCode}
+        dimensionCode={dimensionCode}
         shouldAnimate={shouldAnimate}
         glow={style.glow}
         eyebrow={eyebrow}
@@ -134,7 +134,7 @@ function ContextBody({
   citation,
 }: {
   block: TextBlock;
-  style: ReturnType<typeof pillarStyle>;
+  style: ReturnType<typeof dimensionStyle>;
   eyebrow: React.ReactNode;
   citation: React.ReactNode;
 }) {
@@ -183,12 +183,12 @@ function ContextBody({
 
 function EvidenceBody({
   block,
-  pillarCode,
+  dimensionCode,
   eyebrow,
   citation,
 }: {
   block: TextBlock;
-  pillarCode?: string;
+  dimensionCode?: string;
   eyebrow: React.ReactNode;
   citation: React.ReactNode;
 }) {
@@ -197,7 +197,7 @@ function EvidenceBody({
   return (
     <div className="flex flex-col gap-3">
       {eyebrow}
-      {hero && <HeroDataPoint value={hero.value} label={hero.label} pillarCode={pillarCode} />}
+      {hero && <HeroDataPoint value={hero.value} label={hero.label} dimensionCode={dimensionCode} />}
       <MarkdownBody>{block.body}</MarkdownBody>
       {citation}
     </div>
@@ -208,14 +208,14 @@ function EvidenceBody({
 
 function SolutionBody({
   block,
-  pillarCode,
+  dimensionCode,
   shouldAnimate,
   glow,
   eyebrow,
   citation,
 }: {
   block: TextBlock;
-  pillarCode?: string;
+  dimensionCode?: string;
   shouldAnimate: boolean;
   glow: string;
   eyebrow: React.ReactNode;
@@ -252,7 +252,7 @@ function SolutionBody({
         {eyebrow}
       </div>
       {introBody && <MarkdownBody>{introBody}</MarkdownBody>}
-      {entries && <InteractiveChecklist items={entries} storageKey={block.id} pillarCode={pillarCode} />}
+      {entries && <InteractiveChecklist items={entries} storageKey={block.id} dimensionCode={dimensionCode} />}
       {citation}
     </div>
   );

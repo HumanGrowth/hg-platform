@@ -24,7 +24,7 @@ function makeBlock(overrides: Partial<TextBlock>): TextBlock {
 
 describe("TextBlockView", () => {
   it("context: renders the position watermark and the eyebrow", () => {
-    render(<TextBlockView block={makeBlock({})} isCompleted onCompleteBlock={vi.fn()} pillarCode="P3" />);
+    render(<TextBlockView block={makeBlock({})} isCompleted onCompleteBlock={vi.fn()} dimensionCode="P3" />);
     expect(screen.getByText("LA SITUACIÓN")).toBeTruthy();
     // position 2 → marca "03" (1-based, padded).
     expect(screen.getByText("03")).toBeTruthy();
@@ -38,7 +38,7 @@ describe("TextBlockView", () => {
       body: "El cuerpo con el dato.",
       hero_stat: { value: "23%", label: "de los casos", source: null },
     });
-    render(<TextBlockView block={block} isCompleted onCompleteBlock={vi.fn()} pillarCode="P1" />);
+    render(<TextBlockView block={block} isCompleted onCompleteBlock={vi.fn()} dimensionCode="P1" />);
     expect(screen.getByText("de los casos")).toBeTruthy();
   });
 
@@ -64,7 +64,7 @@ describe("TextBlockView", () => {
         { title: "Después esto otro", detail: "con más detalle" },
       ],
     });
-    render(<TextBlockView block={block} isCompleted onCompleteBlock={vi.fn()} pillarCode="P4" />);
+    render(<TextBlockView block={block} isCompleted onCompleteBlock={vi.fn()} dimensionCode="P4" />);
     expect(screen.getByRole("checkbox", { name: "Primero esto" })).toBeTruthy();
     expect(screen.getByRole("checkbox", { name: "Después esto otro" })).toBeTruthy();
     expect(screen.getByText("Guardar en mi cuaderno")).toBeTruthy();

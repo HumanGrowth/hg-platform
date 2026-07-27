@@ -9,7 +9,7 @@ import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
-import { pillarStyle } from "@/lib/pillars";
+import { dimensionStyle } from "@/lib/pillars";
 import type { ReflectionBlock } from "@/lib/types";
 
 /** Textura de cuaderno: renglones tenues sobre un papel cálido (Sprint UI T8). */
@@ -23,15 +23,15 @@ export function ReflectionBlockView({
   block,
   isCompleted,
   onSubmitReflection,
-  pillarCode,
+  dimensionCode,
 }: {
   block: ReflectionBlock;
   isCompleted: boolean;
   onSubmitReflection: (text: string) => Promise<void>;
-  pillarCode?: string;
+  dimensionCode?: string;
 }) {
   const shouldAnimate = useShouldAnimate();
-  const glow = pillarStyle(pillarCode).glow;
+  const glow = dimensionStyle(dimensionCode).glow;
   const [text, setText] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
 
@@ -86,7 +86,7 @@ export function ReflectionBlockView({
           style={{ lineHeight: "28px" }}
         />
       </div>
-      <AISoonBadge variant="inline" label="Próximamente: reflexión guiada por AI" pillarCode={pillarCode} />
+      <AISoonBadge variant="inline" label="Próximamente: reflexión guiada por AI" dimensionCode={dimensionCode} />
 
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">

@@ -12,7 +12,7 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { buttonVariants } from "@/components/ui/button";
 import { apiGetModulosFeed } from "@/lib/api";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
-import { pillarStyle } from "@/lib/pillars";
+import { dimensionStyle } from "@/lib/pillars";
 import type { LearningUnitAttempt, LearningUnitDetail, LearningUnitFeedItem } from "@/lib/types";
 import { cn, formatApproxMinutes } from "@/lib/utils";
 
@@ -50,7 +50,7 @@ export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionC
     };
   }, [unit.slug]);
 
-  const style = pillarStyle(unit.pillar_code);
+  const style = dimensionStyle(unit.dimension_code);
   const completedSteps = attempt.block_progress.filter((bp) => bp.status === "completed").length;
   const totalSteps = unit.blocks.length;
   // TASK polish-06: el resumen del quiz se muestra en positivo/verde (nunca
@@ -76,7 +76,7 @@ export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionC
           shouldAnimate && "animate-star-glow",
         )}
       >
-        <PillarMetaphor code={unit.pillar_code} className="h-12 w-12" />
+        <PillarMetaphor code={unit.dimension_code} className="h-12 w-12" />
       </motion.div>
       <div>
         <Eyebrow accent>Módulo completado</Eyebrow>
@@ -98,7 +98,7 @@ export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionC
       <AISoonBadge
         variant="card"
         label="Próximamente: síntesis personalizada por AI"
-        pillarCode={unit.pillar_code}
+        dimensionCode={unit.dimension_code}
         className="w-full max-w-sm"
       />
       <div className="mt-2 flex flex-col gap-3 sm:flex-row">

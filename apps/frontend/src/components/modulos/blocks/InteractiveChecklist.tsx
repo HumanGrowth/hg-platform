@@ -4,7 +4,7 @@ import { Check, ChevronDown } from "lucide-react";
 import * as React from "react";
 
 import { AISoonBadge } from "@/components/shared/AISoonBadge";
-import { pillarStyle } from "@/lib/pillars";
+import { dimensionStyle } from "@/lib/pillars";
 import { cn } from "@/lib/utils";
 
 export interface ChecklistEntry {
@@ -16,7 +16,7 @@ interface Props {
   items: ChecklistEntry[];
   /** id del bloque — para persistir el estado marcado en localStorage. */
   storageKey: string;
-  pillarCode?: string;
+  dimensionCode?: string;
 }
 
 function usePersistedChecks(key: string, count: number): [boolean[], (i: number) => void] {
@@ -57,8 +57,8 @@ function usePersistedChecks(key: string, count: number): [boolean[], (i: number)
  * en color del pilar (persisten en localStorage por bloque), `detail`
  * expandible, y un placeholder de AI "Guardar en mi cuaderno".
  */
-export function InteractiveChecklist({ items, storageKey, pillarCode }: Props) {
-  const style = pillarStyle(pillarCode);
+export function InteractiveChecklist({ items, storageKey, dimensionCode }: Props) {
+  const style = dimensionStyle(dimensionCode);
   const [checks, toggle] = usePersistedChecks(`hg-checklist-${storageKey}`, items.length);
   const [expanded, setExpanded] = React.useState<number | null>(null);
 
@@ -113,7 +113,7 @@ export function InteractiveChecklist({ items, storageKey, pillarCode }: Props) {
           );
         })}
       </ul>
-      <AISoonBadge variant="pill" label="Guardar en mi cuaderno" pillarCode={pillarCode} className="self-start" />
+      <AISoonBadge variant="pill" label="Guardar en mi cuaderno" dimensionCode={dimensionCode} className="self-start" />
     </div>
   );
 }
