@@ -61,7 +61,7 @@ def _make_unit(slug: str) -> tuple[uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID]:
         s.flush()
 
         unit = LearningUnit(
-            slug=slug, title="t", pillar_code="P1", level_code="L2",
+            slug=slug, title="t", dimension_code="CP", level_code="L2",
             published_at=datetime.now(UTC),
         )
         s.add(unit)
@@ -300,7 +300,7 @@ def test_full_admin_create_to_consumer_complete_flow(client: TestClient, factory
     try:
         unit = client.post(
             "/api/v1/admin/learning-units", headers=admin_headers,
-            json={"slug": slug, "title": "t", "pillar_code": "P1", "level_code": "L2"},
+            json={"slug": slug, "title": "t", "dimension_code": "CP", "level_code": "L2"},
         ).json()
         uid = unit["id"]
 
@@ -438,7 +438,7 @@ def _make_unit_with_all_question_types(slug: str) -> tuple[uuid.UUID, uuid.UUID]
         s.flush()
 
         unit = LearningUnit(
-            slug=slug, title="t", pillar_code="P1", level_code="L2", published_at=datetime.now(UTC),
+            slug=slug, title="t", dimension_code="CP", level_code="L2", published_at=datetime.now(UTC),
         )
         s.add(unit)
         s.flush()
@@ -502,14 +502,14 @@ def test_quiz_submit_all_five_remaining_question_types(client: TestClient, facto
 
 
 def _make_minimal_unit(
-    slug: str, *, pillar_code: str, level_code: str, superseded_by: uuid.UUID | None = None
+    slug: str, *, dimension_code: str, level_code: str, superseded_by: uuid.UUID | None = None
 ) -> uuid.UUID:
     """Unit publicada sin bloques — alcanza para probar filtro/orden/attempt_status
     de /modulos/by-pillar, que no toca el contenido de los bloques."""
     s = SessionLocal()
     try:
         unit = LearningUnit(
-            slug=slug, title=slug, pillar_code=pillar_code, level_code=level_code,
+            slug=slug, title=slug, dimension_code=dimension_code, level_code=level_code,
             published_at=datetime.now(UTC), superseded_by_unit_id=superseded_by,
         )
         s.add(unit)
@@ -527,17 +527,18 @@ def test_by_pillar_filters_and_orders_by_level_then_created_at(
     ids = []
     try:
         # L2 creado primero, L1 después, otro L1 después de ese (más nuevo),
-        # y uno de otro pilar que no debe aparecer.
-        ids.append(_make_minimal_unit(slugs[0], pillar_code="P2", level_code="L2"))
-        ids.append(_make_minimal_unit(slugs[1], pillar_code="P2", level_code="L1"))
-        ids.append(_make_minimal_unit(slugs[2], pillar_code="P2", level_code="L1"))
-        ids.append(_make_minimal_unit(slugs[3], pillar_code="P3", level_code="L1"))
+        # y uno de OTRA dimensión (no mapeada a P1) que no debe aparecer.
+        ids.append(_make_minimal_unit(slugs[0], dimension_code="CP", level_code="L2"))
+        ids.append(_make_minimal_unit(slugs[1], dimension_code="CP", level_code="L1"))
+        ids.append(_make_minimal_unit(slugs[2], dimension_code="CP", level_code="L1"))
+        ids.append(_make_minimal_unit(slugs[3], dimension_code="XX", level_code="L1"))
 
-        res = client.get("/api/v1/modulos/by-pillar", headers=headers, params={"pillar_code": "P2"})
+        # El frontend pide por career path (P1); el endpoint traduce P1→CP.
+        res = client.get("/api/v1/modulos/by-pillar", headers=headers, params={"pillar_code": "P1"})
         assert res.status_code == 200, res.text
         body = res.json()
         returned_slugs = [u["slug"] for u in body]
-        assert slugs[3] not in returned_slugs  # otro pilar, excluido
+        assert slugs[3] not in returned_slugs  # otra dimensión, excluido
         # L1s primero (orden ASC por level_code), y entre los dos L1 el más
         # nuevo (slugs[2]) antes que el más viejo (slugs[1]) — tie-break DESC.
         assert returned_slugs.index(slugs[2]) < returned_slugs.index(slugs[1])
@@ -560,14 +561,14 @@ def test_by_pillar_level_filter_and_excludes_superseded(
     slug_other_level = f"bp-test-{uuid.uuid4().hex[:8]}"
     ids = []
     try:
-        new_id = _make_minimal_unit(slug_new, pillar_code="P4", level_code="L1")
-        old_id = _make_minimal_unit(slug_old, pillar_code="P4", level_code="L1", superseded_by=new_id)
-        other_level_id = _make_minimal_unit(slug_other_level, pillar_code="P4", level_code="L3")
+        new_id = _make_minimal_unit(slug_new, dimension_code="CP", level_code="L1")
+        old_id = _make_minimal_unit(slug_old, dimension_code="CP", level_code="L1", superseded_by=new_id)
+        other_level_id = _make_minimal_unit(slug_other_level, dimension_code="CP", level_code="L3")
         ids = [new_id, old_id, other_level_id]
 
         res = client.get(
             "/api/v1/modulos/by-pillar", headers=headers,
-            params={"pillar_code": "P4", "level_code": "L1"},
+            params={"pillar_code": "P1", "level_code": "L1"},
         )
         assert res.status_code == 200, res.text
         returned_slugs = {u["slug"] for u in res.json()}

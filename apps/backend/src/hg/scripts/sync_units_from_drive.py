@@ -58,6 +58,7 @@ from hg.modules.learning_units.services import (
     try_publish,
     upsert_unit_from_dict,
 )
+from hg.modules.learning_units.unit_code import UnitCode
 
 log = logging.getLogger("hg.sync_units_from_drive")
 
@@ -83,7 +84,9 @@ _FALLBACK_TIER = "expert_opinion"
 # nullable y no es requisito de publish) con un warning.
 _VALID_COMPETENCY_CODES = frozenset({"C1", "C2", "C3", "C4", "C5"})
 
-_FOLDER_NAME_RE = re.compile(r"^CP-(L\d)-(P\d)-(\d+)\b")
+# Genérico `<DIM>-L<n>-P<n>-<seq>` (TASK 1) — ya NO hardcodea `CP-`; tolera un
+# sufijo después del seq (ej. `CP-L1-P1-001 - algo`).
+_FOLDER_NAME_RE = re.compile(r"^([A-Z]{2,3})-L(\d{1,2})-P(\d{1,2})-(\d{1,4})\b")
 _VID_NUM_RE = re.compile(r"VID(\d+)", re.IGNORECASE)
 
 
@@ -114,16 +117,19 @@ _MARKDOWN_ESCAPES = {
 # ─────────────────────────── Parsers (puros, testeables sin I/O) ───────────────────────────
 
 
-def parse_folder_name(folder_name: str) -> tuple[str, str, str]:
-    """``CP-L1-P1-001`` → ``("L1", "P1", "001")`` (level, pillar, seq).
+def parse_folder_name(folder_name: str) -> UnitCode | None:
+    """``CP-L1-P2-001`` → ``UnitCode(dimension="CP", level=1, pillar=2, number=1)``.
 
-    Tolera sufijos después del seq (ej. ``CP-L1-P1-001 - algo``). Levanta
-    ``ValueError`` si el nombre no matchea el patrón esperado.
+    Genérico (TASK 1): cualquier dimensión (2-3 letras), no solo ``CP``. Tolera
+    sufijos después del seq. Devuelve ``None`` si el nombre no respeta la
+    convención — el caller lo **reporta y saltea** (nunca importa mal en silencio).
     """
-    m = _FOLDER_NAME_RE.match(folder_name.strip())
+    m = _FOLDER_NAME_RE.match(folder_name.strip().upper())
     if not m:
-        raise ValueError(f"nombre de folder inesperado (no es CP-Lx-Py-seq): {folder_name!r}")
-    return m.group(1), m.group(2), m.group(3)
+        return None
+    return UnitCode(
+        dimension=m.group(1), level=int(m.group(2)), pillar=int(m.group(3)), number=int(m.group(4))
+    )
 
 
 def extract_json_from_doc_text(doc_text: str) -> dict[str, Any]:
@@ -554,10 +560,16 @@ def _drive_error_hint(exc: Exception) -> str | None:
 def _process_folder(
     folder: FolderPayload, args: argparse.Namespace, stats: SyncStats
 ) -> None:
-    try:
-        parse_folder_name(folder.name)  # valida el naming (log-only)
-    except ValueError as exc:
-        log.warning("  %s", exc)
+    # TASK 1: el NOMBRE DE CARPETA es la fuente de verdad de dimensión/pilar/
+    # unidad/nivel. Si no respeta la convención, se REPORTA y se saltea (nunca
+    # se importa mal en silencio).
+    code = parse_folder_name(folder.name)
+    if code is None:
+        log.warning(
+            "  %s: nombre fuera de convención <DIM>-L<n>-P<n>-<seq> — se saltea", folder.name
+        )
+        stats.failed += 1
+        return
 
     try:
         doc_text = folder.doc_text()
@@ -577,6 +589,13 @@ def _process_folder(
         return
 
     unit_json = sanitize_unit_json(unit_json)
+    # Override autoritativo desde el folder (el pillar_code del Doc es legacy y
+    # mete el pilar dentro de lo que debería ser la dimensión).
+    unit_json["dimension_code"] = code.dimension
+    unit_json["pillar_number"] = code.pillar
+    unit_json["unit_number"] = code.number
+    unit_json["level_code"] = f"L{code.level}"
+    unit_json.pop("pillar_code", None)
     slug = unit_json.get("slug", "<sin-slug>")
     log.info("→ %s · slug=%s · %d video(s)", folder.name, slug, folder.mp4_count)
     stats.folders += 1

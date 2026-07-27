@@ -39,7 +39,7 @@ def _valid_unit_dict(slug: str = "hg-p2-l1-999-test") -> dict[str, Any]:
     return {
         "slug": slug,
         "title": "Unit de prueba",
-        "pillar_code": "P2",
+        "dimension_code": "CP",
         "competency_code": "C2",
         "level_code": "L1",
         "estimated_duration_seconds": 120,
@@ -111,7 +111,7 @@ def _no_video_unit_dict(slug: str) -> dict[str, Any]:
     return {
         "slug": slug,
         "title": "Sin video",
-        "pillar_code": "P2",
+        "dimension_code": "CP",
         "level_code": "L1",
         "blocks": [
             {"type": "text_context", "body": "Contexto."},
@@ -164,7 +164,7 @@ def test_assemble_then_upsert_keeps_evidence_link(db: Session) -> None:
     unit_json = {
         "slug": "hg-p2-l1-992-assemble",
         "title": "Assemble",
-        "pillar_code": "P2",
+        "dimension_code": "CP",
         "level_code": "L1",
         "blocks": [
             {"type": "text_context", "body": "c"},
