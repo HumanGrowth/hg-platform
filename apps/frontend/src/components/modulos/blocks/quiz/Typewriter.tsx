@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
+import { stripCitationMarkers } from "@/lib/parsers/stripCitationMarkers";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -18,8 +19,10 @@ interface Props {
  * completo se expone siempre a screen-readers (sr-only) — la capa animada es
  * puramente visual (`aria-hidden`).
  */
-export function Typewriter({ text, className, speed = 18 }: Props) {
+export function Typewriter({ text: rawText, className, speed = 18 }: Props) {
   const shouldAnimate = useShouldAnimate();
+  // Bug #1: limpiar markers de citación [n] de la explicación del quiz.
+  const text = stripCitationMarkers(rawText);
   const [count, setCount] = React.useState(() => (shouldAnimate ? 0 : text.length));
 
   React.useEffect(() => {

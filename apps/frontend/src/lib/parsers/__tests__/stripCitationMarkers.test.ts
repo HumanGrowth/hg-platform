@@ -15,6 +15,15 @@ describe("stripCitationMarkers", () => {
     );
   });
 
+  it("removes range markers [7-10] / [4–6]", () => {
+    expect(stripCitationMarkers("Procede basándote en los hechos [7-10].")).toBe(
+      "Procede basándote en los hechos.",
+    );
+    expect(stripCitationMarkers("una amenaza física real [4–6] siempre.")).toBe(
+      "una amenaza física real siempre.",
+    );
+  });
+
   it("does not collapse into double spaces", () => {
     expect(stripCitationMarkers("uno [1] dos [2] tres")).toBe("uno dos tres");
   });
