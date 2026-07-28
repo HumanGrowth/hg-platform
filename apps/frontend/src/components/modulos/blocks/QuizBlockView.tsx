@@ -4,6 +4,7 @@ import { type TargetAndTransition, motion } from "framer-motion";
 import { Check, Sparkles } from "lucide-react";
 import * as React from "react";
 
+import { BlockScreenLayout } from "@/components/modulos/blocks/BlockScreenLayout";
 import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -15,43 +16,28 @@ import type {
   QuizSubmitResponse,
   QuizSubmitResult,
 } from "@/lib/types";
-import { dimensionStyle } from "@/lib/pillars";
-import { cn, isValidUuid } from "@/lib/utils";
+import { isValidUuid } from "@/lib/utils";
 
-/** Feedback visual al corregir (TASK polish-03 · Sprint UI T7): al acertar,
- * pulse + "brillo de estrella" (star-glow, box-shadow del pilar — NO confetti);
- * al fallar, shake horizontal + acento ámbar suave en el contenedor (no rojo
- * punitivo, respeta polish-06). Respeta reduced motion. */
+/** Feedback visual al corregir (TASK polish-03 · Sprint UI T7): un movimiento
+ * BREVE en la tarjeta (pulse suave al acertar, shake al fallar) — SIN highlight
+ * persistente de toda la tarjeta. El resalte del acierto/error va en la OPCIÓN
+ * concreta (border/bg verde + star-glow en la correcta). Respeta reduced motion. */
 function AnimatedQuestion({
   result,
   animate,
-  glow,
   children,
 }: {
   result: QuizSubmitResult | undefined;
   animate: boolean;
-  glow: string;
   children: React.ReactNode;
 }) {
   const target: TargetAndTransition = React.useMemo(() => {
     if (!animate || !result) return {};
-    return result.is_correct ? { scale: [1, 1.03, 1] } : { x: [0, -8, 8, -8, 8, 0] };
+    return result.is_correct ? { scale: [1, 1.02, 1] } : { x: [0, -8, 8, -8, 8, 0] };
   }, [animate, result]);
 
-  const correct = result?.is_correct === true;
-  const wrong = result?.is_correct === false;
-
   return (
-    <motion.div
-      animate={target}
-      transition={{ duration: 0.4, ease: "easeInOut" }}
-      style={correct ? ({ "--glow-color": `color-mix(in srgb, ${glow} 45%, transparent)` } as React.CSSProperties) : undefined}
-      className={cn(
-        "rounded-lg transition-shadow",
-        correct && animate && "animate-star-glow",
-        wrong && "shadow-[inset_3px_0_0_0_var(--hg-amber)]",
-      )}
-    >
+    <motion.div animate={target} transition={{ duration: 0.4, ease: "easeInOut" }}>
       {children}
     </motion.div>
   );
@@ -149,7 +135,6 @@ export function QuizBlockView({
   dimensionCode?: string;
 }) {
   const shouldAnimate = useShouldAnimate();
-  const glow = dimensionStyle(dimensionCode).glow;
   const [answers, setAnswers] = React.useState<Record<string, AnswerValue>>(() =>
     Object.fromEntries(block.questions.map((q) => [q.id, initialAnswer(q)])),
   );
@@ -177,18 +162,21 @@ export function QuizBlockView({
 
   if (alreadySubmitted) {
     return (
-      <div className="flex flex-col gap-3">
-        <Eyebrow accent>{block.eyebrow}</Eyebrow>
-        <div className="flex items-center gap-2 font-sans text-sm font-semibold text-success">
-          <Check size={18} strokeWidth={2} /> Ya completaste este quiz
+      <BlockScreenLayout dimensionCode={dimensionCode}>
+        <div className="flex flex-col gap-3">
+          <Eyebrow accent>{block.eyebrow}</Eyebrow>
+          <div className="flex items-center gap-2 font-sans text-sm font-semibold text-success">
+            <Check size={18} strokeWidth={2} /> Ya completaste este quiz
+          </div>
         </div>
-      </div>
+      </BlockScreenLayout>
     );
   }
 
   const disabled = results !== null;
 
   return (
+    <BlockScreenLayout dimensionCode={dimensionCode}>
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-2 text-hg-amber">
         <Sparkles size={16} strokeWidth={2} aria-hidden />
@@ -270,7 +258,7 @@ export function QuizBlockView({
         }
 
         return (
-          <AnimatedQuestion key={q.id} result={result} animate={shouldAnimate} glow={glow}>
+          <AnimatedQuestion key={q.id} result={result} animate={shouldAnimate}>
             {questionEl}
           </AnimatedQuestion>
         );
@@ -290,5 +278,6 @@ export function QuizBlockView({
       )}
       {error && <p className="text-sm text-danger">No pudimos enviar tus respuestas. Probá de nuevo.</p>}
     </div>
+    </BlockScreenLayout>
   );
 }

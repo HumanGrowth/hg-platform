@@ -57,7 +57,8 @@ const components: Components = {
 
 export function MarkdownBody({ children }: { children: string }) {
   return (
-    <div className="font-sans text-base">
+    // TASK 3: cuerpo generoso en el layout full-screen (18px mobile → 20px desktop).
+    <div className="font-sans text-lg sm:text-xl">
       <ReactMarkdown remarkPlugins={[remarkGfm, remarkHighlight]} components={components}>
         {children}
       </ReactMarkdown>

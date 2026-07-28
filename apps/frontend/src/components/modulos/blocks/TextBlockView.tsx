@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 import { BookOpen, ExternalLink, Lightbulb, MessageCircle, type LucideIcon } from "lucide-react";
 import * as React from "react";
 
+import { BlockScreenLayout } from "@/components/modulos/blocks/BlockScreenLayout";
 import { HeroDataPoint } from "@/components/modulos/blocks/HeroDataPoint";
 import { InteractiveChecklist, type ChecklistEntry } from "@/components/modulos/blocks/InteractiveChecklist";
 import { MarkdownBody } from "@/components/modulos/blocks/MarkdownBody";
-import { PillarMetaphor } from "@/components/modulos/PillarMetaphor";
 import { Badge } from "@/components/ui/badge";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { detectChecklistItems, detectHeroStat } from "@/lib/parsers/autoDetect";
@@ -93,15 +93,7 @@ export function TextBlockView({
 
   let inner: React.ReactNode;
   if (block.variant === "context") {
-    inner = (
-      <ContextBody
-        block={block}
-        style={style}
-        dimensionCode={dimensionCode}
-        eyebrow={eyebrow}
-        citation={citation}
-      />
-    );
+    inner = <ContextBody block={block} style={style} eyebrow={eyebrow} citation={citation} />;
   } else if (block.variant === "evidence") {
     inner = <EvidenceBody block={block} dimensionCode={dimensionCode} eyebrow={eyebrow} citation={citation} />;
   } else {
@@ -117,9 +109,9 @@ export function TextBlockView({
     );
   }
 
-  if (!shouldAnimate) return <>{inner}</>;
-
-  return (
+  const content = !shouldAnimate ? (
+    inner
+  ) : (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -128,6 +120,9 @@ export function TextBlockView({
       {inner}
     </motion.div>
   );
+
+  // TASK 3: shell full-screen (gradient del pilar + metáfora header + aire).
+  return <BlockScreenLayout dimensionCode={dimensionCode}>{content}</BlockScreenLayout>;
 }
 
 // ─────────────────────────── context (T4) ───────────────────────────
@@ -140,13 +135,11 @@ function isQuoteBody(body: string): boolean {
 function ContextBody({
   block,
   style,
-  dimensionCode,
   eyebrow,
   citation,
 }: {
   block: TextBlock;
   style: ReturnType<typeof dimensionStyle>;
-  dimensionCode?: string;
   eyebrow: React.ReactNode;
   citation: React.ReactNode;
 }) {
@@ -165,15 +158,6 @@ function ContextBody({
         className="absolute inset-y-0 left-0 w-1 rounded-full"
         style={{ backgroundColor: style.glow }}
       />
-      {/* metáfora del pilar como marca-de-agua → identidad de la dimensión
-          (reemplaza el número, que no comunicaba nada). */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -top-3 right-0 select-none opacity-[0.08]"
-        style={{ color: style.glow }}
-      >
-        <PillarMetaphor code={dimensionCode ?? "P3"} className="h-24 w-24" />
-      </span>
       <div className="relative flex flex-col gap-3">
         {eyebrow}
         {quote && (

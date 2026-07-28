@@ -235,13 +235,12 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
           )}
         />
         <div
-          // Video 9:16 (TASK player-02 · corregido): el wrapper es `h-full`
-          // (le da altura al box 9:16 que se centra dentro) sin padding ni
-          // max-w. Text/quiz/reflection mantienen ancho de lectura + padding.
+          // Video 9:16 se centra; text/quiz/reflection LLENAN el alto (TASK 3:
+          // el BlockScreenLayout provee su propio gradient + padding + scroll).
           className={
             isVideoBlock
               ? "relative z-0 flex h-full w-full items-center justify-center"
-              : "relative z-0 mx-auto w-full max-w-md overflow-y-auto px-6 py-6"
+              : "relative z-0 h-full w-full self-stretch overflow-hidden"
           }
           onTouchStart={isVideoBlock ? onVideoPressStart : undefined}
           onTouchEnd={isVideoBlock ? onVideoPressEnd : undefined}
@@ -251,7 +250,7 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
           <BlockTransition
             blockKey={currentBlock.id}
             tone={unit.narrative_tone}
-            className={isVideoBlock ? "h-full w-full" : "w-full"}
+            className="h-full w-full"
           >
             <BlockRenderer
               block={currentBlock}
