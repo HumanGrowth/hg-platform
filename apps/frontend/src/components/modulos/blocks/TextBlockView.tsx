@@ -7,6 +7,7 @@ import * as React from "react";
 import { HeroDataPoint } from "@/components/modulos/blocks/HeroDataPoint";
 import { InteractiveChecklist, type ChecklistEntry } from "@/components/modulos/blocks/InteractiveChecklist";
 import { MarkdownBody } from "@/components/modulos/blocks/MarkdownBody";
+import { PillarMetaphor } from "@/components/modulos/PillarMetaphor";
 import { Badge } from "@/components/ui/badge";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { detectChecklistItems, detectHeroStat } from "@/lib/parsers/autoDetect";
@@ -39,9 +40,9 @@ const VARIANT_ICON: Record<TextBlock["variant"], LucideIcon> = {
 
 const AUTO_COMPLETE_MS = 3000;
 
-/** Índice (0-based) del inicio de la lista de pasos (`1.`, `1)` o `(1)`). */
+/** Índice (0-based) del inicio de la lista de pasos (`1.`/`1)`/`(1)` o `(S)`…). */
 function numberedListStart(body: string): number {
-  const m = /(^|\n|\s)\(?1[.)]\s/.exec(body);
+  const m = /(^|\n|\s)(?:\(?1[.)]|\([A-Za-z]\))\s/.exec(body);
   return m ? m.index + (m[1] ? m[1].length : 0) : -1;
 }
 
@@ -92,7 +93,15 @@ export function TextBlockView({
 
   let inner: React.ReactNode;
   if (block.variant === "context") {
-    inner = <ContextBody block={block} style={style} eyebrow={eyebrow} citation={citation} />;
+    inner = (
+      <ContextBody
+        block={block}
+        style={style}
+        dimensionCode={dimensionCode}
+        eyebrow={eyebrow}
+        citation={citation}
+      />
+    );
   } else if (block.variant === "evidence") {
     inner = <EvidenceBody block={block} dimensionCode={dimensionCode} eyebrow={eyebrow} citation={citation} />;
   } else {
@@ -131,11 +140,13 @@ function isQuoteBody(body: string): boolean {
 function ContextBody({
   block,
   style,
+  dimensionCode,
   eyebrow,
   citation,
 }: {
   block: TextBlock;
   style: ReturnType<typeof dimensionStyle>;
+  dimensionCode?: string;
   eyebrow: React.ReactNode;
   citation: React.ReactNode;
 }) {
@@ -145,7 +156,6 @@ function ContextBody({
   // Si es una cita, quitamos los marcadores `>` para renderizarla como
   // pull-quote (con el quote-mark decorativo) en vez de blockquote default.
   const body = quote ? clean.replace(/^\s*>\s?/gm, "").trim() : clean;
-  const marker = String(block.position + 1).padStart(2, "0");
 
   return (
     <div className="relative overflow-hidden pl-5">
@@ -155,12 +165,14 @@ function ContextBody({
         className="absolute inset-y-0 left-0 w-1 rounded-full"
         style={{ backgroundColor: style.glow }}
       />
-      {/* número marca-de-agua */}
+      {/* metáfora del pilar como marca-de-agua → identidad de la dimensión
+          (reemplaza el número, que no comunicaba nada). */}
       <span
         aria-hidden
-        className="pointer-events-none absolute -top-2 right-0 select-none font-display text-8xl leading-none text-fg opacity-[0.06]"
+        className="pointer-events-none absolute -top-3 right-0 select-none opacity-[0.08]"
+        style={{ color: style.glow }}
       >
-        {marker}
+        <PillarMetaphor code={dimensionCode ?? "P3"} className="h-24 w-24" />
       </span>
       <div className="relative flex flex-col gap-3">
         {eyebrow}
@@ -273,9 +285,8 @@ function CitationCard({ citation }: { citation: NonNullable<TextBlock["citation"
     <div className="mt-2 flex flex-col gap-2 rounded-md border border-border bg-bg-sunken p-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge>{CITATION_TIER_LABEL[citation.tier] ?? citation.tier}</Badge>
-        <span className="text-xs text-fg-muted">
-          {citation.source} · {citation.year}
-        </span>
+        {/* Sin el año de publicación: no aporta valor de lectura (feedback Andy). */}
+        <span className="text-xs text-fg-muted">{citation.source}</span>
       </div>
       <p className="text-sm text-fg-muted">{citation.text}</p>
       {isValidUrl && (

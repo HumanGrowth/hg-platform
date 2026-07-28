@@ -9,6 +9,7 @@
  * Sólo matchea corchetes que contienen números/comas → nunca toca `[palabra]`.
  */
 export function stripCitationMarkers(text: string): string {
+  // Cubre listas `[1, 2]` Y rangos `[7-10]` / `[4–6]` (coma, guion, guion largo).
   // El espacio previo opcional evita dejar " ." o dobles espacios tras limpiar.
-  return text.replace(/[ \t]*\[\d+(?:\s*,\s*\d+)*\]/g, "").replace(/[ \t]{2,}/g, " ");
+  return text.replace(/[ \t]*\[\d+(?:\s*[,\-–]\s*\d+)*\]/g, "").replace(/[ \t]{2,}/g, " ");
 }

@@ -9,6 +9,7 @@ import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
+import { stripCitationMarkers } from "@/lib/parsers/stripCitationMarkers";
 import { dimensionStyle } from "@/lib/pillars";
 import type { ReflectionBlock } from "@/lib/types";
 
@@ -38,6 +39,9 @@ export function ReflectionBlockView({
   const trimmed = text.trim().length;
   const reachedMin = trimmed >= block.min_chars;
   const canSubmit = reachedMin && text.length <= block.max_chars;
+  // Bug #1: limpiar markers de citación [n] del prompt/ejemplo.
+  const prompt = stripCitationMarkers(block.prompt);
+  const example = block.example ? stripCitationMarkers(block.example) : null;
 
   async function submit() {
     if (!canSubmit || submitting) return;
@@ -53,7 +57,7 @@ export function ReflectionBlockView({
     return (
       <div className="flex flex-col gap-3">
         <Eyebrow accent>{block.eyebrow}</Eyebrow>
-        <p className="font-heading text-base text-fg">{block.prompt}</p>
+        <p className="font-heading text-base text-fg">{prompt}</p>
         {/* sello/stamp: rota y "cae" con un rebote + brillo del pilar */}
         <motion.div
           initial={shouldAnimate ? { scale: 1.6, opacity: 0, rotate: -18 } : false}
@@ -71,8 +75,8 @@ export function ReflectionBlockView({
   return (
     <div className="flex flex-col gap-3">
       <Eyebrow accent>{block.eyebrow}</Eyebrow>
-      <p className="font-heading text-base text-fg">{block.prompt}</p>
-      {block.example && <p className="text-sm italic text-fg-muted">{block.example}</p>}
+      <p className="font-heading text-base text-fg">{prompt}</p>
+      {example && <p className="text-sm italic text-fg-muted">{example}</p>}
       {/* Área de escritura tipo cuaderno: renglones + borde inferior en vez de caja. */}
       <div className="rounded-t-md border-b-2 border-border-strong px-1 pt-1 transition-colors focus-within:border-primary" style={NOTEBOOK_TEXTURE}>
         <textarea
@@ -81,7 +85,7 @@ export function ReflectionBlockView({
           maxLength={block.max_chars}
           rows={5}
           placeholder="Escribí tu reflexión…"
-          aria-label={block.prompt}
+          aria-label={prompt}
           className="w-full resize-none bg-transparent px-3 font-body text-sm text-fg placeholder:text-fg-subtle focus-visible:outline-none"
           style={{ lineHeight: "28px" }}
         />

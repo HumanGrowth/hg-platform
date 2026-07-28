@@ -25,6 +25,16 @@ describe("detectHeroStat", () => {
     expect(detectHeroStat("El efecto fue de 1.5 desviaciones estándar.")?.value).toBe("1.5");
   });
 
+  it("ignores a citation year (2012) — not a stat", () => {
+    expect(
+      detectHeroStat("Naomi Eisenberger (2012) descubrió que el rechazo social duele."),
+    ).toBeNull();
+  });
+
+  it("ignores a bare 4-digit year as the stat", () => {
+    expect(detectHeroStat("En 2012 todo cambió para el equipo.")).toBeNull();
+  });
+
   it("returns null when there is no number", () => {
     expect(detectHeroStat("Un texto sin ningún dato cuantitativo.")).toBeNull();
     expect(detectHeroStat("")).toBeNull();
@@ -54,6 +64,15 @@ describe("detectChecklistItems", () => {
     const r = detectChecklistItems("Pasos: 1) Respirá 2) Escuchá 3) Respondé");
     expect(r?.length).toBe(3);
     expect(r?.[2].title).toBe("Respondé");
+  });
+
+  it("detects a letter mnemonic (S)(T)(O)(P) — técnica STOP", () => {
+    const r = detectChecklistItems(
+      "Aplica STOP: (S) Pará un segundo, (T) Tomá aire, (O) Observá qué dijo, y (P) Procedé con los hechos",
+    );
+    expect(r?.length).toBe(4);
+    expect(r?.[0].title).toContain("Pará un segundo");
+    expect(r?.[3].title).toContain("Procedé con los hechos");
   });
 
   it("detects a multiline 5-item list", () => {
