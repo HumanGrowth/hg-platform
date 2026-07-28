@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import * as React from "react";
 
+import { BlockScreenLayout } from "@/components/modulos/blocks/BlockScreenLayout";
 import { CircularCounter } from "@/components/modulos/blocks/CircularCounter";
 import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ export function ReflectionBlockView({
 
   if (isCompleted) {
     return (
+      <BlockScreenLayout dimensionCode={dimensionCode}>
       <div className="flex flex-col gap-3">
         <Eyebrow accent>{block.eyebrow}</Eyebrow>
         <p className="font-heading text-base text-fg">{prompt}</p>
@@ -69,10 +71,12 @@ export function ReflectionBlockView({
           <Check size={16} strokeWidth={3} /> Guardado
         </motion.div>
       </div>
+      </BlockScreenLayout>
     );
   }
 
   return (
+    <BlockScreenLayout dimensionCode={dimensionCode}>
     <div className="flex flex-col gap-3">
       <Eyebrow accent>{block.eyebrow}</Eyebrow>
       <p className="font-heading text-base text-fg">{prompt}</p>
@@ -104,5 +108,6 @@ export function ReflectionBlockView({
         </Button>
       </div>
     </div>
+    </BlockScreenLayout>
   );
 }

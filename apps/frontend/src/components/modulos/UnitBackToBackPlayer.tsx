@@ -174,14 +174,15 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
             // la columna; el VideoBlockView (h-full) lo llena. Sin padding/borde.
             isVideoBlock
               ? "mx-auto aspect-[9/16] h-[70vh] max-h-full self-start overflow-hidden rounded-lg bg-black"
-              : "overflow-y-auto rounded-lg border border-border bg-bg-raised p-8",
+              : // TASK 3: sin card/borde — el BlockScreenLayout aporta el gradient del pilar.
+                "overflow-hidden rounded-lg",
             !isVideoBlock && focusMode && "w-full max-w-2xl",
           )}
         >
           <BlockTransition
             blockKey={currentBlock.id}
             tone={unit.narrative_tone}
-            className={isVideoBlock ? "h-full w-full" : "w-full"}
+            className="h-full w-full"
           >
             <BlockRenderer
               block={currentBlock}

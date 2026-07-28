@@ -4,6 +4,7 @@ import { type TargetAndTransition, motion } from "framer-motion";
 import { Check, Sparkles } from "lucide-react";
 import * as React from "react";
 
+import { BlockScreenLayout } from "@/components/modulos/blocks/BlockScreenLayout";
 import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -161,18 +162,21 @@ export function QuizBlockView({
 
   if (alreadySubmitted) {
     return (
-      <div className="flex flex-col gap-3">
-        <Eyebrow accent>{block.eyebrow}</Eyebrow>
-        <div className="flex items-center gap-2 font-sans text-sm font-semibold text-success">
-          <Check size={18} strokeWidth={2} /> Ya completaste este quiz
+      <BlockScreenLayout dimensionCode={dimensionCode}>
+        <div className="flex flex-col gap-3">
+          <Eyebrow accent>{block.eyebrow}</Eyebrow>
+          <div className="flex items-center gap-2 font-sans text-sm font-semibold text-success">
+            <Check size={18} strokeWidth={2} /> Ya completaste este quiz
+          </div>
         </div>
-      </div>
+      </BlockScreenLayout>
     );
   }
 
   const disabled = results !== null;
 
   return (
+    <BlockScreenLayout dimensionCode={dimensionCode}>
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-2 text-hg-amber">
         <Sparkles size={16} strokeWidth={2} aria-hidden />
@@ -274,5 +278,6 @@ export function QuizBlockView({
       )}
       {error && <p className="text-sm text-danger">No pudimos enviar tus respuestas. Probá de nuevo.</p>}
     </div>
+    </BlockScreenLayout>
   );
 }
