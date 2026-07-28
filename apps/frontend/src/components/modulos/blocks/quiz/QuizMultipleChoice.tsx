@@ -47,7 +47,7 @@ export function QuizMultipleChoice({
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber disabled:cursor-default",
                 result
                   ? isCorrectOpt
-                    ? "border-success bg-success-bg text-success"
+                    ? "border-success bg-success-bg text-success motion-safe:animate-star-glow"
                     : isWrongPick
                       ? // TASK polish-06: incorrecta en neutro, no rojo.
                         "border-border-strong bg-bg-sunken text-fg-muted"
