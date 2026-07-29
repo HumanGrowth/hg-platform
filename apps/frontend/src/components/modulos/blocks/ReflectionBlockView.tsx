@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import * as React from "react";
 
@@ -11,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { stripCitationMarkers } from "@/lib/parsers/stripCitationMarkers";
-import { dimensionStyle } from "@/lib/pillars";
 import type { ReflectionBlock } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 /** Textura de cuaderno: renglones tenues sobre un papel cálido (Sprint UI T8). */
 const NOTEBOOK_TEXTURE: React.CSSProperties = {
@@ -26,14 +25,23 @@ export function ReflectionBlockView({
   isCompleted,
   onSubmitReflection,
   dimensionCode,
+  onAdvance,
 }: {
   block: ReflectionBlock;
   isCompleted: boolean;
   onSubmitReflection: (text: string) => Promise<void>;
   dimensionCode?: string;
+  /** Avanza / cierra la unit — para el botón "Finalizar" del estado completado. */
+  onAdvance?: () => void;
 }) {
   const shouldAnimate = useShouldAnimate();
-  const glow = dimensionStyle(dimensionCode).glow;
+  const [finishing, setFinishing] = React.useState(false);
+
+  function finish() {
+    if (finishing) return;
+    setFinishing(true); // dispara el glow verde
+    window.setTimeout(() => onAdvance?.(), 450); // deja verlo antes de avanzar
+  }
   const [text, setText] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
 
@@ -60,16 +68,18 @@ export function ReflectionBlockView({
       <div className="flex flex-col gap-3">
         <Eyebrow accent>{block.eyebrow}</Eyebrow>
         <p className="font-heading text-base text-fg">{prompt}</p>
-        {/* sello/stamp: rota y "cae" con un rebote + brillo del pilar */}
-        <motion.div
-          initial={shouldAnimate ? { scale: 1.6, opacity: 0, rotate: -18 } : false}
-          animate={{ scale: 1, opacity: 1, rotate: -6 }}
-          transition={{ type: "spring", stiffness: 600, damping: 18 }}
-          style={{ boxShadow: `0 0 16px 0 color-mix(in srgb, ${glow} 40%, transparent)` }}
-          className="flex items-center gap-2 self-start rounded-md border-2 border-success px-3 py-1.5 font-heading text-sm font-bold uppercase tracking-wide text-success"
+        {/* Botón "Finalizar": cierra/avanza la unit con un glow verde positivo al click. */}
+        <button
+          type="button"
+          onClick={finish}
+          style={{ "--glow-color": "color-mix(in srgb, var(--color-success) 55%, transparent)" } as React.CSSProperties}
+          className={cn(
+            "flex items-center gap-2 self-start rounded-md border-2 border-success px-4 py-2 font-heading text-sm font-bold uppercase tracking-wide text-success transition-colors hover:bg-success-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success",
+            finishing && shouldAnimate && "animate-star-glow",
+          )}
         >
-          <Check size={16} strokeWidth={3} /> Guardado
-        </motion.div>
+          <Check size={16} strokeWidth={3} /> Finalizar
+        </button>
       </div>
       </BlockScreenLayout>
     );

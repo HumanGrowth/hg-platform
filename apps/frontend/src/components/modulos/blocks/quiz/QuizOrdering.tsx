@@ -3,8 +3,8 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import type { QuizQuestionOrdering, QuizSubmitResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+import { QuizExplanation } from "./QuizExplanation";
 import { QuizPrompt } from "./QuizPrompt";
-import { Typewriter } from "./Typewriter";
 
 /** @dnd-kit no está instalado en el proyecto (confirmado — no se agrega
  * sin consultar, per hard rule) — fallback de botones up/down, tal como
@@ -82,7 +82,7 @@ export function QuizOrdering({
             .join(" → ")}
         </p>
       )}
-      {result?.explanation && <Typewriter text={result.explanation} className="text-sm text-fg-muted" />}
+      {result?.explanation && <QuizExplanation text={result.explanation} className="text-sm text-fg-muted" />}
     </fieldset>
   );
 }

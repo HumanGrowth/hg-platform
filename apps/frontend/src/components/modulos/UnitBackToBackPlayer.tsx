@@ -193,6 +193,7 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
               onCompleteBlock={onCompleteBlock}
               onSubmitQuiz={onSubmitQuiz}
               onSubmitReflection={onSubmitReflection}
+              onAdvance={goNext}
             />
           </BlockTransition>
         </div>

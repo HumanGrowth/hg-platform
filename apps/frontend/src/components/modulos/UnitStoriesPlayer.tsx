@@ -259,6 +259,7 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
               onCompleteBlock={onCompleteBlock}
               onSubmitQuiz={onSubmitQuiz}
               onSubmitReflection={onSubmitReflection}
+              onAdvance={goNext}
             />
           </BlockTransition>
         </div>

@@ -3,8 +3,8 @@ import { Check, X } from "lucide-react";
 import type { QuizQuestionSingleChoice, QuizSubmitResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+import { QuizExplanation } from "./QuizExplanation";
 import { QuizPrompt } from "./QuizPrompt";
-import { Typewriter } from "./Typewriter";
 
 export function QuizSingleChoice({
   question,
@@ -59,7 +59,7 @@ export function QuizSingleChoice({
           );
         })}
       </div>
-      {result?.explanation && <Typewriter text={result.explanation} className="text-sm text-fg-muted" />}
+      {result?.explanation && <QuizExplanation text={result.explanation} className="text-sm text-fg-muted" />}
     </fieldset>
   );
 }

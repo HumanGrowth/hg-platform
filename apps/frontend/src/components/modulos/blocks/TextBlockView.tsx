@@ -102,7 +102,6 @@ export function TextBlockView({
         block={block}
         dimensionCode={dimensionCode}
         shouldAnimate={shouldAnimate}
-        glow={style.glow}
         eyebrow={eyebrow}
         citation={citation}
       />
@@ -211,14 +210,12 @@ function SolutionBody({
   block,
   dimensionCode,
   shouldAnimate,
-  glow,
   eyebrow,
   citation,
 }: {
   block: TextBlock;
   dimensionCode?: string;
   shouldAnimate: boolean;
-  glow: string;
   eyebrow: React.ReactNode;
   citation: React.ReactNode;
 }) {
@@ -244,10 +241,12 @@ function SolutionBody({
       <div className="flex items-center gap-2">
         <span
           className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-full bg-bg-raised text-primary",
+            "flex h-9 w-9 items-center justify-center rounded-full bg-bg-raised text-success",
             shouldAnimate && "animate-star-glow",
           )}
-          style={{ "--glow-color": `color-mix(in srgb, ${glow} 55%, transparent)` } as React.CSSProperties}
+          // Glow POSITIVO (verde success), no el color del pilar — "Probá esto"
+          // es una acción/logro, no una alerta.
+          style={{ "--glow-color": "color-mix(in srgb, var(--color-success) 55%, transparent)" } as React.CSSProperties}
           aria-hidden
         >
           <Lightbulb size={18} strokeWidth={2} />

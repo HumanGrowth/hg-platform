@@ -70,7 +70,8 @@ export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionC
         style={{
           color: style.glow,
           background: `color-mix(in srgb, ${style.glow} 10%, transparent)`,
-          ["--glow-color" as string]: `color-mix(in srgb, ${style.glow} 50%, transparent)`,
+          // Glow POSITIVO verde (logro), aunque la metáfora mantenga el color del pilar.
+          ["--glow-color" as string]: "color-mix(in srgb, var(--color-success) 50%, transparent)",
         } as React.CSSProperties}
         className={cn(
           "flex h-20 w-20 items-center justify-center rounded-full",
