@@ -169,19 +169,22 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
         <div
           className={cn(
             "min-w-0",
-            // Video 9:16 vertical (TASK player-03 · corregido): panel portrait
-            // de alto fijo (70vh) y ancho derivado por el aspect, centrado en
-            // la columna; el VideoBlockView (h-full) lo llena. Sin padding/borde.
+            // Video 9:16 vertical (TASK 2 · full-bleed): panel portrait alto
+            // (85vh, más inmersivo) y ancho derivado por el aspect; el
+            // VideoBlockView (h-full) lo llena con object-cover. Sin borde ni
+            // redondeo → edge-to-edge estilo Reels.
             isVideoBlock
-              ? "mx-auto aspect-[9/16] h-[70vh] max-h-full self-start overflow-hidden rounded-lg bg-black"
-              : "overflow-y-auto rounded-lg border border-border bg-bg-raised p-8",
+              ? // TASK 2 · full-bleed 9:16 edge-to-edge.
+                "mx-auto aspect-[9/16] h-[85vh] max-h-full self-start overflow-hidden bg-black"
+              : // TASK 3: sin card/borde — el BlockScreenLayout aporta el gradient del pilar.
+                "overflow-hidden rounded-lg",
             !isVideoBlock && focusMode && "w-full max-w-2xl",
           )}
         >
           <BlockTransition
             blockKey={currentBlock.id}
             tone={unit.narrative_tone}
-            className={isVideoBlock ? "h-full w-full" : "w-full"}
+            className="h-full w-full"
           >
             <BlockRenderer
               block={currentBlock}

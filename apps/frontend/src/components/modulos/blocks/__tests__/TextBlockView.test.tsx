@@ -23,11 +23,23 @@ function makeBlock(overrides: Partial<TextBlock>): TextBlock {
 }
 
 describe("TextBlockView", () => {
-  it("context: renders the position watermark and the eyebrow", () => {
-    render(<TextBlockView block={makeBlock({})} isCompleted onCompleteBlock={vi.fn()} dimensionCode="P3" />);
+  it("strips citation markers [n] from the rendered body (Bug #1)", () => {
+    const block = makeBlock({ body: "El error es solo un dato sobre tu proceso [2]. Y algo más [1, 3]." });
+    const { container } = render(
+      <TextBlockView block={block} isCompleted onCompleteBlock={vi.fn()} dimensionCode="P3" />,
+    );
+    expect(container.textContent).toContain("El error es solo un dato sobre tu proceso.");
+    expect(container.textContent).not.toContain("[2]");
+    expect(container.textContent).not.toContain("[1, 3]");
+  });
+
+  it("context: renders the eyebrow + pillar-metaphor watermark (identidad de dimensión)", () => {
+    const { container } = render(
+      <TextBlockView block={makeBlock({})} isCompleted onCompleteBlock={vi.fn()} dimensionCode="P3" />,
+    );
     expect(screen.getByText("LA SITUACIÓN")).toBeTruthy();
-    // position 2 → marca "03" (1-based, padded).
-    expect(screen.getByText("03")).toBeTruthy();
+    // La marca-de-agua es la metáfora del pilar (SVG decorativo), no un número.
+    expect(container.querySelector("svg")).not.toBeNull();
   });
 
   it("evidence: surfaces the explicit hero_stat as a data point", () => {

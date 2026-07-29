@@ -50,7 +50,9 @@ describe("ModulosPage", () => {
   it("without ?pillar renders the normal hero+next feed via apiGetModulosFeed", async () => {
     render(<ModulosPage />);
     await screen.findByText("Antes de seguir");
-    expect(listModulosByPillar).not.toHaveBeenCalled();
+    expect(getModulosFeed).toHaveBeenCalled();
+    // Sin filtro NO se muestra el chip "Filtrando"; el catálogo agrupado
+    // (DimensionCatalog) sí carga units por dimensión vía apiListModulosByPillar.
     expect(screen.queryByText(/Filtrando:/)).toBeNull();
   });
 

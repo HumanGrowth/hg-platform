@@ -109,10 +109,16 @@ describe("VideoBlockView · full-bleed player (TASK player-01)", () => {
     expect(screen.getByLabelText("Reproducir video")).toBeTruthy();
   });
 
-  it("shows the unmute hint on first play and unmutes on click", () => {
+  it("falls back to muted autoplay + shows the unmute hint when sound is blocked", async () => {
+    // 1er play (con sonido) rechazado por autoplay policy; el reintento mutado resuelve.
+    vi.spyOn(window.HTMLMediaElement.prototype, "play")
+      .mockRejectedValueOnce(new Error("blocked"))
+      .mockResolvedValue(undefined);
     render(<VideoBlockView block={block} isCompleted={false} onCompleteBlock={vi.fn()} />);
     const video = screen.getByTitle("Video del módulo") as HTMLVideoElement;
-    fireEvent.play(video);
+    enterViewport(true);
+    await vi.waitFor(() => expect(video.muted).toBe(true)); // cayó a mutado
+    fireEvent.play(video); // el playback reanudado dispara el badge
     fireEvent.click(screen.getByText("Activar sonido"));
     expect(video.muted).toBe(false);
   });
@@ -124,12 +130,12 @@ describe("VideoBlockView · full-bleed player (TASK player-01)", () => {
     expect(screen.getByText("Reintentar")).toBeTruthy();
   });
 
-  it("'m' toggles mute", () => {
+  it("'m' toggles mute (starts unmuted — TASK 2 intenta autoplay con sonido)", () => {
     render(<VideoBlockView block={block} isCompleted={false} onCompleteBlock={vi.fn()} />);
     const video = screen.getByTitle("Video del módulo") as HTMLVideoElement;
-    expect(video.muted).toBe(true);
-    fireEvent.keyDown(window, { key: "m" });
     expect(video.muted).toBe(false);
+    fireEvent.keyDown(window, { key: "m" });
+    expect(video.muted).toBe(true);
   });
 
   it("arrow keys seek ±5s", () => {

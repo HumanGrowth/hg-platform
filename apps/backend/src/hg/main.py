@@ -39,6 +39,10 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins_list,
+        # Además del allowlist fijo: previews de Vercel (*.vercel.app) y dev local
+        # (localhost/127.0.0.1). Con allow_credentials=True no se puede usar "*",
+        # por eso un regex. Fija el problema de "localhost/preview no reacciona".
+        allow_origin_regex=r"https?://(localhost(:\d+)?|127\.0\.0\.1(:\d+)?|.*\.vercel\.app)",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

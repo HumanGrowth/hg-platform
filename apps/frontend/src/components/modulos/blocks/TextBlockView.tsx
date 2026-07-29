@@ -4,12 +4,14 @@ import { motion } from "framer-motion";
 import { BookOpen, ExternalLink, Lightbulb, MessageCircle, type LucideIcon } from "lucide-react";
 import * as React from "react";
 
+import { BlockScreenLayout } from "@/components/modulos/blocks/BlockScreenLayout";
 import { HeroDataPoint } from "@/components/modulos/blocks/HeroDataPoint";
 import { InteractiveChecklist, type ChecklistEntry } from "@/components/modulos/blocks/InteractiveChecklist";
 import { MarkdownBody } from "@/components/modulos/blocks/MarkdownBody";
 import { Badge } from "@/components/ui/badge";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { detectChecklistItems, detectHeroStat } from "@/lib/parsers/autoDetect";
+import { stripCitationMarkers } from "@/lib/parsers/stripCitationMarkers";
 import { dimensionStyle } from "@/lib/pillars";
 import type { TextBlock } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -38,9 +40,9 @@ const VARIANT_ICON: Record<TextBlock["variant"], LucideIcon> = {
 
 const AUTO_COMPLETE_MS = 3000;
 
-/** Índice (0-based) del inicio de la lista numerada `1. ` dentro del body. */
+/** Índice (0-based) del inicio de la lista de pasos (`1.`/`1)`/`(1)` o `(S)`…). */
 function numberedListStart(body: string): number {
-  const m = /(^|\n|\s)1\.\s/.exec(body);
+  const m = /(^|\n|\s)(?:\(?1[.)]|\([A-Za-z]\))\s/.exec(body);
   return m ? m.index + (m[1] ? m[1].length : 0) : -1;
 }
 
@@ -107,9 +109,9 @@ export function TextBlockView({
     );
   }
 
-  if (!shouldAnimate) return <>{inner}</>;
-
-  return (
+  const content = !shouldAnimate ? (
+    inner
+  ) : (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -118,6 +120,9 @@ export function TextBlockView({
       {inner}
     </motion.div>
   );
+
+  // TASK 3: shell full-screen (gradient del pilar + metáfora header + aire).
+  return <BlockScreenLayout dimensionCode={dimensionCode}>{content}</BlockScreenLayout>;
 }
 
 // ─────────────────────────── context (T4) ───────────────────────────
@@ -138,11 +143,12 @@ function ContextBody({
   eyebrow: React.ReactNode;
   citation: React.ReactNode;
 }) {
-  const quote = isQuoteBody(block.body);
+  // Bug #1: limpiamos los markers de citación [n] antes de renderizar.
+  const clean = stripCitationMarkers(block.body);
+  const quote = isQuoteBody(clean);
   // Si es una cita, quitamos los marcadores `>` para renderizarla como
   // pull-quote (con el quote-mark decorativo) en vez de blockquote default.
-  const body = quote ? block.body.replace(/^\s*>\s?/gm, "").trim() : block.body;
-  const marker = String(block.position + 1).padStart(2, "0");
+  const body = quote ? clean.replace(/^\s*>\s?/gm, "").trim() : clean;
 
   return (
     <div className="relative overflow-hidden pl-5">
@@ -152,13 +158,6 @@ function ContextBody({
         className="absolute inset-y-0 left-0 w-1 rounded-full"
         style={{ backgroundColor: style.glow }}
       />
-      {/* número marca-de-agua */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -top-2 right-0 select-none font-display text-8xl leading-none text-fg opacity-[0.06]"
-      >
-        {marker}
-      </span>
       <div className="relative flex flex-col gap-3">
         {eyebrow}
         {quote && (
@@ -192,13 +191,15 @@ function EvidenceBody({
   eyebrow: React.ReactNode;
   citation: React.ReactNode;
 }) {
-  const hero = block.hero_stat ?? detectHeroStat(block.body);
+  // Bug #1/#3: limpiar [n] antes de detectar (label del hero sin markers) y de renderizar.
+  const clean = stripCitationMarkers(block.body);
+  const hero = block.hero_stat ?? detectHeroStat(clean);
 
   return (
     <div className="flex flex-col gap-3">
       {eyebrow}
       {hero && <HeroDataPoint value={hero.value} label={hero.label} dimensionCode={dimensionCode} />}
-      <MarkdownBody>{block.body}</MarkdownBody>
+      <MarkdownBody>{clean}</MarkdownBody>
       {citation}
     </div>
   );
@@ -221,19 +222,21 @@ function SolutionBody({
   eyebrow: React.ReactNode;
   citation: React.ReactNode;
 }) {
+  // Bug #1: limpiar [n] antes de detectar la lista y de renderizar la intro.
+  const clean = stripCitationMarkers(block.body);
   const explicit = block.checklist_items;
-  const detected = explicit ? null : detectChecklistItems(block.body);
+  const detected = explicit ? null : detectChecklistItems(clean);
 
   const entries: ChecklistEntry[] | null = explicit
     ? explicit.map((c) => ({ title: c.title, detail: c.detail }))
     : (detected?.map((d) => ({ title: d.title })) ?? null);
 
-  // Cuando la lista se auto-detecta del body, el body ya contiene "1. 2. 3.":
+  // Cuando la lista se auto-detecta del body, el body ya contiene los pasos:
   // mostramos sólo la intro (texto antes de la lista) para no duplicarla.
-  let introBody = block.body;
+  let introBody = clean;
   if (detected) {
-    const start = numberedListStart(block.body);
-    introBody = start > 0 ? block.body.slice(0, start).trim() : "";
+    const start = numberedListStart(clean);
+    introBody = start > 0 ? clean.slice(0, start).trim() : "";
   }
 
   return (
@@ -266,9 +269,8 @@ function CitationCard({ citation }: { citation: NonNullable<TextBlock["citation"
     <div className="mt-2 flex flex-col gap-2 rounded-md border border-border bg-bg-sunken p-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge>{CITATION_TIER_LABEL[citation.tier] ?? citation.tier}</Badge>
-        <span className="text-xs text-fg-muted">
-          {citation.source} · {citation.year}
-        </span>
+        {/* Sin el año de publicación: no aporta valor de lectura (feedback Andy). */}
+        <span className="text-xs text-fg-muted">{citation.source}</span>
       </div>
       <p className="text-sm text-fg-muted">{citation.text}</p>
       {isValidUrl && (
