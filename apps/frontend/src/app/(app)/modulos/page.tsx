@@ -28,6 +28,9 @@ function ModulosPageContent() {
   const [feed, setFeed] = React.useState<LearningUnitFeed | null>(null);
   const [filteredUnits, setFilteredUnits] = React.useState<LearningUnitFeedItem[] | null>(null);
   const [streakDays, setStreakDays] = React.useState<number | null>(null);
+  const [showAllNext, setShowAllNext] = React.useState(false);
+
+  const NEXT_PREVIEW = 3;
 
   const load = React.useCallback(async () => {
     setStatus("loading");
@@ -132,10 +135,19 @@ function ModulosPageContent() {
               <section>
                 <Eyebrow className="mb-3">Próximos en tu ruta</Eyebrow>
                 <div className="flex flex-col gap-3">
-                  {feed.next.map((unit) => (
+                  {(showAllNext ? feed.next : feed.next.slice(0, NEXT_PREVIEW)).map((unit) => (
                     <UnitCardCompact key={unit.id} unit={unit} />
                   ))}
                 </div>
+                {feed.next.length > NEXT_PREVIEW && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllNext((v) => !v)}
+                    className="mt-3 inline-flex items-center gap-1 font-sans text-sm font-semibold text-primary hover:underline"
+                  >
+                    {showAllNext ? "Ver menos" : `Ver todos (${feed.next.length})`}
+                  </button>
+                )}
               </section>
             )}
 

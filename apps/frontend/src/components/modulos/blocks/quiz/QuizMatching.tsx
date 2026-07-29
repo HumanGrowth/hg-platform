@@ -3,8 +3,8 @@ import * as React from "react";
 import type { QuizQuestionMatching, QuizSubmitResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+import { QuizExplanation } from "./QuizExplanation";
 import { QuizPrompt } from "./QuizPrompt";
-import { Typewriter } from "./Typewriter";
 
 /** Click-to-select-pair fallback (drag-and-drop no está en scope sin
  * @dnd-kit instalado — el propio spec de B-06 acepta este fallback).
@@ -118,7 +118,7 @@ export function QuizMatching({
           {correctPairs.map(([l, r]) => `${textById.get(l)} → ${textById.get(r)}`).join(" · ")}
         </p>
       )}
-      {result?.explanation && <Typewriter text={result.explanation} className="text-sm text-fg-muted" />}
+      {result?.explanation && <QuizExplanation text={result.explanation} className="text-sm text-fg-muted" />}
     </fieldset>
   );
 }

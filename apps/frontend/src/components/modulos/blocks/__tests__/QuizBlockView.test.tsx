@@ -107,7 +107,9 @@ describe("QuizBlockView", () => {
     expect(submitBtn.disabled).toBe(false);
     fireEvent.click(submitBtn);
 
-    await screen.findByText("Correcto sc");
+    // La explicación colorea "Correcto"/"Incorrecto" en su propio <span> (el
+    // resto va en el typewriter), así que el texto ya no es un solo nodo.
+    expect((await screen.findAllByText("Correcto")).length).toBeGreaterThan(0);
     expect(onSubmitQuiz).toHaveBeenCalledTimes(1);
     const payload = onSubmitQuiz.mock.calls[0][0];
     expect(payload).toEqual([
@@ -124,7 +126,8 @@ describe("QuizBlockView", () => {
       },
       { question_id: "fb", question_type: "fill_blank", fill_blank_answers: ["respuesta"] },
     ]);
-    expect(screen.getByText("Correcto mc")).toBeTruthy();
+    // sc y mc son correctas y tienen explicación → 2 spans "Correcto" coloreados.
+    expect(screen.getAllByText("Correcto").length).toBe(2);
   });
 
   it("filters non-UUID matching ids (distractors) out of the submit payload", async () => {

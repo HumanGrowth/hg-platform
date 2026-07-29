@@ -3,7 +3,7 @@ import * as React from "react";
 import type { QuizQuestionFillBlank, QuizSubmitResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-import { Typewriter } from "./Typewriter";
+import { QuizExplanation } from "./QuizExplanation";
 
 const BLANK_TOKEN = "{{blank}}";
 
@@ -61,7 +61,7 @@ export function QuizFillBlank({
       {result && !result.is_correct && correctAnswers.length > 0 && (
         <p className="text-sm text-fg-muted">Respuesta correcta: {correctAnswers.join(", ")}</p>
       )}
-      {result?.explanation && <Typewriter text={result.explanation} className="text-sm text-fg-muted" />}
+      {result?.explanation && <QuizExplanation text={result.explanation} className="text-sm text-fg-muted" />}
     </fieldset>
   );
 }

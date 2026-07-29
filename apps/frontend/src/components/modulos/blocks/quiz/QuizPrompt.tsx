@@ -10,7 +10,8 @@ import { cn } from "@/lib/utils";
 export function QuizPrompt({ children, className }: { children: React.ReactNode; className?: string }) {
   const content = typeof children === "string" ? stripCitationMarkers(children) : children;
   return (
-    <legend className={cn("font-heading text-lg font-semibold leading-snug text-fg", className)}>
+    // Centrado + margen inferior para separarlo de las opciones.
+    <legend className={cn("mb-3 text-center font-heading text-lg font-semibold leading-snug text-fg", className)}>
       {content}
     </legend>
   );

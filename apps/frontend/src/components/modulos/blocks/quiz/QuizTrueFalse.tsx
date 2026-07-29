@@ -1,8 +1,8 @@
 import type { QuizQuestionTrueFalse, QuizSubmitResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+import { QuizExplanation } from "./QuizExplanation";
 import { QuizPrompt } from "./QuizPrompt";
-import { Typewriter } from "./Typewriter";
 
 export function QuizTrueFalse({
   question,
@@ -55,7 +55,7 @@ export function QuizTrueFalse({
           );
         })}
       </div>
-      {result?.explanation && <Typewriter text={result.explanation} className="text-sm text-fg-muted" />}
+      {result?.explanation && <QuizExplanation text={result.explanation} className="text-sm text-fg-muted" />}
     </fieldset>
   );
 }

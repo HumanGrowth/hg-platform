@@ -332,6 +332,17 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
         Tu navegador no soporta video HTML5.
       </video>
 
+      {/* Scrims (difuminado) arriba/abajo para que los tabs de progreso y los
+          controles sobre el video se lean bien. Puramente decorativos. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/50 to-transparent"
+      />
+
       {/* Tap zone: toggle play/pause + doble-tap lateral. Debajo de los controles
           (hermanos posteriores en el DOM), encima del video. */}
       {state !== "error" && (
