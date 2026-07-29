@@ -38,7 +38,6 @@ function formatTime(sec: number): string {
 }
 
 const UI_HIDE_MS = 3000; // auto-hide de controles (Sprint UI T2)
-const UNMUTE_HINT_MS = 4000;
 const DOUBLE_TAP_MS = 300;
 const SEEK_STEP = 10; // doble-tap ±10s (Sprint UI T1)
 
@@ -63,7 +62,6 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
   const containerRef = React.useRef<HTMLDivElement>(null);
   const progressBarRef = React.useRef<HTMLDivElement>(null);
   const uiTimerRef = React.useRef<number | null>(null);
-  const hintShownRef = React.useRef(false);
   const lastTapRef = React.useRef<{ time: number; side: number }>({ time: 0, side: 0 });
   const scrubbingRef = React.useRef(false);
 
@@ -72,7 +70,6 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
   // policy), safePlay cae a mutado + badge "Activar sonido" (nunca deja el
   // video pausado esperando gesto).
   const [muted, setMuted] = React.useState(false);
-  const [showUnmuteHint, setShowUnmuteHint] = React.useState(false);
   const [currentTime, setCurrentTime] = React.useState(0);
   const [duration, setDuration] = React.useState(block.duration_seconds || 0);
   const [bufferedEnd, setBufferedEnd] = React.useState(0);
@@ -177,6 +174,13 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
   // Tap central = play/pause. Doble-tap en el tercio izq/der = ∓10s. Los dos
   // toggles del doble-tap se cancelan entre sí (net: sólo el seek).
   function handleTapZone(e: React.MouseEvent<HTMLButtonElement>) {
+    // Si el video reproduce MUTADO (autoplay forzado por el browser), el primer
+    // tap ACTIVA el sonido —el "inicio real" consciente del usuario— en vez de
+    // pausar. A partir de ahí, el tap vuelve a ser play/pause normal.
+    if (stateRef.current === "playing" && videoRef.current?.muted) {
+      unmute();
+      return;
+    }
     const now = Date.now();
     const rect = containerRef.current?.getBoundingClientRect();
     const w = rect?.width ?? 0;
@@ -195,7 +199,6 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
 
   function unmute() {
     setMuted(false);
-    setShowUnmuteHint(false);
     if (videoRef.current) videoRef.current.muted = false;
   }
 
@@ -203,7 +206,7 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
     setMuted((m) => {
       const next = !m;
       if (videoRef.current) videoRef.current.muted = next;
-      if (!next) setShowUnmuteHint(false);
+
       return next;
     });
   }
@@ -311,16 +314,11 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
           const b = e.currentTarget.buffered;
           if (b.length > 0) setBufferedEnd(b.end(b.length - 1));
         }}
-        onPlay={(e) => {
-          setState("playing");
-          // Lee el estado real del elemento (muted puede haber cambiado en el
-          // fallback de safePlay antes de que el state se actualice).
-          if (e.currentTarget.muted && !hintShownRef.current) {
-            hintShownRef.current = true;
-            setShowUnmuteHint(true);
-            window.setTimeout(() => setShowUnmuteHint(false), UNMUTE_HINT_MS);
-          }
-        }}
+        onPlay={() => setState("playing")}
+        // `onPlaying` dispara cuando el video REALMENTE está reproduciendo (tras
+        // buffering / autoplay). Garantiza que el estado quede "playing" y que
+        // el overlay de play se oculte aunque el arranque haya sido mutado.
+        onPlaying={() => setState("playing")}
         onPause={() => setState((s) => (s === "ended" ? s : "paused"))}
         onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
         onEnded={() => void handleEnded()}
@@ -340,7 +338,13 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
         <button
           type="button"
           onClick={handleTapZone}
-          aria-label={state === "playing" ? "Pausar video" : "Reproducir video"}
+          aria-label={
+            state === "playing"
+              ? muted
+                ? "Activar sonido"
+                : "Pausar video"
+              : "Reproducir video"
+          }
           className="absolute inset-0 z-[1] h-full w-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/60"
         />
       )}
@@ -409,9 +413,11 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
         )}
       </AnimatePresence>
 
-      {/* Hint "Activar sonido" prominente al primer play (muted). */}
+      {/* Hint "Activar sonido" PERSISTENTE mientras el video reproduce mutado
+          (autoplay forzado). Tappear acá —o en cualquier parte del video—
+          activa el sonido. */}
       <AnimatePresence>
-        {showUnmuteHint && muted && state === "playing" && (
+        {muted && state === "playing" && (
           <motion.button
             type="button"
             initial={{ opacity: 0, y: -8 }}
@@ -425,8 +431,9 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
         )}
       </AnimatePresence>
 
-      {/* Mute/unmute discreto (persistente) mientras reproduce. */}
-      {state === "playing" && !showUnmuteHint && (
+      {/* Toggle discreto de silenciar — sólo cuando YA hay sonido (si está
+          mutado, el pill "Activar sonido" de arriba es la acción). */}
+      {state === "playing" && !muted && (
         <button
           type="button"
           onClick={toggleMute}
