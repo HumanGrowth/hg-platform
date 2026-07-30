@@ -74,8 +74,8 @@ def test_admin_crud_and_public_listing(client: TestClient, factory, auth_headers
         assert body["slug"] == "webinar-de-carrera"
         assert body["is_featured"] is True
 
-        # public list incluye el evento de comunidad
-        pub = client.get("/api/v1/community-events")
+        # public list (autenticada) incluye el evento de comunidad
+        pub = client.get("/api/v1/community-events", headers=headers)
         assert pub.status_code == 200
         ids = {e["id"] for e in pub.json()["items"]}
         assert created_id in ids
@@ -93,7 +93,7 @@ def test_admin_crud_and_public_listing(client: TestClient, factory, auth_headers
         assert client.delete(
             f"/api/v1/admin/community-events/{created_id}", headers=headers
         ).status_code == 204
-        gone = client.get(f"/api/v1/community-events/{created_id}")
+        gone = client.get(f"/api/v1/community-events/{created_id}", headers=headers)
         assert gone.status_code == 404
         created_id = None
     finally:
@@ -102,15 +102,20 @@ def test_admin_crud_and_public_listing(client: TestClient, factory, auth_headers
 
 
 def test_learning_content_events_are_not_community(client: TestClient, factory, auth_headers) -> None:
+    headers = _collab_headers(factory, auth_headers)
     slug = f"learning-{uuid.uuid4().hex[:8]}"
     learning_id = _make_learning_event(slug)
     try:
-        pub = client.get("/api/v1/community-events")
+        pub = client.get("/api/v1/community-events", headers=headers)
         ids = {e["id"] for e in pub.json()["items"]}
         # El evento con career_path NO aparece como evento de comunidad.
         assert str(learning_id) not in ids
     finally:
         _cleanup_event(learning_id)
+
+
+def test_public_list_requires_auth(client: TestClient) -> None:
+    assert client.get("/api/v1/community-events").status_code in (401, 403)
 
 
 def test_admin_write_requires_admin(client: TestClient, factory, auth_headers) -> None:
