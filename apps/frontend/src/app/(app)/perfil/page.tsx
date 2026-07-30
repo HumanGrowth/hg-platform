@@ -6,8 +6,10 @@ import * as React from "react";
 
 import { PillarStatesGrid } from "@/components/assessment/PillarStatesGrid";
 import { EmptyRing } from "@/components/EmptyRing";
+import { BadgesCarousel } from "@/components/perfil/BadgesCarousel";
 import { Radar } from "@/components/radar/Radar";
 import type { RadarValues } from "@/components/radar/radar-model";
+import { DimensionCard } from "@/components/shared/DimensionCard";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,6 +18,7 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { apiGetMyResults } from "@/lib/api";
 import { canRetake, radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
+import { DIMENSIONS } from "@/lib/dimensions";
 import { PILLAR_FULL_LABEL } from "@/lib/pillars";
 import type { AssessmentPillarCode, PillarResult } from "@/lib/types";
 
@@ -113,6 +116,16 @@ export default function PerfilPage() {
             )}
           </section>
 
+          {/* Sección 1b: Tu progreso por dimensión — cards compartidas con Inicio (TASK 4). */}
+          <section className="mt-12" id="dimensiones">
+            <Eyebrow>Tu progreso por dimensión</Eyebrow>
+            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {DIMENSIONS.map((d) => (
+                <DimensionCard key={d.code} dimension={d} score={radar[d.pillar] ?? 0} />
+              ))}
+            </div>
+          </section>
+
           {/* Sección 2: Mis dimensiones (estado + source + vía + CTA) */}
           {results.length > 0 && <PillarStatesGrid results={results} onChanged={load} />}
 
@@ -182,14 +195,10 @@ export default function PerfilPage() {
             )}
           </section>
 
-          {/* Sección 5: Logros (placeholder) */}
-          <section className="mt-12 mb-4">
+          {/* Sección 5: Logros — carrusel de badges (TASK 4). */}
+          <section className="mt-12 mb-4" id="logros">
             <Eyebrow>Logros</Eyebrow>
-            <Card className="mt-4 bg-surface-card">
-              <p className="text-sm text-fg-muted">
-                Próximamente: badges al completar pilares y rutas.
-              </p>
-            </Card>
+            <BadgesCarousel />
           </section>
         </>
       )}

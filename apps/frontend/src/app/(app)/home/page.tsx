@@ -8,18 +8,18 @@ import * as React from "react";
 import { EmptyRing } from "@/components/EmptyRing";
 import { MiniRadar } from "@/components/radar/MiniRadar";
 import { AISoonBadge } from "@/components/shared/AISoonBadge";
+import { DimensionCard } from "@/components/shared/DimensionCard";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { HexIcon } from "@/components/ui/hex-icon";
 import { Progress } from "@/components/ui/progress";
-import { PillarStatesGrid } from "@/components/assessment/PillarStatesGrid";
 import { apiGetHomeDashboard, apiGetMyResults } from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
-import { PILLARS, pillarBadgeVariant, pillarShortName } from "@/lib/pillars";
+import { DIMENSIONS } from "@/lib/dimensions";
+import { pillarBadgeVariant, pillarShortName } from "@/lib/pillars";
 import type { HomeDashboard, PillarResult } from "@/lib/types";
 import { cn, formatRelativeTime, greetingName, isFixtureCourse } from "@/lib/utils";
 
@@ -98,6 +98,13 @@ export default function HomePage() {
       <p className="mt-3 max-w-prose text-md text-fg-muted">
         Acá está tu crecimiento, dimensión por dimensión. Elegí una y seguí.
       </p>
+      {/* TASK 3 — copy/tone del hero: placeholder hasta el texto exacto de Andy. */}
+      <div className="mt-5">
+        <Link href={"/modulos" as Route} className={cn(buttonVariants({ size: "lg" }))}>
+          Explorar Módulos
+          <ArrowRight size={18} strokeWidth={1.75} />
+        </Link>
+      </div>
 
       {status === "loading" && (
         <Card className="mt-8 flex items-center justify-center py-16">
@@ -116,6 +123,16 @@ export default function HomePage() {
 
       {status === "ok" && data && (
         <>
+          {/* TASK 3 — Cards de dimensión (el hub por dimensión), arriba de todo. */}
+          <section className="mt-8">
+            <Eyebrow>Tus 6 dimensiones</Eyebrow>
+            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {DIMENSIONS.map((d) => (
+                <DimensionCard key={d.code} dimension={d} score={radarValues[d.pillar] ?? 0} />
+              ))}
+            </div>
+          </section>
+
           {/* Stats */}
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Card className="flex items-center gap-3 bg-bg-raised">
@@ -221,46 +238,6 @@ export default function HomePage() {
               </Link>
             </div>
           </Card>
-
-          {/* Dimensiones: estados reales del assessment si existen; si no, completion rate. */}
-          {results.length > 0 ? (
-            <PillarStatesGrid results={results} onChanged={loadResults} />
-          ) : (
-          <section className="mt-12">
-            <Eyebrow>Tus 6 dimensiones</Eyebrow>
-            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {PILLARS.map((p) => {
-                const rate = rates?.[p.id] ?? 0;
-                return (
-                  <Card key={p.id} className="flex flex-col gap-4 bg-surface-card">
-                    <div className="flex items-center justify-between">
-                      <HexIcon pillar={p.id} size={40} />
-                      <span className={`h-2 w-2 rounded-full ${p.dot}`} aria-hidden />
-                    </div>
-                    <h3 className="font-sans text-md font-semibold text-fg">{p.name}</h3>
-                    <div className="mt-auto">
-                      <div className="mb-1 flex items-center justify-between text-xs text-fg-muted">
-                        <span>Completado</span>
-                        <span className="font-mono">{pct(rate)}%</span>
-                      </div>
-                      <Progress value={pct(rate)} label={`Completado ${p.name}`} />
-                    </div>
-                    <Link
-                      href={"/eventos" as Route}
-                      className={cn(
-                        buttonVariants({ variant: "ghost", size: "sm" }),
-                        "self-start px-0 hover:bg-transparent",
-                      )}
-                    >
-                      Explorar
-                      <ArrowRight size={16} strokeWidth={1.75} />
-                    </Link>
-                  </Card>
-                );
-              })}
-            </div>
-          </section>
-          )}
 
           {/* Tu actividad — widgets lazy-loaded (no agregan peso al critical path) */}
           <React.Suspense fallback={<WidgetsSkeleton />}>

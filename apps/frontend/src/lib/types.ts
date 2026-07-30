@@ -661,3 +661,18 @@ export interface QuizSubmitResponse {
   results: QuizSubmitResult[];
   block_completed: boolean;
 }
+
+// ─────────────── Badges / Logros (Sprint Tarde · TASK 4) ───────────────
+
+/** Badge del catálogo + estado de desbloqueo del usuario. */
+export interface MyBadge {
+  code: string;
+  name: string;
+  description: string;
+  /** Ruta del ícono en /public (ej. "/icons/hex-star-128.png"). */
+  icon_url: string;
+  /** Cómo se desbloquea (para el modal de detalle). */
+  unlock_hint: string;
+  unlocked: boolean;
+  unlocked_at: string | null;
+}
