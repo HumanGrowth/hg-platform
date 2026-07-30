@@ -4,23 +4,20 @@ import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 
-import { PillarStatesGrid } from "@/components/assessment/PillarStatesGrid";
 import { EmptyRing } from "@/components/EmptyRing";
 import { BadgesCarousel } from "@/components/perfil/BadgesCarousel";
+import { DimensionSummarySection } from "@/components/perfil/DimensionSummarySection";
 import { Radar } from "@/components/radar/Radar";
 import type { RadarValues } from "@/components/radar/radar-model";
-import { DimensionCard } from "@/components/shared/DimensionCard";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { apiGetMyRadar, apiGetMyResults } from "@/lib/api";
-import { canRetake, radarValuesFromResults } from "@/lib/assessment-utils";
+import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
-import { DIMENSIONS } from "@/lib/dimensions";
-import { PILLAR_FULL_LABEL } from "@/lib/pillars";
-import type { AssessmentPillarCode, PillarResult, RadarHistory } from "@/lib/types";
+import type { PillarResult, RadarHistory } from "@/lib/types";
 
 const ROLE_LABEL: Record<string, string> = {
   collaborator: "Colaborador/a",
@@ -28,10 +25,6 @@ const ROLE_LABEL: Record<string, string> = {
   admin: "Admin de organización",
   superadmin: "Superadmin HG",
 };
-
-function daysUntil(iso: string): number {
-  return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
-}
 
 export default function PerfilPage() {
   const user = useAuthStore((s) => s.user);
@@ -151,57 +144,10 @@ export default function PerfilPage() {
             )}
           </section>
 
-          {/* Sección 1b: Tu progreso por dimensión — cards compartidas con Inicio (TASK 4). */}
-          <section className="mt-12" id="dimensiones">
-            <Eyebrow>Tu progreso por dimensión</Eyebrow>
-            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {DIMENSIONS.map((d) => (
-                <DimensionCard key={d.code} dimension={d} score={radar[d.pillar] ?? 0} />
-              ))}
-            </div>
-          </section>
-
-          {/* Sección 2: Mis dimensiones (estado + source + vía + CTA) */}
-          {results.length > 0 && <PillarStatesGrid results={results} onChanged={load} />}
-
-          {/* Sección 3: Re-evaluar */}
+          {/* Progreso por dimensión — card unificada (progreso + estado + reevaluar)
+              que reemplaza las 3 secciones anteriores. */}
           {results.length > 0 && (
-            <section className="mt-12" id="re-evaluar">
-              <Eyebrow>Re-evaluar</Eyebrow>
-              <p className="mt-2 text-sm text-fg-muted">
-                Confirmá un estimado o volvé a evaluar un pilar (cada 30 días).
-              </p>
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {results.map((r) => {
-                  const ready = r.source === "preliminary" || canRetake(r);
-                  const wait = !ready ? daysUntil(r.next_retake_eligible_at) : 0;
-                  return (
-                    <Card key={r.pillar_code} className="flex items-center justify-between gap-3 bg-surface-card">
-                      <div className="min-w-0">
-                        <p className="truncate font-sans text-sm font-semibold text-fg">
-                          {PILLAR_FULL_LABEL[r.pillar_code as AssessmentPillarCode]}
-                        </p>
-                        <p className="text-xs text-fg-muted">{r.state_label}</p>
-                      </div>
-                      {ready ? (
-                        <Link href={`/onboarding/detail/${r.pillar_code}` as Route}>
-                          <Button variant="secondary" size="sm">
-                            {r.source === "preliminary" ? "Evaluar" : "Re-evaluar"}
-                          </Button>
-                        </Link>
-                      ) : (
-                        <span
-                          className="shrink-0 text-xs text-fg-subtle"
-                          title={`Disponible en ${wait} días`}
-                        >
-                          En {wait} d
-                        </span>
-                      )}
-                    </Card>
-                  );
-                })}
-              </div>
-            </section>
+            <DimensionSummarySection results={results} radar={radar} onChanged={load} />
           )}
 
           {/* Sección 4: Historial */}
