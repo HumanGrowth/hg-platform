@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { ArrowLeft, Building2, LineChart } from "lucide-react";
+import { ArrowLeft, Building2, Calendar, LineChart } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -37,13 +37,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   Dashboard org
                 </Link>
                 {isSuperadmin && (
-                  <Link
-                    href={"/admin/orgs" as Route}
-                    className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
-                  >
-                    <Building2 size={16} strokeWidth={1.75} />
-                    Organizaciones
-                  </Link>
+                  <>
+                    <Link
+                      href={"/admin/orgs" as Route}
+                      className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
+                    >
+                      <Building2 size={16} strokeWidth={1.75} />
+                      Organizaciones
+                    </Link>
+                    <Link
+                      href={"/admin/events" as Route}
+                      className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
+                    >
+                      <Calendar size={16} strokeWidth={1.75} />
+                      Eventos
+                    </Link>
+                  </>
                 )}
               </nav>
             </div>
