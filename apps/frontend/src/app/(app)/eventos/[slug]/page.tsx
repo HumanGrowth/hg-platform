@@ -1,5 +1,7 @@
-import { CourseDetailView } from "@/components/library/CourseDetailView";
+import { redirect } from "next/navigation";
 
-export default function CourseDetailPage({ params }: { params: { slug: string } }) {
-  return <CourseDetailView slug={params.slug} />;
+// Sprint Tarde · TASK 5 — la biblioteca de cursos legacy se retira: /eventos pasa
+// a ser eventos de comunidad. Cualquier detalle de curso legacy → /modulos.
+export default function LegacyCourseDetailRedirect() {
+  redirect("/modulos");
 }

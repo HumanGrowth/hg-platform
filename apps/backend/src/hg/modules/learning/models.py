@@ -64,6 +64,7 @@ class EventType(str, enum.Enum):
     recorded_webinar = "recorded_webinar"
     masterclass_live = "masterclass_live"
     masterclass_replay = "masterclass_replay"
+    material = "material"  # Sprint Tarde · TASK 5 — recurso/material relevante
 
 
 class CareerPath(Base):
@@ -97,8 +98,11 @@ class Event(Base):
     __tablename__ = "events"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    career_path_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("career_paths.id", ondelete="CASCADE"), nullable=False, index=True
+    # Sprint Tarde · TASK 5 — los "eventos de comunidad" (live/webinars/material)
+    # NO tienen career_path: career_path_id IS NULL es el discriminador (el
+    # contenido de aprendizaje siempre lo lleva). Por eso ahora es nullable.
+    career_path_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("career_paths.id", ondelete="CASCADE"), nullable=True, index=True
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     slug: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
@@ -110,9 +114,9 @@ class Event(Base):
     duration_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     order_index: Mapped[int] = mapped_column(Integer, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    # Sub-clasificación PMM v3 (todo el catálogo vive bajo P1 Carrera por ahora).
-    career_level: Mapped[CareerLevel] = mapped_column(
-        Enum(CareerLevel, name="career_level_pmm"), nullable=False, index=True
+    # Sub-clasificación PMM v3 (nullable: los eventos de comunidad no tienen nivel).
+    career_level: Mapped[CareerLevel | None] = mapped_column(
+        Enum(CareerLevel, name="career_level_pmm"), nullable=True, index=True
     )
     competency_code: Mapped[CompetencyCode | None] = mapped_column(
         Enum(CompetencyCode, name="competency_code"), nullable=True, index=True
@@ -133,8 +137,15 @@ class Event(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), index=True
     )
     scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Sprint Tarde · TASK 5 — campos de "eventos de comunidad".
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    cta_url: Mapped[str | None] = mapped_column(String(2048))
+    cta_label: Mapped[str | None] = mapped_column(String(120))
+    is_featured: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    career_path: Mapped[CareerPath] = relationship("CareerPath", back_populates="events", lazy="raise")
+    career_path: Mapped[CareerPath | None] = relationship(
+        "CareerPath", back_populates="events", lazy="raise"
+    )
     progress_records: Mapped[list[CourseProgress]] = relationship(
         "CourseProgress", back_populates="course", lazy="raise"
     )

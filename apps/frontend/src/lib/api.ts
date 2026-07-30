@@ -9,6 +9,8 @@ import type {
   AuthResult,
   BlockProgressOut,
   CareerPath,
+  CommunityEvent,
+  CommunityEventInput,
   Course,
   CourseDetail,
   NextCourseResponse,
@@ -390,6 +392,37 @@ export const apiGetMyBadges = async (): Promise<MyBadge[]> => {
 export const apiGetMyRadar = async (): Promise<RadarHistory> => {
   const res = await backend.get<RadarHistory>("/api/v1/assessment/me/radar");
   return res.data;
+};
+
+// ─────────────── Eventos de comunidad (Sprint Tarde · TASK 5) ───────────────
+
+export const apiListCommunityEvents = async (): Promise<CommunityEvent[]> => {
+  const res = await backend.get<{ items: CommunityEvent[] }>("/api/v1/community-events");
+  return res.data.items;
+};
+
+export const apiAdminListCommunityEvents = async (): Promise<CommunityEvent[]> => {
+  const res = await backend.get<{ items: CommunityEvent[] }>("/api/v1/admin/community-events");
+  return res.data.items;
+};
+
+export const apiCreateCommunityEvent = async (
+  payload: CommunityEventInput,
+): Promise<CommunityEvent> => {
+  const res = await backend.post<CommunityEvent>("/api/v1/admin/community-events", payload);
+  return res.data;
+};
+
+export const apiUpdateCommunityEvent = async (
+  id: string,
+  payload: Partial<CommunityEventInput>,
+): Promise<CommunityEvent> => {
+  const res = await backend.patch<CommunityEvent>(`/api/v1/admin/community-events/${id}`, payload);
+  return res.data;
+};
+
+export const apiDeleteCommunityEvent = async (id: string): Promise<void> => {
+  await backend.delete(`/api/v1/admin/community-events/${id}`);
 };
 
 // ─────────────── Learning Units / Módulos (Fase 1, B-02) ───────────────
