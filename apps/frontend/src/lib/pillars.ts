@@ -103,8 +103,16 @@ export function pillarStyle(code: string | undefined): PillarStyle {
 
 // ─────────── Dimensiones del Drive ↔ pilar del DS (TASK 1 · fixes módulos) ───────────
 // Las units guardan el código Drive (`dimension_code` = "CP", …). El DS colorea
-// por pilar (P1..P6). Este registro puentea ambos para color/label. Hoy solo CP.
-const DIMENSION_TO_PILLAR: Record<string, string> = { CP: "P1" };
+// por pilar (P1..P6). Este registro puentea ambos para color/label.
+// Registro completo de las 6 dimensiones en `lib/dimensions.ts` (fuente de verdad).
+const DIMENSION_TO_PILLAR: Record<string, string> = {
+  CP: "P1",
+  PR: "P2",
+  RE: "P3",
+  SA: "P4",
+  PI: "P5",
+  ES: "P6",
+};
 
 /** Código de pilar DS (P1..P6) de una dimensión Drive; si ya es P1..P6, passthrough. */
 export function dimensionToPillar(code: string | undefined): string {

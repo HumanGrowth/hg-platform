@@ -5,7 +5,7 @@ const REFRESH_COOKIE = "hg_refresh";
 
 // Rutas autenticadas (route groups (app)/(admin) no aparecen en la URL).
 const PROTECTED = [
-  "/home", "/eventos", "/modulos", "/perfil", "/profile", "/path", "/radar", "/team", "/onboarding", "/admin",
+  "/home", "/dimensiones", "/eventos", "/modulos", "/perfil", "/profile", "/path", "/radar", "/team", "/onboarding", "/admin",
 ];
 const AUTH_PAGES = ["/login", "/accept-invite"];
 
@@ -42,6 +42,7 @@ export const config = {
   matcher: [
     "/",
     "/home/:path*",
+    "/dimensiones/:path*",
     "/eventos/:path*",
     "/modulos/:path*",
     "/perfil/:path*",
