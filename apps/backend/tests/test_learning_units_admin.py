@@ -269,7 +269,9 @@ def test_publish_fails_without_evidence_doi(client: TestClient, factory, auth_he
         )
         r = client.post(f"/api/v1/admin/learning-units/{uid}/publish", headers=headers)
         assert r.status_code == 422
-        assert any("doi_or_url" in e for e in r.json()["detail"]["errors"])
+        # doi_or_url es opcional (relajado en fixes-módulos v1): la evidencia
+        # necesita al menos citation. Sin citation → no cuenta como evidencia.
+        assert any("citation" in e for e in r.json()["detail"]["errors"])
     finally:
         _cleanup(slug)
 

@@ -77,3 +77,24 @@ class FinalizeOut(BaseModel):
 
 class MeResultsOut(BaseModel):
     results: list[PillarResultOut]
+
+
+class RadarSnapshotItem(BaseModel):
+    """Estado de un pilar en un punto del tiempo (para el radar · TASK 6.3)."""
+
+    pillar_code: str
+    state_code: str
+    derived_at: datetime
+
+
+class RadarHistoryOut(BaseModel):
+    """Radar actual + evaluación anterior (overlay histórico · TASK 6.3).
+
+    `current` = último PillarResult por pilar; `previous` = anteúltimo por pilar
+    (sólo los pilares con ≥2 evaluaciones); `previous_date` = fecha más reciente
+    del set anterior. `previous`/`previous_date` en null si no hay evolución.
+    """
+
+    current: list[RadarSnapshotItem]
+    previous: list[RadarSnapshotItem] | None
+    previous_date: datetime | None

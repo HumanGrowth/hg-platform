@@ -15,12 +15,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { apiGetMyResults } from "@/lib/api";
+import { apiGetMyRadar, apiGetMyResults } from "@/lib/api";
 import { canRetake, radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { DIMENSIONS } from "@/lib/dimensions";
 import { PILLAR_FULL_LABEL } from "@/lib/pillars";
-import type { AssessmentPillarCode, PillarResult } from "@/lib/types";
+import type { AssessmentPillarCode, PillarResult, RadarHistory } from "@/lib/types";
 
 const ROLE_LABEL: Record<string, string> = {
   collaborator: "Colaborador/a",
@@ -36,13 +36,19 @@ function daysUntil(iso: string): number {
 export default function PerfilPage() {
   const user = useAuthStore((s) => s.user);
   const [results, setResults] = React.useState<PillarResult[]>([]);
+  const [radarHistory, setRadarHistory] = React.useState<RadarHistory | null>(null);
+  const [showPrevious, setShowPrevious] = React.useState(true);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const res = await apiGetMyResults();
+      const [res, radarHist] = await Promise.all([
+        apiGetMyResults(),
+        apiGetMyRadar().catch(() => null),
+      ]);
       setResults(res.results);
+      setRadarHistory(radarHist);
       setStatus("ok");
     } catch {
       setStatus("error");
@@ -54,6 +60,10 @@ export default function PerfilPage() {
   }, [load]);
 
   const radar = results.length > 0 ? (radarValuesFromResults(results) as RadarValues) : {};
+  const previousRadar =
+    radarHistory?.previous && radarHistory.previous.length > 0
+      ? (radarValuesFromResults(radarHistory.previous) as RadarValues)
+      : undefined;
   const lastAssessment = results
     .map((r) => r.derived_at)
     .sort()
@@ -111,8 +121,30 @@ export default function PerfilPage() {
               </Card>
             ) : (
               <Card className="mt-4 flex flex-col items-center bg-bg-raised py-8">
-                <Radar values={radar} state="complete" size="large" interactive animateOnMount />
-                <p className="mt-3 text-center text-xs text-fg-subtle">
+                <Radar
+                  values={radar}
+                  previous={showPrevious ? previousRadar : undefined}
+                  state="complete"
+                  size="large"
+                  interactive
+                  animateOnMount
+                />
+                {previousRadar ? (
+                  <label className="mt-3 inline-flex items-center gap-2 text-xs text-fg-muted">
+                    <input
+                      type="checkbox"
+                      checked={showPrevious}
+                      onChange={(e) => setShowPrevious(e.target.checked)}
+                      className="accent-primary"
+                    />
+                    Mostrar tu última evaluación
+                  </label>
+                ) : (
+                  <p className="mt-3 text-center text-xs text-fg-subtle">
+                    Reevaluá una dimensión para ver tu evolución.
+                  </p>
+                )}
+                <p className="mt-2 text-center text-xs text-fg-subtle">
                   Tocá un vértice para ver esa dimensión.
                 </p>
               </Card>
