@@ -662,6 +662,44 @@ export interface QuizSubmitResponse {
   block_completed: boolean;
 }
 
+// ─────────────── Eventos de comunidad (Sprint Tarde · TASK 5) ───────────────
+
+export type CommunityEventType =
+  | "live_webinar"
+  | "recorded_webinar"
+  | "masterclass_live"
+  | "masterclass_replay"
+  | "material";
+
+export interface CommunityEvent {
+  id: string;
+  type: CommunityEventType;
+  title: string;
+  slug: string;
+  description: string | null;
+  hero_image_url: string | null;
+  cta_url: string | null;
+  cta_label: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  is_featured: boolean;
+  sort_order: number;
+}
+
+export interface CommunityEventInput {
+  type: CommunityEventType;
+  title: string;
+  description?: string | null;
+  hero_image_url?: string | null;
+  cta_url?: string | null;
+  cta_label?: string | null;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  is_featured?: boolean;
+  sort_order?: number;
+  is_active?: boolean;
+}
+
 // ─────────────── Radar histórico (Sprint Tarde · TASK 6.3) ───────────────
 
 export interface RadarSnapshotItem {

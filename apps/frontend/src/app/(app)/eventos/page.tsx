@@ -1,154 +1,123 @@
 "use client";
 
-import { Library as LibraryIcon } from "lucide-react";
 import * as React from "react";
 
-import { CourseCard } from "@/components/library/CourseCard";
+import { EventCard } from "@/components/eventos/EventCard";
+import { EventosHero } from "@/components/eventos/EventosHero";
 import { EmptyRing } from "@/components/EmptyRing";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Chip } from "@/components/ui/chip";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { apiListCourses } from "@/lib/api";
-import type { CompetencyCode, Course, CourseLevel } from "@/lib/types";
-import { isFixtureCourse } from "@/lib/utils";
+import { apiListCommunityEvents } from "@/lib/api";
+import type { CommunityEvent } from "@/lib/types";
 
-const LEVELS: CourseLevel[] = ["L1", "L2", "L3", "L4", "L5", "L6"];
-const COMPETENCIES: CompetencyCode[] = ["C1", "C2", "C3", "C4", "C5"];
-type Mode = "competency" | "foundation";
+type Section = "live" | "upcoming" | "past" | "material";
 
-export default function LibraryPage() {
-  const [mode, setMode] = React.useState<Mode>("competency");
-  const [level, setLevel] = React.useState<CourseLevel | null>(null);
-  const [competency, setCompetency] = React.useState<CompetencyCode | null>(null);
+function categorize(e: CommunityEvent, now: number): Section {
+  if (e.type === "material") return "material";
+  const isPast = e.starts_at != null && new Date(e.starts_at).getTime() < now;
+  if (isPast) return "past";
+  if (e.type === "live_webinar" || e.type === "masterclass_live") return "live";
+  return "upcoming";
+}
+
+const SECTION_META: Record<Section, { title: string; variant: "grid" | "row" }> = {
+  live: { title: "Próximos en vivo", variant: "row" },
+  upcoming: { title: "Webinars próximos", variant: "grid" },
+  past: { title: "Webinars pasados", variant: "grid" },
+  material: { title: "Material relevante", variant: "grid" },
+};
+const ORDER: Section[] = ["live", "upcoming", "past", "material"];
+
+export default function EventosPage() {
+  const [events, setEvents] = React.useState<CommunityEvent[]>([]);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
-  const [courses, setCourses] = React.useState<Course[]>([]);
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const res = await apiListCourses({
-        level: level ?? undefined,
-        competency: mode === "competency" ? (competency ?? undefined) : undefined,
-        track: mode === "competency" ? "competency" : undefined,
-        limit: 60,
-      });
-      const visible = res.items.filter((c) => !isFixtureCourse(c.slug));
-      const items =
-        mode === "foundation" ? visible.filter((c) => c.track !== "competency") : visible;
-      setCourses(items);
+      setEvents(await apiListCommunityEvents());
       setStatus("ok");
     } catch {
       setStatus("error");
     }
-  }, [level, competency, mode]);
+  }, []);
 
   React.useEffect(() => {
     void load();
   }, [load]);
 
+  const now = Date.now();
+  const featured = events.filter((e) => e.is_featured).slice(0, 3);
+  const bySection = React.useMemo(() => {
+    const map: Record<Section, CommunityEvent[]> = { live: [], upcoming: [], past: [], material: [] };
+    for (const e of events) map[categorize(e, now)].push(e);
+    return map;
+  }, [events, now]);
+
   return (
     <main className="mx-auto w-full max-w-app px-6 py-10">
       <Eyebrow accent>Eventos</Eyebrow>
       <Display variant="display-2" className="mt-2">
-        Carrera
+        Eventos y comunidad
       </Display>
       <p className="mt-3 max-w-prose text-md text-fg-muted">
-        Eventos del catálogo. Filtrá por nivel y competencia.
+        Webinars en vivo, grabaciones y material para seguir creciendo.
       </p>
 
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[260px_1fr]">
-        {/* Filtros */}
-        <aside className="flex flex-col gap-6">
-          <div>
-            <Eyebrow className="mb-3">Tipo</Eyebrow>
-            <div className="flex flex-wrap gap-2">
-              <Chip active={mode === "competency"} onClick={() => setMode("competency")}>
-                Competencias
-              </Chip>
-              <Chip
-                active={mode === "foundation"}
-                onClick={() => {
-                  setMode("foundation");
-                  setCompetency(null);
-                }}
-              >
-                Foundations
-              </Chip>
-            </div>
-          </div>
-          <div>
-            <Eyebrow className="mb-3">Nivel</Eyebrow>
-            <div className="flex flex-wrap gap-2">
-              {LEVELS.map((l) => (
-                <Chip key={l} active={level === l} onClick={() => setLevel(level === l ? null : l)}>
-                  {l}
-                </Chip>
-              ))}
-            </div>
-          </div>
-          {mode === "competency" && (
-            <div>
-              <Eyebrow className="mb-3">Competencia</Eyebrow>
-              <div className="flex flex-wrap gap-2">
-                {COMPETENCIES.map((c) => (
-                  <Chip
-                    key={c}
-                    active={competency === c}
-                    onClick={() => setCompetency(competency === c ? null : c)}
-                  >
-                    {c}
-                  </Chip>
-                ))}
-              </div>
+      {status === "loading" && (
+        <Card className="mt-8 flex items-center justify-center py-16">
+          <EmptyRing label="Cargando eventos…" />
+        </Card>
+      )}
+
+      {status === "error" && (
+        <Card className="mt-8 flex flex-col items-center gap-4 py-12 text-center">
+          <p className="text-sm text-fg-muted">No pudimos cargar los eventos.</p>
+          <Button variant="secondary" size="sm" onClick={() => void load()}>
+            Reintentar
+          </Button>
+        </Card>
+      )}
+
+      {status === "ok" && events.length === 0 && (
+        <Card className="mt-8 flex items-center justify-center py-16">
+          <p className="text-sm text-fg-muted">Todavía no hay eventos publicados.</p>
+        </Card>
+      )}
+
+      {status === "ok" && events.length > 0 && (
+        <>
+          {featured.length > 0 && (
+            <div className="mt-8">
+              <EventosHero events={featured} />
             </div>
           )}
-        </aside>
 
-        {/* Grid */}
-        <section>
-          {status === "loading" && (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="aspect-video w-full rounded-lg bg-bg-sunken" />
-                  <div className="mt-3 h-4 w-3/4 rounded bg-bg-sunken" />
+          {ORDER.map((section) => {
+            const items = bySection[section];
+            if (items.length === 0) return null;
+            const meta = SECTION_META[section];
+            return (
+              <section key={section} className="mt-10">
+                <Eyebrow>{meta.title}</Eyebrow>
+                <div
+                  className={
+                    meta.variant === "row"
+                      ? "mt-4 flex flex-col gap-3"
+                      : "mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                  }
+                >
+                  {items.map((e) => (
+                    <EventCard key={e.id} event={e} variant={meta.variant} />
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-
-          {status === "error" && (
-            <Card className="flex flex-col items-center justify-center gap-3 py-20 text-center">
-              <p className="font-sans text-md font-semibold text-fg">
-                No pudimos cargar el catálogo.
-              </p>
-              <button
-                type="button"
-                onClick={() => void load()}
-                className="rounded-md bg-primary px-5 py-2 font-sans text-sm font-semibold text-white hover:bg-primary-hover"
-              >
-                Reintentar
-              </button>
-            </Card>
-          )}
-
-          {status === "ok" && courses.length === 0 && (
-            <Card className="flex flex-col items-center justify-center gap-3 py-20 text-center">
-              <LibraryIcon size={32} strokeWidth={1.75} className="text-fg-subtle" />
-              <EmptyRing label="Sin eventos para estos filtros. Probá otro nivel o competencia." />
-            </Card>
-          )}
-
-          {status === "ok" && courses.length > 0 && (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {courses.map((course) => (
-                <CourseCard key={course.id} course={course} />
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
+              </section>
+            );
+          })}
+        </>
+      )}
     </main>
   );
 }

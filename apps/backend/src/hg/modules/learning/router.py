@@ -77,7 +77,12 @@ def _filtered_events(
     limit: int,
     offset: int,
 ) -> tuple[list[Event], int]:
-    conds: list[ColumnElement[bool]] = [Event.is_active.is_(True)]
+    # El catálogo de aprendizaje excluye siempre los eventos de comunidad
+    # (career_path_id IS NULL · Sprint Tarde TASK 5).
+    conds: list[ColumnElement[bool]] = [
+        Event.is_active.is_(True),
+        Event.career_path_id.is_not(None),
+    ]
     if career_path_id is not None:
         conds.append(Event.career_path_id == career_path_id)
     if level:
@@ -136,7 +141,15 @@ def list_path_events(
 
 
 def _active_event_or_404(db: Session, slug: str) -> Event:
-    event = db.scalar(select(Event).where(Event.slug == slug, Event.is_active.is_(True)))
+    # Sólo contenido de aprendizaje (con career_path); los eventos de comunidad
+    # no se sirven como "curso" (TASK 5).
+    event = db.scalar(
+        select(Event).where(
+            Event.slug == slug,
+            Event.is_active.is_(True),
+            Event.career_path_id.is_not(None),
+        )
+    )
     if event is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="event not found")
     return event

@@ -6,6 +6,8 @@ from fastapi import APIRouter
 from hg.modules.admin.router import router as admin_router
 from hg.modules.assessment.router import router as assessment_router
 from hg.modules.badges.router import me_router as badges_me_router
+from hg.modules.community_events.router import admin_router as community_events_admin_router
+from hg.modules.community_events.router import public_router as community_events_public_router
 from hg.modules.identity.router import router as identity_router
 from hg.modules.learning.router import router as learning_router
 from hg.modules.learning_units.admin_router import router as learning_units_admin_router
@@ -30,6 +32,10 @@ router.include_router(marketing_public_router, tags=["marketing"])
 router.include_router(marketing_admin_router, prefix="/admin", tags=["marketing"])
 # Catálogo PMM: /paths, /paths/{code}, /paths/{code}/courses, /courses (auth)
 router.include_router(learning_router, tags=["catalog"])
+# Eventos de comunidad (Sprint Tarde · TASK 5): /community-events (público) +
+# /admin/community-events (admin/superadmin CRUD).
+router.include_router(community_events_public_router, tags=["events"])
+router.include_router(community_events_admin_router, prefix="/admin", tags=["admin", "events"])
 # Learning Units: /modulos/feed, /modulos/{slug}, attempts, quiz/reflection submit (auth)
 router.include_router(learning_units_router, tags=["learning-units"])
 # Learning Units CMS: /admin/learning-units, /admin/blocks/* (superadmin)
