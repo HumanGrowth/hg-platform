@@ -34,6 +34,7 @@ import type {
   PillarResult,
   QuizSubmitPayload,
   QuizSubmitResponse,
+  RadarHistory,
   SessionKind,
   TeamFilters,
   TeamMemberDetail,
@@ -382,6 +383,12 @@ export const apiConfirmResult = async (pillar: AssessmentPillarCode): Promise<Pi
 /** Catálogo de badges + estado de desbloqueo del usuario (Sprint Tarde · TASK 4). */
 export const apiGetMyBadges = async (): Promise<MyBadge[]> => {
   const res = await backend.get<MyBadge[]>("/api/v1/me/badges");
+  return res.data;
+};
+
+/** Radar actual + evaluación anterior por pilar (overlay histórico · TASK 6.3). */
+export const apiGetMyRadar = async (): Promise<RadarHistory> => {
+  const res = await backend.get<RadarHistory>("/api/v1/assessment/me/radar");
   return res.data;
 };
 

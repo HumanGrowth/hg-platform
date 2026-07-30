@@ -182,6 +182,29 @@ biblioteca legacy está muerta y que Inicio debe apuntar a `/modulos`.
   admin, hero rotativo, secciones. Requiere también badges backend (TASK 4) si se
   agrupa; sugiero separar badges en su propio sub-PR.
 
+## §11 · ⚠️ Colisión de modelo `Event` (bloquea TASK 5 / PR D)
+
+Al ir a implementar PR D se descubrió que **ya existe un modelo `Event`** en el
+backend: `hg.modules.learning.models.Event`, `__tablename__ = "events"` — es el
+**contenido de aprendizaje legacy** (career_path + level + track + duration), o sea
+la "biblioteca de cursos" que `/eventos` muestra hoy. El frontend la consume vía
+`/api/v1/courses` (con redirects legacy `/courses/* → /events/*`).
+
+El spec de TASK 5 propone `class Event(Base)` para eventos reales (live/webinars/
+material) → **colisiona con este modelo y con la tabla `events`**. Hay que decidir
+el nombre/estructura del concepto nuevo antes de codear PR D. Opciones en §12.
+
+## §12 · Decisión pendiente — modelo del nuevo "Eventos" (esperando a Andy)
+
+- **A (recomendada): modelo nuevo `CommunityEvent` (tabla `community_events`)** +
+  endpoints `/api/v1/community-events`. Separación limpia del `Event` de
+  aprendizaje. `/eventos` (frontend) pasa a mostrar community events; la biblioteca
+  de cursos legacy se retira (redirect `/eventos/[slug]` → `/modulos`).
+- B: Reutilizar la tabla `events` agregando `type` (live/webinar/material) + columnas
+  nuevas. Más sucio: las filas actuales son contenido de aprendizaje atado a
+  career_path; mezclar conceptos.
+- C: Pausar Eventos y definir la arquitectura en vivo.
+
 ## §10 · Decisiones confirmadas por Andy (2026-07-29)
 
 1. **Ruta de Página de Dimensión: Opción A → `/dimensiones/[code]`.** ✅

@@ -662,6 +662,20 @@ export interface QuizSubmitResponse {
   block_completed: boolean;
 }
 
+// ─────────────── Radar histórico (Sprint Tarde · TASK 6.3) ───────────────
+
+export interface RadarSnapshotItem {
+  pillar_code: string;
+  state_code: string;
+  derived_at: string;
+}
+
+export interface RadarHistory {
+  current: RadarSnapshotItem[];
+  previous: RadarSnapshotItem[] | null;
+  previous_date: string | null;
+}
+
 // ─────────────── Badges / Logros (Sprint Tarde · TASK 4) ───────────────
 
 /** Badge del catálogo + estado de desbloqueo del usuario. */

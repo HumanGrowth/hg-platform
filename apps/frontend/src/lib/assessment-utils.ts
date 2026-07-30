@@ -73,8 +73,11 @@ export function stateToRadarValue(stateCode: string): number {
   return STATE_TO_VALUE[stateCode] ?? 0;
 }
 
-/** Mapea los 7 estados a los 6 ejes del radar (P6 = promedio P6A+P6B). */
-export function radarValuesFromResults(results: PillarResult[]): Record<string, number> {
+/** Mapea los 7 estados a los 6 ejes del radar (P6 = promedio P6A+P6B).
+ * Acepta cualquier item con pilar + estado (PillarResult o snapshot histórico). */
+export function radarValuesFromResults(
+  results: Array<{ pillar_code: string; state_code: string }>,
+): Record<string, number> {
   const by = new Map(results.map((r) => [r.pillar_code, stateToRadarValue(r.state_code)]));
   const p6a = by.get("P6A");
   const p6b = by.get("P6B");

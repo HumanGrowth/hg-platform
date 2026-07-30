@@ -18,6 +18,8 @@ from hg.modules.assessment.schemas import (
     FinalizeOut,
     MeResultsOut,
     PillarResultOut,
+    RadarHistoryOut,
+    RadarSnapshotItem,
     ResponseIn,
     SessionOut,
     SessionStartIn,
@@ -185,6 +187,47 @@ def my_results(
             seen.add(r.pillar_code.value)
             latest.append(r)
     return MeResultsOut(results=[_result_out(r) for r in latest])
+
+
+@router.get("/me/radar", response_model=RadarHistoryOut)
+def my_radar(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> RadarHistoryOut:
+    """Radar actual + evaluación anterior por pilar (overlay histórico · TASK 6.3).
+
+    ``PillarResult`` es append-only, así que el histórico ya existe: para cada
+    pilar tomamos el último (actual) y el anteúltimo (previo) por ``derived_at``.
+    """
+    rows = list(
+        db.scalars(
+            select(PillarResult)
+            .where(PillarResult.user_id == current_user.id)
+            .order_by(PillarResult.derived_at.desc())
+        ).all()
+    )
+    current: list[RadarSnapshotItem] = []
+    previous: list[RadarSnapshotItem] = []
+    seen_current: set[str] = set()
+    seen_previous: set[str] = set()
+    for r in rows:
+        code = r.pillar_code.value
+        if code not in seen_current:
+            seen_current.add(code)
+            current.append(
+                RadarSnapshotItem(pillar_code=code, state_code=r.state_code, derived_at=r.derived_at)
+            )
+        elif code not in seen_previous:
+            seen_previous.add(code)
+            previous.append(
+                RadarSnapshotItem(pillar_code=code, state_code=r.state_code, derived_at=r.derived_at)
+            )
+    previous_date = max((p.derived_at for p in previous), default=None)
+    return RadarHistoryOut(
+        current=current,
+        previous=previous or None,
+        previous_date=previous_date,
+    )
 
 
 @router.post("/me/results/{pillar}/confirm", response_model=PillarResultOut)
