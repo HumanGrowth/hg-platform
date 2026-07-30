@@ -10,6 +10,9 @@ import {
   RadarChart,
 } from "recharts";
 
+import { PillarMetaphorPaths } from "@/components/modulos/PillarMetaphor";
+import { dimensionByPillar } from "@/lib/dimensions";
+
 import { PILLAR_HEX, PILLAR_LABEL, type PillarCode, type RadarValues } from "./radar-model";
 
 export type RadarState = "empty" | "filling" | "complete";
@@ -23,6 +26,11 @@ export interface RadarProps {
    * actual. Opcional — sin ella el radar se ve como antes (backwards compat).
    */
   growth?: RadarValues;
+  /**
+   * Estado de la evaluación anterior (overlay histórico · TASK 6.3). Se dibuja
+   * como polígono punteado neutro detrás del actual, para visualizar evolución.
+   */
+  previous?: RadarValues;
   state: RadarState;
   size?: RadarSize;
   interactive?: boolean;
@@ -36,10 +44,12 @@ const FILL_MS = 5200;
 
 const GREEN = "#4A7A54"; // --hg-green
 const GREEN_100 = "#E3EBDF"; // --hg-green-100
+const NEUTRAL = "#6B7061"; // --hg-muted (overlay previo)
 
 export function Radar({
   values,
   growth,
+  previous,
   state,
   size = "medium",
   interactive = false,
@@ -49,6 +59,7 @@ export function Radar({
   const box = SIZE_PX[size];
   const showLabels = size !== "mini";
   const hasGrowth = growth != null && state !== "empty";
+  const hasPrevious = previous != null && state !== "empty";
 
   // Progreso de la animación de "llenado" (0 → 1). En complete arranca lleno.
   const [progress, setProgress] = React.useState(state === "filling" || animateOnMount ? 0 : 1);
@@ -78,32 +89,70 @@ export function Radar({
       label: PILLAR_LABEL[code],
       value: Math.round(target * progress),
       growthValue: hasGrowth ? Math.round((growth?.[code] ?? 0) * progress) : 0,
+      // El overlay previo no "anima desde el centro" — es el punto de partida.
+      previousValue: hasPrevious ? Math.round(previous?.[code] ?? 0) : 0,
     };
   });
 
-  // Badge de pilar en cada eje: punto con el color del pilar + label corto
-  // (reemplaza el texto "P#" · web-v3 decisión J).
+  // Vértice: metáfora del pilar (line-art, color del pilar) + label corto.
+  // Reemplaza al dot/marker anterior (TASK 6.1). Click/tap → /dimensiones/[code].
   const PillarTick = (props: {
     payload: { value: PillarCode };
     x: number;
     y: number;
+    cx: number;
+    cy: number;
     textAnchor: string;
   }) => {
+    const { x, y, cx, cy, textAnchor } = props;
     const code = props.payload.value;
+    const dim = dimensionByPillar(code);
+    // Dirección radial (centro → vértice) para posicionar label hacia afuera.
+    const dx = x - cx;
+    const dy = y - cy;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len;
+    const uy = dy / len;
+    const M = 20; // media caja de la metáfora (40px)
+    const lx = x + ux * 30;
+    const ly = y + uy * 30;
+    // Baseline adaptativo: arriba/abajo/lados (TASK 6.2).
+    const baseline = uy < -0.4 ? "auto" : uy > 0.4 ? "hanging" : "central";
     return (
-      <text
-        x={props.x}
-        y={props.y}
-        textAnchor={props.textAnchor as "start" | "middle" | "end"}
-        fontSize={12}
-        fontWeight={600}
+      <g
         style={interactive ? { cursor: "pointer" } : undefined}
-        onClick={interactive ? () => router.push(`/radar/${code}` as never) : undefined}
+        onClick={interactive && dim ? () => router.push(`/dimensiones/${dim.code}` as never) : undefined}
         data-testid={`radar-axis-${code}`}
       >
-        <tspan fill={PILLAR_HEX[code]}>● </tspan>
-        <tspan fill="#6B7061">{PILLAR_LABEL[code]}</tspan>
-      </text>
+        <title>
+          {PILLAR_LABEL[code]}: {values[code] ?? 0}
+        </title>
+        <svg
+          x={x - M}
+          y={y - M}
+          width={2 * M}
+          height={2 * M}
+          viewBox="0 0 120 120"
+          fill="none"
+          stroke={PILLAR_HEX[code]}
+          strokeWidth={5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <PillarMetaphorPaths code={code} />
+        </svg>
+        <text
+          x={lx}
+          y={ly}
+          textAnchor={textAnchor as "start" | "middle" | "end"}
+          dominantBaseline={baseline}
+          fontSize={12}
+          fontWeight={600}
+          fill={NEUTRAL}
+        >
+          {PILLAR_LABEL[code]}
+        </text>
+      </g>
     );
   };
 
@@ -113,10 +162,28 @@ export function Radar({
       data-radar-state={state}
       data-radar-size={size}
     >
-      <RadarChart width={box} height={box} data={data} outerRadius={showLabels ? "68%" : "72%"}>
+      <RadarChart
+        width={box}
+        height={box}
+        data={data}
+        outerRadius={showLabels ? "60%" : "72%"}
+        margin={showLabels ? { top: 40, right: 56, bottom: 40, left: 56 } : undefined}
+      >
         <PolarGrid stroke="rgba(26,26,26,0.12)" />
         {showLabels && <PolarAngleAxis dataKey="axis" tick={PillarTick as never} />}
         <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
+        {hasPrevious && (
+          <RechartsRadar
+            name="previous"
+            dataKey="previousValue"
+            stroke={NEUTRAL}
+            strokeDasharray="5 3"
+            strokeWidth={2}
+            fill="none"
+            fillOpacity={0}
+            isAnimationActive={false}
+          />
+        )}
         {hasGrowth && (
           <RechartsRadar
             name="growth"
@@ -137,25 +204,37 @@ export function Radar({
         />
       </RadarChart>
 
-      {/* Leyenda de las dos mallas */}
-      {hasGrowth && showLabels && (
-        <div className="mt-2 flex justify-center gap-5 text-xs text-fg-muted">
-          <span className="inline-flex items-center gap-1.5">
-            <span
-              aria-hidden
-              className="inline-block h-2.5 w-2.5 rounded-full"
-              style={{ background: GREEN }}
-            />
-            Crecimiento
-          </span>
+      {/* Leyenda de las mallas */}
+      {(hasGrowth || hasPrevious) && showLabels && (
+        <div className="mt-2 flex flex-wrap justify-center gap-5 text-xs text-fg-muted">
+          {hasGrowth && (
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="inline-block h-2.5 w-2.5 rounded-full"
+                style={{ background: GREEN }}
+              />
+              Crecimiento
+            </span>
+          )}
           <span className="inline-flex items-center gap-1.5">
             <span
               aria-hidden
               className="inline-block h-2.5 w-2.5 rounded-full"
               style={{ background: "#E8530A" }}
             />
-            Estado actual
+            {hasPrevious ? "Ahora" : "Estado actual"}
           </span>
+          {hasPrevious && (
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="inline-block h-0 w-4 border-t-2 border-dashed"
+                style={{ borderColor: NEUTRAL }}
+              />
+              Última evaluación
+            </span>
+          )}
         </div>
       )}
 
@@ -166,6 +245,7 @@ export function Radar({
             <li key={d.code} data-testid={`radar-value-${d.code}`}>
               {d.label}: {d.value}
               {hasGrowth ? ` · crecimiento: ${d.growthValue}` : null}
+              {hasPrevious ? ` · anterior: ${d.previousValue}` : null}
             </li>
           ))}
         </ul>

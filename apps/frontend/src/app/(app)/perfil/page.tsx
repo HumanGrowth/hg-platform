@@ -111,7 +111,10 @@ export default function PerfilPage() {
               </Card>
             ) : (
               <Card className="mt-4 flex flex-col items-center bg-bg-raised py-8">
-                <Radar values={radar} state="complete" size="large" animateOnMount />
+                <Radar values={radar} state="complete" size="large" interactive animateOnMount />
+                <p className="mt-3 text-center text-xs text-fg-subtle">
+                  Tocá un vértice para ver esa dimensión.
+                </p>
               </Card>
             )}
           </section>
