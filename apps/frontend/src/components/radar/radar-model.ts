@@ -7,7 +7,7 @@ export const PILLAR_LABEL: Record<PillarCode, string> = {
   P2: "Propósito",
   P3: "Relaciones",
   P4: "Salud",
-  P5: "Paz interior",
+  P5: "Paz",
   P6: "Estabilidad",
 };
 

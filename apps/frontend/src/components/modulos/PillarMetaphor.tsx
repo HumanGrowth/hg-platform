@@ -58,6 +58,14 @@ const PATHS: Record<string, React.ReactNode> = {
   ),
 };
 
+/**
+ * Sólo los trazos de la metáfora (sin el `<svg>` contenedor) — para embeber la
+ * metáfora dentro de otro SVG, ej. los vértices del radar (Sprint Tarde · TASK 6).
+ */
+export function PillarMetaphorPaths({ code }: { code: string }) {
+  return <>{PATHS[dimensionToPillar(code)] ?? PATHS.P3}</>;
+}
+
 export function PillarMetaphor({ code, className }: { code: string; className?: string }) {
   const paths = PATHS[dimensionToPillar(code)] ?? PATHS.P3;
   return (

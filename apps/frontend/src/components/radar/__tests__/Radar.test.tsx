@@ -1,12 +1,16 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MiniRadar } from "../MiniRadar";
 import { Radar } from "../Radar";
 
+const { push } = vi.hoisted(() => ({ push: vi.fn() }));
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({ push, replace: vi.fn() }),
 }));
+
+beforeEach(() => push.mockReset());
 
 describe("Radar", () => {
   it("renders empty state without values", () => {
@@ -42,8 +46,31 @@ describe("Radar", () => {
     expect(screen.getByText("Estado actual")).toBeTruthy();
     // ejes con badge de pilar (label corto) en vez de "P#"
     const axis = container.querySelector('[data-testid="radar-axis-P5"]');
-    expect(axis?.textContent).toContain("Paz interior");
+    expect(axis?.textContent).toContain("Paz");
     expect(axis?.textContent).not.toContain("P5");
+  });
+
+  it("navigates to /dimensiones/[code] when a vertex is tapped (interactive)", () => {
+    const { container } = render(
+      <Radar values={{ P1: 60 }} state="complete" size="large" interactive />,
+    );
+    const axisP1 = container.querySelector('[data-testid="radar-axis-P1"]') as SVGGElement;
+    fireEvent.click(axisP1);
+    expect(push).toHaveBeenCalledWith("/dimensiones/CP");
+  });
+
+  it("renders the previous-assessment overlay + legend (TASK 6.3)", () => {
+    render(
+      <Radar
+        values={{ P1: 70 }}
+        previous={{ P1: 55 }}
+        state="complete"
+        size="large"
+      />,
+    );
+    expect(screen.getByTestId("radar-value-P1").textContent).toContain("anterior: 55");
+    expect(screen.getByText("Última evaluación")).toBeTruthy();
+    expect(screen.getByText("Ahora")).toBeTruthy();
   });
 
   it("MiniRadar renders at 120×120", () => {
