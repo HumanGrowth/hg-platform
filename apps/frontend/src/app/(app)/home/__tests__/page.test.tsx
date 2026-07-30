@@ -77,13 +77,15 @@ describe("HomePage", () => {
     );
   });
 
-  it("renders stats (streak, month minutes, completed) and pillar completion %", async () => {
+  it("renders stats (streak, month minutes, completed) and the CP dimension score", async () => {
     getHome.mockResolvedValue(base);
     render(<HomePage />);
     expect(await screen.findByText("4")).toBeTruthy(); // streak_days
     expect(screen.getByText("45")).toBeTruthy(); // month_watch_minutes
     expect(screen.getByText("3")).toBeTruthy(); // courses_completed
-    expect(screen.getByText("50%")).toBeTruthy(); // P1 completion rate
+    // Sin results del assessment, el score de la card cae al completion rate:
+    // P1 = 0.5 → la DimensionCard de Carrera muestra "50".
+    expect(screen.getByText("50")).toBeTruthy();
   });
 
   it("renders all 6 pillar dimension cards", async () => {

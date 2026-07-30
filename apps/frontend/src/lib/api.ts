@@ -26,6 +26,7 @@ import type {
   ManagerWidgets,
   Me,
   MeWidgets,
+  MyBadge,
   Org,
   OrgMetrics,
   OrgWidgets,
@@ -375,6 +376,12 @@ export const apiConfirmResult = async (pillar: AssessmentPillarCode): Promise<Pi
   const res = await backend.post<PillarResult>(
     `/api/v1/assessment/me/results/${pillar}/confirm`,
   );
+  return res.data;
+};
+
+/** Catálogo de badges + estado de desbloqueo del usuario (Sprint Tarde · TASK 4). */
+export const apiGetMyBadges = async (): Promise<MyBadge[]> => {
+  const res = await backend.get<MyBadge[]>("/api/v1/me/badges");
   return res.data;
 };
 
