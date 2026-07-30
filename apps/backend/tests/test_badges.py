@@ -1,7 +1,7 @@
 """GET /me/badges — catálogo + estado de desbloqueo (Sprint Tarde · TASK 4)."""
 from __future__ import annotations
 
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 
 from hg.db import SessionLocal
 from hg.modules.badges.models import Badge, UserBadge
@@ -83,3 +83,24 @@ def test_my_badges_only_returns_my_unlocks(client, factory, auth_headers) -> Non
 
 def test_my_badges_requires_auth(client) -> None:
     assert client.get("/api/v1/me/badges").status_code in (401, 403)
+
+
+def test_seed_badges_is_idempotent_and_maps_6_dimensions() -> None:
+    from hg.scripts.seed_badges import seed
+
+    s = SessionLocal()
+    try:
+        s.execute(delete(Badge).where(Badge.code.like("dimension-%")))
+        s.commit()
+        first = seed(s)
+        assert first["inserted"] == 6
+        second = seed(s)
+        assert second["inserted"] == 0 and second["updated"] == 6
+        rows = s.scalars(select(Badge).where(Badge.code.like("dimension-%"))).all()
+        assert len(rows) == 6
+        # Cada badge apunta a un ícono de /public/icons.
+        assert all(b.icon_url.startswith("/icons/hex-") for b in rows)
+    finally:
+        s.execute(delete(Badge).where(Badge.code.like("dimension-%")))
+        s.commit()
+        s.close()
