@@ -5,7 +5,7 @@ description = "Human Growth — Backend API (FastAPI + SQLAlchemy + Celery)"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "Proprietary" }
-authors = [{ name = "Human Growth", email = "tech@humangrowth.app" }]
+authors = [{ name = "Human Growth", email = "tech@humangrowth.io" }]
 
 dependencies = [
     # Web framework

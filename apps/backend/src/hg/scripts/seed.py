@@ -52,6 +52,11 @@ LEGACY_USER_EMAILS: dict[str, dict[str, str]] = {
         "collab2@globex.test": "javier.morales@globex.test",
         "collab3@globex.test": "camila.jimenez@globex.test",
     },
+    # Migración de dominio .app → .io (release oficial). Idempotente: 0 filas si
+    # el superadmin ya está en .io.
+    "hg": {
+        "superadmin@humangrowth.app": "superadmin@humangrowth.io",
+    },
 }
 
 # Invitaciones viejas de Acme con prefijo UUID / genérico → prospects realistas.
@@ -210,7 +215,7 @@ def run() -> None:
             licenses_total=999, billing_status="internal",
         )
         _upsert_user(
-            db, org=hg_org, email="superadmin@humangrowth.app", password=HG_PWD,
+            db, org=hg_org, email="superadmin@humangrowth.io", password=HG_PWD,
             full_name="HG Superadmin", role=UserRole.superadmin,
         )
 
@@ -230,7 +235,7 @@ def run() -> None:
         db.close()
 
     print("Seed OK (AOD-05 · emails realistas):")
-    print("  - HG superadmin : superadmin@humangrowth.app")
+    print("  - HG superadmin : superadmin@humangrowth.io")
     print("  - acme  (admin) : maria.fernandez@acme.test  (+ carlos/ana/diego/sofia)")
     print("  - globex(admin) : roberto.soto@globex.test   (+ lucia[mgr]/javier/camila)")
     print("  - acme invites  : andres.vega / valeria.quiros / fernando.picado / mariana.salas")

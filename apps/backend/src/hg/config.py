@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     backend_host: str = "0.0.0.0"
     backend_port: int = 8000
     cors_origins: str = "http://localhost:3000"
-    app_base_url: str = "https://app.humangrowth.app"  # base para links de invitación
+    app_base_url: str = "https://app.humangrowth.io"  # base para links de invitación
 
     # Security
     secret_key: str = "change_me"
@@ -50,7 +50,7 @@ class Settings(BaseSettings):
 
     # Email
     resend_api_key: str = ""
-    email_from: str = "HumanGrowth <no-reply@humangrowth.app>"
+    email_from: str = "HumanGrowth <admin@humangrowth.io>"
 
     # Observability
     sentry_dsn: str = ""
