@@ -11,7 +11,7 @@ const nextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.r2.cloudflarestorage.com" },
-      { protocol: "https", hostname: "cdn.humangrowth.app" },
+      { protocol: "https", hostname: "cdn.humangrowth.io" },
     ],
   },
   // La página de ciencia se renombró a /metodo (El Método). Redirect a nivel de

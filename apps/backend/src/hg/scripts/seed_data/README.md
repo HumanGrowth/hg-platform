@@ -12,7 +12,7 @@ usuarios y renombra en sitio los emails viejos (`admin@acme.test`,
 
 | Org | Email | Password | Rol |
 |-----|-------|----------|-----|
-| HG (interna) | `superadmin@humangrowth.app` | `HGsuper#2026` | superadmin |
+| HG (interna) | `superadmin@humangrowth.io` | `HGsuper#2026` | superadmin |
 | Acme Corp | `maria.fernandez@acme.test` | `AcmeDemo#2026` | admin (cuenta demo panel RRHH) |
 | Acme Corp | `carlos.rodriguez@acme.test` | `AcmeDemo#2026` | collaborator (reporta a María) |
 | Acme Corp | `ana.mendez@acme.test` | `AcmeDemo#2026` | collaborator |

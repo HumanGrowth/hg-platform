@@ -42,10 +42,10 @@ describe("MoreDrawer (TASK polish-07)", () => {
     expect(screen.queryByText("Modo admin")).toBeNull();
   });
 
-  it("manager without reports: no Mi equipo", () => {
+  it("manager without reports: still shows Mi equipo (empty state en /team)", () => {
     state.user = { role: "manager", reports_count: 0 };
     open();
-    expect(screen.queryByText("Mi equipo")).toBeNull();
+    expect(screen.getByText("Mi equipo")).toBeTruthy();
   });
 
   it("admin: adds Modo admin", () => {

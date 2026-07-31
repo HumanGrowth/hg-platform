@@ -51,10 +51,13 @@ export function isManagerRole(role: UserRole | undefined): boolean {
   return role !== undefined && MANAGER_ROLES.includes(role);
 }
 
-/** "Mi equipo" se oculta si el rol califica pero no tiene reportes (TM-04). */
+/**
+ * "Mi equipo" visible para todo manager/admin (release oficial: el manager
+ * necesita un entrypoint claro). Si aún no tiene reportes, `/team` muestra su
+ * estado vacío. `reports_count` se mantiene en la firma para compat de llamadas.
+ */
 export function showTeam(user: Pick<MeUser, "role" | "reports_count"> | null | undefined): boolean {
-  if (!user || !isManagerRole(user.role)) return false;
-  return (user.reports_count ?? 0) > 0;
+  return isManagerRole(user?.role);
 }
 
 export function sideNavItemsForRole(

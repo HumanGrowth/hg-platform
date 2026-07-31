@@ -26,9 +26,9 @@ describe("sideNavItemsForRole (TASK polish-04)", () => {
     }
   });
 
-  it("shows 'Mi equipo' only for managers with reports", () => {
+  it("shows 'Mi equipo' for managers regardless of reports (empty state en /team)", () => {
     expect(hrefs(user({ role: "manager", reports_count: 3 }))).toContain("/team");
-    expect(hrefs(user({ role: "manager", reports_count: 0 }))).not.toContain("/team");
+    expect(hrefs(user({ role: "manager", reports_count: 0 }))).toContain("/team");
     expect(hrefs(user({ role: "collaborator", reports_count: 5 }))).not.toContain("/team");
   });
 
@@ -47,9 +47,10 @@ describe("sideNavItemsForRole (TASK polish-04)", () => {
 });
 
 describe("showTeam", () => {
-  it("requires a manager role AND reports_count > 0", () => {
+  it("is true for any manager/admin, regardless of reports_count", () => {
     expect(showTeam(user({ role: "manager", reports_count: 2 }))).toBe(true);
-    expect(showTeam(user({ role: "manager", reports_count: 0 }))).toBe(false);
+    expect(showTeam(user({ role: "manager", reports_count: 0 }))).toBe(true);
+    expect(showTeam(user({ role: "admin", reports_count: 0 }))).toBe(true);
     expect(showTeam(user({ role: "collaborator", reports_count: 9 }))).toBe(false);
     expect(showTeam(null)).toBe(false);
   });

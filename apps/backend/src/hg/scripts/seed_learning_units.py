@@ -65,7 +65,7 @@ log = logging.getLogger("hg.seed_learning_units")
 
 GENERATED_TAG = "[GENERADO POR CLAUDE · Andrés valida]"
 PLACEHOLDER_VIDEO_TAG = "[PLACEHOLDER · Andrés reemplaza]"
-FALLBACK_VIDEO_URL = "https://cdn.humangrowth.app/placeholder/no-video-available.mp4"
+FALLBACK_VIDEO_URL = "https://cdn.humangrowth.io/placeholder/no-video-available.mp4"
 PLACEHOLDER_DURATION_SECONDS = 30  # sin ffprobe/moviepy (sin deps nuevas) no hay duración real
 
 _SLUG_RE = re.compile(r"^hg-(p\d)-(l\d)-(\d+)-")
