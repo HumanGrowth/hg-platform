@@ -377,3 +377,44 @@ def onboarding_funnel(db: Session, org_id: UUID, user_ids: list[UUID]) -> dict[s
         "first_course": int(first_course),
         "first_completion": int(first_completion),
     }
+
+
+# ─────────────── Métricas por usuario · fuente única (Release TASK 2) ───────────────
+# Un solo lugar que arma las métricas canónicas de UN usuario, para que el
+# colaborador (/me/metrics) y el manager (/team/[id]) muestren los MISMOS números.
+
+
+@dataclass
+class UserMetrics:
+    courses_completed: int
+    courses_in_progress: int
+    total_watch_minutes: int
+    last_assessment_date: datetime | None
+    badges_unlocked_count: int
+    assessment_states: dict[str, dict[str, str]]  # {pillar: {state, state_label, source}} — desde PillarResult
+    pillar_completion_rate: dict[str, float]
+
+
+def get_user_metrics(db: Session, user_id: UUID) -> UserMetrics:
+    from hg.modules.assessment.service import (
+        assessment_states_snapshot,
+        latest_pillar_results,
+    )
+    from hg.modules.badges.models import UserBadge
+
+    agg = activity_by_users(db, [user_id])[user_id]
+    results = latest_pillar_results(db, user_id)
+    last_assessment = max((r.derived_at for r in results), default=None)
+    badges = (
+        db.scalar(select(func.count()).select_from(UserBadge).where(UserBadge.user_id == user_id))
+        or 0
+    )
+    return UserMetrics(
+        courses_completed=agg.courses_completed,
+        courses_in_progress=agg.courses_in_progress,
+        total_watch_minutes=agg.total_watch_minutes,
+        last_assessment_date=last_assessment,
+        badges_unlocked_count=badges,
+        assessment_states=assessment_states_snapshot(results),
+        pillar_completion_rate=pillar_completion_rate(db, user_id),
+    )

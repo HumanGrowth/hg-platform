@@ -25,7 +25,6 @@ from hg.modules.learning.models import (
     CourseProgress,
     Enrollment,
     Event,
-    UserLearningProfile,
 )
 from hg.modules.learning.schemas import EnrollmentIn, EnrollmentOut
 from hg.modules.people import service
@@ -50,6 +49,7 @@ from hg.modules.people.schemas import (
     TeamMemberOut,
     TeamResponse,
     TopPerformerOut,
+    UserMetricsOut,
     WeeklyMinutesBar,
 )
 from hg.modules.people.service import (
@@ -198,17 +198,19 @@ def get_user_detail(
     enrollments = enrollments_service.list_user_enrollments(
         db, user_id=target.id, active_only=False
     )
-    # Snapshot de estados del assessment (sin exponer respuestas individuales).
-    profile = db.scalar(
-        select(UserLearningProfile).where(UserLearningProfile.user_id == target.id)
-    )
+    # Estados del assessment desde la fuente canónica (PillarResult), NO el
+    # snapshot denormalizado — así el manager ve lo mismo que el colaborador
+    # en /perfil (Release TASK 2, consistencia cross-role).
+    from hg.modules.assessment.service import assessment_states_snapshot, latest_pillar_results
+
+    states = assessment_states_snapshot(latest_pillar_results(db, target.id))
     return TeamMemberDetailOut(
         **base.model_dump(),
         enrollments=[_enrollment_out(db, e) for e in enrollments],
         courses_in_progress_list=_course_progress_list(db, target.id, completed=False),
         courses_completed_list=_course_progress_list(db, target.id, completed=True),
         pillar_completion_rate=pillar_completion_rate(db, target.id),
-        assessment_states=(profile.pillar_states if profile else {}),
+        assessment_states=states,
     )
 
 
@@ -463,6 +465,25 @@ def get_my_home_dashboard(
 # 3 endpoints densos multi-widget (1 round-trip por página). Cache HTTP 60s. ADR-0011.
 
 _WIDGET_CACHE = "private, max-age=60"
+
+
+@me_router.get("/metrics", response_model=UserMetricsOut)
+def get_my_metrics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> UserMetricsOut:
+    """Métricas canónicas del usuario autenticado (Release TASK 2). Misma fuente
+    (`service.get_user_metrics`) que consume el manager para /team/[id]."""
+    m = service.get_user_metrics(db, current_user.id)
+    return UserMetricsOut(
+        courses_completed=m.courses_completed,
+        courses_in_progress=m.courses_in_progress,
+        total_watch_minutes=m.total_watch_minutes,
+        last_assessment_date=m.last_assessment_date,
+        badges_unlocked_count=m.badges_unlocked_count,
+        assessment_states=m.assessment_states,
+        pillar_completion_rate=m.pillar_completion_rate,
+    )
 
 
 @me_router.get("/widgets", response_model=MeWidgetsOut)
