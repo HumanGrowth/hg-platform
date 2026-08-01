@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<p style="margin:0 0 16px 0;"><strong style="color:#1A1A1A;">Nuevo contacto desde la web</strong></p>
+<p style="margin:0 0 6px 0;"><strong>Nombre:</strong> {{ name }}</p>
+<p style="margin:0 0 6px 0;"><strong>Email:</strong> {{ email }}</p>
+<p style="margin:0 0 6px 0;"><strong>Empresa:</strong> {{ company or "—" }}</p>
+<p style="margin:0 0 6px 0;"><strong>Rol:</strong> {{ role or "—" }}</p>
+<p style="margin:0 0 6px 0;"><strong>Origen:</strong> {{ source or "—" }}</p>
+<p style="margin:16px 0 6px 0;"><strong>Mensaje:</strong></p>
+<p style="margin:0; white-space:pre-wrap; color:#1A1A1A;">{{ message }}</p>
+{% endblock %}
