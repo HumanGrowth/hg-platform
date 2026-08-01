@@ -70,8 +70,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </aside>
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <ActingAsBanner />
-            {/* Solo el contenido scrollea; pb-20 en mobile para no tapar la bottom bar. */}
-            <main className="flex-1 overflow-y-auto pb-20 md:pb-0">{children}</main>
+            {/* `relative`: main es el containing block → cualquier elemento
+                position:absolute queda contenido y clippeado por su scroll, y no
+                extiende <html> (evita que un sr-only rebelde rompa el sticky). */}
+            <main className="relative flex-1 overflow-y-auto pb-20 md:pb-0">{children}</main>
             <AdminBottomNav isSuperadmin={isSuperadmin} className="md:hidden" />
           </div>
         </div>
