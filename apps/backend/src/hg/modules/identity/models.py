@@ -73,7 +73,10 @@ class Organization(Base):
 
 class User(Base):
     __tablename__ = "users"
-    __table_args__ = (UniqueConstraint("org_id", "email", name="uq_users_org_email"),)
+    __table_args__ = (
+        UniqueConstraint("org_id", "email", name="uq_users_org_email"),
+        UniqueConstraint("org_id", "username", name="uq_users_org_username"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     org_id: Mapped[uuid.UUID] = mapped_column(
@@ -82,6 +85,9 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(254), nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    # Release TASK 3.4: username opcional (único por org). NULL para users que se
+    # registraron con email. Postgres trata los NULL como distintos → múltiples OK.
+    username: Mapped[str | None] = mapped_column(String(30))
     role: Mapped[UserRole] = mapped_column(
         Enum(UserRole, name="user_role"), nullable=False, default=UserRole.collaborator
     )

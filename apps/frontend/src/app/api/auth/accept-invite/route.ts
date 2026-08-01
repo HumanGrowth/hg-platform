@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     body: JSON.stringify({
       token: body.token,
       password: body.password,
-      full_name: body.fullName,
+      username_or_email: body.usernameOrEmail,
     }),
   });
   const data = await res.json();

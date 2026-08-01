@@ -140,6 +140,10 @@ def accept_invite(
     db: Session = Depends(get_db_as_superadmin),
 ) -> TokenResponse:
     user, access, refresh = service.accept_invite(
-        db, token=body.token, password=body.password, full_name=body.full_name
+        db,
+        token=body.token,
+        password=body.password,
+        username_or_email=body.username_or_email,
+        full_name=body.full_name,
     )
     return TokenResponse(access_token=access, refresh_token=refresh, user=UserOut.model_validate(user))
