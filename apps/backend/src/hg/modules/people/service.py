@@ -391,7 +391,7 @@ class UserMetrics:
     total_watch_minutes: int
     last_assessment_date: datetime | None
     badges_unlocked_count: int
-    assessment_states: dict  # {pillar: {state, state_label, source}} — desde PillarResult
+    assessment_states: dict[str, dict[str, str]]  # {pillar: {state, state_label, source}} — desde PillarResult
     pillar_completion_rate: dict[str, float]
 
 
