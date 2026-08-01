@@ -9,6 +9,19 @@ from pydantic import BaseModel, ConfigDict
 from hg.modules.learning.schemas import EnrollmentOut
 
 
+class UserMetricsOut(BaseModel):
+    """Métricas canónicas de un usuario (Release TASK 2) — misma fuente para el
+    colaborador (/me/metrics) y el manager (/team/[id])."""
+
+    courses_completed: int
+    courses_in_progress: int
+    total_watch_minutes: int
+    last_assessment_date: datetime | None
+    badges_unlocked_count: int
+    assessment_states: dict
+    pillar_completion_rate: dict[str, float]
+
+
 class TeamMemberOut(BaseModel):
     id: UUID
     full_name: str

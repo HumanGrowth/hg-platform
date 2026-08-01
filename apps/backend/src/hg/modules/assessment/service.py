@@ -357,3 +357,39 @@ def reset_retake(db: Session, user_id: uuid.UUID, pillar: PillarCode) -> None:
 
 def instrument_for(db: Session, code: str) -> AssessmentInstrument | None:
     return db.scalar(select(AssessmentInstrument).where(AssessmentInstrument.code == code))
+
+
+# ─────────────────── Métricas por usuario (fuente canónica · Release TASK 2) ──────────────────
+# Estado del assessment derivado SIEMPRE del histórico `PillarResult` (fuente de
+# verdad), no del snapshot denormalizado `UserLearningProfile.pillar_states`. Así
+# el colaborador (/me/results) y el manager (/team/[id]) ven exactamente lo mismo.
+
+
+def latest_pillar_results(db: Session, user_id: uuid.UUID) -> list[PillarResult]:
+    """Último `PillarResult` por pilar (dedup por derived_at desc)."""
+    rows = list(
+        db.scalars(
+            select(PillarResult)
+            .where(PillarResult.user_id == user_id)
+            .order_by(PillarResult.derived_at.desc())
+        ).all()
+    )
+    seen: set[str] = set()
+    out: list[PillarResult] = []
+    for r in rows:
+        if r.pillar_code.value not in seen:
+            seen.add(r.pillar_code.value)
+            out.append(r)
+    return out
+
+
+def assessment_states_snapshot(results: list[PillarResult]) -> dict[str, dict]:
+    """`{pillar_code: {state, state_label, source}}` desde `PillarResult`."""
+    return {
+        r.pillar_code.value: {
+            "state": r.state_code,
+            "state_label": r.state_label,
+            "source": r.source.value,
+        }
+        for r in results
+    }

@@ -700,6 +700,25 @@ export interface CommunityEventInput {
   is_active?: boolean;
 }
 
+// ─────────────── Métricas por usuario · fuente única (Release TASK 2) ───────────────
+
+export interface AssessmentStateSnapshot {
+  state: string;
+  state_label: string;
+  source: string;
+}
+
+export interface UserMetrics {
+  courses_completed: number;
+  courses_in_progress: number;
+  total_watch_minutes: number;
+  last_assessment_date: string | null;
+  badges_unlocked_count: number;
+  /** {pillar_code: {state, state_label, source}} — derivado de PillarResult. */
+  assessment_states: Record<string, AssessmentStateSnapshot>;
+  pillar_completion_rate: Record<string, number>;
+}
+
 // ─────────────── Radar histórico (Sprint Tarde · TASK 6.3) ───────────────
 
 export interface RadarSnapshotItem {

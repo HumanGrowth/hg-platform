@@ -172,20 +172,8 @@ def my_results(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> MeResultsOut:
-    # Estado actual = último PillarResult por pilar.
-    rows = list(
-        db.scalars(
-            select(PillarResult)
-            .where(PillarResult.user_id == current_user.id)
-            .order_by(PillarResult.derived_at.desc())
-        ).all()
-    )
-    seen: set[str] = set()
-    latest: list[PillarResult] = []
-    for r in rows:
-        if r.pillar_code.value not in seen:
-            seen.add(r.pillar_code.value)
-            latest.append(r)
+    # Estado actual = último PillarResult por pilar (fuente canónica compartida).
+    latest = service.latest_pillar_results(db, current_user.id)
     return MeResultsOut(results=[_result_out(r) for r in latest])
 
 

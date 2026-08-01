@@ -41,6 +41,7 @@ import type {
   TeamFilters,
   TeamMemberDetail,
   TeamResponse,
+  UserMetrics,
 } from "@/lib/types";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
@@ -385,6 +386,13 @@ export const apiConfirmResult = async (pillar: AssessmentPillarCode): Promise<Pi
 /** Catálogo de badges + estado de desbloqueo del usuario (Sprint Tarde · TASK 4). */
 export const apiGetMyBadges = async (): Promise<MyBadge[]> => {
   const res = await backend.get<MyBadge[]>("/api/v1/me/badges");
+  return res.data;
+};
+
+/** Métricas canónicas del usuario (Release TASK 2) — misma fuente que el manager
+ * consume en /team/[id], garantizando consistencia cross-role. */
+export const apiGetMyMetrics = async (): Promise<UserMetrics> => {
+  const res = await backend.get<UserMetrics>("/api/v1/me/metrics");
   return res.data;
 };
 
