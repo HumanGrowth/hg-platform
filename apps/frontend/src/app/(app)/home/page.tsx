@@ -3,9 +3,11 @@
 import { ArrowRight, Clock, Flame, Trophy } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { MiniRadar } from "@/components/radar/MiniRadar";
 import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { DimensionCard } from "@/components/shared/DimensionCard";
@@ -15,7 +17,7 @@ import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Progress } from "@/components/ui/progress";
-import { apiGetHomeDashboard, apiGetMyResults } from "@/lib/api";
+import { apiGetHomeDashboard, apiGetMyResults, apiSetOnboardingSeen } from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { DIMENSIONS } from "@/lib/dimensions";
@@ -43,8 +45,28 @@ const pillarBadge = pillarBadgeVariant;
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
+  const router = useRouter();
   const firstName = greetingName(user?.full_name ?? "");
   const isAdminPlus = user?.role === "admin" || user?.role === "superadmin";
+
+  // Tour de onboarding post-primer-login (Release TASK 6).
+  const [showTour, setShowTour] = React.useState(false);
+  React.useEffect(() => {
+    if (user && user.has_seen_onboarding === false) setShowTour(true);
+  }, [user]);
+  const finishTour = React.useCallback(
+    async (action: "finish" | "skip") => {
+      setShowTour(false);
+      try {
+        setUser(await apiSetOnboardingSeen(true));
+      } catch {
+        /* no bloquear el flujo si falla */
+      }
+      if (action === "finish") router.push("/modulos/intro" as Route);
+    },
+    [router, setUser],
+  );
 
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [data, setData] = React.useState<HomeDashboard | null>(null);
@@ -90,6 +112,7 @@ export default function HomePage() {
 
   return (
     <main className="mx-auto w-full max-w-app px-6 py-10">
+      {showTour && user && <OnboardingTour userName={firstName} onDone={finishTour} />}
       {/* Hero */}
       <Eyebrow accent>Progreso general</Eyebrow>
       <Display variant="display-2" className="mt-2">

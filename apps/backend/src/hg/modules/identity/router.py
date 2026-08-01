@@ -19,6 +19,7 @@ from hg.modules.identity.schemas import (
     LogoutRequest,
     MeResponse,
     MeUpdateRequest,
+    OnboardingSeenRequest,
     RefreshRequest,
     TokenResponse,
     UserOut,
@@ -91,6 +92,30 @@ def update_me(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
     db_user.full_name = body.full_name
     db_user.job_title = body.job_title
+    db.commit()
+    db.refresh(db_user)
+    org = db.get(Organization, db_user.org_id)
+    return MeResponse(
+        **UserOut.model_validate(db_user).model_dump(),
+        org_name=org.name if org else "",
+        reports_count=_reports_count(db, db_user.id),
+    )
+
+
+@router.post("/me/onboarding-seen", response_model=MeResponse)
+def set_onboarding_seen(
+    body: OnboardingSeenRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> MeResponse:
+    """Marca/resetea el tour de onboarding (Release TASK 6). `seen=false` desde
+    'Ver el tour de nuevo' en Mi Perfil."""
+    db_user = db.get(User, user.id)
+    if db_user is None:  # pragma: no cover
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+    db_user.has_seen_onboarding = body.seen
     db.commit()
     db.refresh(db_user)
     org = db.get(Organization, db_user.org_id)
