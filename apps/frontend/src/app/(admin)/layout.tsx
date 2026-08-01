@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import { ActingAsBanner } from "@/components/admin/ActingAsBanner";
 import { BetaBanner } from "@/components/BetaBanner";
+import { AdminBottomNav } from "@/components/nav/AdminBottomNav";
 import { SessionGate } from "@/components/SessionGate";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { useAuthStore } from "@/lib/auth-store";
@@ -18,11 +19,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isSuperadmin = user?.role === "superadmin";
 
   return (
-    <div className="flex min-h-screen flex-col">
+    // Shell de altura fija: el sidebar queda fijo y SOLO el <main> scrollea (igual
+    // que el layout del colaborador). Antes usaba min-h-screen → toda la página
+    // scrolleaba y el nav se desfasaba en páginas largas.
+    <div className="flex h-screen flex-col overflow-hidden">
       <BetaBanner />
       <SessionGate>
-        <div className="flex flex-1">
-          <aside className="hidden w-60 shrink-0 flex-col gap-6 border-r border-border bg-bg-raised px-5 py-6 md:flex">
+        <div className="flex min-h-0 flex-1">
+          <aside className="hidden h-full w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-border bg-bg-raised px-5 py-6 md:flex">
             <Link href="/home" aria-label="Volver a la app">
               <img src="/logo/nav/logo-nav-negro@2x.png" alt="Human Growth" className="h-7 w-auto" />
             </Link>
@@ -64,9 +68,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Volver a colaborador
             </Link>
           </aside>
-          <div className="flex-1">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <ActingAsBanner />
-            {children}
+            {/* Solo el contenido scrollea; pb-20 en mobile para no tapar la bottom bar. */}
+            <main className="flex-1 overflow-y-auto pb-20 md:pb-0">{children}</main>
+            <AdminBottomNav isSuperadmin={isSuperadmin} className="md:hidden" />
           </div>
         </div>
       </SessionGate>

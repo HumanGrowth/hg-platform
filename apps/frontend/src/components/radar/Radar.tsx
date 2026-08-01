@@ -12,6 +12,7 @@ import {
 
 import { PillarMetaphorPaths } from "@/components/modulos/PillarMetaphor";
 import { dimensionByPillar } from "@/lib/dimensions";
+import { cn } from "@/lib/utils";
 
 import { PILLAR_HEX, PILLAR_LABEL, type PillarCode, type RadarValues } from "./radar-model";
 
@@ -56,7 +57,21 @@ export function Radar({
   animateOnMount = false,
 }: RadarProps) {
   const router = useRouter();
-  const box = SIZE_PX[size];
+  const maxBox = SIZE_PX[size];
+  // Radar fluido: escala al ancho del contenedor, capado al máximo del `size`
+  // (fix de overflow en mobile — el SVG de recharts es de ancho fijo y no
+  // auto-escalaba). En jsdom (sin layout) `measured` queda 0 → cae al tamaño
+  // fijo, así los tests de dimensiones siguen andando.
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [measured, setMeasured] = React.useState(0);
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver((entries) => setMeasured(entries[0]?.contentRect.width ?? 0));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const box = measured > 0 ? Math.min(Math.round(measured), maxBox) : maxBox;
   const showLabels = size !== "mini";
   const hasGrowth = growth != null && state !== "empty";
   const hasPrevious = previous != null && state !== "empty";
@@ -158,7 +173,9 @@ export function Radar({
 
   return (
     <div
-      className={state === "empty" ? "animate-pulse" : undefined}
+      ref={containerRef}
+      className={cn("mx-auto w-full", state === "empty" && "animate-pulse")}
+      style={{ maxWidth: maxBox }}
       data-radar-state={state}
       data-radar-size={size}
     >
