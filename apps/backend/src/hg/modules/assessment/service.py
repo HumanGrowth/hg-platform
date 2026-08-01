@@ -371,7 +371,7 @@ def latest_pillar_results(db: Session, user_id: uuid.UUID) -> list[PillarResult]
         db.scalars(
             select(PillarResult)
             .where(PillarResult.user_id == user_id)
-            .order_by(PillarResult.derived_at.desc())
+            .order_by(PillarResult.derived_at.desc(), PillarResult.id.desc())
         ).all()
     )
     seen: set[str] = set()
