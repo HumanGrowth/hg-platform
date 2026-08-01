@@ -16,7 +16,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <SideNav className="hidden md:flex" />
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <TopBar />
-            <main className="flex-1 overflow-y-auto pb-20 md:pb-0">{children}</main>
+            {/* `relative`: contiene los position:absolute dentro del scroll de main
+                (no extienden <html>) → el header sticky nunca pierde su fijado. */}
+            <main className="relative flex-1 overflow-y-auto pb-20 md:pb-0">{children}</main>
             <BottomNav className="md:hidden" />
           </div>
         </div>
