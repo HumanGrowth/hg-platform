@@ -255,17 +255,21 @@ export function Radar({
         </div>
       )}
 
-      {/* Lista accesible (sr-only) con los valores — también la usan los tests. */}
+      {/* Lista accesible (sr-only) con los valores — también la usan los tests.
+          El sr-only va en el <div> contenedor, NO en el <ul>: así clippa de
+          verdad y no agrega altura fantasma al documento (rompía el header sticky). */}
       {state === "complete" && (
-        <ul className="sr-only" aria-label="Valores por pilar">
-          {data.map((d) => (
-            <li key={d.code} data-testid={`radar-value-${d.code}`}>
-              {d.label}: {d.value}
-              {hasGrowth ? ` · crecimiento: ${d.growthValue}` : null}
-              {hasPrevious ? ` · anterior: ${d.previousValue}` : null}
-            </li>
-          ))}
-        </ul>
+        <div className="sr-only">
+          <ul aria-label="Valores por pilar">
+            {data.map((d) => (
+              <li key={d.code} data-testid={`radar-value-${d.code}`}>
+                {d.label}: {d.value}
+                {hasGrowth ? ` · crecimiento: ${d.growthValue}` : null}
+                {hasPrevious ? ` · anterior: ${d.previousValue}` : null}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );

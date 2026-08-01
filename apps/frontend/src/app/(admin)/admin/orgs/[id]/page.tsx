@@ -164,7 +164,7 @@ function AdminOrgDetailContent() {
               Enviar invitación
             </Button>
           </div>
-          <Card className="overflow-hidden p-0">
+          <Card className="overflow-x-auto overflow-y-hidden p-0">
             <table className="w-full text-left">
               <thead className="border-b border-border bg-bg-sunken">
                 <tr className="font-sans text-micro uppercase tracking-meta text-fg-muted">
