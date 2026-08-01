@@ -25,6 +25,13 @@ class UserOut(BaseModel):
     org_id: UUID
     career_level: CareerLevel | None = None
     job_title: str | None = None
+    has_seen_onboarding: bool = False
+
+
+class OnboardingSeenRequest(BaseModel):
+    """Marca (o resetea) si el usuario ya vio el tour de onboarding (Release TASK 6)."""
+
+    seen: bool = True
 
 
 class TokenResponse(BaseModel):

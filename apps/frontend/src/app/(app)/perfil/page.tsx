@@ -2,6 +2,7 @@
 
 import type { Route } from "next";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
@@ -14,9 +15,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { apiGetMyRadar, apiGetMyResults } from "@/lib/api";
+import { apiGetMyRadar, apiGetMyResults, apiSetOnboardingSeen } from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
+import { toast } from "@/lib/toast-store";
 import type { PillarResult, RadarHistory } from "@/lib/types";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -28,6 +30,18 @@ const ROLE_LABEL: Record<string, string> = {
 
 export default function PerfilPage() {
   const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
+  const router = useRouter();
+
+  const replayTour = React.useCallback(async () => {
+    try {
+      setUser(await apiSetOnboardingSeen(false));
+      router.push("/home" as Route);
+    } catch {
+      toast("No pudimos reiniciar el tour.", "danger");
+    }
+  }, [router, setUser]);
+
   const [results, setResults] = React.useState<PillarResult[]>([]);
   const [radarHistory, setRadarHistory] = React.useState<RadarHistory | null>(null);
   const [showPrevious, setShowPrevious] = React.useState(true);
@@ -77,11 +91,20 @@ export default function PerfilPage() {
             {user?.email ? ` · ${user.email}` : ""}
           </p>
         </div>
-        <Link href={"/perfil/editar" as Route} className="ml-auto">
-          <Button variant="secondary" size="sm">
-            Editar mi información
-          </Button>
-        </Link>
+        <div className="ml-auto flex flex-col items-end gap-2">
+          <Link href={"/perfil/editar" as Route}>
+            <Button variant="secondary" size="sm">
+              Editar mi información
+            </Button>
+          </Link>
+          <button
+            type="button"
+            onClick={() => void replayTour()}
+            className="font-sans text-xs font-medium text-fg-muted hover:text-fg hover:underline"
+          >
+            Ver el tour de nuevo
+          </button>
+        </div>
       </div>
 
       {status === "loading" && (

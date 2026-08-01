@@ -133,6 +133,12 @@ export const apiUpdateMe = async (payload: {
   return res.data;
 };
 
+/** Marca/resetea el tour de onboarding (Release TASK 6). Devuelve el user actualizado. */
+export const apiSetOnboardingSeen = async (seen: boolean): Promise<Me> => {
+  const res = await backend.post<Me>("/api/v1/auth/me/onboarding-seen", { seen });
+  return res.data;
+};
+
 export const apiInviteInfo = async (token: string): Promise<InviteInfo> => {
   const res = await axios.get<InviteInfo>(`${BACKEND}/api/v1/auth/invite-info`, {
     params: { token },

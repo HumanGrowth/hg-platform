@@ -8,6 +8,8 @@ interface AuthState {
   /** true hasta que el primer intento de refresh-on-load resuelve. */
   hydrating: boolean;
   setSession: (user: User, accessToken: string) => void;
+  /** Actualiza sólo el user (p.ej. tras marcar el onboarding como visto). */
+  setUser: (user: User) => void;
   setHydrated: () => void;
   clear: () => void;
 }
@@ -21,6 +23,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
   hydrating: true,
   setSession: (user, accessToken) => set({ user, accessToken, hydrating: false }),
+  setUser: (user) => set({ user }),
   setHydrated: () => set({ hydrating: false }),
   clear: () => set({ user: null, accessToken: null, hydrating: false }),
 }));

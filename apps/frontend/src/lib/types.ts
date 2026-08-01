@@ -11,6 +11,8 @@ export interface User {
   job_title?: string | null;
   /** Reportes directos del usuario (para ocultar "Mi equipo" si es 0). */
   reports_count?: number;
+  /** Tour de features post-primer-login (Release TASK 6). false = mostrar el tour. */
+  has_seen_onboarding?: boolean;
   /** Lo provee el backend cuando el motor de assessment exista (B2-02/B2-03).
    * Si viene `false`, el SessionGate manda al onboarding. `undefined` = no
    * forzar (usuarios actuales no se ven afectados). */
