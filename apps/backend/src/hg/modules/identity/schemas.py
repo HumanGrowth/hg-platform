@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from hg.modules.identity.models import CareerLevel, OrgTier, UserRole
 
@@ -21,6 +21,7 @@ class UserOut(BaseModel):
     id: UUID
     email: str
     full_name: str
+    username: str | None = None
     role: UserRole
     org_id: UUID
     career_level: CareerLevel | None = None
@@ -72,7 +73,16 @@ class LogoutRequest(BaseModel):
 class AcceptInviteRequest(BaseModel):
     token: str
     password: str = Field(min_length=10)
-    full_name: str = Field(min_length=1, max_length=255)
+    # Release TASK 3.4: el form pide "usuario o correo" (único). `full_name` se
+    # mantiene opcional para backward-compat con el frontend viejo.
+    username_or_email: str | None = Field(default=None, min_length=1, max_length=254)
+    full_name: str | None = Field(default=None, min_length=1, max_length=255)
+
+    @model_validator(mode="after")
+    def _require_identifier(self) -> AcceptInviteRequest:
+        if not (self.username_or_email or self.full_name):
+            raise ValueError("username_or_email es obligatorio")
+        return self
 
 
 # ─────────────────────────── Admin / Orgs ───────────────────────────

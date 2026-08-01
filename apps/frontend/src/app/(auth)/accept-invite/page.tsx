@@ -45,7 +45,11 @@ function AcceptInviteInner() {
   async function onSubmit(values: FormValues) {
     setFormError(null);
     try {
-      const { user, accessToken } = await apiAcceptInvite(token, values.password, values.fullName);
+      const { user, accessToken } = await apiAcceptInvite(
+        token,
+        values.password,
+        values.usernameOrEmail,
+      );
       setSession(user, accessToken);
       router.replace("/home");
     } catch (err) {
@@ -93,11 +97,13 @@ function AcceptInviteInner() {
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
           <div>
-            <Label htmlFor="fullName">Nombre completo</Label>
-            <Input id="fullName" autoComplete="name" {...register("fullName")} />
-            {errors.fullName ? (
-              <p className="mt-1 text-xs text-danger">{errors.fullName.message}</p>
-            ) : null}
+            <Label htmlFor="usernameOrEmail">Nombre de usuario o correo</Label>
+            <Input id="usernameOrEmail" autoComplete="username" {...register("usernameOrEmail")} />
+            {errors.usernameOrEmail ? (
+              <p className="mt-1 text-xs text-danger">{errors.usernameOrEmail.message}</p>
+            ) : (
+              <p className="mt-1 text-xs text-fg-subtle">Tu correo invitado o un usuario único.</p>
+            )}
           </div>
           <div>
             <Label htmlFor="password">Contraseña</Label>

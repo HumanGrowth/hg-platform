@@ -73,8 +73,8 @@ export class ApiError extends Error {
 export const apiLogin = (email: string, password: string, orgSlug?: string) =>
   postJson<AuthResult>("/api/auth/login", { email, password, orgSlug });
 
-export const apiAcceptInvite = (token: string, password: string, fullName: string) =>
-  postJson<AuthResult>("/api/auth/accept-invite", { token, password, fullName });
+export const apiAcceptInvite = (token: string, password: string, usernameOrEmail: string) =>
+  postJson<AuthResult>("/api/auth/accept-invite", { token, password, usernameOrEmail });
 
 /** Rehidrata el access token desde la cookie httpOnly (no recibe el refresh). */
 export const apiRefresh = () => postJson<AuthResult>("/api/auth/refresh", {});

@@ -16,12 +16,22 @@ describe("loginSchema", () => {
 
 describe("acceptInviteSchema", () => {
   it("rechaza contraseñas de menos de 10 caracteres", () => {
-    const r = acceptInviteSchema.safeParse({ fullName: "Ana", password: "short" });
+    const r = acceptInviteSchema.safeParse({ usernameOrEmail: "ana", password: "short" });
     expect(r.success).toBe(false);
   });
 
-  it("acepta nombre + contraseña >= 10", () => {
-    const r = acceptInviteSchema.safeParse({ fullName: "Ana Díaz", password: "Brand0New!!" });
+  it("acepta un username válido + contraseña >= 10", () => {
+    const r = acceptInviteSchema.safeParse({ usernameOrEmail: "ana_diaz", password: "Brand0New!!" });
     expect(r.success).toBe(true);
+  });
+
+  it("acepta un email + contraseña >= 10", () => {
+    const r = acceptInviteSchema.safeParse({ usernameOrEmail: "ana@x.io", password: "Brand0New!!" });
+    expect(r.success).toBe(true);
+  });
+
+  it("rechaza un username inválido (espacios)", () => {
+    const r = acceptInviteSchema.safeParse({ usernameOrEmail: "ana diaz!", password: "Brand0New!!" });
+    expect(r.success).toBe(false);
   });
 });

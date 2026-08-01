@@ -168,7 +168,12 @@ def invitation_info(db: Session, *, token: str) -> dict:
 
 
 def accept_invite(
-    db: Session, *, token: str, password: str, full_name: str
+    db: Session,
+    *,
+    token: str,
+    password: str,
+    username_or_email: str | None = None,
+    full_name: str | None = None,
 ) -> tuple[User, str, str]:
     token_hash = hash_opaque_token(token)
     invitation = db.execute(
@@ -192,11 +197,32 @@ def accept_invite(
             status_code=status.HTTP_400_BAD_REQUEST, detail="no licenses available"
         )
 
+    # Release TASK 3.4: el form pide "usuario o correo" único. Si es email, debe
+    # coincidir con el invitado; si es username, se guarda como username (único
+    # por org) + full_name fallback. `full_name` viejo sigue aceptándose.
+    value = (username_or_email or full_name or "").strip()
+    if not value:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="identificador requerido"
+        )
+    if "@" in value:
+        if value.lower() != invitation.email.lower():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="el correo debe coincidir con el de la invitación",
+            )
+        username: str | None = None
+        display_name = _display_name_from_email(value)
+    else:
+        username = value
+        display_name = value
+
     user = User(
         org_id=org.id,
         email=invitation.email,
         hashed_password=hash_password(password),
-        full_name=full_name,
+        full_name=display_name,
+        username=username,
         role=invitation.role,
         last_login_at=_now(),
     )
@@ -205,7 +231,8 @@ def accept_invite(
         db.flush()
     except IntegrityError as e:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="user already exists in organization"
+            status_code=status.HTTP_409_CONFLICT,
+            detail="ese usuario o correo ya existe en la organización",
         ) from e
 
     org.licenses_used += 1
