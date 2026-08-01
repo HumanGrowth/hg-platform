@@ -1,8 +1,6 @@
 """Marketing contact inquiries (FE-v2-06): public POST + superadmin GET."""
 from __future__ import annotations
 
-import logging
-
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, select
 
@@ -48,16 +46,22 @@ def test_submit_inquiry_public_no_auth(client: TestClient) -> None:
         _cleanup([VALID["email"]])
 
 
-def test_submit_inquiry_with_info_logging(client: TestClient, caplog) -> None:
-    """Regresión: el log.info no debe colisionar con atributos reservados de
-    LogRecord (p.ej. `name`). Sin INFO habilitado el log se saltea y el bug se
-    esconde; acá lo forzamos para que la línea de log se ejecute de verdad."""
+def test_submit_inquiry_triggers_notification_email(client: TestClient, monkeypatch) -> None:
+    """El contact form dispara una notificación interna vía EmailService
+    (template contact_inquiry) a LEADS_INBOX (Release TASK 3)."""
+    calls: list[dict] = []
+    monkeypatch.setattr(
+        "hg.modules.notifications.email_service.email_service.send",
+        lambda **kw: calls.append(kw) or "skipped",
+    )
     payload = {"name": "Log Probe", "email": "logprobe@x.test", "source": "test-log"}
     try:
-        with caplog.at_level(logging.INFO, logger="hg.marketing"):
-            res = client.post("/api/v1/contact/inquiry", json=payload)
+        res = client.post("/api/v1/contact/inquiry", json=payload)
         assert res.status_code == 201, res.text
-        assert any("contact.inquiry" in r.getMessage() for r in caplog.records)
+        assert len(calls) == 1
+        assert calls[0]["template"] == "contact_inquiry"
+        assert calls[0]["context"]["name"] == "Log Probe"
+        assert "@" in calls[0]["to"]  # LEADS_INBOX
     finally:
         _cleanup([payload["email"]])
 

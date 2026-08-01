@@ -48,12 +48,24 @@ def submit_inquiry(
     )
     db.add(inquiry)
     db.flush()
-    # Email stub a Jorge + Roberto (log a stdout por ahora). Resend se conecta en B3-05.
-    # Nota: las claves de `extra` no pueden colisionar con atributos de LogRecord
-    # (p.ej. `name`), o logging lanza KeyError al nivel INFO. Por eso `lead_name`.
-    log.info(
-        "contact.inquiry",
-        extra={"lead_name": payload.name, "email": payload.email, "company": payload.company},
+    # Notificación interna a LEADS_INBOX (admin@humangrowth.io). No rompe el submit
+    # si el email falla (email_service.send loguea y devuelve status).
+    from hg.config import get_settings
+    from hg.modules.notifications.email_service import email_service
+
+    settings = get_settings()
+    email_service.send(
+        to=settings.leads_inbox,
+        subject=f"Nuevo contacto: {payload.name}",
+        template="contact_inquiry",
+        context={
+            "name": payload.name,
+            "email": payload.email,
+            "company": payload.company,
+            "role": payload.role,
+            "message": payload.message,
+            "source": payload.source,
+        },
     )
     return {"ok": True}
 

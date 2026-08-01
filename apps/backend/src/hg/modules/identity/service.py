@@ -26,9 +26,16 @@ from hg.core.security import (
 )
 from hg.modules.identity.invitations import Invitation
 from hg.modules.identity.models import Organization, User, UserRole, UserSession
+from hg.modules.notifications.email_service import email_service
 
 logger = logging.getLogger("hg.identity")
 settings = get_settings()
+
+
+def _display_name_from_email(email: str) -> str:
+    """Nombre legible aproximado desde el email (el invitado aún no tiene nombre)."""
+    local = email.split("@", 1)[0]
+    return local.split(".")[0].replace("_", " ").title() or "hola"
 
 INVITE_TTL_DAYS = 7
 _INVALID_CREDENTIALS = "invalid credentials"
@@ -206,6 +213,18 @@ def accept_invite(
     invitation.accepted_user_id = user.id
 
     access, refresh = _issue_session(db, user)
+
+    # Email de bienvenida (no rompe el registro si falla). El CTA apunta a
+    # /modulos por ahora; pasará a /modulos/intro cuando exista (Release TASK 6).
+    email_service.send(
+        to=user.email,
+        subject="¡Bienvenida a HumanGrowth!",
+        template="welcome",
+        context={
+            "nombre": (user.full_name or "").split(" ")[0] or "hola",
+            "cta_url": f"{settings.app_base_url}/modulos",
+        },
+    )
     return user, access, refresh
 
 
@@ -269,8 +288,14 @@ def create_invitation(
     db.flush()
 
     invite_url = f"{settings.app_base_url}/accept-invite?token={plain}"
-    # Email stub: en MVP sólo se loggea (envío real en B3-05).
-    logger.info("invitation_email_stub", extra={"to": email, "url": invite_url})
+    # Email real de invitación (template oficial Invitacion Beta). Nunca rompe el
+    # flujo: email_service.send loguea y devuelve status, no levanta.
+    email_service.send(
+        to=email,
+        subject="Tu acceso beta a HumanGrowth",
+        template="invitation",
+        context={"nombre": _display_name_from_email(email), "link": invite_url},
+    )
     return invitation, plain
 
 
