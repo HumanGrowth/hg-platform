@@ -63,8 +63,8 @@ def test_manager_sees_same_states_as_collaborator(client: TestClient, factory, a
     try:
         # Colaborador (el propio report) vía /me/results.
         me = client.get("/api/v1/assessment/me/results", headers=auth_headers(report))
+        assert me.status_code == 200
         me_states = {r["pillar_code"]: r["state_code"] for r in me.json()["results"]}
-
         # Manager vía /team/[id] detail.
         mgr = client.get(f"/api/v1/manager/users/{report.id}/detail", headers=auth_headers(manager))
         assert mgr.status_code == 200
