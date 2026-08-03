@@ -286,7 +286,13 @@ def list_orgs(db: Session, *, limit: int, offset: int) -> tuple[list[Organizatio
 
 
 def create_invitation(
-    db: Session, *, org_id: UUID, email: str, role: UserRole, invited_by: User
+    db: Session,
+    *,
+    org_id: UUID,
+    email: str,
+    role: UserRole,
+    invited_by: User,
+    name: str | None = None,
 ) -> tuple[Invitation, str]:
     org = db.get(Organization, org_id)
     if org is None:
@@ -321,7 +327,10 @@ def create_invitation(
         to=email,
         subject="Tu acceso beta a HumanGrowth",
         template="invitation",
-        context={"nombre": _display_name_from_email(email), "link": invite_url},
+        context={
+            "nombre": (name or "").strip() or _display_name_from_email(email),
+            "link": invite_url,
+        },
     )
     return invitation, plain
 

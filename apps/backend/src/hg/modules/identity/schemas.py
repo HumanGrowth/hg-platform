@@ -131,6 +131,9 @@ class OrgListResponse(BaseModel):
 class InviteRequest(BaseModel):
     email: Email
     role: UserRole = UserRole.collaborator
+    # Nombre opcional del invitado: si viene, se usa en el saludo del email en
+    # vez de derivarlo del correo. No se persiste; sólo alimenta el template.
+    name: str | None = Field(default=None, min_length=1, max_length=255)
 
 
 class InviteResponse(BaseModel):
