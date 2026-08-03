@@ -162,8 +162,11 @@ export const apiCreateInvite = async (
   orgId: string,
   email: string,
   role: string,
+  name?: string,
 ): Promise<{ invite_token: string; invite_url: string; expires_at: string; email: string }> => {
-  const res = await backend.post(`/api/v1/admin/orgs/${orgId}/invite`, { email, role });
+  const body: { email: string; role: string; name?: string } = { email, role };
+  if (name && name.trim()) body.name = name.trim();
+  const res = await backend.post(`/api/v1/admin/orgs/${orgId}/invite`, body);
   return res.data;
 };
 

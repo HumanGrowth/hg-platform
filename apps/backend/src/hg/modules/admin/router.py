@@ -62,7 +62,7 @@ def invite(
     actor: User = Depends(require_role("superadmin", "admin")),
 ) -> InviteResponse:
     invitation, plain = service.create_invitation(
-        db, org_id=org_id, email=body.email, role=body.role, invited_by=actor
+        db, org_id=org_id, email=body.email, role=body.role, invited_by=actor, name=body.name
     )
     invite_url = f"{service.settings.app_base_url}/accept-invite?token={plain}"
     return InviteResponse(

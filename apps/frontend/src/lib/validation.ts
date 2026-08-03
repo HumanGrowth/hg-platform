@@ -34,6 +34,8 @@ export type CreateOrgValues = z.infer<typeof createOrgSchema>;
 export const inviteSchema = z.object({
   email: z.string().min(1, "Email requerido").email("Email inválido"),
   role: z.enum(["admin", "manager", "collaborator"]),
+  // Nombre opcional: si se completa, se usa en el saludo del email.
+  name: z.string().max(255).optional().or(z.literal("")),
 });
 export type InviteValues = z.infer<typeof inviteSchema>;
 

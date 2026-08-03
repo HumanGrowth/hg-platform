@@ -72,7 +72,7 @@ function AdminOrgDetailContent() {
 
   async function onInvite(values: InviteValues) {
     try {
-      const res = await apiCreateInvite(orgId, values.email, values.role);
+      const res = await apiCreateInvite(orgId, values.email, values.role, values.name);
       setCreated({ url: res.invite_url, email: res.email });
       reset();
       loadInvites();
@@ -231,6 +231,13 @@ function AdminOrgDetailContent() {
           </div>
         ) : (
           <form onSubmit={handleSubmit(onInvite)} className="flex flex-col gap-4" noValidate>
+            <div>
+              <Label htmlFor="name">Nombre <span className="text-fg-muted">(opcional)</span></Label>
+              <Input id="name" type="text" placeholder="Nombre del invitado" {...register("name")} />
+              {errors.name ? (
+                <p className="mt-1 text-xs text-danger">{errors.name.message}</p>
+              ) : null}
+            </div>
             <div>
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" placeholder="persona@empresa.com" {...register("email")} />

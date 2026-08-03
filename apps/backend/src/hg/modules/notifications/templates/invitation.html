@@ -9,11 +9,13 @@
 <title>Invitación beta · HumanGrowth</title>
 <!--
   ============================================================
-  CÓMO PERSONALIZAR (2 cambios por persona):
-    1) {{ nombre }}  → el nombre de quien recibe (aparece 1 vez)
-    2) {{ link }}    → su enlace de invitación (aparece 2 veces:
-                     en el botón y en el texto de respaldo)
-  Reemplaza el texto tal cual, guarda y envía. Nada más.
+  Template oficial "Invitación Beta". Fuente de diseño:
+  Design/Invitacion Beta.html. Renderizado con Jinja2.
+  Variables de contexto:
+    {{ nombre }}  → nombre de quien recibe (1 vez)
+    {{ link }}    → enlace de invitación (botón + texto de respaldo)
+  El link al formulario de feedback (Typeform) es fijo:
+    https://form.typeform.com/to/WP0T4uaP
   ============================================================
 -->
 <style>
@@ -130,6 +132,32 @@
                 <td class="px" align="center" style="padding:6px 44px 4px 44px;">
                   <p style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:20px; color:#8A8474;">¿El botón no funciona? Copia y pega este enlace:</p>
                   <p style="margin:6px 0 0 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:20px; word-break:break-all;"><a href="{{ link }}" target="_blank" style="color:#4A7A54; text-decoration:underline;">{{ link }}</a></p>
+                </td>
+              </tr>
+
+              <!-- Cómo darnos feedback -->
+              <tr>
+                <td class="px" style="padding:28px 44px 6px 44px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#F1ECE0; border-radius:14px;">
+                    <tr>
+                      <td style="padding:20px 24px 6px 24px; font-family:Arial,Helvetica,sans-serif; font-size:12px; line-height:16px; font-weight:bold; letter-spacing:1.5px; text-transform:uppercase; color:#8A8474;">Cómo participar de la beta</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:4px 24px 18px 24px; font-family:Arial,Helvetica,sans-serif; font-size:15px; line-height:24px; color:#3A3A38;">
+                        <p style="margin:0 0 10px 0;"><strong style="color:#1A1A1A;">1.</strong>&nbsp;Activá tu acceso con el botón de arriba y explorá la app 15-20 minutos. Hacé tu primera evaluación y empezá tu primer módulo.</p>
+                        <p style="margin:0 0 10px 0;"><strong style="color:#1A1A1A;">2.</strong>&nbsp;Usala 3-4 días como te venga natural. Anotá lo que te confunda o te sorprenda, en el momento — después se olvida.</p>
+                        <p style="margin:0 0 14px 0;"><strong style="color:#1A1A1A;">3.</strong>&nbsp;Contanos qué te pareció en este formulario corto (5-7 min, se responde desde el teléfono):</p>
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                          <tr>
+                            <td align="center" bgcolor="#4A7A54" style="border-radius:10px;">
+                              <a href="https://form.typeform.com/to/WP0T4uaP" target="_blank" style="display:block; font-family:Arial,Helvetica,sans-serif; font-size:15px; line-height:20px; font-weight:bold; color:#FFFFFF; padding:13px 26px; border-radius:10px;">Responder el formulario&nbsp;→</a>
+                            </td>
+                          </tr>
+                        </table>
+                        <p style="margin:12px 0 0 0; font-size:13px; line-height:20px; color:#8A8474;">Sin apuro — el link no vence. Al final del formulario te preguntamos si querés sumarte a una entrevista corta de 20 min. Como agradecimiento, quienes participen reciben <strong style="color:#1A1A1A;">acceso ilimitado a HumanGrowth por 2 años</strong> cuando lancemos oficialmente.</p>
+                      </td>
+                    </tr>
+                  </table>
                 </td>
               </tr>
 
