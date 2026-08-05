@@ -54,7 +54,7 @@ def get_event(
 @admin_router.get("/community-events", response_model=CommunityEventListResponse)
 def admin_list_events(
     db: Session = Depends(get_db_as_superadmin),
-    _: User = Depends(require_role("admin", "superadmin")),
+    _: User = Depends(require_role("superadmin")),
 ) -> CommunityEventListResponse:
     # Incluye inactivos para gestión.
     return CommunityEventListResponse(items=service.list_community_events(db, only_active=False))
@@ -66,7 +66,7 @@ def admin_list_events(
 def create_event(
     payload: CommunityEventCreate,
     db: Session = Depends(get_db_as_superadmin),
-    _: User = Depends(require_role("admin", "superadmin")),
+    _: User = Depends(require_role("superadmin")),
 ) -> CommunityEventOut:
     return service.create_community_event(db, payload)
 
@@ -76,7 +76,7 @@ def update_event(
     event_id: UUID,
     payload: CommunityEventUpdate,
     db: Session = Depends(get_db_as_superadmin),
-    _: User = Depends(require_role("admin", "superadmin")),
+    _: User = Depends(require_role("superadmin")),
 ) -> CommunityEventOut:
     try:
         return service.update_community_event(db, event_id, payload)
@@ -88,7 +88,7 @@ def update_event(
 def delete_event(
     event_id: UUID,
     db: Session = Depends(get_db_as_superadmin),
-    _: User = Depends(require_role("admin", "superadmin")),
+    _: User = Depends(require_role("superadmin")),
 ) -> None:
     try:
         service.delete_community_event(db, event_id)
