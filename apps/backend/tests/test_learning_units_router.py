@@ -526,31 +526,37 @@ def _make_minimal_unit(
         s.close()
 
 
-def test_by_pillar_filters_by_pillar_number_and_orders_by_level_then_unit_number(
+def test_by_pillar_filters_by_dimension_and_orders_by_level_pillar_unit(
     client: TestClient, factory, auth_headers
 ) -> None:
-    """Cierre-beta TASK 0: agrupa por `pillar_number` (no `dimension_code`) y
-    ordena por `level_code` ASC, `unit_number` ASC (la secuencia del Drive)."""
+    """Agrupa por `dimension_code` (CP=Carrera → P1); ordena por la convención del
+    Drive `Dimensión-Nivel-Pilar-Número`: level → pillar_number → unit_number.
+    Una unit de OTRA dimensión (PR) no aparece bajo P1."""
     _, headers = _auth(factory, auth_headers)
     slugs = [f"bp-test-{uuid.uuid4().hex[:8]}" for _ in range(4)]
     ids = []
     try:
-        # Todas dimension_code=CP; lo que agrupa es pillar_number. P1 → pillar 1.
-        # L2 unit 1; L1 unit 2; L1 unit 1 → esperado: (L1 u1), (L1 u2), (L2 u1).
-        # El 4º es del MISMO dimension_code pero pillar 2 → NO debe aparecer en P1.
+        # Todas Carrera (CP) salvo la última (PR=Propósito, otra dimensión).
+        # Orden esperado dentro de CP: L1/p1/u1, L1/p2/u1, L2/p1/u1.
         ids.append(_make_minimal_unit(slugs[0], dimension_code="CP", level_code="L2", pillar_number=1, unit_number=1))
-        ids.append(_make_minimal_unit(slugs[1], dimension_code="CP", level_code="L1", pillar_number=1, unit_number=2))
+        ids.append(_make_minimal_unit(slugs[1], dimension_code="CP", level_code="L1", pillar_number=2, unit_number=1))
         ids.append(_make_minimal_unit(slugs[2], dimension_code="CP", level_code="L1", pillar_number=1, unit_number=1))
-        ids.append(_make_minimal_unit(slugs[3], dimension_code="CP", level_code="L1", pillar_number=2, unit_number=1))
+        ids.append(_make_minimal_unit(slugs[3], dimension_code="PR", level_code="L1", pillar_number=1, unit_number=1))
 
         res = client.get("/api/v1/modulos/by-pillar", headers=headers, params={"pillar_code": "P1"})
         assert res.status_code == 200, res.text
         returned_slugs = [u["slug"] for u in res.json()]
-        assert slugs[3] not in returned_slugs  # otro pillar_number, excluido
-        # L1 antes que L2; dentro de L1, unit_number 1 (slugs[2]) antes que 2 (slugs[1]).
+        assert slugs[3] not in returned_slugs  # dimensión PR (Propósito), no Carrera
+        # L1 antes que L2; dentro de L1, pillar 1 (slugs[2]) antes que pillar 2 (slugs[1]).
         assert returned_slugs.index(slugs[2]) < returned_slugs.index(slugs[1])
         assert returned_slugs.index(slugs[1]) < returned_slugs.index(slugs[0])
         assert all(u["attempt_status"] == "not_started" for u in res.json())
+
+        # P2 (Propósito → PR) trae la unit PR y NO las de Carrera.
+        res_p2 = client.get("/api/v1/modulos/by-pillar", headers=headers, params={"pillar_code": "P2"})
+        p2_slugs = [u["slug"] for u in res_p2.json()]
+        assert slugs[3] in p2_slugs
+        assert slugs[0] not in p2_slugs
     finally:
         for uid in ids:
             s = SessionLocal()

@@ -1,37 +1,28 @@
-"""Registro de dimensiones del Drive ↔ career paths de la app (TASK 1).
+"""Registro de dimensiones del Drive ↔ career paths de la app.
 
-`dimension_code` guarda el código del Drive (``CP``, …). La personalización de
-la app (enrollments, radar, `/path`) usa los códigos de career_path (``P1..P6``).
-Este registro puentea ambos. Hoy solo existe la dimensión CP (Carrera).
+Convención de naming del Drive: ``Dimensión-Nivel-Pilar-Número`` (``CP-L1-P2-001``).
+- **Dimensión** (``dimension_code``: CP/PR/RE/SA/PI/ES) = el nivel superior — los
+  6 pilares/dimensiones de la app (radar, `/path`, `/modulos`). ES lo que agrupa.
+- **Pilar** (``pillar_number``) = un sub-grupo DENTRO de la dimensión, no una
+  dimensión propia. Solo se usa para ordenar dentro de una dimensión.
 
-Cuando Jorge agregue las otras 5 dimensiones al Drive, se añaden acá su código
-Drive + el career_path equivalente (una sola línea por dimensión).
+La app usa códigos de career_path (``P1..P6``); este registro los puentea con las
+dimensiones Drive. Hoy solo hay contenido de la dimensión **CP (Carrera)** en la
+DB → todas las units publicadas viven bajo Carrera (P1); el resto de dimensiones
+quedan vacías hasta que Jorge las suba al Drive.
 """
 from __future__ import annotations
 
-# NUEVA CONVENCIÓN (cierre-beta TASK 0):
-# La agrupación de módulos en la app es por `pillar_number` (1..6) a nivel UNIT,
-# NO por `dimension_code`. La dimensión Drive (CP/PR/RE/SA/PI/ES) es puramente
-# organizativa del Drive y NO se usa para agrupar. Cada unit trae su `pillar_number`
-# parseado del nombre de carpeta (`CP-L1-P2-001` → pillar 2), y así se distribuye
-# a su pilar aunque su dimensión Drive sea otra. Ver `pillar_number_for_career_path`.
-
-# @deprecated para agrupar/listar módulos — quedó solo para el feed personalizado
-# por enrollment (`_select_feed_units`), que TASK 1 (Mi Ruta) revisará. No usar
-# para nuevos listados: usar `pillar_number_for_career_path`.
-# Drive dimension code → career_path code (P1..P6) de la app.
+# Drive dimension code → career_path code (P1..P6) de la app. LA agrupación de
+# módulos es por acá (dimension_code), NO por pillar_number.
 DRIVE_TO_CAREER_PATH: dict[str, str] = {
-    "CP": "P1",  # Carrera Profesional → Carrera e impacto
+    "CP": "P1",  # Carrera Profesional
+    "PR": "P2",  # Propósito y Significado
+    "RE": "P3",  # Relaciones y Conexiones
+    "SA": "P4",  # Salud y Bienestar
+    "PI": "P5",  # Paz Interior
+    "ES": "P6",  # Estabilidad
 }
-
-
-def pillar_number_for_career_path(pillar_code: str) -> int | None:
-    """``P1``..``P6`` → ``1``..``6`` (el `pillar_number` de las units). ``None`` si
-    el código no tiene la forma esperada. Fuente de agrupación de módulos en la app."""
-    code = pillar_code.strip().upper()
-    if len(code) == 2 and code[0] == "P" and code[1].isdigit() and 1 <= int(code[1]) <= 6:
-        return int(code[1])
-    return None
 
 # Inverso: career_path code → códigos Drive que le corresponden.
 _CAREER_PATH_TO_DRIVE: dict[str, list[str]] = {}
