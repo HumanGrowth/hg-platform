@@ -207,6 +207,7 @@ export const en = {
     ],
     email: "admin@humangrowth.io",
     linkedin: "https://www.linkedin.com/company/humangrowthlatam",
+    instagram: "https://www.instagram.com/humangrowth.io",
   },
   method: {
     meta: {
@@ -218,7 +219,7 @@ export const en = {
       eyebrow: "METHOD",
       title: "The science behind us.",
       subtitle:
-        "Six pillars, instruments with decades of published validation, and one rule: we don't invent scientific content. We import proven frameworks and adapt them to LatAm.",
+        "Six pillars, instruments with decades of published validation, and one rule: We use proven scientific frameworks, adapted to the reality of LatAm.",
     },
     system: {
       eyebrow: "A SYSTEM, NOT SIX MODULES",
@@ -290,7 +291,7 @@ export const en = {
     rigor: {
       eyebrow: "RIGOR & LIMITS",
       title: "What the evidence supports — and what's still debated.",
-      body: "Unlike those who declare an accuracy figure without opening the paper, we openly mark what's solid evidence and what's open debate. That honesty is part of the method, not a footnote.",
+      body: "Unlike those who declare an accuracy figure without research, we openly mark what's solid evidence and what's open debate. That honesty is part of the method, not a footnote.",
       points: [
         { title: "Correlation vs. causation", body: "Much of the evidence is longitudinal but observational; some effects could be partly a consequence, not only a cause, of wellbeing. We flag it where it applies." },
         { title: "Cultural & socioeconomic bias", body: "Many instruments were validated in Western, well-off populations. Under scarcity the relationship between variables can operate differently — which is why we adapt them." },

@@ -1,6 +1,6 @@
 "use client";
 
-import { Linkedin } from "lucide-react";
+import { Instagram, Linkedin } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -74,6 +74,15 @@ export default function Footer() {
               className="text-hg-cream/80 transition-colors hover:text-white"
             >
               <Linkedin size={20} strokeWidth={1.75} />
+            </a>
+            <a
+              href={c.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram Human Growth"
+              className="text-hg-cream/80 transition-colors hover:text-white"
+            >
+              <Instagram size={20} strokeWidth={1.75} />
             </a>
             <a
               href={`mailto:${c.email}`}

@@ -32,12 +32,12 @@ export default function Quote() {
       </p>
 
       <div className="mt-8 flex items-center gap-3.5">
-        <div
-          className="w-12 h-12 rounded-full text-fg font-bold flex items-center justify-center"
-          style={{ background: "#FFD9C2" }}
-        >
-          JA
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/marketing/mentors/jorge.jpg"
+          alt={c.quote.author}
+          className="h-12 w-12 rounded-full object-cover"
+        />
         <div>
           <div className="font-bold">
             {c.quote.author}{" "}
