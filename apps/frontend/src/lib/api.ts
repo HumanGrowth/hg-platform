@@ -6,8 +6,10 @@ import type {
   AdminUser,
   AssessmentPillarCode,
   AssessmentSession,
+  AssignableUnit,
   AuthResult,
   BlockProgressOut,
+  ModuleAssignment,
   CareerPath,
   CommunityEvent,
   CommunityEventInput,
@@ -513,4 +515,47 @@ export const apiSubmitReflection = async (
   text: string,
 ): Promise<void> => {
   await backend.post(`/api/v1/modulos/${slug}/blocks/${blockId}/reflection/submit`, { text });
+};
+
+// ─────────────────────────── Asignaciones de módulos (TASK 3) ───────────────────────────
+
+export const apiListAssignableUnits = async (): Promise<AssignableUnit[]> => {
+  const res = await backend.get<AssignableUnit[]>("/api/v1/admin/assignable-units");
+  return res.data;
+};
+
+export const apiListUserAssignments = async (userId: string): Promise<ModuleAssignment[]> => {
+  const res = await backend.get<ModuleAssignment[]>(`/api/v1/admin/users/${userId}/assignments`);
+  return res.data;
+};
+
+export const apiAssignModules = async (
+  userId: string,
+  unitIds: string[],
+  dueDate?: string | null,
+  note?: string | null,
+): Promise<ModuleAssignment[]> => {
+  const res = await backend.post<ModuleAssignment[]>(`/api/v1/admin/users/${userId}/assignments`, {
+    unit_ids: unitIds,
+    due_date: dueDate ?? null,
+    note: note ?? null,
+  });
+  return res.data;
+};
+
+export const apiUpdateAssignment = async (
+  id: string,
+  body: { due_date?: string | null; note?: string | null },
+): Promise<ModuleAssignment> => {
+  const res = await backend.patch<ModuleAssignment>(`/api/v1/admin/assignments/${id}`, body);
+  return res.data;
+};
+
+export const apiDeleteAssignment = async (id: string): Promise<void> => {
+  await backend.delete(`/api/v1/admin/assignments/${id}`);
+};
+
+export const apiMyAssignments = async (): Promise<ModuleAssignment[]> => {
+  const res = await backend.get<ModuleAssignment[]>("/api/v1/me/assignments");
+  return res.data;
 };

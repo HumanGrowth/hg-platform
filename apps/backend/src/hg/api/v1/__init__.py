@@ -12,6 +12,8 @@ from hg.modules.community_events.router import public_router as community_events
 from hg.modules.identity.router import router as identity_router
 from hg.modules.learning.router import router as learning_router
 from hg.modules.learning_units.admin_router import router as learning_units_admin_router
+from hg.modules.learning_units.assignments_router import admin_router as assignments_admin_router
+from hg.modules.learning_units.assignments_router import me_router as assignments_me_router
 from hg.modules.learning_units.router import router as learning_units_router
 from hg.modules.marketing.router import admin_router as marketing_admin_router
 from hg.modules.marketing.router import public_router as marketing_public_router
@@ -43,6 +45,10 @@ router.include_router(community_events_admin_router, prefix="/admin", tags=["adm
 router.include_router(learning_units_router, tags=["learning-units"])
 # Learning Units CMS: /admin/learning-units, /admin/blocks/* (superadmin)
 router.include_router(learning_units_admin_router, prefix="/admin", tags=["admin", "learning-units"])
+# Asignaciones de módulos (cierre-beta TASK 3): /admin/users/{id}/assignments +
+# /admin/assignments/{id} (manager/admin) · /me/assignments (colaborador)
+router.include_router(assignments_admin_router, prefix="/admin", tags=["admin", "assignments"])
+router.include_router(assignments_me_router, prefix="/me", tags=["assignments"])
 # Manager: /manager/me/team + /manager/users/{id}/... (B4-A)
 router.include_router(manager_router, prefix="/manager", tags=["manager"])
 # RRHH: /admin/org/metrics + /admin/org/users/export.csv (B4-A)

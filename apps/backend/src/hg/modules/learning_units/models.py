@@ -470,6 +470,42 @@ class ReflectionText(Base):
     )
 
 
+MODULE_ASSIGNMENT_STATUSES = ("assigned", "in_progress", "completed", "skipped")
+
+
+class ModuleAssignment(Base):
+    """Asignación de una learning unit a un colaborador por su manager/admin
+    (cierre-beta TASK 3). Es ADITIVA: no restringe qué módulos ve el usuario,
+    solo los marca ("Asignado por tu manager") y los prioriza. RLS por org
+    (tenant_isolation), igual que enrollments."""
+
+    __tablename__ = "module_assignments"
+    __table_args__ = (
+        UniqueConstraint("user_id", "learning_unit_id", name="uq_module_assignment_user_unit"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    org_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    learning_unit_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("learning_units.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    assigned_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    # "assigned" | "in_progress" | "completed" | "skipped" (validado en el schema).
+    status: Mapped[str] = mapped_column(String(20), server_default="assigned", nullable=False)
+    note: Mapped[str | None] = mapped_column(Text)
+    due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    assigned_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 # Resolución del FK polimórfico de UnitBlock.block_id → tabla de template.
 BLOCK_TYPE_TO_MODEL: dict[UnitBlockType, type] = {
     UnitBlockType.video_intro: VideoBlock,

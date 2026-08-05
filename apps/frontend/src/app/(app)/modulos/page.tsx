@@ -15,7 +15,7 @@ import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { apiGetHomeDashboard, apiGetModulosFeed, apiListModulosByPillar } from "@/lib/api";
+import { apiGetHomeDashboard, apiGetModulosFeed, apiListModulosByPillar, apiMyAssignments } from "@/lib/api";
 import { pillarShortName } from "@/lib/pillars";
 import type { LearningUnitFeed, LearningUnitFeedItem } from "@/lib/types";
 
@@ -30,6 +30,13 @@ function ModulosPageContent() {
   const [filteredUnits, setFilteredUnits] = React.useState<LearningUnitFeedItem[] | null>(null);
   const [streakDays, setStreakDays] = React.useState<number | null>(null);
   const [showAllNext, setShowAllNext] = React.useState(false);
+  const [assignedIds, setAssignedIds] = React.useState<Set<string>>(new Set());
+
+  React.useEffect(() => {
+    apiMyAssignments()
+      .then((rows) => setAssignedIds(new Set(rows.map((a) => a.learning_unit_id))))
+      .catch(() => setAssignedIds(new Set()));
+  }, []);
 
   const NEXT_PREVIEW = 3;
 
@@ -140,9 +147,11 @@ function ModulosPageContent() {
 
       {status === "ok" && !isEmpty && pillarFilter && filteredUnits && (
         <div className="mt-8 flex flex-col gap-3">
-          {filteredUnits.map((unit) => (
-            <UnitCardCompact key={unit.id} unit={unit} />
-          ))}
+          {[...filteredUnits]
+            .sort((a, b) => Number(assignedIds.has(b.id)) - Number(assignedIds.has(a.id)))
+            .map((unit) => (
+              <UnitCardCompact key={unit.id} unit={unit} assigned={assignedIds.has(unit.id)} />
+            ))}
         </div>
       )}
 
@@ -165,7 +174,7 @@ function ModulosPageContent() {
                 <Eyebrow className="mb-3">Próximos en tu ruta</Eyebrow>
                 <div className="flex flex-col gap-3">
                   {(showAllNext ? feed.next : feed.next.slice(0, NEXT_PREVIEW)).map((unit) => (
-                    <UnitCardCompact key={unit.id} unit={unit} />
+                    <UnitCardCompact key={unit.id} unit={unit} assigned={assignedIds.has(unit.id)} />
                   ))}
                 </div>
                 {feed.next.length > NEXT_PREVIEW && (

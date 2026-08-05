@@ -7,7 +7,13 @@ import type { LearningUnitFeedItem } from "@/lib/types";
 import { unitCanonicalPath } from "@/lib/modulos";
 import { formatApproxMinutes } from "@/lib/utils";
 
-export function UnitCardCompact({ unit }: { unit: LearningUnitFeedItem }) {
+export function UnitCardCompact({
+  unit,
+  assigned = false,
+}: {
+  unit: LearningUnitFeedItem;
+  assigned?: boolean;
+}) {
   const completed = unit.attempt_status === "completed";
   const pillar = dimensionToPillar(unit.dimension_code);
   return (
@@ -36,6 +42,7 @@ export function UnitCardCompact({ unit }: { unit: LearningUnitFeedItem }) {
       <div className="min-w-0 flex-1">
         <h3 className="line-clamp-1 font-sans text-sm font-semibold text-fg">{unit.title}</h3>
         <div className="mt-1 flex flex-wrap items-center gap-2">
+          {assigned && <Badge variant="info">Asignado por tu manager</Badge>}
           <Badge variant={pillarBadgeVariant(pillar)}>
             {pillarShortName(pillar)}
           </Badge>
