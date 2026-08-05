@@ -58,14 +58,19 @@ export default function HomePage() {
   const finishTour = React.useCallback(
     async (action: "finish" | "skip") => {
       setShowTour(false);
+      // Optimista: marcamos `has_seen_onboarding` en el store YA. Antes solo se
+      // actualizaba con la respuesta del POST; si el POST fallaba o tardaba, el
+      // flag quedaba en false y el tour re-disparaba en navegación SPA (bug
+      // reportado en beta). El backend persiste igual (best-effort abajo).
+      if (user) setUser({ ...user, has_seen_onboarding: true });
       try {
         setUser(await apiSetOnboardingSeen(true));
       } catch {
-        /* no bloquear el flujo si falla */
+        /* el flag optimista ya evita el re-trigger de la sesión */
       }
       if (action === "finish") router.push("/modulos/intro" as Route);
     },
-    [router, setUser],
+    [router, setUser, user],
   );
 
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");

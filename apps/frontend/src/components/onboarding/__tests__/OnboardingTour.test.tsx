@@ -11,7 +11,7 @@ describe("OnboardingTour", () => {
     expect(screen.getByText("Bienvenida, Ana")).toBeTruthy();
     // Avanzar hasta el último de 6 pasos.
     for (let i = 0; i < 5; i++) fireEvent.click(screen.getByText("Siguiente"));
-    const finish = screen.getByText("Empezar con el módulo introductorio");
+    const finish = screen.getByText("Comenzar mi primer módulo");
     fireEvent.click(finish);
     expect(onDone).toHaveBeenCalledWith("finish");
   });
