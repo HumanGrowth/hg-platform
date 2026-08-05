@@ -12,7 +12,8 @@ from hg.modules.learning.models import CareerLevel, CareerPath, Event, EventTrac
 
 
 def _admin_headers(factory, auth_headers):
-    admin = factory.make_user(org=factory.make_org(), role=UserRole.admin)
+    # Cierre-beta TASK 6: la gestión de eventos es superadmin-only.
+    admin = factory.make_user(org=factory.make_org(), role=UserRole.superadmin)
     return auth_headers(admin)
 
 
@@ -126,3 +127,14 @@ def test_admin_write_requires_admin(client: TestClient, factory, auth_headers) -
     )
     assert r.status_code == 403
     assert client.post("/api/v1/admin/community-events", json={"type": "material", "title": "x"}).status_code in (401, 403)
+
+
+def test_org_admin_cannot_manage_events_superadmin_only(client: TestClient, factory, auth_headers) -> None:
+    """Cierre-beta TASK 6: un admin de org (no superadmin) NO puede gestionar
+    eventos — es superadmin-only (frontend + backend)."""
+    admin = auth_headers(factory.make_user(org=factory.make_org(), role=UserRole.admin))
+    assert client.get("/api/v1/admin/community-events", headers=admin).status_code == 403
+    assert client.post(
+        "/api/v1/admin/community-events", headers=admin,
+        json={"type": "material", "title": "x"},
+    ).status_code == 403
