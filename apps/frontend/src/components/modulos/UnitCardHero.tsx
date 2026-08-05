@@ -22,7 +22,15 @@ export function UnitCardHero({ unit }: { unit: LearningUnitFeedItem }) {
   const pillarDot = PILLARS.find((p) => p.id === pillar)?.dot;
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-bg-raised">
-      <div className={cn("h-1.5 w-full", pillarDot ?? "bg-bg-sunken")} aria-hidden />
+      {unit.poster_url ? (
+        <div className="relative aspect-video w-full overflow-hidden bg-bg-sunken">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={unit.poster_url} alt="" className="h-full w-full object-cover" />
+          <div className={cn("absolute inset-x-0 top-0 h-1.5", pillarDot ?? "bg-bg-sunken")} aria-hidden />
+        </div>
+      ) : (
+        <div className={cn("h-1.5 w-full", pillarDot ?? "bg-bg-sunken")} aria-hidden />
+      )}
       <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <Eyebrow accent>Tu módulo de hoy</Eyebrow>

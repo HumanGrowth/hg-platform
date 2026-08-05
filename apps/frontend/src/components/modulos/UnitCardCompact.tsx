@@ -15,8 +15,19 @@ export function UnitCardCompact({ unit }: { unit: LearningUnitFeedItem }) {
       href={unitCanonicalPath(unit)}
       className="group flex items-center gap-4 rounded-lg border border-border bg-bg-raised p-4 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
     >
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-bg-sunken text-fg-subtle">
-        {completed ? (
+      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-bg-sunken text-fg-subtle">
+        {unit.poster_url ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={unit.poster_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            <span className="absolute inset-0 bg-black/30" aria-hidden />
+            {completed ? (
+              <Check size={20} strokeWidth={2} className="relative text-white" />
+            ) : (
+              <Play size={18} strokeWidth={2} className="relative text-white" />
+            )}
+          </>
+        ) : completed ? (
           <Check size={20} strokeWidth={2} className="text-success" />
         ) : (
           <Play size={18} strokeWidth={1.75} />
