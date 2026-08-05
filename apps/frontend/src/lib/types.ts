@@ -749,3 +749,26 @@ export interface MyBadge {
   unlocked: boolean;
   unlocked_at: string | null;
 }
+
+export interface ModuleAssignment {
+  id: string;
+  user_id: string;
+  learning_unit_id: string;
+  unit_slug: string;
+  unit_title: string;
+  status: string;
+  note: string | null;
+  due_date: string | null;
+  assigned_at: string;
+  assigned_by_user_id: string | null;
+  assigned_by_name: string | null;
+}
+
+export interface AssignableUnit {
+  id: string;
+  slug: string;
+  title: string;
+  dimension_code: string;
+  level_code: string;
+  pillar_number: number | null;
+}
