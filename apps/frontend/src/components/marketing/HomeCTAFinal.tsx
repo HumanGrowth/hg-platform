@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
+import { showPricing } from "@/lib/flags";
 import { MotionSection } from "@/components/motion/MotionSection";
 import { BrandCircle } from "@/components/motion/BrandCircle";
 import { DecoLayer } from "@/components/motion/DecoLayer";
@@ -32,12 +33,14 @@ export function HomeCTAFinal() {
         >
           {c.primary}
         </Link>
-        <Link
-          href="/pricing"
-          className="bg-transparent text-fg border border-[color:var(--border-strong)] px-8 py-4 rounded-md font-semibold text-base hover:bg-bg-sunken transition-colors"
-        >
-          {c.secondary}
-        </Link>
+        {showPricing() && (
+          <Link
+            href="/pricing"
+            className="bg-transparent text-fg border border-[color:var(--border-strong)] px-8 py-4 rounded-md font-semibold text-base hover:bg-bg-sunken transition-colors"
+          >
+            {c.secondary}
+          </Link>
+        )}
       </div>
       </MotionSection>
     </section>

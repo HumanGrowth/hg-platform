@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { LanguageToggle } from "@/components/marketing/LanguageToggle";
+import { showPricing } from "@/lib/flags";
 
 /** Marketing top nav — 4 tabs + language toggle + drawer mobile (web-v2-08). */
 export default function Nav() {
@@ -22,7 +23,8 @@ export default function Nav() {
       { label: c.platform, href: "/plataforma" },
       { label: c.science, href: "/metodo" },
       { label: c.perspectives, href: "/perspectivas" },
-      { label: c.pricing, href: "/pricing" },
+      // Pricing oculto por flag mientras se define la estrategia comercial.
+      ...(showPricing() ? [{ label: c.pricing, href: "/pricing" as Route }] : []),
     ],
     [c.perspectives, c.platform, c.pricing, c.science],
   );

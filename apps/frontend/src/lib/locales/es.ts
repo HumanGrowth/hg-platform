@@ -207,6 +207,7 @@ export const es = {
     ],
     email: "admin@humangrowth.io",
     linkedin: "https://www.linkedin.com/company/humangrowthlatam",
+    instagram: "https://www.instagram.com/humangrowth.io",
   },
   method: {
     meta: {
@@ -218,7 +219,7 @@ export const es = {
       eyebrow: "MÉTODO",
       title: "La ciencia nos respalda.",
       subtitle:
-        "Seis pilares, instrumentos con décadas de validación publicada y una regla: no inventamos contenido científico. Importamos marcos probados y los tropicalizamos a LatAm.",
+        "Seis pilares, instrumentos con décadas de validación publicada y una regla: Utilizamos marcos científicos probados y ajustados a la realidad de LatAm.",
     },
     system: {
       eyebrow: "UN SISTEMA, NO SEIS MÓDULOS",
@@ -290,7 +291,7 @@ export const es = {
     rigor: {
       eyebrow: "RIGOR Y LÍMITES",
       title: "Lo que la evidencia sostiene — y lo que sigue en debate.",
-      body: "A diferencia de quienes declaran una cifra de precisión sin abrir el paper, marcamos abiertamente qué es evidencia sólida y qué es debate abierto. Esa honestidad es parte del método, no una nota al margen.",
+      body: "A diferencia de quienes declaran una cifra de precisión sin investigación, marcamos abiertamente qué es evidencia sólida y qué es debate abierto. Esa honestidad es parte del método, no una nota al margen.",
       points: [
         { title: "Correlación vs. causalidad", body: "Buena parte de la evidencia es longitudinal pero observacional; algunos efectos podrían ser en parte consecuencia, no solo causa, del bienestar. Lo señalamos donde aplica." },
         { title: "Sesgo cultural y socioeconómico", body: "Muchos instrumentos se validaron en poblaciones occidentales y acomodadas. En contextos de escasez la relación entre variables puede operar distinto — por eso tropicalizamos." },

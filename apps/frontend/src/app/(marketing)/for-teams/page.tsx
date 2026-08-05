@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BrandSawWave } from "@/components/motion/BrandSawWave";
 import { BubbleField } from "@/components/motion/BubbleField";
 import { DecoLayer } from "@/components/motion/DecoLayer";
+import { showPricing } from "@/lib/flags";
 import { getCopy } from "@/lib/i18n";
 
 export const metadata = { title: "Para Equipos — Human Growth" };
@@ -39,12 +40,14 @@ export default function ForTeamsPage() {
           >
             Conversemos →
           </Link>
-          <Link
-            href="/pricing"
-            className="bg-transparent text-fg border border-[color:var(--border-strong)] px-7 py-[15px] rounded-md font-semibold text-base hover:bg-bg-sunken transition-colors"
-          >
-            Ver tarifas
-          </Link>
+          {showPricing() && (
+            <Link
+              href="/pricing"
+              className="bg-transparent text-fg border border-[color:var(--border-strong)] px-7 py-[15px] rounded-md font-semibold text-base hover:bg-bg-sunken transition-colors"
+            >
+              Ver tarifas
+            </Link>
+          )}
         </div>
       </section>
 
