@@ -25,7 +25,10 @@ from hg.db import get_db
 from hg.modules.identity.models import User
 from hg.modules.learning.models import CareerPath, Enrollment
 from hg.modules.learning_units import quiz_grading
-from hg.modules.learning_units.dimensions import dimensions_for_career_paths
+from hg.modules.learning_units.dimensions import (
+    dimensions_for_career_paths,
+    pillar_number_for_career_path,
+)
 from hg.modules.learning_units.models import (
     BLOCK_TYPE_TO_MODEL,
     BlockProgress,
@@ -308,17 +311,19 @@ def list_modulos_by_pillar(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> list[LearningUnitFeedItem]:
-    """Units publicadas de un pilar (TASK lu-refine-A-03) — usado por `/path`
-    para reemplazar el lane de `events` legacy. Ordenadas por `level_code`
-    ASC (L1 primero), tie-break `created_at` DESC (la más nueva primero
-    dentro de un mismo nivel). Excluye units reemplazadas por una versión
-    más nueva (`superseded_by_unit_id IS NOT NULL`) — nunca se le muestra al
-    usuario una unit obsoleta que ya tiene sucesora."""
-    # El frontend sigue pidiendo por career path (P1..P6); traducimos a las
-    # dimensiones Drive correspondientes (hoy P1→CP). Sin mapeo → sin resultados.
-    dims = dimensions_for_career_paths([pillar_code])
+    """Units publicadas de un pilar — usado por `/modulos` y `/path`.
+
+    Agrupación por `pillar_number` (cierre-beta TASK 0): el frontend pide por
+    career path (P1..P6) y se traduce directo a `pillar_number` 1..6 a nivel unit
+    (NO por `dimension_code`, que es solo organizativo del Drive). Así cada unit
+    aparece en su pilar real aunque su dimensión Drive sea CP.
+
+    Orden: `level_code` ASC (L1 primero), tie-break `unit_number` ASC — la misma
+    secuencia del Drive (`...-P2-001, -002, -003`), no el orden de import. Excluye
+    units reemplazadas por una versión más nueva (`superseded_by_unit_id`)."""
+    pillar_number = pillar_number_for_career_path(pillar_code)
     conds = [
-        LearningUnit.dimension_code.in_(dims) if dims else sa_false(),
+        LearningUnit.pillar_number == pillar_number if pillar_number else sa_false(),
         LearningUnit.published_at.isnot(None),
         LearningUnit.superseded_by_unit_id.is_(None),
     ]
@@ -328,7 +333,7 @@ def list_modulos_by_pillar(
     units = db.scalars(
         select(LearningUnit)
         .where(*conds)
-        .order_by(LearningUnit.level_code.asc(), LearningUnit.created_at.desc())
+        .order_by(LearningUnit.level_code.asc(), LearningUnit.unit_number.asc())
         .limit(limit)
     ).all()
     return [_feed_item(db, u, current_user) for u in units]
