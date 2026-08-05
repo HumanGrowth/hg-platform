@@ -14,6 +14,7 @@ from hg.modules.learning.router import router as learning_router
 from hg.modules.learning_units.admin_router import router as learning_units_admin_router
 from hg.modules.learning_units.assignments_router import admin_router as assignments_admin_router
 from hg.modules.learning_units.assignments_router import me_router as assignments_me_router
+from hg.modules.learning_units.path_router import router as path_me_router
 from hg.modules.learning_units.router import router as learning_units_router
 from hg.modules.marketing.router import admin_router as marketing_admin_router
 from hg.modules.marketing.router import public_router as marketing_public_router
@@ -49,6 +50,8 @@ router.include_router(learning_units_admin_router, prefix="/admin", tags=["admin
 # /admin/assignments/{id} (manager/admin) · /me/assignments (colaborador)
 router.include_router(assignments_admin_router, prefix="/admin", tags=["admin", "assignments"])
 router.include_router(assignments_me_router, prefix="/me", tags=["assignments"])
+# Mi Ruta (cierre-beta TASK 1): motor de recomendación GET /me/path
+router.include_router(path_me_router, prefix="/me", tags=["path"])
 # Manager: /manager/me/team + /manager/users/{id}/... (B4-A)
 router.include_router(manager_router, prefix="/manager", tags=["manager"])
 # RRHH: /admin/org/metrics + /admin/org/users/export.csv (B4-A)

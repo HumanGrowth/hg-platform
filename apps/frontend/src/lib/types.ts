@@ -772,3 +772,30 @@ export interface AssignableUnit {
   level_code: string;
   pillar_number: number | null;
 }
+
+export interface PathStep {
+  unit_id: string;
+  slug: string;
+  title: string;
+  dimension_code: string;
+  career_path_code: string;
+  level_code: string;
+  pillar_number: number | null;
+  estimated_minutes: number | null;
+}
+
+export interface PathDimensionProgress {
+  career_path_code: string;
+  name: string;
+  completed: number;
+  total: number;
+}
+
+export interface MyPath {
+  current_level: string | null;
+  next_step: PathStep | null;
+  upcoming: PathStep[];
+  completed_this_level: number;
+  total_this_level: number;
+  dimensions_progress: PathDimensionProgress[];
+}
