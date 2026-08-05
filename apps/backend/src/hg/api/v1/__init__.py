@@ -4,6 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from hg.modules.admin.router import router as admin_router
+from hg.modules.admin.upload_router import router as admin_upload_router
 from hg.modules.assessment.router import router as assessment_router
 from hg.modules.badges.router import me_router as badges_me_router
 from hg.modules.community_events.router import admin_router as community_events_admin_router
@@ -27,6 +28,8 @@ def api_root() -> dict[str, str]:
 
 router.include_router(identity_router, prefix="/auth", tags=["auth"])
 router.include_router(admin_router, prefix="/admin", tags=["admin"])
+# Upload de imágenes admin → R2: POST /admin/upload/image (superadmin)
+router.include_router(admin_upload_router, prefix="/admin", tags=["admin", "upload"])
 # Marketing: POST /contact/inquiry (público) + GET /admin/contact/inquiries (superadmin)
 router.include_router(marketing_public_router, tags=["marketing"])
 router.include_router(marketing_admin_router, prefix="/admin", tags=["marketing"])
