@@ -16,8 +16,8 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import ColumnElement, select
 from sqlalchemy import false as sa_false
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from hg.core.deps import get_current_user
@@ -25,10 +25,7 @@ from hg.db import get_db
 from hg.modules.identity.models import User
 from hg.modules.learning.models import CareerPath, Enrollment
 from hg.modules.learning_units import quiz_grading
-from hg.modules.learning_units.dimensions import (
-    dimensions_for_career_paths,
-    pillar_number_for_career_path,
-)
+from hg.modules.learning_units.dimensions import dimensions_for_career_paths
 from hg.modules.learning_units.models import (
     BLOCK_TYPE_TO_MODEL,
     BlockProgress,
@@ -311,19 +308,20 @@ def list_modulos_by_pillar(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> list[LearningUnitFeedItem]:
-    """Units publicadas de un pilar — usado por `/modulos` y `/path`.
+    """Units publicadas de una dimensión — usado por `/modulos` y `/path`.
 
-    Agrupación por `pillar_number` (cierre-beta TASK 0): el frontend pide por
-    career path (P1..P6) y se traduce directo a `pillar_number` 1..6 a nivel unit
-    (NO por `dimension_code`, que es solo organizativo del Drive). Así cada unit
-    aparece en su pilar real aunque su dimensión Drive sea CP.
+    Agrupación por `dimension_code` (la dimensión Drive CP/PR/RE/SA/PI/ES = los 6
+    pilares de la app). El frontend pide por career path (P1..P6) y se traduce a
+    su(s) dimensión(es) Drive vía `dimensions_for_career_paths`. Hoy solo CP tiene
+    contenido → P1 (Carrera) trae las units, P2-P6 quedan vacíos hasta que Jorge
+    suba esas dimensiones al Drive.
 
-    Orden: `level_code` ASC (L1 primero), tie-break `unit_number` ASC — la misma
-    secuencia del Drive (`...-P2-001, -002, -003`), no el orden de import. Excluye
-    units reemplazadas por una versión más nueva (`superseded_by_unit_id`)."""
-    pillar_number = pillar_number_for_career_path(pillar_code)
-    conds = [
-        LearningUnit.pillar_number == pillar_number if pillar_number else sa_false(),
+    Orden por la convención del Drive `Dimensión-Nivel-Pilar-Número`: dentro de la
+    dimensión, `level_code` ASC → `pillar_number` ASC → `unit_number` ASC (no por
+    orden de import). Excluye units reemplazadas (`superseded_by_unit_id`)."""
+    dims = dimensions_for_career_paths([pillar_code])
+    conds: list[ColumnElement[bool]] = [
+        LearningUnit.dimension_code.in_(dims) if dims else sa_false(),
         LearningUnit.published_at.isnot(None),
         LearningUnit.superseded_by_unit_id.is_(None),
     ]
@@ -333,7 +331,11 @@ def list_modulos_by_pillar(
     units = db.scalars(
         select(LearningUnit)
         .where(*conds)
-        .order_by(LearningUnit.level_code.asc(), LearningUnit.unit_number.asc())
+        .order_by(
+            LearningUnit.level_code.asc(),
+            LearningUnit.pillar_number.asc(),
+            LearningUnit.unit_number.asc(),
+        )
         .limit(limit)
     ).all()
     return [_feed_item(db, u, current_user) for u in units]
