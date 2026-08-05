@@ -10,7 +10,6 @@ import {
   RadarChart,
 } from "recharts";
 
-import { PillarMetaphorPaths } from "@/components/modulos/PillarMetaphor";
 import { dimensionByPillar } from "@/lib/dimensions";
 import { cn } from "@/lib/utils";
 
@@ -128,7 +127,6 @@ export function Radar({
     const len = Math.hypot(dx, dy) || 1;
     const ux = dx / len;
     const uy = dy / len;
-    const M = 20; // media caja de la metáfora (40px)
     const lx = x + ux * 30;
     const ly = y + uy * 30;
     // Baseline adaptativo: arriba/abajo/lados (TASK 6.2).
@@ -142,20 +140,13 @@ export function Radar({
         <title>
           {PILLAR_LABEL[code]}: {values[code] ?? 0}
         </title>
-        <svg
-          x={x - M}
-          y={y - M}
-          width={2 * M}
-          height={2 * M}
-          viewBox="0 0 120 120"
-          fill="none"
-          stroke={PILLAR_HEX[code]}
-          strokeWidth={5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <PillarMetaphorPaths code={code} />
-        </svg>
+        {/* Marker del vértice: dot simple con el color del pilar (TASK · radar
+            limpio — se removieron las metáforas SVG de los vértices). */}
+        <circle cx={x} cy={y} r={4} fill={PILLAR_HEX[code]} />
+        {/* Área de tap invisible más grande para no perder el click del vértice. */}
+        {interactive && dim ? (
+          <circle cx={x} cy={y} r={16} fill="transparent" />
+        ) : null}
         <text
           x={lx}
           y={ly}
