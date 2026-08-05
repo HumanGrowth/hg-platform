@@ -130,3 +130,24 @@ export function dimensionStyle(code: string | undefined): PillarStyle {
 export function pillarIconSrc(code: string): string | null {
   return PILLAR_ICON_SRC[pillarBaseCode(code)] ?? null;
 }
+
+/**
+ * Nombres de los SUB-PILARES dentro de una dimensión (cierre-beta TASK 2.3).
+ * El `pillar_number` (1..N) es un sub-grupo DENTRO de la dimensión Drive, no una
+ * dimensión propia — por eso el nombre depende del `dimension_code`. Hoy solo
+ * está definida Carrera (CP); las otras 5 caen al fallback "Pilar N" hasta que
+ * se confirmen sus nombres.
+ */
+export const SUB_PILLAR_NAMES: Record<string, Record<number, string>> = {
+  CP: {
+    1: "Adaptabilidad de aprendizaje",
+    2: "Excelencia operativa y colaboración",
+    3: "Experticia y pensamiento estratégico",
+    4: "Comunicación e influencia",
+    5: "Inteligencia emocional y social",
+  },
+};
+
+export function subPillarName(dimensionCode: string | undefined, pillarNumber: number): string {
+  return (dimensionCode ? SUB_PILLAR_NAMES[dimensionCode]?.[pillarNumber] : undefined) ?? `Pilar ${pillarNumber}`;
+}
