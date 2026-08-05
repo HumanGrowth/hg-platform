@@ -132,8 +132,13 @@ export function OnboardingTour({
             </button>
           )}
           {isLast ? (
-            <Button size="sm" onClick={() => onDone("finish")}>
-              Empezar con el módulo introductorio
+            <Button
+              size="sm"
+              onClick={() => onDone("finish")}
+              className="h-auto min-h-[44px] whitespace-normal py-2 text-center leading-tight"
+            >
+              Comenzar mi primer módulo
+              <ArrowRight size={16} strokeWidth={1.75} />
             </Button>
           ) : (
             <Button size="sm" onClick={() => setI((v) => v + 1)}>
