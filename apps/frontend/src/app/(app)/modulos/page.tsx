@@ -23,6 +23,7 @@ function ModulosPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pillarFilter = searchParams.get("pillar");
+  const levelFilter = searchParams.get("level"); // "L1".."L4" o null (Todos)
 
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [feed, setFeed] = React.useState<LearningUnitFeed | null>(null);
@@ -36,7 +37,7 @@ function ModulosPageContent() {
     setStatus("loading");
     try {
       if (pillarFilter) {
-        const units = await apiListModulosByPillar(pillarFilter, undefined, 20);
+        const units = await apiListModulosByPillar(pillarFilter, levelFilter ?? undefined, 20);
         setFilteredUnits(units);
       } else {
         const data = await apiGetModulosFeed();
@@ -53,7 +54,7 @@ function ModulosPageContent() {
     } catch {
       setStreakDays(null);
     }
-  }, [pillarFilter]);
+  }, [pillarFilter, levelFilter]);
 
   React.useEffect(() => {
     void load();
@@ -75,11 +76,35 @@ function ModulosPageContent() {
       </p>
 
       {pillarFilter && (
-        <div className="mt-4 flex items-center gap-2">
-          <Chip active onClick={() => router.push("/modulos" as Route)} className="pr-2">
-            Filtrando: {pillarShortName(pillarFilter)}
-            <X size={14} strokeWidth={2} />
-          </Chip>
+        <div className="mt-4 flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <Chip active onClick={() => router.push("/modulos" as Route)} className="pr-2">
+              Filtrando: {pillarShortName(pillarFilter)}
+              <X size={14} strokeWidth={2} />
+            </Chip>
+          </div>
+          {/* Filtro por nivel — persistente en la URL (?level=L2). */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { label: "Todos", code: null },
+              { label: "Nivel 1", code: "L1" },
+              { label: "Nivel 2", code: "L2" },
+              { label: "Nivel 3", code: "L3" },
+              { label: "Nivel 4", code: "L4" },
+            ].map(({ label, code }) => {
+              const params = new URLSearchParams({ pillar: pillarFilter });
+              if (code) params.set("level", code);
+              return (
+                <Chip
+                  key={label}
+                  active={levelFilter === code || (!levelFilter && code === null)}
+                  onClick={() => router.push(`/modulos?${params.toString()}` as Route)}
+                >
+                  {label}
+                </Chip>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -101,7 +126,11 @@ function ModulosPageContent() {
       {status === "ok" && isEmpty && (
         <Card className="mt-8 flex flex-col items-center gap-2 py-16 text-center">
           <p className="font-sans text-md font-semibold text-fg">
-            {pillarFilter ? "Todavía no hay módulos publicados para este pilar." : "Todavía no hay módulos para vos."}
+            {levelFilter
+              ? `Nivel ${levelFilter.replace("L", "")} · próximamente`
+              : pillarFilter
+                ? "Todavía no hay módulos publicados para este pilar."
+                : "Todavía no hay módulos para vos."}
           </p>
           <p className="max-w-prose text-sm text-fg-muted">
             Volvé más tarde — tu coach está preparando nuevo contenido.
