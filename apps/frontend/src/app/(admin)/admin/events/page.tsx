@@ -3,6 +3,7 @@
 import { Pencil, Plus, Star, Trash2 } from "lucide-react";
 import * as React from "react";
 
+import { ImageUploader } from "@/components/admin/ImageUploader";
 import { SuperadminGate } from "@/components/SuperadminGate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,7 @@ function AdminEventsContent() {
   const [open, setOpen] = React.useState(false);
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [form, setForm] = React.useState<CommunityEventInput>(EMPTY);
+  const [heroMode, setHeroMode] = React.useState<"upload" | "url">("upload");
   const [saving, setSaving] = React.useState(false);
 
   const load = React.useCallback(() => {
@@ -247,13 +249,39 @@ function AdminEventsContent() {
             />
           </div>
           <div>
-            <Label htmlFor="ev-hero">Imagen hero (URL)</Label>
-            <Input
-              id="ev-hero"
-              value={form.hero_image_url ?? ""}
-              onChange={(e) => set("hero_image_url", e.target.value)}
-              placeholder="https://…"
-            />
+            <div className="mb-1.5 flex items-center justify-between">
+              <Label htmlFor="ev-hero">Imagen hero</Label>
+              <div className="flex items-center gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setHeroMode("upload")}
+                  className={heroMode === "upload" ? "font-semibold text-primary" : "text-fg-muted hover:text-fg"}
+                >
+                  Subir archivo
+                </button>
+                <span className="text-fg-subtle">·</span>
+                <button
+                  type="button"
+                  onClick={() => setHeroMode("url")}
+                  className={heroMode === "url" ? "font-semibold text-primary" : "text-fg-muted hover:text-fg"}
+                >
+                  Pegar URL
+                </button>
+              </div>
+            </div>
+            {heroMode === "upload" ? (
+              <ImageUploader
+                value={form.hero_image_url ?? ""}
+                onChange={(url) => set("hero_image_url", url)}
+              />
+            ) : (
+              <Input
+                id="ev-hero"
+                value={form.hero_image_url ?? ""}
+                onChange={(e) => set("hero_image_url", e.target.value)}
+                placeholder="https://…"
+              />
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

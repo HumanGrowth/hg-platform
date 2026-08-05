@@ -170,6 +170,14 @@ export const apiCreateInvite = async (
   return res.data;
 };
 
+/** Sube una imagen (superadmin) → R2. Devuelve la URL pública. */
+export const apiUploadImage = async (file: File): Promise<{ url: string }> => {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await backend.post<{ url: string }>("/api/v1/admin/upload/image", fd);
+  return res.data;
+};
+
 export const apiListInvites = async (orgId: string, status?: string) => {
   const res = await backend.get(`/api/v1/admin/orgs/${orgId}/invitations`, {
     params: status ? { status } : undefined,
