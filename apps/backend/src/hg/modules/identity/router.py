@@ -92,7 +92,12 @@ def update_me(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
     db_user.full_name = body.full_name
     db_user.job_title = body.job_title
-    db.commit()
+    # flush (no commit) para no cerrar la transacción a mitad del handler: bajo
+    # `get_db` el rol `hg_app` se fija con SET LOCAL ROLE (transaction-scoped) y
+    # el rol de conexión de prod (`hg_runtime`) es NOINHERIT sin grants propios.
+    # Un commit acá revierte el rol y el `refresh`/`_reports_count` siguientes
+    # explotan con "permission denied for table users". get_db commitea al final.
+    db.flush()
     db.refresh(db_user)
     org = db.get(Organization, db_user.org_id)
     return MeResponse(
@@ -116,7 +121,9 @@ def set_onboarding_seen(
 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
     db_user.has_seen_onboarding = body.seen
-    db.commit()
+    # flush (no commit): ver nota en update_me — commitear a mitad revierte el rol
+    # hg_app y rompe las lecturas siguientes bajo hg_runtime (NOINHERIT).
+    db.flush()
     db.refresh(db_user)
     org = db.get(Organization, db_user.org_id)
     return MeResponse(
