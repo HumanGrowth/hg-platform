@@ -7,6 +7,7 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { HexIcon } from "@/components/ui/hex-icon";
 import { apiListModulosByPillar } from "@/lib/api";
 import { DIMENSIONS, type DimensionMeta } from "@/lib/modulos";
+import { subPillarName } from "@/lib/pillars";
 import type { LearningUnitFeedItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -101,7 +102,7 @@ function DimensionSection({ dim, units }: { dim: DimensionMeta; units: LearningU
                     : "border-border text-fg-muted hover:bg-bg-sunken",
                 )}
               >
-                <span>Pilar {p}</span>
+                <span>{subPillarName(groups.get(p)?.[0]?.dimension_code, p)}</span>
                 <span className="rounded-full bg-bg-sunken px-1.5 text-xs tabular-nums text-fg-subtle">
                   {groups.get(p)?.length ?? 0}
                 </span>
