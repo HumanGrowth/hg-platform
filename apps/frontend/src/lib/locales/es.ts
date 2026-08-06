@@ -15,8 +15,8 @@ export const es = {
       "Blog, artículos, casos y whitepapers sobre desarrollo humano y crecimiento profesional.",
     contentTypes: [
       { id: "blog", label: "Blog" },
-      { id: "articulo", label: "Artículos" },
-      { id: "caso", label: "Business cases" },
+      { id: "article", label: "Artículos" },
+      { id: "business_case", label: "Business cases" },
       { id: "whitepaper", label: "Whitepapers" },
     ],
     emptyState: "Contenido próximamente. Estamos preparando material que te va a interesar.",
