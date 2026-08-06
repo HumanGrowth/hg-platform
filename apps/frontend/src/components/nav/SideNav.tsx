@@ -60,6 +60,7 @@ export function SideNav({ className }: { className?: string }) {
                 key={item.href}
                 href={item.href as Route}
                 title={collapsed ? item.label : undefined}
+                data-tour-id={`nav-${item.href.slice(1)}`}
                 className={cn(
                   "flex items-center gap-3 rounded-md px-3 py-2.5 font-sans text-sm font-medium transition-colors duration-fast ease-state",
                   collapsed && "justify-center",
