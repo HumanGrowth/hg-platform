@@ -16,15 +16,21 @@ from sqlalchemy.orm import Session
 
 from hg.core.deps import get_db_as_superadmin, require_role
 from hg.modules.identity.models import User
-from hg.modules.perspectives.models import PerspectiveArticle, PerspectivePost
+from hg.modules.perspectives.models import (
+    PerspectiveArticle,
+    PerspectiveBusinessCase,
+    PerspectivePost,
+    PerspectiveWhitepaper,
+)
 from hg.modules.perspectives.schemas import (
-    EDITABLE_TYPES,
     ArticleExt,
+    BusinessCaseExt,
     CreatePostRequest,
     PerspectiveDetail,
     PerspectiveListResponse,
     PerspectiveSummary,
     UpdatePostRequest,
+    WhitepaperExt,
 )
 
 public_router = APIRouter()
@@ -59,11 +65,21 @@ def _summary(p: PerspectivePost) -> PerspectiveSummary:
 
 
 def _detail(p: PerspectivePost) -> PerspectiveDetail:
+    bc = p.business_case
+    wp = p.whitepaper
     return PerspectiveDetail(
         **_summary(p).model_dump(),
         author_avatar_url=p.author_avatar_url, body_markdown=p.body_markdown,
         updated_at=p.updated_at, created_at=p.created_at,
         article=ArticleExt(read_minutes_estimated=p.article.read_minutes_estimated) if p.article else None,
+        business_case=BusinessCaseExt(
+            org_client_name=bc.org_client_name, industry=bc.industry, challenge=bc.challenge,
+            solution=bc.solution, metrics=list(bc.metrics or []),
+        ) if bc else None,
+        whitepaper=WhitepaperExt(
+            pdf_url=wp.pdf_url, abstract=wp.abstract, download_count=wp.download_count,
+            gated_email_required=wp.gated_email_required,
+        ) if wp else None,
     )
 
 
@@ -145,11 +161,6 @@ def admin_create(
     db: Session = Depends(get_db_as_superadmin),
     user: User = Depends(require_role("superadmin")),
 ) -> PerspectiveDetail:
-    if body.content_type not in EDITABLE_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Por ahora solo Blog y Artículo. Business Case y Whitepaper llegan post-lanzamiento.",
-        )
     slug = _unique_slug(db, _slugify(body.slug or body.title))
     post = PerspectivePost(
         id=uuid4(), slug=slug, content_type=body.content_type, title=body.title, subtitle=body.subtitle,
@@ -160,6 +171,16 @@ def admin_create(
     db.add(post)
     if body.content_type == "article":
         post.article = PerspectiveArticle(read_minutes_estimated=body.read_minutes_estimated)
+    elif body.content_type == "business_case":
+        post.business_case = PerspectiveBusinessCase(
+            org_client_name=body.org_client_name, industry=body.industry, challenge=body.challenge,
+            solution=body.solution, metrics=body.metrics or [],
+        )
+    elif body.content_type == "whitepaper":
+        post.whitepaper = PerspectiveWhitepaper(
+            pdf_url=body.pdf_url, abstract=body.abstract,
+            gated_email_required=bool(body.gated_email_required),
+        )
     db.flush()
     db.refresh(post)
     return _detail(post)
@@ -184,6 +205,18 @@ def admin_update(
         if p.article is None:
             p.article = PerspectiveArticle()
         p.article.read_minutes_estimated = data["read_minutes_estimated"]
+    if p.content_type == "business_case":
+        if p.business_case is None:
+            p.business_case = PerspectiveBusinessCase()
+        for f in ("org_client_name", "industry", "challenge", "solution", "metrics"):
+            if f in data:
+                setattr(p.business_case, f, data[f] if f != "metrics" else (data[f] or []))
+    if p.content_type == "whitepaper":
+        if p.whitepaper is None:
+            p.whitepaper = PerspectiveWhitepaper()
+        for f in ("pdf_url", "abstract", "gated_email_required"):
+            if f in data:
+                setattr(p.whitepaper, f, data[f])
     db.flush()
     db.refresh(p)
     return _detail(p)
@@ -198,6 +231,18 @@ def admin_publish(
     p = _post_or_404(db, post_id)
     if not p.title.strip():
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="título requerido")
+    if p.content_type == "business_case" and not (
+        p.business_case and (p.business_case.challenge or "").strip() and (p.business_case.solution or "").strip()
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Un Business Case necesita 'desafío' y 'solución' para publicarse.",
+        )
+    if p.content_type == "whitepaper" and not (p.whitepaper and (p.whitepaper.pdf_url or "").strip()):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Un Whitepaper necesita el PDF para publicarse.",
+        )
     p.published_at = func.now()
     db.flush()
     db.refresh(p)

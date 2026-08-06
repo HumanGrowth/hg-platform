@@ -89,11 +89,44 @@ def test_slug_uniqueness(client: TestClient, factory, auth_headers) -> None:
         _cleanup(b["id"])
 
 
-def test_business_case_deferred_400(client: TestClient, factory, auth_headers) -> None:
-    res = client.post("/api/v1/admin/perspectives", headers=_sa(factory, auth_headers), json={
-        "content_type": "business_case", "title": "Caso",
-    })
-    assert res.status_code == 400
+def test_business_case_flow_with_publish_validation(client: TestClient, factory, auth_headers) -> None:
+    h = _sa(factory, auth_headers)
+    p = client.post("/api/v1/admin/perspectives", headers=h, json={
+        "content_type": "business_case", "title": "Caso ACME", "industry": "Retail",
+    }).json()
+    pid = p["id"]
+    try:
+        # sin challenge/solution → no publica
+        assert client.post(f"/api/v1/admin/perspectives/{pid}/publish", headers=h).status_code == 422
+        client.patch(f"/api/v1/admin/perspectives/{pid}", headers=h, json={
+            "challenge": "Rotación alta", "solution": "Programa de desarrollo",
+            "metrics": [{"label": "Retención", "value": "+12%"}],
+        })
+        assert client.post(f"/api/v1/admin/perspectives/{pid}/publish", headers=h).status_code == 200
+        detail = client.get(f"/api/v1/perspectives/{p['slug']}")
+        assert detail.status_code == 200
+        assert detail.json()["business_case"]["challenge"] == "Rotación alta"
+        assert detail.json()["business_case"]["metrics"][0]["label"] == "Retención"
+    finally:
+        _cleanup(pid)
+
+
+def test_whitepaper_flow_with_publish_validation(client: TestClient, factory, auth_headers) -> None:
+    h = _sa(factory, auth_headers)
+    p = client.post("/api/v1/admin/perspectives", headers=h, json={
+        "content_type": "whitepaper", "title": "WP 2026", "abstract": "resumen",
+    }).json()
+    pid = p["id"]
+    try:
+        assert client.post(f"/api/v1/admin/perspectives/{pid}/publish", headers=h).status_code == 422
+        client.patch(f"/api/v1/admin/perspectives/{pid}", headers=h, json={
+            "pdf_url": "https://cdn.humangrowth.io/wp/2026.pdf",
+        })
+        assert client.post(f"/api/v1/admin/perspectives/{pid}/publish", headers=h).status_code == 200
+        detail = client.get(f"/api/v1/perspectives/{p['slug']}")
+        assert detail.json()["whitepaper"]["pdf_url"].endswith(".pdf")
+    finally:
+        _cleanup(pid)
 
 
 def test_admin_requires_superadmin(client: TestClient, factory, auth_headers) -> None:

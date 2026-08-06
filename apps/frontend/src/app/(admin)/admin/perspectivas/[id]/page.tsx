@@ -33,6 +33,10 @@ function EditorInner() {
   const [f, setF] = React.useState({
     title: "", subtitle: "", slug: "", cover_image_url: "", pillar_code: "",
     author_name: "", author_avatar_url: "", tags: "", body_markdown: "", read_minutes: "",
+    // business_case
+    org_client_name: "", industry: "", challenge: "", solution: "", metrics: "",
+    // whitepaper
+    pdf_url: "", abstract: "", gated_email_required: false,
   });
 
   React.useEffect(() => {
@@ -45,6 +49,16 @@ function EditorInner() {
           author_name: data.author_name ?? "", author_avatar_url: data.author_avatar_url ?? "",
           tags: (data.tags ?? []).join(", "), body_markdown: data.body_markdown ?? "",
           read_minutes: data.read_minutes_estimated?.toString() ?? "",
+          org_client_name: data.business_case?.org_client_name ?? "",
+          industry: data.business_case?.industry ?? "",
+          challenge: data.business_case?.challenge ?? "",
+          solution: data.business_case?.solution ?? "",
+          metrics: (data.business_case?.metrics ?? [])
+            .map((m) => `${m.label ?? ""}: ${m.value ?? ""}`)
+            .join("\n"),
+          pdf_url: data.whitepaper?.pdf_url ?? "",
+          abstract: data.whitepaper?.abstract ?? "",
+          gated_email_required: data.whitepaper?.gated_email_required ?? false,
         });
       })
       .catch(() => toast("No pudimos cargar la perspectiva.", "danger"));
@@ -53,16 +67,33 @@ function EditorInner() {
   const set = (k: keyof typeof f, v: string) => setF((prev) => ({ ...prev, [k]: v }));
 
   async function save(): Promise<Perspective | null> {
+    if (!p) return null;
     setSaving(true);
     try {
-      const updated = await apiUpdatePerspective(id, {
+      const base = {
         title: f.title, subtitle: f.subtitle || null, slug: f.slug || undefined,
         cover_image_url: f.cover_image_url || null, pillar_code: f.pillar_code || null,
         author_name: f.author_name || null, author_avatar_url: f.author_avatar_url || null,
         tags: f.tags.split(",").map((t) => t.trim()).filter(Boolean),
         body_markdown: f.body_markdown || null,
         read_minutes_estimated: f.read_minutes ? Number(f.read_minutes) : null,
-      });
+      };
+      const bc = p.content_type === "business_case"
+        ? {
+            org_client_name: f.org_client_name || null, industry: f.industry || null,
+            challenge: f.challenge || null, solution: f.solution || null,
+            metrics: f.metrics.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
+              const idx = l.indexOf(":");
+              return idx >= 0
+                ? { label: l.slice(0, idx).trim(), value: l.slice(idx + 1).trim() }
+                : { label: l, value: "" };
+            }),
+          }
+        : {};
+      const wp = p.content_type === "whitepaper"
+        ? { pdf_url: f.pdf_url || null, abstract: f.abstract || null, gated_email_required: f.gated_email_required }
+        : {};
+      const updated = await apiUpdatePerspective(id, { ...base, ...bc, ...wp });
       setP(updated);
       toast("Guardado.", "success");
       return updated;
@@ -99,7 +130,9 @@ function EditorInner() {
       </button>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Display variant="display-3">{p.content_type === "article" ? "Artículo" : "Blog"}</Display>
+        <Display variant="display-3">
+          {{ blog: "Blog", article: "Artículo", business_case: "Business Case", whitepaper: "Whitepaper" }[p.content_type]}
+        </Display>
         <div className="flex items-center gap-2">
           <Badge variant={p.published_at ? "success" : "default"}>
             {p.published_at ? "Publicado" : "Borrador"}
@@ -160,6 +193,59 @@ function EditorInner() {
           <div className="max-w-[240px]">
             <Label htmlFor="rm">Minutos de lectura</Label>
             <Input id="rm" type="number" value={f.read_minutes} onChange={(e) => set("read_minutes", e.target.value)} />
+          </div>
+        )}
+
+        {p.content_type === "business_case" && (
+          <div className="flex flex-col gap-5 rounded-lg border border-border p-4">
+            <p className="font-sans text-micro uppercase tracking-meta text-fg-muted">Business Case</p>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <Label htmlFor="client">Cliente</Label>
+                <Input id="client" value={f.org_client_name} onChange={(e) => set("org_client_name", e.target.value)} placeholder="Empresa cliente (o «redactado»)" />
+              </div>
+              <div>
+                <Label htmlFor="industry">Industria</Label>
+                <Input id="industry" value={f.industry} onChange={(e) => set("industry", e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="challenge">Desafío</Label>
+              <textarea id="challenge" rows={3} value={f.challenge} onChange={(e) => set("challenge", e.target.value)}
+                className="w-full rounded-md border border-border bg-bg-raised px-3 py-2 font-sans text-sm text-fg focus:border-primary focus:outline-none focus:ring-2 focus:ring-hg-amber/40" />
+            </div>
+            <div>
+              <Label htmlFor="solution">Solución</Label>
+              <textarea id="solution" rows={3} value={f.solution} onChange={(e) => set("solution", e.target.value)}
+                className="w-full rounded-md border border-border bg-bg-raised px-3 py-2 font-sans text-sm text-fg focus:border-primary focus:outline-none focus:ring-2 focus:ring-hg-amber/40" />
+            </div>
+            <div>
+              <Label htmlFor="metrics">Métricas (una por línea, formato «etiqueta: valor»)</Label>
+              <textarea id="metrics" rows={3} value={f.metrics} onChange={(e) => set("metrics", e.target.value)}
+                placeholder={"Retención: +12%\nTiempo de ramp-up: -30%"}
+                className="w-full rounded-md border border-border bg-bg-raised px-3 py-2 font-mono text-sm text-fg focus:border-primary focus:outline-none focus:ring-2 focus:ring-hg-amber/40" />
+            </div>
+          </div>
+        )}
+
+        {p.content_type === "whitepaper" && (
+          <div className="flex flex-col gap-5 rounded-lg border border-border p-4">
+            <p className="font-sans text-micro uppercase tracking-meta text-fg-muted">Whitepaper</p>
+            <div>
+              <Label htmlFor="pdf">PDF (URL) — requerido para publicar</Label>
+              <Input id="pdf" value={f.pdf_url} onChange={(e) => set("pdf_url", e.target.value)} placeholder="https://cdn.humangrowth.io/wp/…" />
+            </div>
+            <div>
+              <Label htmlFor="abstract">Abstract</Label>
+              <textarea id="abstract" rows={4} value={f.abstract} onChange={(e) => set("abstract", e.target.value)}
+                className="w-full rounded-md border border-border bg-bg-raised px-3 py-2 font-sans text-sm text-fg focus:border-primary focus:outline-none focus:ring-2 focus:ring-hg-amber/40" />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-fg">
+              <input type="checkbox" checked={f.gated_email_required}
+                onChange={(e) => setF((prev) => ({ ...prev, gated_email_required: e.target.checked }))}
+                className="h-4 w-4" />
+              Requiere email para descargar (gated)
+            </label>
           </div>
         )}
         <div>
