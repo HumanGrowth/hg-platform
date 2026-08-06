@@ -3,6 +3,10 @@ import axios, { type AxiosInstance } from "axios";
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
 import type {
+  Perspective,
+  PerspectiveContentType,
+  PerspectiveInput,
+  PerspectiveSummary,
   MyPath,
   SavedTip,
   AdminUser,
@@ -603,4 +607,54 @@ export const apiDeleteTip = async (id: string): Promise<void> => {
 export const apiAiSummary = async (): Promise<{ enabled: boolean; suggestions: string[]; generated_at: string | null }> => {
   const res = await backend.post("/api/v1/me/plan-accion/ai-summary");
   return res.data;
+};
+
+// ─────────────────────────── Perspectivas CMS ───────────────────────────
+
+export const apiListPerspectives = async (params?: {
+  content_type?: string;
+  pillar?: string;
+  q?: string;
+  offset?: number;
+  limit?: number;
+}): Promise<{ items: PerspectiveSummary[]; total: number }> => {
+  const res = await backend.get("/api/v1/perspectives", { params });
+  return res.data;
+};
+
+export const apiGetPerspective = async (slug: string): Promise<Perspective> => {
+  const res = await backend.get<Perspective>(`/api/v1/perspectives/${slug}`);
+  return res.data;
+};
+
+export const apiAdminListPerspectives = async (): Promise<Perspective[]> => {
+  const res = await backend.get<Perspective[]>("/api/v1/admin/perspectives");
+  return res.data;
+};
+
+export const apiAdminGetPerspective = async (id: string): Promise<Perspective> => {
+  const res = await backend.get<Perspective>(`/api/v1/admin/perspectives/${id}`);
+  return res.data;
+};
+
+export const apiCreatePerspective = async (
+  content_type: PerspectiveContentType,
+  input: PerspectiveInput & { title: string },
+): Promise<Perspective> => {
+  const res = await backend.post<Perspective>("/api/v1/admin/perspectives", { content_type, ...input });
+  return res.data;
+};
+
+export const apiUpdatePerspective = async (id: string, input: PerspectiveInput): Promise<Perspective> => {
+  const res = await backend.patch<Perspective>(`/api/v1/admin/perspectives/${id}`, input);
+  return res.data;
+};
+
+export const apiPublishPerspective = async (id: string, publish: boolean): Promise<Perspective> => {
+  const res = await backend.post<Perspective>(`/api/v1/admin/perspectives/${id}/${publish ? "publish" : "unpublish"}`);
+  return res.data;
+};
+
+export const apiDeletePerspective = async (id: string): Promise<void> => {
+  await backend.delete(`/api/v1/admin/perspectives/${id}`);
 };

@@ -814,3 +814,39 @@ export interface SavedTip {
   order_index: number;
   saved_at: string;
 }
+
+export type PerspectiveContentType = "blog" | "article" | "business_case" | "whitepaper";
+
+export interface PerspectiveSummary {
+  id: string;
+  slug: string;
+  content_type: PerspectiveContentType;
+  title: string;
+  subtitle: string | null;
+  cover_image_url: string | null;
+  pillar_code: string | null;
+  author_name: string | null;
+  tags: string[];
+  published_at: string | null;
+  read_minutes_estimated: number | null;
+}
+
+export interface Perspective extends PerspectiveSummary {
+  author_avatar_url: string | null;
+  body_markdown: string | null;
+  updated_at: string;
+  created_at: string;
+}
+
+export interface PerspectiveInput {
+  title?: string;
+  slug?: string;
+  subtitle?: string | null;
+  cover_image_url?: string | null;
+  pillar_code?: string | null;
+  author_name?: string | null;
+  author_avatar_url?: string | null;
+  tags?: string[];
+  body_markdown?: string | null;
+  read_minutes_estimated?: number | null;
+}
