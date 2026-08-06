@@ -21,6 +21,8 @@ from hg.modules.marketing.router import admin_router as marketing_admin_router
 from hg.modules.marketing.router import public_router as marketing_public_router
 from hg.modules.people.router import admin_router as people_admin_router
 from hg.modules.people.router import manager_router, me_router
+from hg.modules.perspectives.router import admin_router as perspectives_admin_router
+from hg.modules.perspectives.router import public_router as perspectives_public_router
 
 router = APIRouter()
 
@@ -55,6 +57,9 @@ router.include_router(assignments_me_router, prefix="/me", tags=["assignments"])
 router.include_router(path_me_router, prefix="/me", tags=["path"])
 # Plan de Acción (cierre-beta TASK 5): /me/tips CRUD + /me/plan-accion/ai-summary
 router.include_router(tips_me_router, prefix="/me", tags=["tips"])
+# Perspectivas CMS (cierre-beta): /perspectives (público) + /admin/perspectives (superadmin)
+router.include_router(perspectives_public_router, tags=["perspectives"])
+router.include_router(perspectives_admin_router, prefix="/admin", tags=["admin", "perspectives"])
 # Manager: /manager/me/team + /manager/users/{id}/... (B4-A)
 router.include_router(manager_router, prefix="/manager", tags=["manager"])
 # RRHH: /admin/org/metrics + /admin/org/users/export.csv (B4-A)
