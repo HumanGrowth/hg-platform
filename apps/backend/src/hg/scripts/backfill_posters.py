@@ -18,11 +18,11 @@ import argparse
 import logging
 import subprocess
 import tempfile
-import urllib.request
 from pathlib import Path
 
 from sqlalchemy import select, text
 
+from hg.config import get_settings
 from hg.core import storage
 from hg.db import SessionLocal
 from hg.modules.learning_units.models import LearningUnit, UnitBlock, VideoBlock
@@ -40,12 +40,19 @@ def _has_ffmpeg() -> bool:
         return False
 
 
+def _r2_key_from_url(video_url: str) -> str:
+    """Deriva la key de R2 desde la URL pública (strip del base público)."""
+    base = get_settings().r2_public_base_url.rstrip("/")
+    return video_url.removeprefix(base + "/").lstrip("/")
+
+
 def _extract_poster(video_url: str, out_jpg: Path) -> bool:
-    """Descarga el MP4 a temp y extrae un frame JPEG en t=1s. False si falla."""
+    """Baja el MP4 desde R2 (S3 API, no la URL pública — el CDN da 403 a GET
+    directos) y extrae un frame JPEG en t=1s. False si falla."""
     with tempfile.NamedTemporaryFile(suffix=".mp4", delete=True) as tmp:
         try:
-            with urllib.request.urlopen(video_url, timeout=120) as r:
-                tmp.write(r.read())
+            client = storage.get_r2_client()
+            client.download_fileobj(get_settings().r2_bucket, _r2_key_from_url(video_url), tmp)
             tmp.flush()
         except Exception as exc:
             log.error("download_failed url=%s err=%s", video_url, exc)
