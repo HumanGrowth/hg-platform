@@ -8,8 +8,6 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 ContentType = Literal["blog", "article", "business_case", "whitepaper"]
-# Fase 1: solo estos dos se pueden crear/editar por ahora.
-EDITABLE_TYPES = ("blog", "article")
 
 
 class ArticleExt(BaseModel):
@@ -72,6 +70,16 @@ class CreatePostRequest(BaseModel):
     tags: list[str] = Field(default_factory=list)
     body_markdown: str | None = None
     read_minutes_estimated: int | None = None  # solo article
+    # Business case
+    org_client_name: str | None = None
+    industry: str | None = None
+    challenge: str | None = None
+    solution: str | None = None
+    metrics: list | None = None
+    # Whitepaper
+    pdf_url: str | None = None
+    abstract: str | None = None
+    gated_email_required: bool | None = None
 
 
 class UpdatePostRequest(BaseModel):
@@ -85,3 +93,11 @@ class UpdatePostRequest(BaseModel):
     tags: list[str] | None = None
     body_markdown: str | None = None
     read_minutes_estimated: int | None = None
+    org_client_name: str | None = None
+    industry: str | None = None
+    challenge: str | None = None
+    solution: str | None = None
+    metrics: list | None = None
+    pdf_url: str | None = None
+    abstract: str | None = None
+    gated_email_required: bool | None = None

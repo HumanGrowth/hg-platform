@@ -146,14 +146,11 @@ function PerspectivasAdminInner() {
       <Dialog open={newOpen} onClose={() => setNewOpen(false)} title="Nueva perspectiva">
         <div className="flex flex-col gap-3">
           <p className="text-sm text-fg-muted">Elegí el tipo de contenido:</p>
-          {(["blog", "article"] as PerspectiveContentType[]).map((t) => (
+          {(["blog", "article", "business_case", "whitepaper"] as PerspectiveContentType[]).map((t) => (
             <Button key={t} variant="secondary" disabled={creating} onClick={() => void createNew(t)}>
               {TYPE_LABEL[t]}
             </Button>
           ))}
-          <p className="text-xs text-fg-subtle">
-            Business Case y Whitepaper llegan post-lanzamiento.
-          </p>
         </div>
       </Dialog>
     </main>

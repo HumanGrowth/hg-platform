@@ -831,11 +831,35 @@ export interface PerspectiveSummary {
   read_minutes_estimated: number | null;
 }
 
+export interface PerspectiveMetric {
+  label?: string;
+  value?: string;
+  delta_pct?: number;
+}
+
+export interface BusinessCaseExt {
+  org_client_name: string | null;
+  industry: string | null;
+  challenge: string | null;
+  solution: string | null;
+  metrics: PerspectiveMetric[];
+}
+
+export interface WhitepaperExt {
+  pdf_url: string | null;
+  abstract: string | null;
+  download_count: number;
+  gated_email_required: boolean;
+}
+
 export interface Perspective extends PerspectiveSummary {
   author_avatar_url: string | null;
   body_markdown: string | null;
   updated_at: string;
   created_at: string;
+  article?: { read_minutes_estimated: number | null } | null;
+  business_case?: BusinessCaseExt | null;
+  whitepaper?: WhitepaperExt | null;
 }
 
 export interface PerspectiveInput {
@@ -849,4 +873,14 @@ export interface PerspectiveInput {
   tags?: string[];
   body_markdown?: string | null;
   read_minutes_estimated?: number | null;
+  // business_case
+  org_client_name?: string | null;
+  industry?: string | null;
+  challenge?: string | null;
+  solution?: string | null;
+  metrics?: PerspectiveMetric[];
+  // whitepaper
+  pdf_url?: string | null;
+  abstract?: string | null;
+  gated_email_required?: boolean | null;
 }
