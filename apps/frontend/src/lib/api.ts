@@ -4,6 +4,7 @@ import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
 import type {
   MyPath,
+  SavedTip,
   AdminUser,
   AssessmentPillarCode,
   AssessmentSession,
@@ -564,5 +565,42 @@ export const apiMyAssignments = async (): Promise<ModuleAssignment[]> => {
 /** Mi Ruta — motor de recomendación (TASK 1). */
 export const apiGetMyPath = async (): Promise<MyPath> => {
   const res = await backend.get<MyPath>("/api/v1/me/path");
+  return res.data;
+};
+
+// ─────────────────────────── Plan de Acción · tips (TASK 5) ───────────────────────────
+
+export const apiSaveTip = async (body: {
+  tip_text: string;
+  source?: "solution" | "reflection" | "custom";
+  unit_id?: string | null;
+  block_id?: string | null;
+  dimension_code?: string | null;
+}): Promise<SavedTip> => {
+  const res = await backend.post<SavedTip>("/api/v1/me/tips", body);
+  return res.data;
+};
+
+export const apiListTips = async (dimension?: string, completed?: boolean): Promise<SavedTip[]> => {
+  const res = await backend.get<SavedTip[]>("/api/v1/me/tips", {
+    params: { dimension: dimension || undefined, completed },
+  });
+  return res.data;
+};
+
+export const apiUpdateTip = async (
+  id: string,
+  body: { is_completed?: boolean; order_index?: number },
+): Promise<SavedTip> => {
+  const res = await backend.patch<SavedTip>(`/api/v1/me/tips/${id}`, body);
+  return res.data;
+};
+
+export const apiDeleteTip = async (id: string): Promise<void> => {
+  await backend.delete(`/api/v1/me/tips/${id}`);
+};
+
+export const apiAiSummary = async (): Promise<{ enabled: boolean; suggestions: string[]; generated_at: string | null }> => {
+  const res = await backend.post("/api/v1/me/plan-accion/ai-summary");
   return res.data;
 };

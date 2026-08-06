@@ -16,7 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { apiGetMyResults, apiListModulosByPillar } from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import type { Dimension } from "@/lib/dimensions";
-import { pillarStyle } from "@/lib/pillars";
+import { pillarStyle, subPillarName } from "@/lib/pillars";
 import type { LearningUnitFeedItem, PillarResult } from "@/lib/types";
 import { cn, formatRelativeTime } from "@/lib/utils";
 
@@ -288,7 +288,7 @@ function LevelGroup({ level, units }: { level: string; units: LearningUnitFeedIt
             <div key={pillarNumber} className="flex flex-col gap-2">
               {byPillar.length > 1 && (
                 <p className="px-1 font-sans text-xs font-semibold uppercase tracking-meta text-fg-subtle">
-                  Pilar {pillarNumber}
+                  {subPillarName(pillarUnits[0]?.dimension_code, Number(pillarNumber))}
                 </p>
               )}
               {pillarUnits.map((u) => (
