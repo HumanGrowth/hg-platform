@@ -3,7 +3,7 @@
 import { Check, ChevronDown } from "lucide-react";
 import * as React from "react";
 
-import { AISoonBadge } from "@/components/shared/AISoonBadge";
+import { SaveTipButton } from "@/components/plan-accion/SaveTipButton";
 import { dimensionStyle } from "@/lib/pillars";
 import { cn } from "@/lib/utils";
 
@@ -113,7 +113,12 @@ export function InteractiveChecklist({ items, storageKey, dimensionCode }: Props
           );
         })}
       </ul>
-      <AISoonBadge variant="pill" label="Guardar en mi cuaderno" dimensionCode={dimensionCode} className="self-start" />
+      <SaveTipButton
+        prefillText={items.map((it) => `• ${it.title}`).join("\n")}
+        dimensionCode={dimensionCode}
+        source="solution"
+        className="self-start"
+      />
     </div>
   );
 }

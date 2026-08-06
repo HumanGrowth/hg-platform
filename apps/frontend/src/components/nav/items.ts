@@ -1,5 +1,6 @@
 import {
   Calendar,
+  ClipboardList,
   Home,
   Menu,
   Route as RouteIcon,
@@ -33,6 +34,7 @@ export const SIDE_NAV_ITEMS: NavItem[] = [
   { href: "/home", label: "Inicio", icon: Home },
   { href: "/path", label: "Mi Ruta", icon: RouteIcon },
   { href: "/modulos", label: "Módulos", icon: Sparkles },
+  { href: "/plan-accion", label: "Plan de Acción", icon: ClipboardList },
   { href: "/eventos", label: "Eventos", icon: Calendar },
   { href: "/perfil", label: "Mi Perfil", icon: User },
   { href: "/team", label: "Mi equipo", icon: Users, roles: MANAGER_ROLES },

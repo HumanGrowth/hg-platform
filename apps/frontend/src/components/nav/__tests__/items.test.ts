@@ -15,7 +15,7 @@ function hrefs(u: Parameters<typeof sideNavItemsForRole>[0]): string[] {
 describe("sideNavItemsForRole (TASK polish-04)", () => {
   it("collaborator sees the base items + Eventos, but not team/admin", () => {
     const items = hrefs(user({ role: "collaborator" }));
-    expect(items).toEqual(["/home", "/path", "/modulos", "/eventos", "/perfil"]);
+    expect(items).toEqual(["/home", "/path", "/modulos", "/plan-accion", "/eventos", "/perfil"]);
     expect(items).not.toContain("/team");
     expect(items).not.toContain("/admin/org");
   });

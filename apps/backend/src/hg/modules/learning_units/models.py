@@ -506,6 +506,38 @@ class ModuleAssignment(Base):
     )
 
 
+SAVED_TIP_SOURCES = ("solution", "reflection", "custom")
+
+
+class SavedTip(Base):
+    """Tip guardado por el usuario en su Plan de Acción (cierre-beta TASK 5).
+    Viene del botón "Guardar en mi cuaderno" de un módulo, o custom. RLS por org."""
+
+    __tablename__ = "saved_tips"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    org_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    learning_unit_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("learning_units.id", ondelete="SET NULL"), index=True
+    )
+    block_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    tip_text: Mapped[str] = mapped_column(Text, nullable=False)
+    # "solution" | "reflection" | "custom" (validado en el schema).
+    source: Mapped[str] = mapped_column(String(20), server_default="custom", nullable=False)
+    dimension_code: Mapped[str | None] = mapped_column(String(10), index=True)
+    is_completed: Mapped[bool] = mapped_column(Boolean, server_default="false", nullable=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    order_index: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)
+    saved_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 # Resolución del FK polimórfico de UnitBlock.block_id → tabla de template.
 BLOCK_TYPE_TO_MODEL: dict[UnitBlockType, type] = {
     UnitBlockType.video_intro: VideoBlock,
