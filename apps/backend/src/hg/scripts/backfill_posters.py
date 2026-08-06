@@ -21,7 +21,7 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from hg.core import storage
 from hg.db import SessionLocal
@@ -69,6 +69,10 @@ def run(dry_run: bool) -> None:
     db = SessionLocal()
     done = skipped = failed = 0
     try:
+        # `learning_units`/`video_blocks` no son accesibles por el rol de conexión
+        # pelado (neondb_owner NOINHERIT sobre esas tablas); elevamos a
+        # hg_superadmin a nivel sesión (persiste entre commits, no es SET LOCAL).
+        db.execute(text("SET ROLE hg_superadmin"))
         rows = db.execute(
             select(VideoBlock, LearningUnit.slug)
             .join(UnitBlock, UnitBlock.block_id == VideoBlock.id)
