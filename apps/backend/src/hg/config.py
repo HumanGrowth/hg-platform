@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     email_reply_to: str = "admin@humangrowth.io"
     emails_enabled: bool = False  # feature flag; envío real sólo cuando es true (prod)
     leads_inbox: str = "admin@humangrowth.io"  # notificaciones internas (contact form)
+    ai_recommendations_enabled: bool = False  # Plan de Acción · sugerencias AI (TASK 5.4)
 
     # Observability
     sentry_dsn: str = ""

@@ -772,3 +772,18 @@ export interface AssignableUnit {
   level_code: string;
   pillar_number: number | null;
 }
+
+export interface SavedTip {
+  id: string;
+  tip_text: string;
+  source: string;
+  learning_unit_id: string | null;
+  unit_slug: string | null;
+  unit_title: string | null;
+  block_id: string | null;
+  dimension_code: string | null;
+  is_completed: boolean;
+  completed_at: string | null;
+  order_index: number;
+  saved_at: string;
+}
