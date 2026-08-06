@@ -17,6 +17,7 @@ const DOT: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id,
  * más bajo (el cuello de botella) y lleva al carril correspondiente de la ruta.
  * Si no hay resultados aún, no renderiza nada.
  */
+/** @deprecated cierre-beta TASK 1 — Mi Ruta usa <PathJourney>. Borrar tras 1 sprint. */
 export function PathBottleneckCta() {
   const [pillar, setPillar] = React.useState<string | null>(null);
 

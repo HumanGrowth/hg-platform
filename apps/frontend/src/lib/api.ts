@@ -3,6 +3,7 @@ import axios, { type AxiosInstance } from "axios";
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
 import type {
+  MyPath,
   SavedTip,
   AdminUser,
   AssessmentPillarCode,
@@ -558,6 +559,12 @@ export const apiDeleteAssignment = async (id: string): Promise<void> => {
 
 export const apiMyAssignments = async (): Promise<ModuleAssignment[]> => {
   const res = await backend.get<ModuleAssignment[]>("/api/v1/me/assignments");
+  return res.data;
+};
+
+/** Mi Ruta — motor de recomendación (TASK 1). */
+export const apiGetMyPath = async (): Promise<MyPath> => {
+  const res = await backend.get<MyPath>("/api/v1/me/path");
   return res.data;
 };
 

@@ -14,6 +14,7 @@ from hg.modules.learning.router import router as learning_router
 from hg.modules.learning_units.admin_router import router as learning_units_admin_router
 from hg.modules.learning_units.assignments_router import admin_router as assignments_admin_router
 from hg.modules.learning_units.assignments_router import me_router as assignments_me_router
+from hg.modules.learning_units.path_router import router as path_me_router
 from hg.modules.learning_units.router import router as learning_units_router
 from hg.modules.learning_units.tips_router import router as tips_me_router
 from hg.modules.marketing.router import admin_router as marketing_admin_router
@@ -50,6 +51,8 @@ router.include_router(learning_units_admin_router, prefix="/admin", tags=["admin
 # /admin/assignments/{id} (manager/admin) · /me/assignments (colaborador)
 router.include_router(assignments_admin_router, prefix="/admin", tags=["admin", "assignments"])
 router.include_router(assignments_me_router, prefix="/me", tags=["assignments"])
+# Mi Ruta (cierre-beta TASK 1): motor de recomendación GET /me/path
+router.include_router(path_me_router, prefix="/me", tags=["path"])
 # Plan de Acción (cierre-beta TASK 5): /me/tips CRUD + /me/plan-accion/ai-summary
 router.include_router(tips_me_router, prefix="/me", tags=["tips"])
 # Manager: /manager/me/team + /manager/users/{id}/... (B4-A)

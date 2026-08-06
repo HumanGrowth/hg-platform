@@ -16,6 +16,7 @@ interface Lane {
   modulos: LearningUnitFeedItem[];
 }
 
+/** @deprecated cierre-beta TASK 1 — reemplazado por <PathJourney>. Borrar tras 1 sprint. */
 export function PathLanes() {
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [lanes, setLanes] = React.useState<Lane[]>([]);
