@@ -128,8 +128,8 @@ function AdminEventsContent() {
     setForm((f) => ({ ...f, [k]: v }));
 
   return (
-    <main className="mx-auto w-full max-w-app px-8 py-10">
-      <div className="flex items-end justify-between">
+    <main className="mx-auto w-full max-w-app px-5 py-10 sm:px-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <Eyebrow accent>Panel HG</Eyebrow>
           <Display variant="display-3" className="mt-1">
