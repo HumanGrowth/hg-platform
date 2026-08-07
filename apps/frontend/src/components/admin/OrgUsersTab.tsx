@@ -141,9 +141,9 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
             <tr className="font-sans text-micro uppercase tracking-meta text-fg-muted">
               <th className="px-5 py-3 font-semibold">Usuario</th>
               <th className="px-5 py-3 font-semibold">Rol</th>
-              <th className="px-5 py-3 font-semibold">Nivel</th>
-              <th className="px-5 py-3 font-semibold">Manager</th>
-              <th className="px-5 py-3 font-semibold">Última actividad</th>
+              <th className="hidden px-5 py-3 font-semibold md:table-cell">Nivel</th>
+              <th className="hidden px-5 py-3 font-semibold lg:table-cell">Manager</th>
+              <th className="hidden px-5 py-3 font-semibold lg:table-cell">Última actividad</th>
               <th className="px-5 py-3 font-semibold">Estado</th>
               <th className="px-5 py-3" />
             </tr>
@@ -153,16 +153,16 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
               <tr key={u.id} className="border-b border-border last:border-0">
                 <td className="px-5 py-3">
                   <div className="font-sans text-sm font-semibold text-fg">{u.full_name}</div>
-                  <div className="font-sans text-xs text-fg-muted">{u.email}</div>
+                  <div className="break-all font-sans text-xs text-fg-muted">{u.email}</div>
                 </td>
                 <td className="px-5 py-3">
                   <Badge>{u.role}</Badge>
                 </td>
-                <td className="px-5 py-3 text-sm text-fg-muted">{u.career_level ?? "—"}</td>
-                <td className="px-5 py-3 text-sm text-fg-muted">
+                <td className="hidden px-5 py-3 text-sm text-fg-muted md:table-cell">{u.career_level ?? "—"}</td>
+                <td className="hidden px-5 py-3 text-sm text-fg-muted lg:table-cell">
                   {u.manager_id ? (nameById.get(u.manager_id) ?? "—") : "—"}
                 </td>
-                <td className="px-5 py-3 font-mono text-xs text-fg-muted">
+                <td className="hidden px-5 py-3 font-mono text-xs text-fg-muted lg:table-cell">
                   {u.last_active_at ? fmtDate(u.last_active_at) : "Nunca"}
                 </td>
                 <td className="px-5 py-3">
