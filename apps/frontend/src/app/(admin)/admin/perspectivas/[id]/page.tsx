@@ -117,10 +117,10 @@ function EditorInner() {
     }
   }
 
-  if (!p) return <main className="mx-auto max-w-app px-8 py-10 text-sm text-fg-muted">Cargando…</main>;
+  if (!p) return <main className="mx-auto max-w-app px-5 py-10 sm:px-8 text-sm text-fg-muted">Cargando…</main>;
 
   return (
-    <main className="mx-auto w-full max-w-app px-8 py-10">
+    <main className="mx-auto w-full max-w-app px-5 py-10 sm:px-8">
       <button
         type="button"
         onClick={() => router.push("/admin/perspectivas" as Route)}

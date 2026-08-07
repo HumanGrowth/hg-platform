@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Building2, Calendar, LineChart } from "lucide-react";
+import { ArrowLeft, Building2, Calendar, LineChart, Newspaper } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -21,6 +21,7 @@ const ADMIN_ITEMS: AdminNavItem[] = [
   { href: "/admin/org", label: "Panel", icon: LineChart },
   { href: "/admin/orgs", label: "Orgs", icon: Building2, superadminOnly: true },
   { href: "/admin/events", label: "Eventos", icon: Calendar, superadminOnly: true },
+  { href: "/admin/perspectivas", label: "Contenido", icon: Newspaper, superadminOnly: true },
 ];
 
 /**

@@ -102,7 +102,7 @@ function AdminOrgDetailContent() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-app px-8 py-10">
+    <main className="mx-auto w-full max-w-app px-5 py-10 sm:px-8">
       <Link
         href="/admin/orgs"
         className="mb-4 inline-flex items-center gap-1 text-sm text-fg-muted hover:text-fg"
