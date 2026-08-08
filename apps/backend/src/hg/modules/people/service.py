@@ -1,8 +1,17 @@
 """People aggregations — cálculo on-demand de actividad/completion.
 
 Funciones puras sobre una Session ya scopeada al tenant (hg_app + org context).
-La fuente de verdad de actividad es ``course_progress``; los enrollments dan los
-paths asignados. Sin Celery beat — todo se calcula en cada request (ADR-0009).
+La fuente de verdad de actividad son los **Learning Units** (modelo nuevo): los
+``learning_unit_attempts`` (un intento por user x unit) y su ``block_progress``
+(bloques completados). Sin Celery beat — todo se calcula en cada request
+(ADR-0009).
+
+Unidad de esfuerzo (decisión de producto, ago-2026): **bloques completados**.
+Los módulos no son video continuo, así que las series históricas (streak,
+semanal, mensual, team activity) cuentan *bloques completados* por período —
+NO minutos de video. Por compat de contrato con el frontend, los campos del
+wire siguen llamándose ``minutes`` / ``watch_minutes`` pero su semántica es
+"bloques completados"; el label que ve el usuario dice "bloques".
 """
 from __future__ import annotations
 
@@ -13,7 +22,17 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from hg.modules.learning.models import CareerPath, CourseProgress, Enrollment, Event
+from hg.modules.learning.models import CareerPath, Enrollment
+from hg.modules.learning_units.dimensions import (
+    DRIVE_TO_CAREER_PATH,
+    dimensions_for_career_paths,
+)
+from hg.modules.learning_units.models import (
+    BlockProgress,
+    BlockProgressStatus,
+    LearningUnit,
+    LearningUnitAttempt,
+)
 
 INACTIVE_DAYS = 7
 ACTIVE_WINDOW_DAYS = 30
@@ -44,9 +63,9 @@ def now_utc() -> datetime:
 @dataclass
 class ActivityAgg:
     last_active_at: datetime | None = None
-    courses_in_progress: int = 0
-    courses_completed: int = 0
-    total_watch_minutes: int = 0
+    courses_in_progress: int = 0  # units iniciadas sin completar
+    courses_completed: int = 0  # units completadas
+    total_watch_minutes: int = 0  # bloques completados (ver módulo docstring)
     active_enrollments: int = 0
 
     @property
@@ -56,34 +75,85 @@ class ActivityAgg:
         return self.last_active_at < now_utc() - timedelta(days=INACTIVE_DAYS)
 
 
+def _completed_block_events(
+    db: Session, user_ids: list[UUID], since: datetime
+) -> list[tuple[UUID, datetime]]:
+    """(user_id, submitted_at) por cada bloque **completado** desde ``since``.
+
+    Fuente única de las series históricas (streak/semanal/mensual/team/adopción):
+    cada bloque completado es un "evento de actividad" fechado en ``submitted_at``.
+    """
+    if not user_ids:
+        return []
+    return [
+        (uid, ts)
+        for uid, ts in db.execute(
+            select(LearningUnitAttempt.user_id, BlockProgress.submitted_at)
+            .join(BlockProgress, BlockProgress.attempt_id == LearningUnitAttempt.id)
+            .where(
+                LearningUnitAttempt.user_id.in_(user_ids),
+                BlockProgress.status == BlockProgressStatus.completed,
+                BlockProgress.submitted_at.is_not(None),
+                BlockProgress.submitted_at >= since,
+            )
+        ).all()
+        if ts is not None
+    ]
+
+
 def activity_by_users(db: Session, user_ids: list[UUID]) -> dict[UUID, ActivityAgg]:
-    """Agrega course_progress + enrollments por usuario (un dict por user_id)."""
+    """Agrega attempts + bloques completados por usuario (un dict por user_id)."""
     aggs: dict[UUID, ActivityAgg] = {uid: ActivityAgg() for uid in user_ids}
     if not user_ids:
         return aggs
 
-    # course_progress: last_active, in_progress, completed, watch_seconds
+    # attempts: last_active (max start/complete), in_progress, completed
     rows = db.execute(
         select(
-            CourseProgress.user_id,
-            func.max(CourseProgress.last_played_at),
-            func.count().filter(
-                CourseProgress.is_completed.is_(False), CourseProgress.watch_pct > 0
+            LearningUnitAttempt.user_id,
+            func.max(
+                func.coalesce(
+                    LearningUnitAttempt.completed_at, LearningUnitAttempt.started_at
+                )
             ),
-            func.count().filter(CourseProgress.is_completed.is_(True)),
-            func.coalesce(func.sum(CourseProgress.last_position_seconds), 0),
+            func.count().filter(
+                LearningUnitAttempt.completed_at.is_(None),
+                LearningUnitAttempt.started_at.is_not(None),
+            ),
+            func.count().filter(LearningUnitAttempt.completed_at.is_not(None)),
         )
-        .where(CourseProgress.user_id.in_(user_ids))
-        .group_by(CourseProgress.user_id)
+        .where(LearningUnitAttempt.user_id.in_(user_ids))
+        .group_by(LearningUnitAttempt.user_id)
     ).all()
-    for uid, last_active, in_prog, completed, watch_sec in rows:
+    for uid, last_active, in_prog, completed in rows:
         a = aggs[uid]
         a.last_active_at = last_active
         a.courses_in_progress = int(in_prog)
         a.courses_completed = int(completed)
-        a.total_watch_minutes = int(watch_sec) // 60
 
-    # enrollments activos
+    # bloques completados: total (= "watch_minutes") + refinar last_active con
+    # el submitted_at más reciente (más granular que el timestamp del attempt).
+    brows = db.execute(
+        select(
+            LearningUnitAttempt.user_id,
+            func.count(),
+            func.max(BlockProgress.submitted_at),
+        )
+        .join(BlockProgress, BlockProgress.attempt_id == LearningUnitAttempt.id)
+        .where(
+            LearningUnitAttempt.user_id.in_(user_ids),
+            BlockProgress.status == BlockProgressStatus.completed,
+        )
+        .group_by(LearningUnitAttempt.user_id)
+    ).all()
+    for uid, blocks, last_block in brows:
+        a = aggs[uid]
+        a.total_watch_minutes = int(blocks)
+        if last_block is not None and (a.last_active_at is None or last_block > a.last_active_at):
+            a.last_active_at = last_block
+
+    # enrollments activos (career paths asignados) — concepto separado, sigue
+    # viviendo en la tabla `enrollments`.
     erows = db.execute(
         select(Enrollment.user_id, func.count())
         .where(Enrollment.user_id.in_(user_ids), Enrollment.is_active.is_(True))
@@ -95,84 +165,98 @@ def activity_by_users(db: Session, user_ids: list[UUID]) -> dict[UUID, ActivityA
     return aggs
 
 
+def _career_path_id_by_code(db: Session) -> dict[str, UUID]:
+    return {p.code: p.id for p in db.scalars(select(CareerPath)).all()}
+
+
 def org_pillar_metrics(
     db: Session, user_ids: list[UUID]
 ) -> dict[UUID, tuple[int, int, int]]:
-    """Por career_path_id (de los cursos): (started, completed, active_users_30d).
+    """Por career_path_id: (started, completed, active_users_30d).
 
-    started = progress con watch_pct>0; active_users = usuarios distintos con
-    last_played_at en la ventana de 30d.
+    Agrupa los attempts por la ``dimension_code`` de la unit y la mapea al
+    career_path (CP→P1, …). Varias dimensiones pueden caer en el mismo path.
+    started = attempts iniciados; active_users = usuarios distintos con
+    actividad en la ventana de 30d.
     """
     if not user_ids:
         return {}
     cutoff = now_utc() - timedelta(days=ACTIVE_WINDOW_DAYS)
     rows = db.execute(
         select(
-            Event.career_path_id,
-            func.count().filter(CourseProgress.watch_pct > 0),
-            func.count().filter(CourseProgress.is_completed.is_(True)),
-            func.count(func.distinct(CourseProgress.user_id)).filter(
-                CourseProgress.last_played_at >= cutoff
+            LearningUnit.dimension_code,
+            func.count().filter(LearningUnitAttempt.started_at.is_not(None)),
+            func.count().filter(LearningUnitAttempt.completed_at.is_not(None)),
+            func.count(func.distinct(LearningUnitAttempt.user_id)).filter(
+                func.coalesce(
+                    LearningUnitAttempt.completed_at, LearningUnitAttempt.started_at
+                )
+                >= cutoff
             ),
         )
-        .join(Event, Event.id == CourseProgress.course_id)
-        .where(CourseProgress.user_id.in_(user_ids))
-        .group_by(Event.career_path_id)
+        .join(LearningUnit, LearningUnit.id == LearningUnitAttempt.unit_id)
+        .where(LearningUnitAttempt.user_id.in_(user_ids))
+        .group_by(LearningUnit.dimension_code)
     ).all()
-    return {pid: (int(started), int(completed), int(active)) for pid, started, completed, active in rows}
+    code_to_id = _career_path_id_by_code(db)
+    out: dict[UUID, tuple[int, int, int]] = {}
+    for dim, started, completed, active in rows:
+        cp_code = DRIVE_TO_CAREER_PATH.get((dim or "").upper())
+        pid = code_to_id.get(cp_code) if cp_code else None
+        if pid is None:
+            continue
+        s, c, a = out.get(pid, (0, 0, 0))
+        out[pid] = (s + int(started), c + int(completed), a + int(active))
+    return out
 
 
 def pillar_completion_rate(db: Session, user_id: UUID) -> dict[str, float]:
-    """Por cada pilar P1..P6: cursos completados del path / cursos activos del path.
+    """Por cada pilar P1..P6: units completadas por el user / units publicadas.
 
-    0.0 si no hay enrollment activo a ese pilar o el path no tiene cursos activos.
+    Se calcula sobre el catálogo global de units agrupado por dimensión
+    (mapeada al career_path). 0.0 si el pilar no tiene units publicadas.
     """
     paths = db.scalars(select(CareerPath).order_by(CareerPath.order_index)).all()
-    active_path_ids = set(
-        db.scalars(
-            select(Enrollment.career_path_id).where(
-                Enrollment.user_id == user_id, Enrollment.is_active.is_(True)
-            )
+
+    total_by_dim = {
+        d: int(c)
+        for d, c in db.execute(
+            select(LearningUnit.dimension_code, func.count())
+            .where(LearningUnit.published_at.is_not(None))
+            .group_by(LearningUnit.dimension_code)
         ).all()
-    )
+    }
+    completed_by_dim = {
+        d: int(c)
+        for d, c in db.execute(
+            select(
+                LearningUnit.dimension_code,
+                func.count(func.distinct(LearningUnitAttempt.unit_id)),
+            )
+            .join(LearningUnit, LearningUnit.id == LearningUnitAttempt.unit_id)
+            .where(
+                LearningUnitAttempt.user_id == user_id,
+                LearningUnitAttempt.completed_at.is_not(None),
+                LearningUnit.published_at.is_not(None),
+            )
+            .group_by(LearningUnit.dimension_code)
+        ).all()
+    }
+
     rates: dict[str, float] = {}
     for path in paths:
-        if path.id not in active_path_ids:
-            rates[path.code] = 0.0
-            continue
-        total = (
-            db.scalar(
-                select(func.count())
-                .select_from(Event)
-                .where(Event.career_path_id == path.id, Event.is_active.is_(True))
-            )
-            or 0
-        )
-        if total == 0:
-            rates[path.code] = 0.0
-            continue
-        completed = (
-            db.scalar(
-                select(func.count())
-                .select_from(CourseProgress)
-                .join(Event, Event.id == CourseProgress.course_id)
-                .where(
-                    CourseProgress.user_id == user_id,
-                    CourseProgress.is_completed.is_(True),
-                    Event.career_path_id == path.id,
-                    Event.is_active.is_(True),
-                )
-            )
-            or 0
-        )
-        rates[path.code] = round(completed / total, 4)
+        dims = dimensions_for_career_paths([path.code])
+        total = sum(total_by_dim.get(d, 0) for d in dims)
+        completed = sum(completed_by_dim.get(d, 0) for d in dims)
+        rates[path.code] = round(completed / total, 4) if total else 0.0
     return rates
 
 
 # ─────────────────────────── Widgets dashboard v1 (B4-E) ───────────────────────────
 # Agregaciones on-demand para los widgets (streak, weekly, team activity, adoption,
-# funnel, monthly watch). Se calculan en Python desde course_progress para ser
-# DB-agnósticas y explícitas con el timezone (UTC). Ver ADR-0011.
+# funnel, monthly). Se calculan en Python desde block_progress para ser
+# DB-agnósticas y explícitas con el timezone (UTC). El "valor" de cada celda es
+# el CONTEO DE BLOQUES COMPLETADOS en el período. Ver ADR-0011.
 
 STREAK_DAYS = 90
 WEEKLY_WEEKS = 12
@@ -201,41 +285,31 @@ def last_n_month_keys(today: date, n: int) -> list[str]:
 
 
 def streak_heatmap(db: Session, user_id: UUID, today: date) -> list[tuple[date, int]]:
-    """90 días (oldest first): (día, minutos del día). Minutos = suma de
-    last_position_seconds de los progress jugados ese día // 60 (aprox MVP)."""
+    """90 días (oldest first): (día, bloques completados ese día)."""
     start = today - timedelta(days=STREAK_DAYS - 1)
-    rows = db.execute(
-        select(CourseProgress.last_played_at, CourseProgress.last_position_seconds).where(
-            CourseProgress.user_id == user_id, CourseProgress.last_played_at >= _day_start(start)
-        )
-    ).all()
-    secs: dict[date, int] = {}
-    for lp, s in rows:
-        secs[lp.date()] = secs.get(lp.date(), 0) + (s or 0)
+    events = _completed_block_events(db, [user_id], _day_start(start))
+    per_day: dict[date, int] = {}
+    for _uid, submitted in events:
+        per_day[submitted.date()] = per_day.get(submitted.date(), 0) + 1
     return [
-        (d, secs.get(d, 0) // 60)
+        (d, per_day.get(d, 0))
         for i in range(STREAK_DAYS)
         if (d := start + timedelta(days=i))
     ]
 
 
 def weekly_minutes(db: Session, user_id: UUID, today: date) -> list[tuple[date, int]]:
-    """12 semanas (oldest first): (lunes de la semana, minutos)."""
+    """12 semanas (oldest first): (lunes de la semana, bloques completados)."""
     this_monday = today - timedelta(days=today.weekday())
     start_monday = this_monday - timedelta(weeks=WEEKLY_WEEKS - 1)
-    rows = db.execute(
-        select(CourseProgress.last_played_at, CourseProgress.last_position_seconds).where(
-            CourseProgress.user_id == user_id,
-            CourseProgress.last_played_at >= _day_start(start_monday),
-        )
-    ).all()
-    secs: dict[date, int] = {}
-    for lp, s in rows:
-        d = lp.date()
+    events = _completed_block_events(db, [user_id], _day_start(start_monday))
+    per_week: dict[date, int] = {}
+    for _uid, submitted in events:
+        d = submitted.date()
         monday = d - timedelta(days=d.weekday())
-        secs[monday] = secs.get(monday, 0) + (s or 0)
+        per_week[monday] = per_week.get(monday, 0) + 1
     return [
-        (wk, secs.get(wk, 0) // 60)
+        (wk, per_week.get(wk, 0))
         for i in range(WEEKLY_WEEKS)
         if (wk := start_monday + timedelta(weeks=i))
     ]
@@ -244,25 +318,16 @@ def weekly_minutes(db: Session, user_id: UUID, today: date) -> list[tuple[date, 
 def team_activity_cells(
     db: Session, user_ids: list[UUID], today: date
 ) -> list[tuple[UUID, date, int]]:
-    """30 días x reportes: solo cells con minutos > 0 (el front rellena los gaps)."""
+    """30 días x reportes: solo cells con bloques > 0 (el front rellena los gaps)."""
     if not user_ids:
         return []
     start = today - timedelta(days=TEAM_ACTIVITY_DAYS - 1)
-    rows = db.execute(
-        select(
-            CourseProgress.user_id,
-            CourseProgress.last_played_at,
-            CourseProgress.last_position_seconds,
-        ).where(
-            CourseProgress.user_id.in_(user_ids),
-            CourseProgress.last_played_at >= _day_start(start),
-        )
-    ).all()
-    secs: dict[tuple[UUID, date], int] = {}
-    for uid, lp, s in rows:
-        key = (uid, lp.date())
-        secs[key] = secs.get(key, 0) + (s or 0)
-    return [(uid, d, m // 60) for (uid, d), m in secs.items() if m // 60 > 0]
+    events = _completed_block_events(db, user_ids, _day_start(start))
+    per_cell: dict[tuple[UUID, date], int] = {}
+    for uid, submitted in events:
+        key = (uid, submitted.date())
+        per_cell[key] = per_cell.get(key, 0) + 1
+    return [(uid, d, n) for (uid, d), n in per_cell.items() if n > 0]
 
 
 def inactivity_buckets(
@@ -307,39 +372,33 @@ def adoption_curve(
     if not user_ids:
         return [(k, 0) for k in keys]
     earliest = date(int(keys[0][:4]), int(keys[0][5:]), 1)
-    rows = db.execute(
-        select(CourseProgress.user_id, CourseProgress.last_played_at).where(
-            CourseProgress.user_id.in_(user_ids),
-            CourseProgress.last_played_at >= _day_start(earliest),
-        )
-    ).all()
+    events = _completed_block_events(db, user_ids, _day_start(earliest))
     by_month: dict[str, set[UUID]] = {}
-    for uid, lp in rows:
-        by_month.setdefault(_month_key(lp.date()), set()).add(uid)
+    for uid, submitted in events:
+        by_month.setdefault(_month_key(submitted.date()), set()).add(uid)
     return [(k, len(by_month.get(k, set()))) for k in keys]
 
 
 def monthly_watch(db: Session, user_ids: list[UUID], today: date) -> list[tuple[str, int]]:
-    """12 meses (oldest first): (YYYY-MM, minutos totales)."""
+    """12 meses (oldest first): (YYYY-MM, bloques completados en el mes)."""
     keys = last_n_month_keys(today, ADOPTION_MONTHS)
     if not user_ids:
         return [(k, 0) for k in keys]
     earliest = date(int(keys[0][:4]), int(keys[0][5:]), 1)
-    rows = db.execute(
-        select(CourseProgress.last_played_at, CourseProgress.last_position_seconds).where(
-            CourseProgress.user_id.in_(user_ids),
-            CourseProgress.last_played_at >= _day_start(earliest),
-        )
-    ).all()
-    secs: dict[str, int] = {}
-    for lp, s in rows:
-        k = _month_key(lp.date())
-        secs[k] = secs.get(k, 0) + (s or 0)
-    return [(k, secs.get(k, 0) // 60) for k in keys]
+    events = _completed_block_events(db, user_ids, _day_start(earliest))
+    per_month: dict[str, int] = {}
+    for _uid, submitted in events:
+        k = _month_key(submitted.date())
+        per_month[k] = per_month.get(k, 0) + 1
+    return [(k, per_month.get(k, 0)) for k in keys]
 
 
 def onboarding_funnel(db: Session, org_id: UUID, user_ids: list[UUID]) -> dict[str, int]:
-    """Snapshot histórico del funnel de onboarding de la org."""
+    """Snapshot histórico del funnel de onboarding de la org.
+
+    ``first_course`` = users con >=1 attempt (empezaron un módulo);
+    ``first_completion`` = users con >=1 módulo completado.
+    """
     from hg.modules.identity.invitations import Invitation
     from hg.modules.identity.models import User
 
@@ -358,14 +417,15 @@ def onboarding_funnel(db: Session, org_id: UUID, user_ids: list[UUID]) -> dict[s
     ) or 0
     if user_ids:
         first_course = db.scalar(
-            select(func.count(func.distinct(CourseProgress.user_id))).where(
-                CourseProgress.user_id.in_(user_ids)
+            select(func.count(func.distinct(LearningUnitAttempt.user_id))).where(
+                LearningUnitAttempt.user_id.in_(user_ids),
+                LearningUnitAttempt.started_at.is_not(None),
             )
         ) or 0
         first_completion = db.scalar(
-            select(func.count(func.distinct(CourseProgress.user_id))).where(
-                CourseProgress.user_id.in_(user_ids),
-                CourseProgress.is_completed.is_(True),
+            select(func.count(func.distinct(LearningUnitAttempt.user_id))).where(
+                LearningUnitAttempt.user_id.in_(user_ids),
+                LearningUnitAttempt.completed_at.is_not(None),
             )
         ) or 0
     else:
@@ -388,7 +448,7 @@ def onboarding_funnel(db: Session, org_id: UUID, user_ids: list[UUID]) -> dict[s
 class UserMetrics:
     courses_completed: int
     courses_in_progress: int
-    total_watch_minutes: int
+    total_watch_minutes: int  # bloques completados (ver docstring del módulo)
     last_assessment_date: datetime | None
     badges_unlocked_count: int
     assessment_states: dict[str, dict[str, str]]  # {pillar: {state, state_label, source}} — desde PillarResult

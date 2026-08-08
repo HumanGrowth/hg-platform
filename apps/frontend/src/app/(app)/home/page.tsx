@@ -178,7 +178,7 @@ export default function HomePage() {
                 <p className="font-mono text-2xl font-semibold text-fg">
                   {data.stats.month_watch_minutes}
                 </p>
-                <p className="text-xs text-fg-muted">min este mes</p>
+                <p className="text-xs text-fg-muted">bloques este mes</p>
               </div>
             </Card>
             <Card className="flex items-center gap-3 bg-bg-raised">
@@ -187,7 +187,7 @@ export default function HomePage() {
                 <p className="font-mono text-2xl font-semibold text-fg">
                   {data.stats.courses_completed}
                 </p>
-                <p className="text-xs text-fg-muted">eventos completados</p>
+                <p className="text-xs text-fg-muted">módulos completados</p>
               </div>
             </Card>
           </div>
@@ -214,7 +214,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 <Link
-                  href={`/eventos/${data.next_step.course_slug}` as Route}
+                  href={`/modulos/${data.next_step.course_slug}` as Route}
                   className={cn(buttonVariants({ size: "lg" }), "shrink-0")}
                 >
                   Continuar
@@ -226,17 +226,17 @@ export default function HomePage() {
                 <div>
                   <Eyebrow>Tu próximo paso</Eyebrow>
                   <h2 className="mt-1 font-sans text-xl font-semibold text-fg">
-                    Explorá los eventos
+                    Explorá los módulos
                   </h2>
                   <p className="mt-1 text-sm text-fg-muted">
-                    Todavía no empezaste ningún evento. Elegí una dimensión y arrancá.
+                    Todavía no empezaste ningún módulo. Elegí una dimensión y arrancá.
                   </p>
                 </div>
                 <Link
-                  href={"/eventos" as Route}
+                  href={"/modulos" as Route}
                   className={cn(buttonVariants({ size: "lg" }), "shrink-0")}
                 >
-                  Ver eventos
+                  Ver módulos
                   <ArrowRight size={18} strokeWidth={1.75} />
                 </Link>
               </>
@@ -287,7 +287,7 @@ export default function HomePage() {
                 {data.recent_activity.map((a) => (
                   <li key={a.course_id}>
                     <Link
-                      href={`/eventos/${a.course_slug}` as Route}
+                      href={`/modulos/${a.course_slug}` as Route}
                       className="flex items-center gap-3 rounded-lg border border-border bg-surface-card px-4 py-3 transition-colors hover:bg-bg-raised"
                     >
                       <Badge variant={pillarBadge(a.pillar_code)}>{pillarShortName(a.pillar_code)}</Badge>

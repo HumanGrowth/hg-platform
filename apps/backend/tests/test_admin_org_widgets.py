@@ -1,4 +1,4 @@
-"""GET /api/v1/admin/org/widgets — adoption curve + onboarding funnel + monthly watch. B4-E."""
+"""GET /api/v1/admin/org/widgets — adoption curve + onboarding funnel + monthly. B4-E."""
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
@@ -6,17 +6,12 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import delete, select
+from sqlalchemy import delete
 
 from hg.modules.identity.invitations import Invitation
 from hg.modules.identity.models import UserRole
-from hg.modules.learning.models import (
-    CareerLevel,
-    CareerPath,
-    CourseProgress,
-    Event,
-    EventTrack,
-)
+
+from ._lu_helpers import cleanup_units, make_unit, seed_attempt
 
 
 def test_org_widgets_collaborator_403(client: TestClient, manager_with_reports, auth_headers) -> None:
@@ -46,12 +41,8 @@ def test_org_widgets_adoption_curve_12_months(client, manager_with_reports, fact
 @pytest.fixture
 def funnel_org(factory):
     """Org con funnel conocido: 3 invitados (1 aceptado), 1 user con login,
-    1 user con curso, 1 user con completion."""
+    1 user con módulo empezado, 1 user con módulo completado."""
     s = factory.session
-    if not s.scalar(select(CareerPath).where(CareerPath.code == "P1")):
-        s.add(CareerPath(code="P1", name="Carrera e impacto", order_index=1))
-        s.commit()
-    path = s.scalar(select(CareerPath).where(CareerPath.code == "P1"))
     org = factory.make_org()
     admin = factory.make_user(org=org, role=UserRole.admin, full_name="Funnel Admin")
     now = datetime.now(UTC)
@@ -69,29 +60,18 @@ def funnel_org(factory):
     admin.last_login_at = now
     s.commit()
 
-    # user con curso en progreso + user con completion
-    u_course = factory.make_user(org=org, full_name="Has Event")
+    # user con módulo en progreso + user con módulo completado
+    u_course = factory.make_user(org=org, full_name="Has Module")
     u_done = factory.make_user(org=org, full_name="Has Completion")
-    created: list = []
+    unit_ids: list = []
     for u, completed in [(u_course, False), (u_done, True)]:
-        c = Event(
-            career_path_id=path.id, title="FC", slug=f"fc-{uuid4().hex[:10]}",
-            order_index=0, career_level=CareerLevel.L1, track=EventTrack.competency,
-            duration_seconds=600,
-        )
-        s.add(c)
-        s.commit()
-        created.append(c.id)
-        s.add(CourseProgress(
-            org_id=org.id, user_id=u.id, course_id=c.id, last_position_seconds=300,
-            watch_pct=100.0 if completed else 40.0, is_completed=completed,
-            first_played_at=now, last_played_at=now, completed_at=now if completed else None,
-        ))
-    s.commit()
+        unit = make_unit(s, dimension_code="CP")
+        unit_ids.append(unit.id)
+        seed_attempt(s, org_id=org.id, user_id=u.id, unit=unit, when=now, completed=completed)
 
     from types import SimpleNamespace
     yield SimpleNamespace(org=org, admin=admin)
-    s.execute(delete(Event).where(Event.id.in_(created)))
+    cleanup_units(s, unit_ids)
     s.execute(delete(Invitation).where(Invitation.org_id == org.id))
     s.commit()
 
@@ -102,7 +82,7 @@ def test_org_widgets_funnel_classification(client, funnel_org, auth_headers) -> 
     assert f["invited"] == 3
     assert f["accepted"] == 1
     assert f["first_login"] >= 1            # el admin tiene last_login_at
-    assert f["first_course"] == 2           # u_course + u_done con progress
+    assert f["first_course"] == 2           # u_course + u_done empezaron un módulo
     assert f["first_completion"] == 1       # solo u_done completó
 
 
