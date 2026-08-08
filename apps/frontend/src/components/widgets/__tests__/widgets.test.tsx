@@ -109,10 +109,10 @@ describe("OnboardingFunnelChart", () => {
 });
 
 describe("MonthlyWatchBar", () => {
-  it("converts minutes to hours in the sr-only table", () => {
-    const data: MonthlyWatchPoint[] = [{ month: "2026-06", minutes: 120 }];
+  it("shows completed blocks in the sr-only table", () => {
+    // El campo `minutes` del wire ahora transporta bloques completados.
+    const data: MonthlyWatchPoint[] = [{ month: "2026-06", minutes: 7 }];
     const { container } = render(<MonthlyWatchBar data={data} />);
-    // 120 min = 2 h
-    expect(within(container.querySelector("table")!).getByText("2")).toBeTruthy();
+    expect(within(container.querySelector("table")!).getByText("7")).toBeTruthy();
   });
 });

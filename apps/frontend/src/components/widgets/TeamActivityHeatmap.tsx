@@ -62,7 +62,7 @@ export function TeamActivityHeatmap({ data }: { data: TeamActivityCell[] }) {
                   return (
                     <span
                       key={day}
-                      title={`${u.name} · ${formatDayShort(day)} · ${min} min`}
+                      title={`${u.name} · ${formatDayShort(day)} · ${min} ${min === 1 ? "bloque" : "bloques"}`}
                       className={`h-3 w-3 rounded-[3px] ${widgetColorScale(min, max)}`}
                     />
                   );
@@ -74,8 +74,8 @@ export function TeamActivityHeatmap({ data }: { data: TeamActivityCell[] }) {
       </div>
 
       <WidgetSrTable
-        caption="Actividad del equipo por persona (minutos totales últimos 30 días)"
-        columns={["Persona", "Minutos (30d)"]}
+        caption="Actividad del equipo por persona (bloques completados últimos 30 días)"
+        columns={["Persona", "Bloques (30d)"]}
         rows={users.map((u) => [u.name, u.total])}
       />
     </div>

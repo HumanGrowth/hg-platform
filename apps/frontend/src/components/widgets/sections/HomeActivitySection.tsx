@@ -50,8 +50,8 @@ export default function HomeActivitySection({
           {data ? <StreakHeatmap data={data.streak} /> : null}
         </WidgetCard>
         <WidgetCard
-          title="Tiempo por semana"
-          description="Minutos invertidos en las últimas 12 semanas."
+          title="Actividad por semana"
+          description="Bloques completados en las últimas 12 semanas."
           state={state}
           onRetry={load}
         >

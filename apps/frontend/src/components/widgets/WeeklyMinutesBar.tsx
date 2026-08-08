@@ -23,7 +23,9 @@ function WeeklyTooltip({ active, payload }: TooltipPayload) {
       <p className="font-semibold text-fg">
         Semana del {p.label} al {p.weekEndLabel}
       </p>
-      <p className="text-fg-muted">{p.minutes} min</p>
+      <p className="text-fg-muted">
+        {p.minutes} {p.minutes === 1 ? "bloque" : "bloques"}
+      </p>
     </div>
   );
 }
@@ -47,7 +49,7 @@ export function WeeklyMinutesBar({ data }: { data: WeeklyBar[] }) {
   return (
     <div role="img" aria-labelledby={labelId}>
       <h3 id={labelId} className="sr-only">
-        Minutos por semana, últimas 12 semanas. Total {total} minutos.
+        Bloques completados por semana, últimas 12 semanas. Total {total} bloques.
       </h3>
       <div className="h-40 w-full" aria-hidden>
         <ResponsiveContainer width="100%" height="100%">
@@ -66,8 +68,8 @@ export function WeeklyMinutesBar({ data }: { data: WeeklyBar[] }) {
         </ResponsiveContainer>
       </div>
       <WidgetSrTable
-        caption="Minutos por semana"
-        columns={["Semana (inicio)", "Minutos"]}
+        caption="Bloques por semana"
+        columns={["Semana (inicio)", "Bloques"]}
         rows={rows.map((r) => [r.label, r.minutes])}
       />
     </div>
