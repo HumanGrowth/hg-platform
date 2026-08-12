@@ -477,7 +477,7 @@ export const apiListModulosByDimension = async (
   levelCode?: string,
   limit = 10,
 ): Promise<LearningUnitFeedItem[]> => {
-  const res = await backend.get<LearningUnitFeedItem[]>("/api/v1/modulos/by-pillar", {
+  const res = await backend.get<LearningUnitFeedItem[]>("/api/v1/modulos/by-dimension", {
     params: { dimension_code: careerPathCode, level_code: levelCode, limit },
   });
   return res.data;
@@ -613,7 +613,7 @@ export const apiAiSummary = async (): Promise<{ enabled: boolean; suggestions: s
 
 export const apiListPerspectives = async (params?: {
   content_type?: string;
-  pillar?: string;
+  dimension?: string;
   q?: string;
   offset?: number;
   limit?: number;
