@@ -93,7 +93,7 @@ class LearningUnit(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     slug: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
-    # Dimensión del Drive (CP, PR, …). TASK 1: antes se llamaba `dimension_code` y
+    # Dimensión del Drive (CP, PR, …). TASK 1: antes se llamaba `pillar_code` y
     # (mal) guardaba el PILAR del Drive; ahora guarda la DIMENSIÓN, sin FK a
     # career_paths (los códigos Drive no viven en esa tabla). El mapeo
     # dimensión→color/label del DS se resuelve en el frontend.

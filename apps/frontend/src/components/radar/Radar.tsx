@@ -10,10 +10,10 @@ import {
   RadarChart,
 } from "recharts";
 
-import { dimensionByCareerPath } from "@/lib/dimensions";
+import { dimensionByPillar } from "@/lib/dimensions";
 import { cn } from "@/lib/utils";
 
-import { PILLAR_HEX, PILLAR_LABEL, type CareerPathCode, type RadarValues } from "./radar-model";
+import { PILLAR_HEX, PILLAR_LABEL, type PillarCode, type RadarValues } from "./radar-model";
 
 export type RadarState = "empty" | "filling" | "complete";
 export type RadarSize = "mini" | "medium" | "large";
@@ -37,7 +37,7 @@ export interface RadarProps {
   animateOnMount?: boolean;
 }
 
-const ORDER: CareerPathCode[] = ["P1", "P2", "P3", "P4", "P5", "P6"];
+const ORDER: PillarCode[] = ["P1", "P2", "P3", "P4", "P5", "P6"];
 
 const SIZE_PX: Record<RadarSize, number> = { mini: 120, medium: 300, large: 440 };
 const FILL_MS = 5200;
@@ -110,8 +110,8 @@ export function Radar({
 
   // Vértice: metáfora del pilar (line-art, color del pilar) + label corto.
   // Reemplaza al dot/marker anterior (TASK 6.1). Click/tap → /dimensiones/[code].
-  const DimensionTick = (props: {
-    payload: { value: CareerPathCode };
+  const PillarTick = (props: {
+    payload: { value: PillarCode };
     x: number;
     y: number;
     cx: number;
@@ -120,7 +120,7 @@ export function Radar({
   }) => {
     const { x, y, cx, cy, textAnchor } = props;
     const code = props.payload.value;
-    const dim = dimensionByCareerPath(code);
+    const dim = dimensionByPillar(code);
     // Dirección radial (centro → vértice) para posicionar label hacia afuera.
     const dx = x - cx;
     const dy = y - cy;
@@ -178,7 +178,7 @@ export function Radar({
         margin={showLabels ? { top: 40, right: 56, bottom: 40, left: 56 } : undefined}
       >
         <PolarGrid stroke="rgba(26,26,26,0.12)" />
-        {showLabels && <PolarAngleAxis dataKey="axis" tick={DimensionTick as never} />}
+        {showLabels && <PolarAngleAxis dataKey="axis" tick={PillarTick as never} />}
         <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
         {hasPrevious && (
           <RechartsRadar
@@ -251,7 +251,7 @@ export function Radar({
           verdad y no agrega altura fantasma al documento (rompía el header sticky). */}
       {state === "complete" && (
         <div className="sr-only">
-          <ul aria-label="Valores por dimensión">
+          <ul aria-label="Valores por pilar">
             {data.map((d) => (
               <li key={d.code} data-testid={`radar-value-${d.code}`}>
                 {d.label}: {d.value}

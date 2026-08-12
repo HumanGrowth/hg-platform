@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { detectChecklistItems, detectHeroStat } from "@/lib/parsers/autoDetect";
 import { stripCitationMarkers } from "@/lib/parsers/stripCitationMarkers";
-import { dimensionStyle } from "@/lib/dimension-styles";
+import { dimensionStyle } from "@/lib/pillars";
 import type { TextBlock } from "@/lib/types";
 import { cn } from "@/lib/utils";
 

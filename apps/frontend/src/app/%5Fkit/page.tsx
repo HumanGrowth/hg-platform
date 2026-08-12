@@ -24,13 +24,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-const DIMENSIONS_META = [
-  "dimension-p1",
-  "dimension-p2",
-  "dimension-p3",
-  "dimension-p4",
-  "dimension-p5",
-  "dimension-p6",
+const PILLARS = [
+  "pillar-p1",
+  "pillar-p2",
+  "pillar-p3",
+  "pillar-p4",
+  "pillar-p5",
+  "pillar-p6",
 ] as const;
 
 export default function KitPage() {
@@ -76,7 +76,7 @@ export default function KitPage() {
         <Badge variant="success">Activa</Badge>
         <Badge variant="warning">Pendiente</Badge>
         <Badge variant="danger">Vencida</Badge>
-        {DIMENSIONS_META.map((p, i) => (
+        {PILLARS.map((p, i) => (
           <Badge key={p} variant={p}>
             P{i + 1}
           </Badge>

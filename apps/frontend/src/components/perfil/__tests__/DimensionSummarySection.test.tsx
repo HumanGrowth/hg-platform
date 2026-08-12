@@ -2,13 +2,13 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { DimensionSummarySection } from "../DimensionSummarySection";
-import type { DimensionResult } from "@/lib/types";
+import type { PillarResult } from "@/lib/types";
 
 vi.mock("@/lib/api", () => ({ apiConfirmResult: vi.fn() }));
 
-function result(pillar: DimensionResult["dimension_code"], state: string): DimensionResult {
+function result(pillar: PillarResult["pillar_code"], state: string): PillarResult {
   return {
-    dimension_code: pillar,
+    pillar_code: pillar,
     source: "confirmed",
     state_code: state,
     state_label: state,

@@ -72,7 +72,7 @@ export const es = {
     ctaSecondary: "Ver dimensiones",
     socialProof: "Diseñado para profesionales y equipos de LatAm",
   },
-  sixDimensions: {
+  sixPillars: {
     eyebrow: "LA CIENCIA QUE NOS RESPALDA",
     title: "6 dimensiones del profesional completo.",
     subtitle: "No desarrollamos habilidades aisladas. Desarrollamos personas enteras.",
@@ -256,7 +256,7 @@ export const es = {
         { n: "05", name: "Tropicalización LATAM", body: "Adaptamos la lectura a la realidad socioeconómica de la región, en notas separadas del marco base para no deformarlo." },
       ],
     },
-    dimensionsHeading: {
+    pillarsHeading: {
       eyebrow: "LOS SEIS PILARES",
       title: "Qué mide cada dimensión.",
       body: "Qué evalúa cada pilar y cómo es su ruta de crecimiento. Sin jerga: la investigación completa vive en nuestro marco interno.",

@@ -8,9 +8,9 @@ import { usePrefersReducedMotion } from "@/lib/widget-utils";
 
 import { WidgetSrTable } from "./WidgetSrTable";
 
-type CareerPathCode = "P1" | "P2" | "P3" | "P4" | "P5" | "P6";
+type PillarCode = "P1" | "P2" | "P3" | "P4" | "P5" | "P6";
 
-const PILLAR_HEX: Record<CareerPathCode, string> = {
+const PILLAR_HEX: Record<PillarCode, string> = {
   P1: "#E8530A",
   P2: "#C8A76E",
   P3: "#4A7A54",
@@ -20,7 +20,7 @@ const PILLAR_HEX: Record<CareerPathCode, string> = {
 };
 const REMAINING = "#F0EDE6"; // cream-200
 
-function Ring({ code, pct }: { code: CareerPathCode; pct: number }) {
+function Ring({ code, pct }: { code: PillarCode; pct: number }) {
   const reduced = usePrefersReducedMotion();
   const data = [
     { name: "done", value: pct },
@@ -58,16 +58,16 @@ function Ring({ code, pct }: { code: CareerPathCode; pct: number }) {
 /** Donuts pequeños de completion por path activo. C-06. */
 export function ProgressRingsByPath({
   enrollments,
-  dimensionCompletionRates,
+  pillarCompletionRates,
 }: {
   enrollments: Enrollment[];
-  dimensionCompletionRates: Record<string, number>;
+  pillarCompletionRates: Record<string, number>;
 }) {
   const labelId = React.useId();
   const active = enrollments.filter((e) => e.is_active);
   const rings = active.map((e) => ({
-    code: e.career_path_code as CareerPathCode,
-    pct: Math.round((dimensionCompletionRates[e.career_path_code] ?? 0) * 100),
+    code: e.career_path_code as PillarCode,
+    pct: Math.round((pillarCompletionRates[e.career_path_code] ?? 0) * 100),
   }));
 
   if (rings.length === 0) {
@@ -90,7 +90,7 @@ export function ProgressRingsByPath({
       </div>
       <WidgetSrTable
         caption="Completion por path activo"
-        columns={["Dimensión", "Completion %"]}
+        columns={["Pilar", "Completion %"]}
         rows={rings.map((r) => [r.code, `${r.pct}%`])}
       />
     </div>

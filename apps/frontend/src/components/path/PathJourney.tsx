@@ -8,14 +8,14 @@ import * as React from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { HexIcon } from "@/components/ui/hex-icon";
 import { apiGetMyPath } from "@/lib/api";
-import { DIMENSIONS_META } from "@/lib/dimension-styles";
+import { PILLARS } from "@/lib/pillars";
 import type { MyPath, PathStep } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const DOT: Record<string, string> = Object.fromEntries(DIMENSIONS_META.map((p) => [p.id, p.dot]));
+const DOT: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id, p.dot]));
 
-function dimensionName(code: string): string {
-  return DIMENSIONS_META.find((p) => p.id === code)?.name ?? code;
+function pillarName(code: string): string {
+  return PILLARS.find((p) => p.id === code)?.name ?? code;
 }
 
 function stepHref(s: PathStep): Route {
@@ -79,7 +79,7 @@ export function PathJourney() {
                 {next_step.title}
               </h2>
               <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg-muted">
-                <span className="font-medium text-fg">{dimensionName(next_step.career_path_code)}</span>
+                <span className="font-medium text-fg">{pillarName(next_step.career_path_code)}</span>
                 <span>· {next_step.level_code}</span>
                 {minutesLabel(next_step) && (
                   <span className="inline-flex items-center gap-1">
@@ -144,7 +144,7 @@ export function PathJourney() {
                 >
                   <p className="line-clamp-1 font-sans text-sm font-semibold text-fg">{s.title}</p>
                   <p className="mt-0.5 text-xs text-fg-muted">
-                    {dimensionName(s.career_path_code)} · {s.level_code}
+                    {pillarName(s.career_path_code)} · {s.level_code}
                     {minutesLabel(s) ? ` · ${minutesLabel(s)}` : ""}
                   </p>
                 </Link>

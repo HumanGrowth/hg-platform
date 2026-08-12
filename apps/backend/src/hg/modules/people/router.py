@@ -37,7 +37,6 @@ from hg.modules.people import service
 from hg.modules.people.schemas import (
     AdoptionMonthPoint,
     CourseProgressDetailOut,
-    DimensionMetric,
     HomeDashboardOut,
     HomeStats,
     InactivityBuckets,
@@ -48,6 +47,7 @@ from hg.modules.people.schemas import (
     OnboardingFunnel,
     OrgMetricsOut,
     OrgWidgetsOut,
+    PillarMetric,
     RecentActivityItem,
     StreakDay,
     TeamActivityCell,
@@ -62,9 +62,9 @@ from hg.modules.people.service import (
     ACTIVE_WINDOW_DAYS,
     ActivityAgg,
     activity_by_users,
-    dimension_completion_rate,
     now_utc,
-    org_dimension_metrics,
+    org_pillar_metrics,
+    pillar_completion_rate,
     streak_days,
 )
 
@@ -251,18 +251,18 @@ def get_user_detail(
     enrollments = enrollments_service.list_user_enrollments(
         db, user_id=target.id, active_only=False
     )
-    # Estados del assessment desde la fuente canónica (DimensionResult), NO el
+    # Estados del assessment desde la fuente canónica (PillarResult), NO el
     # snapshot denormalizado — así el manager ve lo mismo que el colaborador
     # en /perfil (Release TASK 2, consistencia cross-role).
-    from hg.modules.assessment.service import assessment_states_snapshot, latest_dimension_results
+    from hg.modules.assessment.service import assessment_states_snapshot, latest_pillar_results
 
-    states = assessment_states_snapshot(latest_dimension_results(db, target.id))
+    states = assessment_states_snapshot(latest_pillar_results(db, target.id))
     return TeamMemberDetailOut(
         **base.model_dump(),
         enrollments=[_enrollment_out(db, e) for e in enrollments],
         courses_in_progress_list=_course_progress_list(db, target.id, completed=False),
         courses_completed_list=_course_progress_list(db, target.id, completed=True),
-        dimension_completion_rate=dimension_completion_rate(db, target.id),
+        pillar_completion_rate=pillar_completion_rate(db, target.id),
         assessment_states=states,
     )
 
@@ -353,11 +353,11 @@ def org_metrics(
     )
     total_watch = sum(aggs[u.id].total_watch_minutes for u in users)
 
-    dimension_raw = org_dimension_metrics(db, uids)
-    by_dimension: dict[str, DimensionMetric] = {}
+    pillar_raw = org_pillar_metrics(db, uids)
+    by_pillar: dict[str, PillarMetric] = {}
     for path in db.scalars(select(CareerPath).order_by(CareerPath.order_index)).all():
-        started, completed, active_u = dimension_raw.get(path.id, (0, 0, 0))
-        by_dimension[path.code] = DimensionMetric(
+        started, completed, active_u = pillar_raw.get(path.id, (0, 0, 0))
+        by_pillar[path.code] = PillarMetric(
             completion_rate=round(completed / started, 4) if started else 0.0,
             active_users=active_u,
             total_courses_started=started,
@@ -378,7 +378,7 @@ def org_metrics(
         avg_watch_minutes_per_user=round(total_watch / total, 2) if total else 0.0,
         total_courses_completed=total_completed,
         completion_rate_global=round(total_completed / total_started, 4) if total_started else 0.0,
-        by_dimension=by_dimension,
+        by_pillar=by_pillar,
         by_career_level=dict(by_level),
         top_performers=top_performers,
         inactive_users_count=inactive,
@@ -460,7 +460,7 @@ def get_my_home_dashboard(
             course_id=u.id,
             course_slug=u.slug,
             course_title=u.title,
-            dimension_code=_pillar(u),
+            pillar_code=_pillar(u),
             career_level=u.level_code,
             duration_seconds=u.estimated_duration_seconds or 0,
             watch_pct=pct,
@@ -474,7 +474,7 @@ def get_my_home_dashboard(
             course_id=u.id,
             course_slug=u.slug,
             course_title=u.title,
-            dimension_code=_pillar(u),
+            pillar_code=_pillar(u),
             is_completed=a.completed_at is not None,
             last_played_at=_activity_ts(a),
             completed_at=a.completed_at,
@@ -513,7 +513,7 @@ def get_my_home_dashboard(
     return HomeDashboardOut(
         next_step=next_step,
         active_enrollments=[_enrollment_out(db, e) for e in enrollments],
-        dimension_completion_rates=dimension_completion_rate(db, uid),
+        pillar_completion_rates=pillar_completion_rate(db, uid),
         recent_activity=recent_activity,
         stats=stats,
     )
@@ -540,7 +540,7 @@ def get_my_metrics(
         last_assessment_date=m.last_assessment_date,
         badges_unlocked_count=m.badges_unlocked_count,
         assessment_states=m.assessment_states,
-        dimension_completion_rate=m.dimension_completion_rate,
+        pillar_completion_rate=m.pillar_completion_rate,
     )
 
 

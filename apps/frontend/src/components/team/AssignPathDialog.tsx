@@ -5,7 +5,7 @@ import * as React from "react";
 
 import { Dialog } from "@/components/ui/dialog";
 import { apiAssignPath } from "@/lib/api";
-import { DIMENSIONS_META } from "@/lib/dimension-styles";
+import { PILLARS } from "@/lib/pillars";
 import { toast } from "@/lib/toast-store";
 import type { Enrollment } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -48,11 +48,11 @@ export function AssignPathDialog({
       open={open}
       onClose={onClose}
       title={`Asignar path a ${userName}`}
-      description="Elegí la dimensión que quieras agregar a su ruta."
+      description="Elegí el pilar que quieras agregar a su ruta."
       className="max-w-lg"
     >
       <div className="grid grid-cols-2 gap-3">
-        {DIMENSIONS_META.map((p) => {
+        {PILLARS.map((p) => {
           const assigned = alreadyAssignedCodes.includes(p.id);
           const busy = pending === p.id;
           return (

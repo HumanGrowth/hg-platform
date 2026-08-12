@@ -4,7 +4,7 @@ import { Check, ChevronDown } from "lucide-react";
 import * as React from "react";
 
 import { SaveTipButton } from "@/components/plan-accion/SaveTipButton";
-import { dimensionStyle } from "@/lib/dimension-styles";
+import { dimensionStyle } from "@/lib/pillars";
 import { cn } from "@/lib/utils";
 
 export interface ChecklistEntry {

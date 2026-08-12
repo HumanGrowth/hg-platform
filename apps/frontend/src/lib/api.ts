@@ -10,7 +10,7 @@ import type {
   MyPath,
   SavedTip,
   AdminUser,
-  AssessmentDimensionCode,
+  AssessmentPillarCode,
   AssessmentSession,
   AssignableUnit,
   AuthResult,
@@ -41,7 +41,7 @@ import type {
   OrgMetrics,
   OrgWidgets,
   PaginatedUsers,
-  DimensionResult,
+  PillarResult,
   QuizSubmitPayload,
   QuizSubmitResponse,
   RadarHistory,
@@ -251,10 +251,10 @@ export const apiListCourses = async (
   return res.data as { items: Course[]; total: number };
 };
 
-/** @deprecated TASK lu-refine-B-03 — `/path` usa `apiListModulosByDimension`
+/** @deprecated TASK lu-refine-B-03 — `/path` usa `apiListModulosByPillar`
  * ahora. Sin callers activos; se deja sin borrar (el endpoint que pega
  * abajo sigue vivo vía el redirect 308 legacy de A-08) por si algún otro
- * lugar necesita listar el catálogo de events heredado por dimensión. */
+ * lugar necesita listar el catálogo de events heredado por pilar. */
 export const apiListCoursesForPath = async (
   pathCode: string,
   filters?: Omit<CourseFilters, "track">,
@@ -362,7 +362,7 @@ export const apiExportOrgUsersCsv = async (orgId?: string): Promise<void> => {
 
 export const apiStartSession = async (payload: {
   kind: SessionKind;
-  target_dimension?: AssessmentDimensionCode;
+  target_pillar?: AssessmentPillarCode;
 }): Promise<AssessmentSession> => {
   const res = await backend.post<AssessmentSession>("/api/v1/assessment/sessions", payload);
   return res.data;
@@ -396,13 +396,13 @@ export const apiFinalizeSession = async (sessionId: string): Promise<FinalizeRes
   return res.data;
 };
 
-export const apiGetMyResults = async (): Promise<{ results: DimensionResult[] }> => {
-  const res = await backend.get<{ results: DimensionResult[] }>("/api/v1/assessment/me/results");
+export const apiGetMyResults = async (): Promise<{ results: PillarResult[] }> => {
+  const res = await backend.get<{ results: PillarResult[] }>("/api/v1/assessment/me/results");
   return res.data;
 };
 
-export const apiConfirmResult = async (pillar: AssessmentDimensionCode): Promise<DimensionResult> => {
-  const res = await backend.post<DimensionResult>(
+export const apiConfirmResult = async (pillar: AssessmentPillarCode): Promise<PillarResult> => {
+  const res = await backend.post<PillarResult>(
     `/api/v1/assessment/me/results/${pillar}/confirm`,
   );
   return res.data;
@@ -421,7 +421,7 @@ export const apiGetMyMetrics = async (): Promise<UserMetrics> => {
   return res.data;
 };
 
-/** Radar actual + evaluación anterior por dimensión (overlay histórico · TASK 6.3). */
+/** Radar actual + evaluación anterior por pilar (overlay histórico · TASK 6.3). */
 export const apiGetMyRadar = async (): Promise<RadarHistory> => {
   const res = await backend.get<RadarHistory>("/api/v1/assessment/me/radar");
   return res.data;
@@ -472,13 +472,13 @@ export const apiGetModulo = async (slug: string): Promise<LearningUnitDetail> =>
 
 /** TASK lu-refine-A-03/B-01 — usado por /path (B-03) para reemplazar el
  * lane de `apiListCoursesForPath` (events) por units reales del pilar. */
-export const apiListModulosByDimension = async (
-  careerPathCode: string,
+export const apiListModulosByPillar = async (
+  pillarCode: string,
   levelCode?: string,
   limit = 10,
 ): Promise<LearningUnitFeedItem[]> => {
   const res = await backend.get<LearningUnitFeedItem[]>("/api/v1/modulos/by-pillar", {
-    params: { dimension_code: careerPathCode, level_code: levelCode, limit },
+    params: { pillar_code: pillarCode, level_code: levelCode, limit },
   });
   return res.data;
 };

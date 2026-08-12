@@ -5,13 +5,13 @@ import { useMemo, useState } from "react";
 import { BrandSawWave } from "@/components/motion/BrandSawWave";
 import { BubbleField } from "@/components/motion/BubbleField";
 import { DecoLayer } from "@/components/motion/DecoLayer";
-import { GROWTH_PATHS, LEVELS, type Level, type DimensionId } from "@/lib/growth-paths";
-import { DIMENSIONS_META } from "@/lib/dimension-styles";
+import { GROWTH_PATHS, LEVELS, type Level, type PillarId } from "@/lib/growth-paths";
+import { PILLARS } from "@/lib/pillars";
 
 import { PathCard } from "./PathCard";
 
 export default function PathsCatalog() {
-  const [pillar, setDimension] = useState<DimensionId | "all">("all");
+  const [pillar, setPillar] = useState<PillarId | "all">("all");
   const [level, setLevel] = useState<Level | "all">("all");
 
   const filtered = useMemo(
@@ -35,13 +35,13 @@ export default function PathsCatalog() {
         <BrandSawWave width={240} teeth={6} height={16} rotation={-9} top="4%" right="4%" color="var(--hg-gold)" opacity={0.28} speed={0.08} />
         <BubbleField seed={52} count={4} />
       </DecoLayer>
-      {/* Filtro por dimensión */}
+      {/* Filtro por pilar */}
       <div className="flex gap-2 flex-wrap mb-3">
-        <button className={chip(pillar === "all")} onClick={() => setDimension("all")}>
-          Todos las dimensiones
+        <button className={chip(pillar === "all")} onClick={() => setPillar("all")}>
+          Todos los pilares
         </button>
-        {DIMENSIONS_META.map((p) => (
-          <button key={p.id} className={chip(pillar === p.id)} onClick={() => setDimension(p.id)}>
+        {PILLARS.map((p) => (
+          <button key={p.id} className={chip(pillar === p.id)} onClick={() => setPillar(p.id)}>
             {p.name}
           </button>
         ))}

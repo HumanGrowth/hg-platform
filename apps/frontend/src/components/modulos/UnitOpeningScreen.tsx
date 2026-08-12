@@ -3,11 +3,11 @@
 import { motion } from "framer-motion";
 import * as React from "react";
 
-import { DimensionMetaphor } from "@/components/modulos/DimensionMetaphor";
+import { PillarMetaphor } from "@/components/modulos/PillarMetaphor";
 import { Button } from "@/components/ui/button";
 import { useNarrativeTone } from "@/lib/motion/useNarrativeTone";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
-import { DIMENSIONS_META, dimensionStyle, driveToCareerPath } from "@/lib/dimension-styles";
+import { PILLARS, dimensionStyle, dimensionToPillar } from "@/lib/pillars";
 import type { LearningUnitDetail } from "@/lib/types";
 
 function fmtDuration(sec: number | null): string | null {
@@ -25,7 +25,7 @@ export function UnitOpeningScreen({ unit, onStart }: { unit: LearningUnitDetail;
   const shouldAnimate = useShouldAnimate();
   const { transition } = useNarrativeTone(unit.narrative_tone);
   const style = dimensionStyle(unit.dimension_code);
-  const dimensionName = DIMENSIONS_META.find((p) => p.id === driveToCareerPath(unit.dimension_code))?.name ?? "";
+  const pillarName = PILLARS.find((p) => p.id === dimensionToPillar(unit.dimension_code))?.name ?? "";
   const duration = fmtDuration(unit.estimated_duration_seconds);
   const steps = unit.blocks.length;
 
@@ -51,13 +51,13 @@ export function UnitOpeningScreen({ unit, onStart }: { unit: LearningUnitDetail;
             boxShadow: `0 0 32px 0 color-mix(in srgb, ${style.glow} 30%, transparent)`,
           }}
         >
-          <DimensionMetaphor code={unit.dimension_code} className="h-20 w-20" />
+          <PillarMetaphor code={unit.dimension_code} className="h-20 w-20" />
         </motion.div>
 
         <div className="flex flex-col items-center gap-2">
-          {dimensionName && (
+          {pillarName && (
             <span className="font-sans text-micro font-semibold uppercase tracking-meta" style={{ color: style.glow }}>
-              {dimensionName}
+              {pillarName}
             </span>
           )}
           <h1 className="max-w-md font-display text-4xl leading-tight text-fg">{unit.title}</h1>

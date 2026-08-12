@@ -17,7 +17,7 @@ video opcionales)::
     {
       "slug": "hg-p1-l1-001-antes-de-seguir",
       "title": "Antes de seguir",
-      "dimension_code": "CP",            # dimensión Drive (TASK 1); antes dimension_code
+      "dimension_code": "CP",            # dimensión Drive (TASK 1); antes pillar_code
       "pillar_number": 1,                # opcional — el P<n> del código Drive
       "unit_number": 1,                  # opcional — el seq del código Drive
       "competency_code": "C1",           # opcional

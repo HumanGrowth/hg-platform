@@ -92,7 +92,7 @@ def test_start_session_does_not_commit_mid_request(raw_db: Session) -> None:
         )
         # The exact follow-up queries the router's _session_out performs; these
         # are RLS-scoped and would raise/misbehave if the context above is gone.
-        items = service.ordered_items(raw_db, session.kind, session.target_dimension)
+        items = service.ordered_items(raw_db, session.kind, session.target_pillar)
         assert len(items) > 0
         assert service.get_next_item(raw_db, session) is not None
         assert session.started_at is not None  # server_default populated via flush's RETURNING

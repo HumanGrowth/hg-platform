@@ -12,25 +12,25 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { HexIcon } from "@/components/ui/hex-icon";
 import { apiConfirmResult } from "@/lib/api";
 import { canRetake, sourceLabel } from "@/lib/assessment-utils";
-import { DIMENSION_FULL_LABEL, DIMENSION_SHORT_LABEL } from "@/lib/dimension-styles";
-import type { AssessmentDimensionCode, DimensionResult } from "@/lib/types";
+import { PILLAR_FULL_LABEL, PILLAR_SHORT_LABEL } from "@/lib/pillars";
+import type { AssessmentPillarCode, PillarResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast-store";
 
 // Para el CTA de detalle, P6A/P6B usan su propio código.
-const detailHref = (code: AssessmentDimensionCode) => `/onboarding/detail/${code}` as Route;
+const detailHref = (code: AssessmentPillarCode) => `/onboarding/detail/${code}` as Route;
 
-export function DimensionStatesGrid({
+export function PillarStatesGrid({
   results,
   onChanged,
 }: {
-  results: DimensionResult[];
+  results: PillarResult[];
   onChanged?: () => void;
 }) {
-  const [confirming, setConfirming] = React.useState<DimensionResult | null>(null);
+  const [confirming, setConfirming] = React.useState<PillarResult | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
 
-  async function confirm(pillar: AssessmentDimensionCode) {
+  async function confirm(pillar: AssessmentPillarCode) {
     setSubmitting(true);
     try {
       await apiConfirmResult(pillar);
@@ -49,12 +49,12 @@ export function DimensionStatesGrid({
       <Eyebrow>Tus dimensiones</Eyebrow>
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {results.map((r) => (
-          <Card key={r.dimension_code} className="flex flex-col gap-3 bg-surface-card">
+          <Card key={r.pillar_code} className="flex flex-col gap-3 bg-surface-card">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <HexIcon pillar={r.dimension_code} size={28} />
+                <HexIcon pillar={r.pillar_code} size={28} />
                 <span className="font-heading text-sm font-semibold text-fg">
-                  {DIMENSION_SHORT_LABEL[r.dimension_code]}
+                  {PILLAR_SHORT_LABEL[r.pillar_code]}
                 </span>
               </div>
               <span
@@ -69,7 +69,7 @@ export function DimensionStatesGrid({
               </span>
             </div>
             <h3 className="font-sans text-md font-semibold text-fg">
-              {DIMENSION_FULL_LABEL[r.dimension_code]}
+              {PILLAR_FULL_LABEL[r.pillar_code]}
             </h3>
             <p className="font-sans text-sm font-semibold text-primary">{r.state_label}</p>
             {r.recaida_detected && (
@@ -94,7 +94,7 @@ export function DimensionStatesGrid({
             <div className="mt-auto">
               {r.source === "preliminary" ? (
                 <Link
-                  href={detailHref(r.dimension_code)}
+                  href={detailHref(r.pillar_code)}
                   className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "self-start px-0 hover:bg-transparent")}
                 >
                   Evaluar en detalle
@@ -102,7 +102,7 @@ export function DimensionStatesGrid({
                 </Link>
               ) : canRetake(r) ? (
                 <Link
-                  href={detailHref(r.dimension_code)}
+                  href={detailHref(r.pillar_code)}
                   className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "self-start px-0 hover:bg-transparent")}
                 >
                   Re-evaluar
@@ -118,7 +118,7 @@ export function DimensionStatesGrid({
         open={confirming !== null}
         onClose={() => setConfirming(null)}
         title="Confirmá tu nivel"
-        description={confirming ? DIMENSION_FULL_LABEL[confirming.dimension_code] : undefined}
+        description={confirming ? PILLAR_FULL_LABEL[confirming.pillar_code] : undefined}
       >
         <p className="text-sm text-fg-muted">
           Según tus respuestas tenés una red sólida. El siguiente nivel (Generativo) implica que
@@ -130,7 +130,7 @@ export function DimensionStatesGrid({
           </Button>
           <Button
             disabled={submitting}
-            onClick={() => confirming && confirm(confirming.dimension_code)}
+            onClick={() => confirming && confirm(confirming.pillar_code)}
           >
             {submitting ? "Confirmando…" : "Sí, me reconozco"}
           </Button>

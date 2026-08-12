@@ -15,7 +15,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from hg.db import SessionLocal
-from hg.modules.assessment.enums import DimensionCode, InstrumentCode, ResponseType
+from hg.modules.assessment.enums import InstrumentCode, PillarCode, ResponseType
 from hg.modules.assessment.models import (
     AssessmentInstrument,
     AssessmentItem,
@@ -32,23 +32,23 @@ MC = ResponseType.multiple_choice
 # ─────────────────────────── Instrumentos ───────────────────────────
 
 INSTRUMENTS = [
-    (InstrumentCode.PMM_V3, "PMM v3 — Marco de competencias de carrera", DimensionCode.P1,
+    (InstrumentCode.PMM_V3, "PMM v3 — Marco de competencias de carrera", PillarCode.P1,
      "5 competencias (C1..C5) × 6 niveles (L1..L6). Estado = weakest link (MIN).", "Human Growth (Marco Teórico)"),
-    (InstrumentCode.MLQ_10, "MLQ-10 — Meaning in Life Questionnaire", DimensionCode.P2,
+    (InstrumentCode.MLQ_10, "MLQ-10 — Meaning in Life Questionnaire", PillarCode.P2,
      "Presencia + Búsqueda de significado. 4 estados Damon.", "Michael F. Steger"),
-    (InstrumentCode.UCLA_3, "UCLA Loneliness Scale (3-item)", DimensionCode.P3,
+    (InstrumentCode.UCLA_3, "UCLA Loneliness Scale (3-item)", PillarCode.P3,
      "Soledad percibida (A1-A3).", "Hughes / Cacioppo"),
-    (InstrumentCode.CACIOPPO_5, "Dimensiones de conexión (Cacioppo)", DimensionCode.P3,
+    (InstrumentCode.CACIOPPO_5, "Dimensiones de conexión (Cacioppo)", PillarCode.P3,
      "Íntima / Relacional / Colectiva (B1-B5).", "John Cacioppo"),
-    (InstrumentCode.PROCHASKA, "Modelo Transteórico × 4 dominios", DimensionCode.P4,
+    (InstrumentCode.PROCHASKA, "Modelo Transteórico × 4 dominios", PillarCode.P4,
      "Sueño / Actividad / Nutrición / Recuperación. Estados E1-E5 + recaída.", "Prochaska & DiClemente"),
-    (InstrumentCode.ERQ_10, "ERQ — Emotion Regulation Questionnaire", DimensionCode.P5,
+    (InstrumentCode.ERQ_10, "ERQ — Emotion Regulation Questionnaire", PillarCode.P5,
      "Reevaluación (A1-A6) vs Supresión (A7-A10).", "James Gross"),
-    (InstrumentCode.AAQ_II, "AAQ-II — flexibilidad psicológica (1 ítem)", DimensionCode.P5,
+    (InstrumentCode.AAQ_II, "AAQ-II — flexibilidad psicológica (1 ítem)", PillarCode.P5,
      "Ítem de screening ACT (invertido).", "Steven Hayes"),
-    (InstrumentCode.CD_RISC_10, "CD-RISC-10 — Connor-Davidson Resilience", DimensionCode.P6A,
+    (InstrumentCode.CD_RISC_10, "CD-RISC-10 — Connor-Davidson Resilience", PillarCode.P6A,
      "Resiliencia emocional (0-40). 3 niveles.", "Connor & Davidson"),
-    (InstrumentCode.CFPB_5, "CFPB-5 — Bienestar financiero (adaptado CR)", DimensionCode.P6B,
+    (InstrumentCode.CFPB_5, "CFPB-5 — Bienestar financiero (adaptado CR)", PillarCode.P6B,
      "Estabilidad financiera (0-23). 3 niveles.", "Consumer Financial Protection Bureau"),
 ]
 
@@ -267,42 +267,42 @@ def _cfpb() -> list[tuple]:
 
 
 ITEMS_BY_INSTRUMENT = {
-    InstrumentCode.PMM_V3: (DimensionCode.P1, _pmm()),
-    InstrumentCode.MLQ_10: (DimensionCode.P2, _mlq()),
-    InstrumentCode.UCLA_3: (DimensionCode.P3, _ucla()),
-    InstrumentCode.CACIOPPO_5: (DimensionCode.P3, _cacioppo()),
-    InstrumentCode.PROCHASKA: (DimensionCode.P4, _prochaska()),
-    InstrumentCode.ERQ_10: (DimensionCode.P5, _erq()),
-    InstrumentCode.AAQ_II: (DimensionCode.P5, _aaq()),
-    InstrumentCode.CD_RISC_10: (DimensionCode.P6A, _risc()),
-    InstrumentCode.CFPB_5: (DimensionCode.P6B, _cfpb()),
+    InstrumentCode.PMM_V3: (PillarCode.P1, _pmm()),
+    InstrumentCode.MLQ_10: (PillarCode.P2, _mlq()),
+    InstrumentCode.UCLA_3: (PillarCode.P3, _ucla()),
+    InstrumentCode.CACIOPPO_5: (PillarCode.P3, _cacioppo()),
+    InstrumentCode.PROCHASKA: (PillarCode.P4, _prochaska()),
+    InstrumentCode.ERQ_10: (PillarCode.P5, _erq()),
+    InstrumentCode.AAQ_II: (PillarCode.P5, _aaq()),
+    InstrumentCode.CD_RISC_10: (PillarCode.P6A, _risc()),
+    InstrumentCode.CFPB_5: (PillarCode.P6B, _cfpb()),
 }
 
 
 def seed(db: Session) -> dict[str, int]:
     inst_n = item_n = opt_n = 0
-    for code, name, dimension, desc, author in INSTRUMENTS:
+    for code, name, pillar, desc, author in INSTRUMENTS:
         inst = db.scalar(select(AssessmentInstrument).where(AssessmentInstrument.code == code))
         if inst is None:
-            inst = AssessmentInstrument(code=code, name=name, dimension_code=dimension)
+            inst = AssessmentInstrument(code=code, name=name, pillar_code=pillar)
             db.add(inst)
             inst_n += 1
         inst.name = name
-        inst.dimension_code = dimension
+        inst.pillar_code = pillar
         inst.description = desc
         inst.author = author
         db.flush()
 
-        _dimension, items = ITEMS_BY_INSTRUMENT[code]
+        _pillar, items = ITEMS_BY_INSTRUMENT[code]
         for (item_code, sub_scale, sub_domain, rtype, smin, smax,
              rev, short, order, prompt, options) in items:
             item = db.scalar(select(AssessmentItem).where(AssessmentItem.item_code == item_code))
             if item is None:
-                item = AssessmentItem(item_code=item_code, instrument_id=inst.id, dimension_code=_dimension)
+                item = AssessmentItem(item_code=item_code, instrument_id=inst.id, pillar_code=_pillar)
                 db.add(item)
                 item_n += 1
             item.instrument_id = inst.id
-            item.dimension_code = _dimension
+            item.pillar_code = _pillar
             item.sub_scale = sub_scale
             item.sub_domain = sub_domain
             item.response_type = rtype

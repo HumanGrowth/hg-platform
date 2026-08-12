@@ -8,11 +8,11 @@ import { EmptyRing } from "@/components/EmptyRing";
 import { Radar } from "@/components/radar/Radar";
 import type { RadarValues } from "@/components/radar/radar-model";
 import { apiGetMyResults } from "@/lib/api";
-import { DIMENSION_NAMES, radarValuesFromResults } from "@/lib/assessment-utils";
-import type { DimensionResult } from "@/lib/types";
+import { PILLAR_NAMES, radarValuesFromResults } from "@/lib/assessment-utils";
+import type { PillarResult } from "@/lib/types";
 
 export default function OnboardingResult() {
-  const [results, setResults] = React.useState<DimensionResult[] | null>(null);
+  const [results, setResults] = React.useState<PillarResult[] | null>(null);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
 
   const load = React.useCallback(async () => {
@@ -62,9 +62,9 @@ export default function OnboardingResult() {
 
           <div className="mt-10 grid w-full grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
             {results.map((r) => (
-              <div key={r.dimension_code} className="rounded-xl border border-border bg-surface-card p-5">
+              <div key={r.pillar_code} className="rounded-xl border border-border bg-surface-card p-5">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-fg-subtle">{r.dimension_code}</span>
+                  <span className="font-mono text-xs text-fg-subtle">{r.pillar_code}</span>
                   {r.recaida_detected && (
                     <span className="rounded-full bg-warning-bg px-2 py-0.5 text-xs font-semibold text-warning">
                       ⚠ Recaída
@@ -72,7 +72,7 @@ export default function OnboardingResult() {
                   )}
                 </div>
                 <h3 className="mt-1 font-sans text-md font-semibold text-fg">
-                  {DIMENSION_NAMES[r.dimension_code]}
+                  {PILLAR_NAMES[r.pillar_code]}
                 </h3>
                 <p className="mt-1 font-sans text-sm font-semibold text-primary">
                   {r.state_label}

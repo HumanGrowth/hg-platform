@@ -11,7 +11,7 @@ import Hero from "@/components/marketing/Hero";
 import { MarketingLanguageProvider } from "@/components/marketing/LanguageProvider";
 import Nav from "@/components/marketing/Nav";
 import PricingTable from "@/components/marketing/PricingTable";
-import SixDimensions from "@/components/marketing/SixDimensions";
+import SixPillars from "@/components/marketing/SixPillars";
 import WhatWeOffer from "@/components/marketing/WhatWeOffer";
 
 /** Los componentes de marketing leen copy del MarketingLanguageProvider. */
@@ -19,9 +19,9 @@ function renderMk(ui: React.ReactElement) {
   return render(<MarketingLanguageProvider>{ui}</MarketingLanguageProvider>);
 }
 
-describe("SixDimensions", () => {
+describe("SixPillars", () => {
   it("renders the 6 dimensions", () => {
-    renderMk(<SixDimensions />);
+    renderMk(<SixPillars />);
     for (const name of [
       "Carrera e impacto",
       "Propósito y significado",
@@ -82,7 +82,7 @@ describe("MetodoPage", () => {
     renderMk(<MetodoPage />);
     // "Un sistema, no seis módulos"
     expect(screen.getByText("Los seis pilares son una red, no una lista.")).toBeTruthy();
-    // Las 6 dimensiones (headers del accordion, siempre presentes)
+    // Los 6 pilares (headers del accordion, siempre presentes)
     for (const name of ["Carrera e impacto", "Estabilidad emocional y material"]) {
       expect(screen.getByText(name)).toBeTruthy();
     }

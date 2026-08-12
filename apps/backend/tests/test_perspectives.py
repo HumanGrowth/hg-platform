@@ -26,7 +26,7 @@ def test_create_draft_then_publish_flow(client: TestClient, factory, auth_header
     h = _sa(factory, auth_headers)
     created = client.post("/api/v1/admin/perspectives", headers=h, json={
         "content_type": "article", "title": "Liderazgo en LatAm", "body_markdown": "# Hola",
-        "read_minutes_estimated": 7, "dimension_code": "P1", "tags": ["liderazgo"],
+        "read_minutes_estimated": 7, "pillar_code": "P1", "tags": ["liderazgo"],
     })
     assert created.status_code == 201, created.text
     pid = created.json()["id"]

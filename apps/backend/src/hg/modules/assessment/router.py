@@ -10,14 +10,14 @@ from sqlalchemy.orm import Session
 from hg.core.deps import get_current_user, require_role
 from hg.db import get_db
 from hg.modules.assessment import service
-from hg.modules.assessment.enums import DimensionCode, SessionKind
-from hg.modules.assessment.models import AssessmentItem, AssessmentSession, DimensionResult
+from hg.modules.assessment.enums import PillarCode, SessionKind
+from hg.modules.assessment.models import AssessmentItem, AssessmentSession, PillarResult
 from hg.modules.assessment.schemas import (
     AssessmentItemOptionOut,
     AssessmentItemOut,
-    DimensionResultOut,
     FinalizeOut,
     MeResultsOut,
+    PillarResultOut,
     RadarHistoryOut,
     RadarSnapshotItem,
     ResponseIn,
@@ -34,7 +34,7 @@ def _item_out(db: Session, item: AssessmentItem) -> AssessmentItemOut:
     return AssessmentItemOut(
         id=item.id,
         item_code=item.item_code,
-        dimension_code=item.dimension_code.value,
+        pillar_code=item.pillar_code.value,
         sub_scale=item.sub_scale,
         sub_domain=item.sub_domain,
         response_type=item.response_type.value,
@@ -51,13 +51,13 @@ def _item_out(db: Session, item: AssessmentItem) -> AssessmentItemOut:
 
 
 def _session_out(db: Session, session: AssessmentSession) -> SessionOut:
-    items = service.ordered_items(db, session.kind, session.target_dimension)
+    items = service.ordered_items(db, session.kind, session.target_pillar)
     answered = service._responses(db, session)
     nxt = service.get_next_item(db, session)
     return SessionOut(
         id=session.id,
         kind=session.kind.value,
-        target_dimension=session.target_dimension.value if session.target_dimension else None,
+        target_pillar=session.target_pillar.value if session.target_pillar else None,
         status=session.status.value,
         started_at=session.started_at,
         expires_at=session.expires_at,
@@ -68,9 +68,9 @@ def _session_out(db: Session, session: AssessmentSession) -> SessionOut:
     )
 
 
-def _result_out(r: DimensionResult) -> DimensionResultOut:
-    return DimensionResultOut(
-        dimension_code=r.dimension_code.value,
+def _result_out(r: PillarResult) -> PillarResultOut:
+    return PillarResultOut(
+        pillar_code=r.pillar_code.value,
         source=r.source.value,
         state_code=r.state_code,
         state_label=r.state_label,
@@ -103,7 +103,7 @@ def create_session(
 ) -> SessionOut:
     try:
         session = service.start_session(
-            db, current_user, SessionKind(payload.kind), payload.target_dimension
+            db, current_user, SessionKind(payload.kind), payload.target_pillar
         )
     except service.AssessmentError as exc:
         raise _bad_request(exc) from exc
@@ -172,8 +172,8 @@ def my_results(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> MeResultsOut:
-    # Estado actual = último DimensionResult por pilar (fuente canónica compartida).
-    latest = service.latest_dimension_results(db, current_user.id)
+    # Estado actual = último PillarResult por pilar (fuente canónica compartida).
+    latest = service.latest_pillar_results(db, current_user.id)
     return MeResultsOut(results=[_result_out(r) for r in latest])
 
 
@@ -184,14 +184,14 @@ def my_radar(
 ) -> RadarHistoryOut:
     """Radar actual + evaluación anterior por pilar (overlay histórico · TASK 6.3).
 
-    ``DimensionResult`` es append-only, así que el histórico ya existe: para cada
+    ``PillarResult`` es append-only, así que el histórico ya existe: para cada
     pilar tomamos el último (actual) y el anteúltimo (previo) por ``derived_at``.
     """
     rows = list(
         db.scalars(
-            select(DimensionResult)
-            .where(DimensionResult.user_id == current_user.id)
-            .order_by(DimensionResult.derived_at.desc())
+            select(PillarResult)
+            .where(PillarResult.user_id == current_user.id)
+            .order_by(PillarResult.derived_at.desc())
         ).all()
     )
     current: list[RadarSnapshotItem] = []
@@ -199,16 +199,16 @@ def my_radar(
     seen_current: set[str] = set()
     seen_previous: set[str] = set()
     for r in rows:
-        code = r.dimension_code.value
+        code = r.pillar_code.value
         if code not in seen_current:
             seen_current.add(code)
             current.append(
-                RadarSnapshotItem(dimension_code=code, state_code=r.state_code, derived_at=r.derived_at)
+                RadarSnapshotItem(pillar_code=code, state_code=r.state_code, derived_at=r.derived_at)
             )
         elif code not in seen_previous:
             seen_previous.add(code)
             previous.append(
-                RadarSnapshotItem(dimension_code=code, state_code=r.state_code, derived_at=r.derived_at)
+                RadarSnapshotItem(pillar_code=code, state_code=r.state_code, derived_at=r.derived_at)
             )
     previous_date = max((p.derived_at for p in previous), default=None)
     return RadarHistoryOut(
@@ -218,24 +218,24 @@ def my_radar(
     )
 
 
-@router.post("/me/results/{dimension}/confirm", response_model=DimensionResultOut)
+@router.post("/me/results/{pillar}/confirm", response_model=PillarResultOut)
 def confirm(
-    dimension: DimensionCode,
+    pillar: PillarCode,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> DimensionResultOut:
+) -> PillarResultOut:
     try:
-        result = service.confirm_dimension(db, current_user, dimension)
+        result = service.confirm_pillar(db, current_user, pillar)
     except service.AssessmentError as exc:
         raise _bad_request(exc) from exc
     return _result_out(result)
 
 
-@router.post("/admin/users/{user_id}/reset-retake/{dimension}", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/admin/users/{user_id}/reset-retake/{pillar}", status_code=status.HTTP_204_NO_CONTENT)
 def reset_retake(
     user_id: UUID,
-    dimension: DimensionCode,
+    pillar: PillarCode,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("admin", "superadmin")),
 ) -> None:
-    service.reset_retake(db, user_id, dimension)
+    service.reset_retake(db, user_id, pillar)

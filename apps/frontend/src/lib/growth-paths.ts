@@ -1,15 +1,15 @@
 import type { Path } from "@/components/marketing/PathCard";
-import { DIMENSIONS_META } from "@/lib/dimension-styles";
+import { PILLARS } from "@/lib/pillars";
 
 // Fuente única de las "Rutas de Crecimiento". La consumen el catálogo completo
 // (/paths · PathsCatalog) y la sección "Nuevo este trimestre" del home
 // (FeaturedPaths), para que los filtros de ambas carguen el mismo contenido.
-// Placeholder (DEC-02): 12 rutas, 2 por dimensión. Se conectará a
+// Placeholder (DEC-02): 12 rutas, 2 por pilar. Se conectará a
 // /api/v1/marketing/featured-paths más adelante.
 
 export type Level = "Inicial" | "Intermedio" | "Avanzado";
-export type DimensionId = (typeof DIMENSIONS_META)[number]["id"];
-export type CatalogPath = Path & { pillar: DimensionId; level: Level };
+export type PillarId = (typeof PILLARS)[number]["id"];
+export type CatalogPath = Path & { pillar: PillarId; level: Level };
 
 export const LEVELS: Level[] = ["Inicial", "Intermedio", "Avanzado"];
 

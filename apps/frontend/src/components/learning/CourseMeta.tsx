@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { dimensionBadgeVariant, dimensionShortName } from "@/lib/dimension-styles";
+import { pillarBadgeVariant, pillarShortName } from "@/lib/pillars";
 import type { CourseDetail } from "@/lib/types";
 import { formatDuration } from "@/lib/utils";
 
@@ -9,9 +9,9 @@ export function CourseMeta({ course }: { course: CourseDetail }) {
   return (
     <aside className="flex h-fit flex-col gap-4 rounded-lg border border-border bg-bg-raised p-5">
       <div className="flex flex-wrap gap-2">
-        {course.dimension_code && (
-          <Badge variant={dimensionBadgeVariant(course.dimension_code)}>
-            {dimensionShortName(course.dimension_code)}
+        {course.pillar_code && (
+          <Badge variant={pillarBadgeVariant(course.pillar_code)}>
+            {pillarShortName(course.pillar_code)}
           </Badge>
         )}
         {course.competency_code && <Badge>{course.competency_code}</Badge>}

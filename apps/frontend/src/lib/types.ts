@@ -134,7 +134,7 @@ export interface CourseProgress {
 
 export interface CourseDetail extends Course {
   progress: CourseProgress | null;
-  dimension_code?: string | null;
+  pillar_code?: string | null;
 }
 
 export interface NextCourseResponse {
@@ -149,13 +149,13 @@ export interface CourseProgressPayload {
 // ─────────────── Manager & RRHH (B4-B) ───────────────
 // career_level se tipa string|null (el enum de usuario ahora incluye L1..L6).
 
-type DimensionCodeKey = "P1" | "P2" | "P3" | "P4" | "P5" | "P6";
+type PillarCodeKey = "P1" | "P2" | "P3" | "P4" | "P5" | "P6";
 
 export interface Enrollment {
   id: string;
   user_id: string;
   career_path_id: string;
-  career_path_code: DimensionCodeKey;
+  career_path_code: PillarCodeKey;
   career_path_name: string;
   assigned_by_user_id: string | null;
   assigned_by_name: string | null;
@@ -196,7 +196,7 @@ export interface CourseProgressDetail {
   last_played_at: string;
 }
 
-export interface TeamMemberDimensionState {
+export interface TeamMemberPillarState {
   state?: string;
   state_label?: string;
   source?: ResultSource;
@@ -208,12 +208,12 @@ export interface TeamMemberDetail extends TeamMember {
   enrollments: Enrollment[];
   courses_in_progress_list: CourseProgressDetail[];
   courses_completed_list: CourseProgressDetail[];
-  dimension_completion_rate: Record<DimensionCodeKey, number>;
-  // Estados del assessment por dimensión (manager ve estados, NO respuestas).
-  assessment_states: Record<string, TeamMemberDimensionState>;
+  pillar_completion_rate: Record<PillarCodeKey, number>;
+  // Estados del assessment por pilar (manager ve estados, NO respuestas).
+  assessment_states: Record<string, TeamMemberPillarState>;
 }
 
-export interface DimensionMetric {
+export interface PillarMetric {
   completion_rate: number;
   active_users: number;
   total_courses_started: number;
@@ -232,7 +232,7 @@ export interface OrgMetrics {
   avg_watch_minutes_per_user: number;
   total_courses_completed: number;
   completion_rate_global: number;
-  by_dimension: Record<DimensionCodeKey, DimensionMetric>;
+  by_pillar: Record<PillarCodeKey, PillarMetric>;
   by_career_level: Record<string, number>;
   top_performers: TopPerformer[];
   inactive_users_count: number;
@@ -244,7 +244,7 @@ export interface HomeNextStep {
   course_id: string;
   course_slug: string;
   course_title: string;
-  dimension_code: DimensionCodeKey;
+  pillar_code: PillarCodeKey;
   career_level: string;
   duration_seconds: number;
   watch_pct: number;
@@ -255,7 +255,7 @@ export interface HomeRecentActivity {
   course_id: string;
   course_slug: string;
   course_title: string;
-  dimension_code: DimensionCodeKey;
+  pillar_code: PillarCodeKey;
   is_completed: boolean;
   last_played_at: string;
   completed_at: string | null;
@@ -272,7 +272,7 @@ export interface HomeStats {
 export interface HomeDashboard {
   next_step: HomeNextStep | null;
   active_enrollments: Enrollment[];
-  dimension_completion_rates: Record<DimensionCodeKey, number>;
+  pillar_completion_rates: Record<PillarCodeKey, number>;
   recent_activity: HomeRecentActivity[];
   stats: HomeStats;
 }
@@ -351,8 +351,8 @@ export interface TeamFilters {
 
 // ─────────────── Assessment engine (B2-02/B2-03) ───────────────
 
-export type AssessmentDimensionCode = "P1" | "P2" | "P3" | "P4" | "P5" | "P6A" | "P6B";
-export type SessionKind = "onboarding_short" | "dimension_detail";
+export type AssessmentPillarCode = "P1" | "P2" | "P3" | "P4" | "P5" | "P6A" | "P6B";
+export type SessionKind = "onboarding_short" | "pillar_detail";
 export type ResultSource = "preliminary" | "confirmed";
 export type AssessmentResponseType =
   | "likert_1_5"
@@ -370,7 +370,7 @@ export interface AssessmentItemOption {
 export interface AssessmentItem {
   id: string;
   item_code: string;
-  dimension_code: AssessmentDimensionCode;
+  pillar_code: AssessmentPillarCode;
   sub_scale: string | null;
   sub_domain: string | null;
   response_type: AssessmentResponseType;
@@ -384,7 +384,7 @@ export interface AssessmentItem {
 export interface AssessmentSession {
   id: string;
   kind: SessionKind;
-  target_dimension: AssessmentDimensionCode | null;
+  target_pillar: AssessmentPillarCode | null;
   status: "in_progress" | "completed" | "expired" | "abandoned";
   started_at: string;
   expires_at: string;
@@ -394,8 +394,8 @@ export interface AssessmentSession {
   answered_items: number;
 }
 
-export interface DimensionResult {
-  dimension_code: AssessmentDimensionCode;
+export interface PillarResult {
+  pillar_code: AssessmentPillarCode;
   source: ResultSource;
   state_code: string;
   state_label: string;
@@ -410,7 +410,7 @@ export interface DimensionResult {
 
 export interface FinalizeResult {
   session_id: string;
-  results: DimensionResult[];
+  results: PillarResult[];
 }
 
 // ─────────────── Learning Units / Módulos (Fase 1, B-02) ───────────────
@@ -716,15 +716,15 @@ export interface UserMetrics {
   total_watch_minutes: number;
   last_assessment_date: string | null;
   badges_unlocked_count: number;
-  /** {dimension_code: {state, state_label, source}} — derivado de DimensionResult. */
+  /** {pillar_code: {state, state_label, source}} — derivado de PillarResult. */
   assessment_states: Record<string, AssessmentStateSnapshot>;
-  dimension_completion_rate: Record<string, number>;
+  pillar_completion_rate: Record<string, number>;
 }
 
 // ─────────────── Radar histórico (Sprint Tarde · TASK 6.3) ───────────────
 
 export interface RadarSnapshotItem {
-  dimension_code: string;
+  pillar_code: string;
   state_code: string;
   derived_at: string;
 }
@@ -824,7 +824,7 @@ export interface PerspectiveSummary {
   title: string;
   subtitle: string | null;
   cover_image_url: string | null;
-  dimension_code: string | null;
+  pillar_code: string | null;
   author_name: string | null;
   tags: string[];
   published_at: string | null;
@@ -867,7 +867,7 @@ export interface PerspectiveInput {
   slug?: string;
   subtitle?: string | null;
   cover_image_url?: string | null;
-  dimension_code?: string | null;
+  pillar_code?: string | null;
   author_name?: string | null;
   author_avatar_url?: string | null;
   tags?: string[];

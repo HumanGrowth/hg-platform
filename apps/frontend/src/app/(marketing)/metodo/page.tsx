@@ -8,7 +8,7 @@ import { MotionSection } from "@/components/motion/MotionSection";
 import { StaggerBounceGrid } from "@/components/motion/StaggerBounceGrid";
 import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
 import MarketingRadar from "@/components/marketing/MarketingRadar";
-import { MethodDimensions } from "@/components/marketing/MethodDimensions";
+import { MethodPillars } from "@/components/marketing/MethodPillars";
 import { MethodSteps } from "@/components/marketing/MethodSteps";
 import { getCopy } from "@/lib/i18n";
 
@@ -75,25 +75,25 @@ export default function MetodoPage() {
         <MethodSteps items={c.steps.items} />
       </section>
 
-      {/* Las 6 dimensiones */}
+      {/* Los 6 pilares */}
       <section className="landing-flow-section max-w-marketing mx-auto px-8">
         <DecoLayer>
           <BrandSawWave width={300} teeth={8} height={18} rotation={-12} bottom="6%" right="4%" color="var(--hg-gold)" opacity={0.3} speed={0.1} />
           <BubbleField seed={23} count={4} />
         </DecoLayer>
         <MotionSection as="div">
-        <div className="eyebrow eyebrow-accent mb-4">{c.dimensionsHeading.eyebrow}</div>
+        <div className="eyebrow eyebrow-accent mb-4">{c.pillarsHeading.eyebrow}</div>
         <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">
-          {c.dimensionsHeading.title}
+          {c.pillarsHeading.title}
         </h2>
         <p className="mt-4 mb-10 max-w-[620px] text-[18px] leading-[1.5] text-hg-charcoal">
-          {c.dimensionsHeading.body}
+          {c.pillarsHeading.body}
         </p>
         </MotionSection>
-        <MethodDimensions pillars={c.pillars} />
+        <MethodPillars pillars={c.pillars} />
       </section>
 
-      {/* Radar back-to-back con las dimensiones (decisión K) */}
+      {/* Radar back-to-back con los pilares (decisión K) */}
       <MarketingRadar />
 
       {/* Rigor y límites */}

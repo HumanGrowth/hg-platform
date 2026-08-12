@@ -15,10 +15,10 @@ import type { WidgetState } from "@/components/widgets/WidgetCard";
 
 export default function HomeActivitySection({
   enrollments,
-  dimensionCompletionRates,
+  pillarCompletionRates,
 }: {
   enrollments: Enrollment[];
-  dimensionCompletionRates: Record<string, number>;
+  pillarCompletionRates: Record<string, number>;
 }) {
   const [state, setState] = React.useState<WidgetState>("loading");
   const [data, setData] = React.useState<MeWidgets | null>(null);
@@ -65,7 +65,7 @@ export default function HomeActivitySection({
         >
           <ProgressRingsByPath
             enrollments={enrollments}
-            dimensionCompletionRates={dimensionCompletionRates}
+            pillarCompletionRates={pillarCompletionRates}
           />
         </WidgetCard>
       </div>
