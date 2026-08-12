@@ -1,7 +1,7 @@
 """Registry de scorers (strategy pattern) — uno por pilar."""
 from __future__ import annotations
 
-from hg.modules.assessment.enums import PillarCode
+from hg.modules.assessment.enums import DimensionCode
 from hg.modules.assessment.scorers.base import BaseScorer, ScoringInput, ScoringOutput
 from hg.modules.assessment.scorers.career_scorer import CareerScorer
 from hg.modules.assessment.scorers.financial_scorer import FinancialScorer
@@ -11,19 +11,19 @@ from hg.modules.assessment.scorers.purpose_scorer import PurposeScorer
 from hg.modules.assessment.scorers.relationships_scorer import RelationshipsScorer
 from hg.modules.assessment.scorers.resilience_scorer import ResilienceScorer
 
-SCORERS: dict[PillarCode, BaseScorer] = {
-    PillarCode.P1: CareerScorer(),
-    PillarCode.P2: PurposeScorer(),
-    PillarCode.P3: RelationshipsScorer(),
-    PillarCode.P4: HealthScorer(),
-    PillarCode.P5: InnerPeaceScorer(),
-    PillarCode.P6A: ResilienceScorer(),
-    PillarCode.P6B: FinancialScorer(),
+SCORERS: dict[DimensionCode, BaseScorer] = {
+    DimensionCode.P1: CareerScorer(),
+    DimensionCode.P2: PurposeScorer(),
+    DimensionCode.P3: RelationshipsScorer(),
+    DimensionCode.P4: HealthScorer(),
+    DimensionCode.P5: InnerPeaceScorer(),
+    DimensionCode.P6A: ResilienceScorer(),
+    DimensionCode.P6B: FinancialScorer(),
 }
 
 
-def score_pillar(pillar: PillarCode, inp: ScoringInput) -> ScoringOutput:
-    return SCORERS[pillar].score(inp)
+def score_dimension(dimension: DimensionCode, inp: ScoringInput) -> ScoringOutput:
+    return SCORERS[dimension].score(inp)
 
 
-__all__ = ["SCORERS", "ScoringInput", "ScoringOutput", "score_pillar"]
+__all__ = ["SCORERS", "ScoringInput", "ScoringOutput", "score_dimension"]

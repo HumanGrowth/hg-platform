@@ -2,7 +2,7 @@
 
 - Catálogo global (sin RLS): ``AssessmentInstrument``, ``AssessmentItem``,
   ``AssessmentItemOption``.
-- Por usuario (RLS): ``AssessmentSession``, ``AssessmentResponse``, ``PillarResult``.
+- Por usuario (RLS): ``AssessmentSession``, ``AssessmentResponse``, ``DimensionResult``.
 """
 from __future__ import annotations
 
@@ -24,8 +24,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from hg.db import Base
 from hg.modules.assessment.enums import (
+    DimensionCode,
     InstrumentCode,
-    PillarCode,
     ResponseType,
     ResultSource,
     SessionKind,
@@ -43,8 +43,8 @@ class AssessmentInstrument(Base):
         Enum(InstrumentCode, name="instrument_code"), unique=True, nullable=False
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False)
-    pillar_code: Mapped[PillarCode] = mapped_column(
-        Enum(PillarCode, name="pillar_code"), nullable=False
+    dimension_code: Mapped[DimensionCode] = mapped_column(
+        Enum(DimensionCode, name="dimension_code"), nullable=False
     )
     description: Mapped[str | None] = mapped_column(String(2000))
     author: Mapped[str | None] = mapped_column(String(120))
@@ -65,8 +65,8 @@ class AssessmentItem(Base):
         nullable=False,
         index=True,
     )
-    pillar_code: Mapped[PillarCode] = mapped_column(
-        Enum(PillarCode, name="pillar_code"), nullable=False, index=True
+    dimension_code: Mapped[DimensionCode] = mapped_column(
+        Enum(DimensionCode, name="dimension_code"), nullable=False, index=True
     )
     item_code: Mapped[str] = mapped_column(String(20), nullable=False)
     sub_scale: Mapped[str | None] = mapped_column(String(40))
@@ -119,8 +119,8 @@ class AssessmentSession(Base):
     kind: Mapped[SessionKind] = mapped_column(
         Enum(SessionKind, name="session_kind"), nullable=False
     )
-    target_pillar: Mapped[PillarCode | None] = mapped_column(
-        Enum(PillarCode, name="pillar_code"), index=True
+    target_dimension: Mapped[DimensionCode | None] = mapped_column(
+        Enum(DimensionCode, name="dimension_code"), index=True
     )
     status: Mapped[SessionStatus] = mapped_column(
         Enum(SessionStatus, name="session_status"),
@@ -167,10 +167,10 @@ class AssessmentResponse(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
-class PillarResult(Base):
+class DimensionResult(Base):
     """Resultado por pilar para un user. Histórico (no se sobreescribe). RLS."""
 
-    __tablename__ = "pillar_results"
+    __tablename__ = "dimension_results"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     org_id: Mapped[uuid.UUID] = mapped_column(
@@ -182,8 +182,8 @@ class PillarResult(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    pillar_code: Mapped[PillarCode] = mapped_column(
-        Enum(PillarCode, name="pillar_code"), nullable=False, index=True
+    dimension_code: Mapped[DimensionCode] = mapped_column(
+        Enum(DimensionCode, name="dimension_code"), nullable=False, index=True
     )
     source: Mapped[ResultSource] = mapped_column(
         Enum(ResultSource, name="result_source"), nullable=False, default=ResultSource.preliminary

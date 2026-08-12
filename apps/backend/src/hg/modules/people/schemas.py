@@ -25,7 +25,7 @@ class UserMetricsOut(BaseModel):
     last_assessment_date: datetime | None
     badges_unlocked_count: int
     assessment_states: dict[str, AssessmentStateSnapshotOut]
-    pillar_completion_rate: dict[str, float]
+    dimension_completion_rate: dict[str, float]
 
 class TeamMemberOut(BaseModel):
     id: UUID
@@ -62,13 +62,13 @@ class TeamMemberDetailOut(TeamMemberOut):
     enrollments: list[EnrollmentOut]
     courses_in_progress_list: list[CourseProgressDetailOut]  # top 10 recientes
     courses_completed_list: list[CourseProgressDetailOut]  # top 10 recientes
-    pillar_completion_rate: dict[str, float]  # {"P1": 0.25, ...}
-    # Estados del assessment (snapshot de UserLearningProfile.pillar_states). El
+    dimension_completion_rate: dict[str, float]  # {"P1": 0.25, ...}
+    # Estados del assessment (snapshot de UserLearningProfile.dimension_states). El
     # manager ve estados/vías, NUNCA respuestas item-by-item (privacidad B2-03).
     assessment_states: dict  # {"P1": {"state":"L3","state_label":...,"source":...}, ...}
 
 
-class PillarMetric(BaseModel):
+class DimensionMetric(BaseModel):
     completion_rate: float
     active_users: int
     total_courses_started: int
@@ -90,7 +90,7 @@ class OrgMetricsOut(BaseModel):
     total_courses_completed: int
     completion_rate_global: float  # completados / iniciados
     # Por pilar / nivel
-    by_pillar: dict[str, PillarMetric]
+    by_dimension: dict[str, DimensionMetric]
     by_career_level: dict[str, int]
     # Top + inactivos
     top_performers: list[TopPerformerOut]
@@ -106,7 +106,7 @@ class NextStepOut(BaseModel):
     course_id: UUID
     course_slug: str
     course_title: str
-    pillar_code: str  # "P1".."P6"
+    dimension_code: str  # "P1".."P6"
     career_level: str  # "L1".."L6"
     duration_seconds: int
     watch_pct: float
@@ -117,7 +117,7 @@ class RecentActivityItem(BaseModel):
     course_id: UUID
     course_slug: str
     course_title: str
-    pillar_code: str
+    dimension_code: str
     is_completed: bool
     last_played_at: datetime
     completed_at: datetime | None
@@ -134,7 +134,7 @@ class HomeStats(BaseModel):
 class HomeDashboardOut(BaseModel):
     next_step: NextStepOut | None
     active_enrollments: list[EnrollmentOut]
-    pillar_completion_rates: dict[str, float]  # {"P1": 0.33, ...}
+    dimension_completion_rates: dict[str, float]  # {"P1": 0.33, ...}
     recent_activity: list[RecentActivityItem]
     stats: HomeStats
 

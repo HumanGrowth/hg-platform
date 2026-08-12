@@ -6,7 +6,7 @@ export const metadata = { title: "Mi Ruta — Human Growth" };
 
 // Mi Ruta (cierre-beta TASK 1): learning path guiado — un "próximo paso"
 // recomendado + timeline + progreso por nivel y dimensión, desde el motor
-// GET /me/path. Reemplaza los 6 carriles por pilar (PathLanes).
+// GET /me/path. Reemplaza los 6 carriles por dimensión (PathLanes).
 export default function PathPage() {
   return (
     <div className="mx-auto max-w-app px-6 py-10">

@@ -5,7 +5,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 
-import { PillarMetaphor } from "@/components/modulos/PillarMetaphor";
+import { DimensionMetaphor } from "@/components/modulos/DimensionMetaphor";
 import { UnitCardCompact } from "@/components/modulos/UnitCardCompact";
 import { EmptyRing } from "@/components/EmptyRing";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -13,11 +13,11 @@ import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Progress } from "@/components/ui/progress";
-import { apiGetMyResults, apiListModulosByPillar } from "@/lib/api";
+import { apiGetMyResults, apiListModulosByDimension } from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import type { Dimension } from "@/lib/dimensions";
-import { pillarStyle, subPillarName } from "@/lib/pillars";
-import type { LearningUnitFeedItem, PillarResult } from "@/lib/types";
+import { dimensionStyle, subPillarName } from "@/lib/dimension-styles";
+import type { LearningUnitFeedItem, DimensionResult } from "@/lib/types";
 import { cn, formatRelativeTime } from "@/lib/utils";
 
 const LEVELS = ["L1", "L2", "L3", "L4"] as const;
@@ -50,8 +50,8 @@ function useCountUp(target: number, durationMs = 900): number {
 }
 
 export function DimensionDetail({ dimension }: { dimension: Dimension }) {
-  const style = pillarStyle(dimension.pillar);
-  const [results, setResults] = React.useState<PillarResult[] | null>(null);
+  const style = dimensionStyle(dimension.careerPath);
+  const [results, setResults] = React.useState<DimensionResult[] | null>(null);
   const [units, setUnits] = React.useState<LearningUnitFeedItem[]>([]);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
 
@@ -59,9 +59,9 @@ export function DimensionDetail({ dimension }: { dimension: Dimension }) {
     setStatus("loading");
     try {
       const [res, unitList] = await Promise.all([
-        apiGetMyResults().then((r) => r.results).catch(() => [] as PillarResult[]),
+        apiGetMyResults().then((r) => r.results).catch(() => [] as DimensionResult[]),
         dimension.hasContent
-          ? apiListModulosByPillar(dimension.pillar, undefined, 60).catch(() => [])
+          ? apiListModulosByDimension(dimension.careerPath, undefined, 60).catch(() => [])
           : Promise.resolve([] as LearningUnitFeedItem[]),
       ]);
       setResults(res);
@@ -78,11 +78,11 @@ export function DimensionDetail({ dimension }: { dimension: Dimension }) {
 
   // Score 0-100 de la dimensión (P6 = promedio P6A+P6B, ya resuelto en el util).
   const radarValues = results ? radarValuesFromResults(results) : {};
-  const score = radarValues[dimension.pillar] ?? 0;
+  const score = radarValues[dimension.careerPath] ?? 0;
   // Resultado del assessment de esta dimensión (para state_label + fecha).
   const result =
-    results?.find((r) => r.pillar_code === dimension.assessmentPillar) ??
-    results?.find((r) => r.pillar_code.startsWith(dimension.pillar));
+    results?.find((r) => r.dimension_code === dimension.assessmentDimension) ??
+    results?.find((r) => r.dimension_code.startsWith(dimension.careerPath));
   const hasEvaluated = Boolean(result);
 
   return (
@@ -108,7 +108,7 @@ export function DimensionDetail({ dimension }: { dimension: Dimension }) {
             boxShadow: `0 0 32px 0 color-mix(in srgb, ${style.glow} 28%, transparent)`,
           }}
         >
-          <PillarMetaphor code={dimension.code} className="h-16 w-16" />
+          <DimensionMetaphor code={dimension.code} className="h-16 w-16" />
         </div>
         <div className="flex flex-col items-center gap-2">
           <Eyebrow accent>Dimensión</Eyebrow>
@@ -173,7 +173,7 @@ function ProgressHero({
 }: {
   dimension: Dimension;
   score: number;
-  result: PillarResult | undefined;
+  result: DimensionResult | undefined;
   hasEvaluated: boolean;
 }) {
   const animated = useCountUp(score);
@@ -193,7 +193,7 @@ function ProgressHero({
           )}
         </div>
         <Link
-          href={`/onboarding/detail/${dimension.assessmentPillar}` as Route}
+          href={`/onboarding/detail/${dimension.assessmentDimension}` as Route}
           className={cn(buttonVariants({ size: "lg" }), "shrink-0")}
         >
           <RefreshCw size={18} strokeWidth={1.75} />
@@ -239,8 +239,8 @@ function LevelGroup({ level, units }: { level: string; units: LearningUnitFeedIt
   const hasContent = units.length > 0;
   const [open, setOpen] = React.useState(hasContent);
 
-  // Dentro del nivel, agrupar por pilar_number (subcategoría).
-  const byPillar = React.useMemo(() => {
+  // Dentro del nivel, agrupar por dimensión_number (subcategoría).
+  const byDimension = React.useMemo(() => {
     const map = new Map<number, LearningUnitFeedItem[]>();
     for (const u of units) {
       const key = u.pillar_number ?? 0;
@@ -284,14 +284,14 @@ function LevelGroup({ level, units }: { level: string; units: LearningUnitFeedIt
       </button>
       {open && (
         <div className="flex flex-col gap-4 border-t border-border px-4 py-4">
-          {byPillar.map(([pillarNumber, pillarUnits]) => (
+          {byDimension.map(([pillarNumber, dimensionUnits]) => (
             <div key={pillarNumber} className="flex flex-col gap-2">
-              {byPillar.length > 1 && (
+              {byDimension.length > 1 && (
                 <p className="px-1 font-sans text-xs font-semibold uppercase tracking-meta text-fg-subtle">
-                  {subPillarName(pillarUnits[0]?.dimension_code, Number(pillarNumber))}
+                  {subPillarName(dimensionUnits[0]?.dimension_code, Number(pillarNumber))}
                 </p>
               )}
-              {pillarUnits.map((u) => (
+              {dimensionUnits.map((u) => (
                 <UnitCardCompact key={u.id} unit={u} />
               ))}
             </div>
@@ -345,9 +345,9 @@ function HistorySection({
   result,
 }: {
   dimension: Dimension;
-  result: PillarResult | undefined;
+  result: DimensionResult | undefined;
 }) {
-  // Hoy el backend expone sólo el último PillarResult por pilar (no un historial
+  // Hoy el backend expone sólo el último DimensionResult por dimensión (no un historial
   // completo). Mostramos la entrada actual; el timeline con las últimas 3-5
   // evaluaciones requiere un endpoint de historial (pendiente · TASK 6).
   return (
@@ -369,7 +369,7 @@ function HistorySection({
         <Card className="mt-4 flex flex-col items-center gap-3 py-10 text-center">
           <p className="text-sm text-fg-muted">Todavía no reevaluaste esta dimensión.</p>
           <Link
-            href={`/onboarding/detail/${dimension.assessmentPillar}` as Route}
+            href={`/onboarding/detail/${dimension.assessmentDimension}` as Route}
             className="inline-flex items-center gap-1 font-sans text-sm font-semibold text-primary"
           >
             Hacé tu primera evaluación

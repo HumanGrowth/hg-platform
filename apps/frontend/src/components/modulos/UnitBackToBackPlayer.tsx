@@ -233,7 +233,7 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
             })}
             <AISoonBadge
               variant="pill"
-              label="Chatear con este pilar"
+              label="Chatear con esta dimensión"
               dimensionCode={unit.dimension_code}
               className="mt-2 self-start"
             />

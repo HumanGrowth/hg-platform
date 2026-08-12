@@ -17,7 +17,7 @@ import * as React from "react";
 
 import { ChapterList } from "@/components/modulos/blocks/ChapterList";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
-import { dimensionStyle } from "@/lib/pillars";
+import { dimensionStyle } from "@/lib/dimension-styles";
 import type { VideoBlock } from "@/lib/types";
 
 interface Props {

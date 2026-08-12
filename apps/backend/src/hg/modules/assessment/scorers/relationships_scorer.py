@@ -5,7 +5,7 @@ N4 (Generativo) no es deducible por puntaje: cuando se detecta perfil N3 se marc
 """
 from __future__ import annotations
 
-from hg.modules.assessment.enums import PillarCode
+from hg.modules.assessment.enums import DimensionCode
 from hg.modules.assessment.scorers.base import BaseScorer, ScoringInput, ScoringOutput, avg
 
 LABELS = {
@@ -20,7 +20,7 @@ NEXT = {
 
 
 class RelationshipsScorer(BaseScorer):
-    pillar_code = PillarCode.P3
+    dimension_code = DimensionCode.P3
 
     def score(self, inp: ScoringInput) -> ScoringOutput:
         by = inp.by_code
@@ -45,7 +45,7 @@ class RelationshipsScorer(BaseScorer):
             state = "N2"
 
         return ScoringOutput(
-            pillar_code=self.pillar_code,
+            dimension_code=self.dimension_code,
             state_code=state,
             state_label=LABELS[state],
             sub_scores={

@@ -6,7 +6,7 @@ import { ProductStack } from "@/components/marketing/ProductStack";
 import WhatIsHg from "@/components/marketing/WhatIsHg";
 import LogoCloud from "@/components/marketing/LogoCloud";
 import Quote from "@/components/marketing/Quote";
-import SixPillars from "@/components/marketing/SixPillars";
+import SixDimensions from "@/components/marketing/SixDimensions";
 
 export const metadata = {
   title: "Human Growth — Crecé integralmente",
@@ -19,7 +19,7 @@ export default function LandingPage() {
     <div className="landing-flow">
       <Hero />
       <LogoCloud />
-      <SixPillars />
+      <SixDimensions />
       <MarketingRadar />
       <WhatIsHg />
       <ProductStack />

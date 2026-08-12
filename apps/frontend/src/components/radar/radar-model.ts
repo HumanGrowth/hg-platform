@@ -1,8 +1,8 @@
-export type PillarCode = "P1" | "P2" | "P3" | "P4" | "P5" | "P6";
+export type CareerPathCode = "P1" | "P2" | "P3" | "P4" | "P5" | "P6";
 
-export type RadarValues = Partial<Record<PillarCode, number>>;
+export type RadarValues = Partial<Record<CareerPathCode, number>>;
 
-export const PILLAR_LABEL: Record<PillarCode, string> = {
+export const PILLAR_LABEL: Record<CareerPathCode, string> = {
   P1: "Carrera",
   P2: "Propósito",
   P3: "Relaciones",
@@ -11,8 +11,8 @@ export const PILLAR_LABEL: Record<PillarCode, string> = {
   P6: "Estabilidad",
 };
 
-/** Hex por pilar (DS v2 · tailwind pillar.p1..p6) para los badges de eje. */
-export const PILLAR_HEX: Record<PillarCode, string> = {
+/** Hex por dimensión (DS v2 · tailwind pillar.p1..p6) para los badges de eje. */
+export const PILLAR_HEX: Record<CareerPathCode, string> = {
   P1: "#E8530A",
   P2: "#C8A76E",
   P3: "#4A7A54",

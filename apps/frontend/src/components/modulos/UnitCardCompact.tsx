@@ -2,7 +2,7 @@ import { Check, Play } from "lucide-react";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
-import { dimensionToPillar, pillarBadgeVariant, pillarShortName } from "@/lib/pillars";
+import { driveToCareerPath, dimensionBadgeVariant, dimensionShortName } from "@/lib/dimension-styles";
 import type { LearningUnitFeedItem } from "@/lib/types";
 import { unitCanonicalPath } from "@/lib/modulos";
 import { formatApproxMinutes } from "@/lib/utils";
@@ -15,7 +15,7 @@ export function UnitCardCompact({
   assigned?: boolean;
 }) {
   const completed = unit.attempt_status === "completed";
-  const pillar = dimensionToPillar(unit.dimension_code);
+  const pillar = driveToCareerPath(unit.dimension_code);
   return (
     <Link
       href={unitCanonicalPath(unit)}
@@ -43,8 +43,8 @@ export function UnitCardCompact({
         <h3 className="line-clamp-1 font-sans text-sm font-semibold text-fg">{unit.title}</h3>
         <div className="mt-1 flex flex-wrap items-center gap-2">
           {assigned && <Badge variant="info">Asignado por tu manager</Badge>}
-          <Badge variant={pillarBadgeVariant(pillar)}>
-            {pillarShortName(pillar)}
+          <Badge variant={dimensionBadgeVariant(pillar)}>
+            {dimensionShortName(pillar)}
           </Badge>
           <span className="text-xs text-fg-muted">
             {formatApproxMinutes(unit.estimated_duration_seconds)} · {unit.blocks_count}{" "}

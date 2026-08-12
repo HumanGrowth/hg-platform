@@ -1,10 +1,10 @@
 import type { Route } from "next";
 import Link from "next/link";
 
-import { PillarMetaphor } from "@/components/modulos/PillarMetaphor";
+import { DimensionMetaphor } from "@/components/modulos/DimensionMetaphor";
 import { Progress } from "@/components/ui/progress";
 import type { Dimension } from "@/lib/dimensions";
-import { pillarStyle } from "@/lib/pillars";
+import { dimensionStyle } from "@/lib/dimension-styles";
 import { cn } from "@/lib/utils";
 
 /**
@@ -23,7 +23,7 @@ export function DimensionCard({
   score: number;
   className?: string;
 }) {
-  const style = pillarStyle(dimension.pillar);
+  const style = dimensionStyle(dimension.careerPath);
   return (
     <Link
       href={`/dimensiones/${dimension.code}` as Route}
@@ -46,7 +46,7 @@ export function DimensionCard({
           background: `color-mix(in srgb, ${style.glow} 10%, transparent)`,
         }}
       >
-        <PillarMetaphor code={dimension.code} className="h-7 w-7" />
+        <DimensionMetaphor code={dimension.code} className="h-7 w-7" />
       </div>
       <h3 className="font-sans text-md font-semibold leading-tight text-fg">{dimension.name}</h3>
       <div className="mt-auto">

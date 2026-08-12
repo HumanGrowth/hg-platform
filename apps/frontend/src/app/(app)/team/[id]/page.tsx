@@ -11,13 +11,13 @@ import { Dialog } from "@/components/ui/dialog";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { ApiError, apiGetTeamMemberDetail, apiUnassignPath } from "@/lib/api";
-import { PILLARS, pillarShortName } from "@/lib/pillars";
+import { DIMENSIONS_META, dimensionShortName } from "@/lib/dimension-styles";
 import { toast } from "@/lib/toast-store";
 import type { TeamMemberDetail } from "@/lib/types";
 import { formatRelativeTime } from "@/lib/utils";
 
 const PILLAR_CODES = ["P1", "P2", "P3", "P4", "P5", "P6"] as const;
-const PILLAR_DOT: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id, p.dot]));
+const PILLAR_DOT: Record<string, string> = Object.fromEntries(DIMENSIONS_META.map((p) => [p.id, p.dot]));
 
 export default function TeamMemberDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
@@ -107,10 +107,10 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
           <Eyebrow className="mb-4">Progreso por dimensión</Eyebrow>
           <div className="flex flex-col gap-3">
             {PILLAR_CODES.map((code) => {
-              const rate = data.pillar_completion_rate[code] ?? 0;
+              const rate = data.dimension_completion_rate[code] ?? 0;
               return (
                 <div key={code} className="flex items-center gap-3">
-                  <span className="w-24 shrink-0 truncate text-xs text-fg-muted">{pillarShortName(code)}</span>
+                  <span className="w-24 shrink-0 truncate text-xs text-fg-muted">{dimensionShortName(code)}</span>
                   <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-bg-sunken">
                     <div className={`h-full rounded-full ${PILLAR_DOT[code]}`} style={{ width: `${rate * 100}%` }} />
                   </div>
@@ -123,15 +123,15 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
           </div>
         </div>
 
-        {/* Estados por pilar (assessment). Manager ve estados/vías, NO respuestas. */}
+        {/* Estados por dimensión (assessment). Manager ve estados/vías, NO respuestas. */}
         {Object.keys(data.assessment_states ?? {}).length > 0 && (
           <div className="rounded-lg border border-border bg-bg-raised p-5 lg:col-span-2">
-            <Eyebrow className="mb-4">Estados por pilar</Eyebrow>
+            <Eyebrow className="mb-4">Estados por dimensión</Eyebrow>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {Object.entries(data.assessment_states).map(([code, st]) => (
                 <div key={code} className="rounded-md border border-border bg-surface-card p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-fg">{pillarShortName(code)}</span>
+                    <span className="text-xs font-semibold text-fg">{dimensionShortName(code)}</span>
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                         st.source === "confirmed"

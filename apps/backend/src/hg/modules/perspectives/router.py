@@ -58,7 +58,7 @@ def _unique_slug(db: Session, base: str, exclude_id: UUID | None = None) -> str:
 def _summary(p: PerspectivePost) -> PerspectiveSummary:
     return PerspectiveSummary(
         id=p.id, slug=p.slug, content_type=p.content_type, title=p.title, subtitle=p.subtitle,
-        cover_image_url=p.cover_image_url, pillar_code=p.pillar_code, author_name=p.author_name,
+        cover_image_url=p.cover_image_url, dimension_code=p.dimension_code, author_name=p.author_name,
         tags=list(p.tags or []), published_at=p.published_at,
         read_minutes_estimated=p.article.read_minutes_estimated if p.article else None,
     )
@@ -89,7 +89,7 @@ def _detail(p: PerspectivePost) -> PerspectiveDetail:
 @public_router.get("/perspectives", response_model=PerspectiveListResponse)
 def list_published(
     content_type: str | None = None,
-    pillar: str | None = None,
+    dimension: str | None = None,
     q: str | None = None,
     offset: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
@@ -98,8 +98,8 @@ def list_published(
     conds = [PerspectivePost.published_at.isnot(None), PerspectivePost.published_at <= func.now()]
     if content_type:
         conds.append(PerspectivePost.content_type == content_type)
-    if pillar:
-        conds.append(PerspectivePost.pillar_code == pillar)
+    if dimension:
+        conds.append(PerspectivePost.dimension_code == dimension)
     if q:
         like = f"%{q.lower()}%"
         conds.append(or_(
@@ -164,7 +164,7 @@ def admin_create(
     slug = _unique_slug(db, _slugify(body.slug or body.title))
     post = PerspectivePost(
         id=uuid4(), slug=slug, content_type=body.content_type, title=body.title, subtitle=body.subtitle,
-        cover_image_url=body.cover_image_url, pillar_code=body.pillar_code, author_name=body.author_name,
+        cover_image_url=body.cover_image_url, dimension_code=body.dimension_code, author_name=body.author_name,
         author_avatar_url=body.author_avatar_url, tags=body.tags, body_markdown=body.body_markdown,
         created_by_user_id=user.id,
     )
@@ -197,7 +197,7 @@ def admin_update(
     data = body.model_dump(exclude_unset=True)
     if data.get("slug"):
         p.slug = _unique_slug(db, _slugify(data["slug"]), exclude_id=p.id)
-    for field in ("title", "subtitle", "cover_image_url", "pillar_code", "author_name",
+    for field in ("title", "subtitle", "cover_image_url", "dimension_code", "author_name",
                   "author_avatar_url", "tags", "body_markdown"):
         if field in data:
             setattr(p, field, data[field])
