@@ -93,8 +93,8 @@ def test_home_empty_user_returns_defaults(client, home_env, auth_headers) -> Non
     assert body["next_step"] is None
     assert body["active_enrollments"] == []
     assert body["recent_activity"] == []
-    assert set(body["pillar_completion_rates"]) == {"P1", "P2", "P3", "P4", "P5", "P6"}
-    assert all(v == 0.0 for v in body["pillar_completion_rates"].values())
+    assert set(body["dimension_completion_rates"]) == {"P1", "P2", "P3", "P4", "P5", "P6"}
+    assert all(v == 0.0 for v in body["dimension_completion_rates"].values())
     stats = body["stats"]
     assert stats["courses_in_progress"] == 0
     assert stats["courses_completed"] == 0
@@ -114,7 +114,7 @@ def test_home_next_step_is_most_recent_in_progress(client, home_env, auth_header
               watch_pct=40.0, completed=False, last_played=now - timedelta(hours=1))
     body = client.get("/api/v1/me/home", headers=auth_headers(e.user)).json()
     assert body["next_step"]["course_id"] == str(recent.id)
-    assert body["next_step"]["pillar_code"] == "P1"
+    assert body["next_step"]["dimension_code"] == "P1"
     assert body["next_step"]["watch_pct"] == 40.0
 
 

@@ -95,7 +95,7 @@ def activity_by_users(db: Session, user_ids: list[UUID]) -> dict[UUID, ActivityA
     return aggs
 
 
-def org_pillar_metrics(
+def org_dimension_metrics(
     db: Session, user_ids: list[UUID]
 ) -> dict[UUID, tuple[int, int, int]]:
     """Por career_path_id (de los cursos): (started, completed, active_users_30d).
@@ -122,7 +122,7 @@ def org_pillar_metrics(
     return {pid: (int(started), int(completed), int(active)) for pid, started, completed, active in rows}
 
 
-def pillar_completion_rate(db: Session, user_id: UUID) -> dict[str, float]:
+def dimension_completion_rate(db: Session, user_id: UUID) -> dict[str, float]:
     """Por cada pilar P1..P6: cursos completados del path / cursos activos del path.
 
     0.0 si no hay enrollment activo a ese pilar o el path no tiene cursos activos.
@@ -391,19 +391,19 @@ class UserMetrics:
     total_watch_minutes: int
     last_assessment_date: datetime | None
     badges_unlocked_count: int
-    assessment_states: dict[str, dict[str, str]]  # {pillar: {state, state_label, source}} — desde PillarResult
-    pillar_completion_rate: dict[str, float]
+    assessment_states: dict[str, dict[str, str]]  # {dimension: {state, state_label, source}} — desde DimensionResult
+    dimension_completion_rate: dict[str, float]
 
 
 def get_user_metrics(db: Session, user_id: UUID) -> UserMetrics:
     from hg.modules.assessment.service import (
         assessment_states_snapshot,
-        latest_pillar_results,
+        latest_dimension_results,
     )
     from hg.modules.badges.models import UserBadge
 
     agg = activity_by_users(db, [user_id])[user_id]
-    results = latest_pillar_results(db, user_id)
+    results = latest_dimension_results(db, user_id)
     last_assessment = max((r.derived_at for r in results), default=None)
     badges = (
         db.scalar(select(func.count()).select_from(UserBadge).where(UserBadge.user_id == user_id))
@@ -416,5 +416,5 @@ def get_user_metrics(db: Session, user_id: UUID) -> UserMetrics:
         last_assessment_date=last_assessment,
         badges_unlocked_count=badges,
         assessment_states=assessment_states_snapshot(results),
-        pillar_completion_rate=pillar_completion_rate(db, user_id),
+        dimension_completion_rate=dimension_completion_rate(db, user_id),
     )

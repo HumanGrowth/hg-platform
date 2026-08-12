@@ -2,7 +2,7 @@
 
 Funciones puras sobre una Session ya scopeada al tenant (RLS). Orquesta sesiones,
 respuestas, scoring (strategy pattern) y el snapshot read-optimized en
-``UserLearningProfile.pillar_states``.
+``UserLearningProfile.dimension_states``.
 """
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from hg.modules.assessment.enums import (
-    PillarCode,
+    DimensionCode,
     ResultSource,
     SessionKind,
     SessionStatus,
@@ -24,15 +24,15 @@ from hg.modules.assessment.models import (
     AssessmentItemOption,
     AssessmentResponse,
     AssessmentSession,
-    PillarResult,
+    DimensionResult,
 )
-from hg.modules.assessment.scorers import SCORERS, ScoringInput, score_pillar
+from hg.modules.assessment.scorers import SCORERS, ScoringInput, score_dimension
 from hg.modules.identity.models import User
 from hg.modules.learning.models import UserLearningProfile
 
-PILLAR_ORDER = [
-    PillarCode.P1, PillarCode.P2, PillarCode.P3, PillarCode.P4,
-    PillarCode.P5, PillarCode.P6A, PillarCode.P6B,
+DIMENSION_ORDER = [
+    DimensionCode.P1, DimensionCode.P2, DimensionCode.P3, DimensionCode.P4,
+    DimensionCode.P5, DimensionCode.P6A, DimensionCode.P6B,
 ]
 SESSION_TTL_DAYS = 30
 
@@ -48,7 +48,7 @@ def now_utc() -> datetime:
 # ─────────────────────────── Items ───────────────────────────
 
 
-def ordered_items(db: Session, kind: SessionKind, target_pillar: PillarCode | None) -> list[AssessmentItem]:
+def ordered_items(db: Session, kind: SessionKind, target_dimension: DimensionCode | None) -> list[AssessmentItem]:
     if kind == SessionKind.onboarding_short:
         items = list(
             db.scalars(
@@ -57,14 +57,14 @@ def ordered_items(db: Session, kind: SessionKind, target_pillar: PillarCode | No
                 )
             ).all()
         )
-        order = {p: i for i, p in enumerate(PILLAR_ORDER)}
-        items.sort(key=lambda it: (order.get(it.pillar_code, 99), it.order_index))
+        order = {p: i for i, p in enumerate(DIMENSION_ORDER)}
+        items.sort(key=lambda it: (order.get(it.dimension_code, 99), it.order_index))
         return items
-    # pillar_detail
+    # dimension_detail
     items = list(
         db.scalars(
             select(AssessmentItem).where(
-                AssessmentItem.pillar_code == target_pillar, AssessmentItem.is_active.is_(True)
+                AssessmentItem.dimension_code == target_dimension, AssessmentItem.is_active.is_(True)
             )
         ).all()
     )
@@ -90,21 +90,21 @@ def _profile(db: Session, user: User) -> UserLearningProfile | None:
 
 
 def start_session(
-    db: Session, user: User, kind: SessionKind, target_pillar: PillarCode | None
+    db: Session, user: User, kind: SessionKind, target_dimension: DimensionCode | None
 ) -> AssessmentSession:
     profile = _profile(db, user)
     if kind == SessionKind.onboarding_short:
         if profile is not None and profile.onboarding_short_completed_at is not None:
             raise AssessmentError("onboarding ya completado")
-        target_pillar = None
+        target_dimension = None
     else:
-        if target_pillar is None:
-            raise AssessmentError("target_pillar requerido para pillar_detail")
+        if target_dimension is None:
+            raise AssessmentError("target_dimension requerido para dimension_detail")
         existing = list(
             db.scalars(
-                select(PillarResult)
-                .where(PillarResult.user_id == user.id, PillarResult.pillar_code == target_pillar)
-                .order_by(PillarResult.derived_at.desc())
+                select(DimensionResult)
+                .where(DimensionResult.user_id == user.id, DimensionResult.dimension_code == target_dimension)
+                .order_by(DimensionResult.derived_at.desc())
             ).all()
         )
         if not existing:
@@ -118,7 +118,7 @@ def start_session(
         org_id=user.org_id,
         user_id=user.id,
         kind=kind,
-        target_pillar=target_pillar,
+        target_dimension=target_dimension,
         status=SessionStatus.in_progress,
         expires_at=now + timedelta(days=SESSION_TTL_DAYS),
     )
@@ -142,7 +142,7 @@ def _responses(db: Session, session: AssessmentSession) -> list[AssessmentRespon
 
 
 def get_next_item(db: Session, session: AssessmentSession) -> AssessmentItem | None:
-    items = ordered_items(db, session.kind, session.target_pillar)
+    items = ordered_items(db, session.kind, session.target_dimension)
     answered = {r.item_id for r in _responses(db, session)}
     for it in items:
         if it.id not in answered:
@@ -205,10 +205,10 @@ def record_response(
     return resp
 
 
-def finalize_session(db: Session, session: AssessmentSession) -> list[PillarResult]:
+def finalize_session(db: Session, session: AssessmentSession) -> list[DimensionResult]:
     if session.status == SessionStatus.completed:
         raise AssessmentError("la sesión ya fue finalizada")
-    items = ordered_items(db, session.kind, session.target_pillar)
+    items = ordered_items(db, session.kind, session.target_dimension)
     responses = _responses(db, session)
     answered = {r.item_id for r in responses}
     missing = [it for it in items if it.id not in answered]
@@ -223,27 +223,27 @@ def finalize_session(db: Session, session: AssessmentSession) -> list[PillarResu
     )
 
     # Agrupar respuestas por pilar.
-    by_pillar: dict[PillarCode, list[AssessmentResponse]] = {}
+    by_dimension: dict[DimensionCode, list[AssessmentResponse]] = {}
     for r in responses:
         it = item_lookup[r.item_id]
-        by_pillar.setdefault(it.pillar_code, []).append(r)
+        by_dimension.setdefault(it.dimension_code, []).append(r)
 
     if session.kind == SessionKind.onboarding_short:
-        pillars = [p for p in PILLAR_ORDER if p in by_pillar]
+        dimensions = [p for p in DIMENSION_ORDER if p in by_dimension]
     else:
-        if session.target_pillar is None:
+        if session.target_dimension is None:
             raise AssessmentError("sesión sin pilar objetivo")
-        pillars = [session.target_pillar]
+        dimensions = [session.target_dimension]
 
-    results: list[PillarResult] = []
-    for pillar in pillars:
-        inp = ScoringInput(responses=by_pillar[pillar], items=item_lookup, source=source)
-        out = score_pillar(pillar, inp)
-        retake = SCORERS[pillar].next_retake_eligible_at(source)
-        result = PillarResult(
+    results: list[DimensionResult] = []
+    for dimension in dimensions:
+        inp = ScoringInput(responses=by_dimension[dimension], items=item_lookup, source=source)
+        out = score_dimension(dimension, inp)
+        retake = SCORERS[dimension].next_retake_eligible_at(source)
+        result = DimensionResult(
             org_id=session.org_id,
             user_id=session.user_id,
-            pillar_code=pillar,
+            dimension_code=dimension,
             source=source,
             state_code=out.state_code,
             state_label=out.state_label,
@@ -269,20 +269,20 @@ def finalize_session(db: Session, session: AssessmentSession) -> list[PillarResu
     return results
 
 
-def _update_profile(db: Session, session: AssessmentSession, results: list[PillarResult]) -> None:
+def _update_profile(db: Session, session: AssessmentSession, results: list[DimensionResult]) -> None:
     profile = db.scalar(
         select(UserLearningProfile).where(UserLearningProfile.user_id == session.user_id)
     )
     if profile is None:
         profile = UserLearningProfile(
-            org_id=session.org_id, user_id=session.user_id, pillar_states={}
+            org_id=session.org_id, user_id=session.user_id, dimension_states={}
         )
         db.add(profile)
         db.flush()
 
-    states = dict(profile.pillar_states or {})
+    states = dict(profile.dimension_states or {})
     for r in results:
-        states[r.pillar_code.value] = {
+        states[r.dimension_code.value] = {
             "state": r.state_code,
             "state_label": r.state_label,
             "source": r.source.value,
@@ -293,18 +293,18 @@ def _update_profile(db: Session, session: AssessmentSession, results: list[Pilla
             "derived_at": now_utc().isoformat(),
             "next_retake_eligible_at": r.next_retake_eligible_at.isoformat(),
         }
-    profile.pillar_states = states
+    profile.dimension_states = states
     profile.last_assessment_at = now_utc()
     if session.kind == SessionKind.onboarding_short:
         profile.onboarding_short_completed_at = now_utc()
 
 
-def confirm_pillar(db: Session, user: User, pillar: PillarCode) -> PillarResult:
+def confirm_dimension(db: Session, user: User, dimension: DimensionCode) -> DimensionResult:
     """User confirma el upgrade (ej. P3 N3 → N4 Generativo)."""
     latest = db.scalar(
-        select(PillarResult)
-        .where(PillarResult.user_id == user.id, PillarResult.pillar_code == pillar)
-        .order_by(PillarResult.derived_at.desc())
+        select(DimensionResult)
+        .where(DimensionResult.user_id == user.id, DimensionResult.dimension_code == dimension)
+        .order_by(DimensionResult.derived_at.desc())
     )
     if latest is None or not latest.requires_user_confirmation:
         raise AssessmentError("no hay confirmación pendiente para este pilar")
@@ -319,8 +319,8 @@ def confirm_pillar(db: Session, user: User, pillar: PillarCode) -> PillarResult:
         select(UserLearningProfile).where(UserLearningProfile.user_id == user.id)
     )
     if profile is not None:
-        states = dict(profile.pillar_states or {})
-        st = dict(states.get(pillar.value, {}))
+        states = dict(profile.dimension_states or {})
+        st = dict(states.get(dimension.value, {}))
         st.update(
             {
                 "state": latest.state_code,
@@ -328,8 +328,8 @@ def confirm_pillar(db: Session, user: User, pillar: PillarCode) -> PillarResult:
                 "requires_user_confirmation": False,
             }
         )
-        states[pillar.value] = st
-        profile.pillar_states = states
+        states[dimension.value] = st
+        profile.dimension_states = states
     # flush (not commit): latest's mutated fields are already in memory, no
     # refresh needed — a commit here would end the transaction and reset
     # SET LOCAL ROLE hg_app / app.current_org_id before the router's
@@ -339,12 +339,12 @@ def confirm_pillar(db: Session, user: User, pillar: PillarCode) -> PillarResult:
     return latest
 
 
-def reset_retake(db: Session, user_id: uuid.UUID, pillar: PillarCode) -> None:
+def reset_retake(db: Session, user_id: uuid.UUID, dimension: DimensionCode) -> None:
     """RRHH/superadmin: habilita la re-evaluación inmediata de un pilar."""
     latest = db.scalar(
-        select(PillarResult)
-        .where(PillarResult.user_id == user_id, PillarResult.pillar_code == pillar)
-        .order_by(PillarResult.derived_at.desc())
+        select(DimensionResult)
+        .where(DimensionResult.user_id == user_id, DimensionResult.dimension_code == dimension)
+        .order_by(DimensionResult.derived_at.desc())
     )
     if latest is not None:
         latest.next_retake_eligible_at = now_utc()
@@ -360,33 +360,33 @@ def instrument_for(db: Session, code: str) -> AssessmentInstrument | None:
 
 
 # ─────────────────── Métricas por usuario (fuente canónica · Release TASK 2) ──────────────────
-# Estado del assessment derivado SIEMPRE del histórico `PillarResult` (fuente de
-# verdad), no del snapshot denormalizado `UserLearningProfile.pillar_states`. Así
+# Estado del assessment derivado SIEMPRE del histórico `DimensionResult` (fuente de
+# verdad), no del snapshot denormalizado `UserLearningProfile.dimension_states`. Así
 # el colaborador (/me/results) y el manager (/team/[id]) ven exactamente lo mismo.
 
 
-def latest_pillar_results(db: Session, user_id: uuid.UUID) -> list[PillarResult]:
-    """Último `PillarResult` por pilar (dedup por derived_at desc)."""
+def latest_dimension_results(db: Session, user_id: uuid.UUID) -> list[DimensionResult]:
+    """Último `DimensionResult` por pilar (dedup por derived_at desc)."""
     rows = list(
         db.scalars(
-            select(PillarResult)
-            .where(PillarResult.user_id == user_id)
-            .order_by(PillarResult.derived_at.desc(), PillarResult.id.desc())
+            select(DimensionResult)
+            .where(DimensionResult.user_id == user_id)
+            .order_by(DimensionResult.derived_at.desc(), DimensionResult.id.desc())
         ).all()
     )
     seen: set[str] = set()
-    out: list[PillarResult] = []
+    out: list[DimensionResult] = []
     for r in rows:
-        if r.pillar_code.value not in seen:
-            seen.add(r.pillar_code.value)
+        if r.dimension_code.value not in seen:
+            seen.add(r.dimension_code.value)
             out.append(r)
     return out
 
 
-def assessment_states_snapshot(results: list[PillarResult]) -> dict[str, dict]:
-    """`{pillar_code: {state, state_label, source}}` desde `PillarResult`."""
+def assessment_states_snapshot(results: list[DimensionResult]) -> dict[str, dict]:
+    """`{dimension_code: {state, state_label, source}}` desde `DimensionResult`."""
     return {
-        r.pillar_code.value: {
+        r.dimension_code.value: {
             "state": r.state_code,
             "state_label": r.state_label,
             "source": r.source.value,

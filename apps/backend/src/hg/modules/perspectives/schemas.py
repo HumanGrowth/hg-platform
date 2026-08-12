@@ -36,7 +36,7 @@ class PerspectiveSummary(BaseModel):
     title: str
     subtitle: str | None
     cover_image_url: str | None
-    pillar_code: str | None
+    dimension_code: str | None
     author_name: str | None
     tags: list[str]
     published_at: datetime | None
@@ -64,7 +64,7 @@ class CreatePostRequest(BaseModel):
     slug: str | None = Field(default=None, max_length=200)
     subtitle: str | None = Field(default=None, max_length=500)
     cover_image_url: str | None = None
-    pillar_code: str | None = Field(default=None, max_length=10)
+    dimension_code: str | None = Field(default=None, max_length=10)
     author_name: str | None = Field(default=None, max_length=200)
     author_avatar_url: str | None = None
     tags: list[str] = Field(default_factory=list)
@@ -87,7 +87,7 @@ class UpdatePostRequest(BaseModel):
     slug: str | None = Field(default=None, max_length=200)
     subtitle: str | None = Field(default=None, max_length=500)
     cover_image_url: str | None = None
-    pillar_code: str | None = Field(default=None, max_length=10)
+    dimension_code: str | None = Field(default=None, max_length=10)
     author_name: str | None = Field(default=None, max_length=200)
     author_avatar_url: str | None = None
     tags: list[str] | None = None

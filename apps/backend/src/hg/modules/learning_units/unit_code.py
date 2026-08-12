@@ -3,8 +3,9 @@
 Convención (fuente de verdad = nombre de carpeta del Drive):
     ``<DIM>-L<nivel>-P<pilar>-<seq>``   ej. ``CP-L1-P2-001``
 
-Separa los 4 conceptos que antes se mezclaban: ``dimension`` (CP…),
-``level`` (nivel), ``pillar`` (sub-categoría P<n>) y ``number`` (correlativo).
+Separa los 4 conceptos que antes se mezclaban: ``dimension`` (CP…, la
+dimensión), ``level`` (nivel), ``pillar`` (sub-categoría P<n> = el pilar, va a
+``LearningUnit.pillar_number``) y ``number`` (correlativo).
 Espejo exacto de ``apps/frontend/src/lib/parsers/unitCode.ts``.
 """
 from __future__ import annotations
@@ -32,7 +33,9 @@ def parse_unit_code(code: str) -> UnitCode | None:
     m = _UNIT_CODE_RE.match(code.strip().upper())
     if not m:
         return None
-    return UnitCode(dimension=m.group(1), level=int(m.group(2)), pillar=int(m.group(3)), number=int(m.group(4)))
+    return UnitCode(
+        dimension=m.group(1), level=int(m.group(2)), pillar=int(m.group(3)), number=int(m.group(4))
+    )
 
 
 def is_valid_unit_code(code: str) -> bool:

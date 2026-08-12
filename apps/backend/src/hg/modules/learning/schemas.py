@@ -61,7 +61,7 @@ class EventDetailOut(EventOut):
     """Event + progreso del usuario actual (None si nunca lo abrió)."""
 
     progress: CourseProgressOut | None = None
-    pillar_code: str | None = None  # código del path (P1..P6) para la metadata del player
+    dimension_code: str | None = None  # código del path (P1..P6) para la metadata del player
 
 
 class NextEventOut(BaseModel):

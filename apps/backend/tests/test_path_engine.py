@@ -7,8 +7,8 @@ from datetime import UTC, datetime
 from sqlalchemy import delete, select
 
 from hg.db import SessionLocal
-from hg.modules.assessment.enums import PillarCode, ResultSource
-from hg.modules.assessment.models import PillarResult
+from hg.modules.assessment.enums import DimensionCode, ResultSource
+from hg.modules.assessment.models import DimensionResult
 from hg.modules.identity.models import UserRole
 from hg.modules.learning.models import CareerPath
 from hg.modules.learning_units.models import LearningUnit, LearningUnitAttempt
@@ -52,11 +52,11 @@ def _complete(user, unit_id: uuid.UUID) -> None:
         s.close()
 
 
-def _assessment(user, pillar: PillarCode, state_code: str) -> None:
+def _assessment(user, dimension: DimensionCode, state_code: str) -> None:
     s = SessionLocal()
     try:
-        s.add(PillarResult(
-            org_id=user.org_id, user_id=user.id, pillar_code=pillar, source=ResultSource.preliminary,
+        s.add(DimensionResult(
+            org_id=user.org_id, user_id=user.id, dimension_code=dimension, source=ResultSource.preliminary,
             state_code=state_code, state_label=state_code, sub_scores={}, derived_at=datetime.now(UTC),
             next_retake_eligible_at=datetime.now(UTC),
         ))
@@ -101,8 +101,8 @@ def test_prioritizes_lowest_scoring_dimension(client, factory, auth_headers) -> 
     _make_unit("CP", "L1", 1, 1)  # Carrera (P1)
     pr = _make_unit("PR", "L1", 1, 1)  # Propósito (P2)
     # P1 alto (L5), P2 bajo (L1) → next_step debe ser el de P2 (más bajo).
-    _assessment(user, PillarCode.P1, "L5")
-    _assessment(user, PillarCode.P2, "L1")
+    _assessment(user, DimensionCode.P1, "L5")
+    _assessment(user, DimensionCode.P2, "L1")
     try:
         body = client.get("/api/v1/me/path", headers=auth_headers(user)).json()
         assert body["next_step"]["unit_id"] == str(pr)

@@ -1,4 +1,4 @@
-"""Actualización de PillarResult (B2-03): confirm N4, recaída, upgrade de source."""
+"""Actualización de DimensionResult (B2-03): confirm N4, recaída, upgrade de source."""
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
@@ -8,7 +8,7 @@ from tests.assessment_helpers import P3_N3_ANSWERS, run_session
 
 def _p3_detail(client, headers) -> dict:
     run_session(client, headers, "onboarding_short")
-    return run_session(client, headers, "pillar_detail", target_pillar="P3", answers=P3_N3_ANSWERS)
+    return run_session(client, headers, "dimension_detail", target_dimension="P3", answers=P3_N3_ANSWERS)
 
 
 def test_n3_candidate_requires_confirmation(client: TestClient, factory, auth_headers) -> None:
@@ -43,7 +43,7 @@ def test_p4_recaida_detected(client, factory, auth_headers) -> None:
         "PRO-1b": 5, "PRO-1a": 0, "PRO-2b": 5, "PRO-2a": 0,
         "PRO-3b": 5, "PRO-3a": 0, "PRO-4b": 5, "PRO-4a": 0,
     }
-    out = run_session(client, h, "pillar_detail", target_pillar="P4", answers=answers)
+    out = run_session(client, h, "dimension_detail", target_dimension="P4", answers=answers)
     assert out["results"][0]["recaida_detected"] is True
 
 
@@ -52,12 +52,12 @@ def test_preliminary_upgrades_to_confirmed(client, factory, auth_headers) -> Non
     user = factory.make_user(org=org)
     h = auth_headers(user)
     run_session(client, h, "onboarding_short")
-    before = {r["pillar_code"]: r for r in client.get(
+    before = {r["dimension_code"]: r for r in client.get(
         "/api/v1/assessment/me/results", headers=h
     ).json()["results"]}
     assert before["P2"]["source"] == "preliminary"
-    run_session(client, h, "pillar_detail", target_pillar="P2")
-    after = {r["pillar_code"]: r for r in client.get(
+    run_session(client, h, "dimension_detail", target_dimension="P2")
+    after = {r["dimension_code"]: r for r in client.get(
         "/api/v1/assessment/me/results", headers=h
     ).json()["results"]}
     assert after["P2"]["source"] == "confirmed"
