@@ -11,7 +11,7 @@ import { Chip } from "@/components/ui/chip";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { apiAiSummary, apiDeleteTip, apiListTips, apiUpdateTip } from "@/lib/api";
-import { dimensionToPillar, pillarShortName } from "@/lib/pillars";
+import { driveToCareerPath, dimensionShortName } from "@/lib/dimension-styles";
 import { toast } from "@/lib/toast-store";
 import type { SavedTip } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,7 @@ type StatusFilter = "all" | "pending" | "done";
 function dimName(code: string | null): string {
   if (!code) return "General";
   try {
-    return pillarShortName(dimensionToPillar(code));
+    return dimensionShortName(driveToCareerPath(code));
   } catch {
     return code;
   }

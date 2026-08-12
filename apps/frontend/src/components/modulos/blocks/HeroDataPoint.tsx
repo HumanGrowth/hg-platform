@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
-import { dimensionStyle } from "@/lib/pillars";
+import { dimensionStyle } from "@/lib/dimension-styles";
 
 interface Props {
   value: string;

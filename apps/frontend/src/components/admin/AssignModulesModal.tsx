@@ -7,7 +7,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { Input, Label } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { apiAssignModules, apiListAssignableUnits } from "@/lib/api";
-import { dimensionToPillar, pillarShortName, subPillarName } from "@/lib/pillars";
+import { driveToCareerPath, dimensionShortName, subPillarName } from "@/lib/dimension-styles";
 import { toast } from "@/lib/toast-store";
 import type { AssignableUnit } from "@/lib/types";
 
@@ -35,7 +35,7 @@ export function AssignModulesModal({
   const [q, setQ] = React.useState("");
   const [dimF, setDimF] = React.useState("");
   const [levelF, setLevelF] = React.useState("");
-  const [pillarF, setPillarF] = React.useState("");
+  const [dimensionF, setDimensionF] = React.useState("");
   const [dueDate, setDueDate] = React.useState("");
   const [note, setNote] = React.useState("");
   const [saving, setSaving] = React.useState(false);
@@ -46,7 +46,7 @@ export function AssignModulesModal({
     setQ("");
     setDimF("");
     setLevelF("");
-    setPillarF("");
+    setDimensionF("");
     setDueDate("");
     setNote("");
     apiListAssignableUnits().then(setUnits).catch(() => setUnits([]));
@@ -64,7 +64,7 @@ export function AssignModulesModal({
       u.title.toLowerCase().includes(q.toLowerCase()) &&
       (!dimF || u.dimension_code === dimF) &&
       (!levelF || u.level_code === levelF) &&
-      (!pillarF || u.pillar_number === Number(pillarF)),
+      (!dimensionF || u.pillar_number === Number(dimensionF)),
   );
 
   // "Seleccionar todos": agrega los filtrados que aún no están asignados.
@@ -114,14 +114,14 @@ export function AssignModulesModal({
 
         {/* Filtros para asignar en grupo (dimensión / pilar / nivel). */}
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <Select value={dimF} onChange={(e) => { setDimF(e.target.value); setPillarF(""); }}>
+          <Select value={dimF} onChange={(e) => { setDimF(e.target.value); setDimensionF(""); }}>
             <option value="">Todas las dimensiones</option>
             {dimensions.map((d) => (
-              <option key={d} value={d}>{pillarShortName(dimensionToPillar(d))}</option>
+              <option key={d} value={d}>{dimensionShortName(driveToCareerPath(d))}</option>
             ))}
           </Select>
-          <Select value={pillarF} onChange={(e) => setPillarF(e.target.value)}>
-            <option value="">Todos los pilares</option>
+          <Select value={dimensionF} onChange={(e) => setDimensionF(e.target.value)}>
+            <option value="">Todos las dimensiones</option>
             {pillars.map((n) => (
               <option key={n} value={n}>{subPillarName(dimF || undefined, n)}</option>
             ))}
@@ -166,7 +166,7 @@ export function AssignModulesModal({
                   <span className="min-w-0 flex-1">
                     <span className="line-clamp-1 text-sm font-medium text-fg">{u.title}</span>
                     <span className="text-xs text-fg-muted">
-                      {pillarShortName(dimensionToPillar(u.dimension_code))} · {u.level_code}
+                      {dimensionShortName(driveToCareerPath(u.dimension_code))} · {u.level_code}
                       {assigned ? " · ya asignado" : ""}
                     </span>
                   </span>

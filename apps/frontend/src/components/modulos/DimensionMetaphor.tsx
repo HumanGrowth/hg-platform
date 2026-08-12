@@ -1,9 +1,9 @@
 import * as React from "react";
 
-import { dimensionToPillar } from "@/lib/pillars";
+import { driveToCareerPath } from "@/lib/dimension-styles";
 
 /**
- * Ilustración-metáfora line-art por pilar (Sprint UI · TASK 10). Una por
+ * Ilustración-metáfora line-art por dimensión (Sprint UI · TASK 10). Una por
  * dimensión, en `currentColor` (el color lo pone el contenedor con el hue del
  * pilar). Decorativa → `aria-hidden`. 120×120, stroke redondeado.
  */
@@ -62,12 +62,12 @@ const PATHS: Record<string, React.ReactNode> = {
  * Sólo los trazos de la metáfora (sin el `<svg>` contenedor) — para embeber la
  * metáfora dentro de otro SVG, ej. los vértices del radar (Sprint Tarde · TASK 6).
  */
-export function PillarMetaphorPaths({ code }: { code: string }) {
-  return <>{PATHS[dimensionToPillar(code)] ?? PATHS.P3}</>;
+export function DimensionMetaphorPaths({ code }: { code: string }) {
+  return <>{PATHS[driveToCareerPath(code)] ?? PATHS.P3}</>;
 }
 
-export function PillarMetaphor({ code, className }: { code: string; className?: string }) {
-  const paths = PATHS[dimensionToPillar(code)] ?? PATHS.P3;
+export function DimensionMetaphor({ code, className }: { code: string; className?: string }) {
+  const paths = PATHS[driveToCareerPath(code)] ?? PATHS.P3;
   return (
     <svg
       viewBox="0 0 120 120"

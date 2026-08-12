@@ -72,7 +72,7 @@ export const en = {
     ctaSecondary: "See dimensions",
     socialProof: "Built for professionals and teams across LatAm",
   },
-  sixPillars: {
+  sixDimensions: {
     eyebrow: "THE SCIENCE BEHIND US",
     title: "6 dimensions of the complete professional.",
     subtitle: "We don't develop isolated skills. We develop whole people.",
@@ -256,8 +256,8 @@ export const en = {
         { n: "05", name: "LATAM adaptation", body: "We adapt the reading to the region's socioeconomic reality, in notes kept separate from the base framework so as not to distort it." },
       ],
     },
-    pillarsHeading: {
-      eyebrow: "THE SIX PILLARS",
+    dimensionsHeading: {
+      eyebrow: "THE SIX DIMENSIONS_META",
       title: "What each dimension measures.",
       body: "What each pillar evaluates and what its growth path looks like. No jargon: the full research lives in our internal framework.",
     },

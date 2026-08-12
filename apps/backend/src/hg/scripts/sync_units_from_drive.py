@@ -589,13 +589,14 @@ def _process_folder(
         return
 
     unit_json = sanitize_unit_json(unit_json)
-    # Override autoritativo desde el folder (el dimension_code del Doc es legacy y
-    # mete el pilar dentro de lo que debería ser la dimensión).
+    # Override autoritativo desde el folder (la clave `pillar_code` del Doc es
+    # legacy — es dato externo de Jorge y mete el pilar dentro de lo que debería
+    # ser la dimensión; se descarta y se re-deriva del nombre de carpeta).
     unit_json["dimension_code"] = code.dimension
     unit_json["pillar_number"] = code.pillar
     unit_json["unit_number"] = code.number
     unit_json["level_code"] = f"L{code.level}"
-    unit_json.pop("dimension_code", None)
+    unit_json.pop("pillar_code", None)
     slug = unit_json.get("slug", "<sin-slug>")
     log.info("→ %s · slug=%s · %d video(s)", folder.name, slug, folder.mp4_count)
     stats.folders += 1

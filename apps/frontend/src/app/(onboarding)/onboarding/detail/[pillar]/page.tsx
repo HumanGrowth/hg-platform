@@ -6,16 +6,16 @@ import * as React from "react";
 import { TraditionalForm } from "@/components/assessment/TraditionalForm";
 import { EmptyRing } from "@/components/EmptyRing";
 import { apiFinalizeSession, apiRespondItem, apiStartSession } from "@/lib/api";
-import { PILLAR_NAMES } from "@/lib/assessment-utils";
-import type { AssessmentPillarCode, AssessmentSession } from "@/lib/types";
+import { DIMENSION_NAMES } from "@/lib/assessment-utils";
+import type { AssessmentDimensionCode, AssessmentSession } from "@/lib/types";
 import { toast } from "@/lib/toast-store";
 
-const VALID: AssessmentPillarCode[] = ["P1", "P2", "P3", "P4", "P5", "P6A", "P6B"];
+const VALID: AssessmentDimensionCode[] = ["P1", "P2", "P3", "P4", "P5", "P6A", "P6B"];
 
 export default function PillarDetailPage() {
   const params = useParams<{ pillar: string }>();
   const router = useRouter();
-  const pillar = params.pillar as AssessmentPillarCode;
+  const pillar = params.pillar as AssessmentDimensionCode;
   const [session, setSession] = React.useState<AssessmentSession | null>(null);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [submitting, setSubmitting] = React.useState(false);
@@ -25,7 +25,7 @@ export default function PillarDetailPage() {
   const begin = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const s = await apiStartSession({ kind: "pillar_detail", target_pillar: pillar });
+      const s = await apiStartSession({ kind: "dimension_detail", target_dimension: pillar });
       setSession(s);
       setStatus("ok");
       startRef.current = Date.now();
@@ -71,7 +71,7 @@ export default function PillarDetailPage() {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col justify-center px-6 py-12">
       <p className="mb-6 text-center font-sans text-sm font-semibold text-primary">
-        Evaluación detallada · {PILLAR_NAMES[pillar] ?? pillar}
+        Evaluación detallada · {DIMENSION_NAMES[pillar] ?? pillar}
       </p>
       {status === "loading" && (
         <div className="flex justify-center py-20">
@@ -80,7 +80,7 @@ export default function PillarDetailPage() {
       )}
       {status === "error" && (
         <div className="flex flex-col items-center gap-4 py-20 text-center">
-          <p className="text-fg-muted">No se pudo iniciar la evaluación de este pilar.</p>
+          <p className="text-fg-muted">No se pudo iniciar la evaluación de esta dimensión.</p>
           <button
             type="button"
             onClick={() => void begin()}

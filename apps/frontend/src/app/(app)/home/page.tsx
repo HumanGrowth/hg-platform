@@ -21,8 +21,8 @@ import { apiGetHomeDashboard, apiGetMyResults, apiSetOnboardingSeen } from "@/li
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { DIMENSIONS } from "@/lib/dimensions";
-import { pillarBadgeVariant, pillarShortName } from "@/lib/pillars";
-import type { HomeDashboard, PillarResult } from "@/lib/types";
+import { dimensionBadgeVariant, dimensionShortName } from "@/lib/dimension-styles";
+import type { HomeDashboard, DimensionResult } from "@/lib/types";
 import { cn, formatRelativeTime, greetingName, isFixtureCourse } from "@/lib/utils";
 
 const HomeActivitySection = React.lazy(
@@ -41,7 +41,7 @@ function WidgetsSkeleton() {
 }
 
 const pct = (rate: number) => Math.round(rate * 100);
-const pillarBadge = pillarBadgeVariant;
+const dimensionBadge = dimensionBadgeVariant;
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
@@ -75,7 +75,7 @@ export default function HomePage() {
 
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [data, setData] = React.useState<HomeDashboard | null>(null);
-  const [results, setResults] = React.useState<PillarResult[]>([]);
+  const [results, setResults] = React.useState<DimensionResult[]>([]);
 
   const loadResults = React.useCallback(async () => {
     try {
@@ -105,7 +105,7 @@ export default function HomePage() {
     void load();
   }, [load]);
 
-  const rates = data?.pillar_completion_rates;
+  const rates = data?.dimension_completion_rates;
   // El radar prioriza los estados reales del assessment; si aún no hay, cae a
   // completion rates (compat pre-assessment).
   const radarValues =
@@ -156,7 +156,7 @@ export default function HomePage() {
             <Eyebrow>Tus 6 dimensiones</Eyebrow>
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
               {DIMENSIONS.map((d) => (
-                <DimensionCard key={d.code} dimension={d} score={radarValues[d.pillar] ?? 0} />
+                <DimensionCard key={d.code} dimension={d} score={radarValues[d.careerPath] ?? 0} />
               ))}
             </div>
           </section>
@@ -199,8 +199,8 @@ export default function HomePage() {
                 <div className="min-w-0">
                   <Eyebrow>Tu próximo paso</Eyebrow>
                   <div className="mt-1 flex items-center gap-2">
-                    <Badge variant={pillarBadge(data.next_step.pillar_code)}>
-                      {pillarShortName(data.next_step.pillar_code)}
+                    <Badge variant={dimensionBadge(data.next_step.dimension_code)}>
+                      {dimensionShortName(data.next_step.dimension_code)}
                     </Badge>
                     <h2 className="truncate font-sans text-xl font-semibold text-fg">
                       {data.next_step.course_title}
@@ -247,7 +247,7 @@ export default function HomePage() {
           <AISoonBadge
             variant="card"
             label="Próximamente: tu recomendación diaria"
-            dimensionCode={data.next_step?.pillar_code}
+            dimensionCode={data.next_step?.dimension_code}
             className="mt-4"
           />
 
@@ -271,7 +271,7 @@ export default function HomePage() {
           <React.Suspense fallback={<WidgetsSkeleton />}>
             <HomeActivitySection
               enrollments={data.active_enrollments}
-              pillarCompletionRates={data.pillar_completion_rates}
+              dimensionCompletionRates={data.dimension_completion_rates}
             />
           </React.Suspense>
 
@@ -280,7 +280,7 @@ export default function HomePage() {
             <Eyebrow>Actividad reciente</Eyebrow>
             {data.recent_activity.length === 0 ? (
               <Card className="mt-4 flex items-center justify-center py-16">
-                <EmptyRing label="Sin actividad aún. Comenzá explorando un pilar." />
+                <EmptyRing label="Sin actividad aún. Comenzá explorando una dimensión." />
               </Card>
             ) : (
               <ul className="mt-4 flex flex-col gap-2">
@@ -290,7 +290,7 @@ export default function HomePage() {
                       href={`/eventos/${a.course_slug}` as Route}
                       className="flex items-center gap-3 rounded-lg border border-border bg-surface-card px-4 py-3 transition-colors hover:bg-bg-raised"
                     >
-                      <Badge variant={pillarBadge(a.pillar_code)}>{pillarShortName(a.pillar_code)}</Badge>
+                      <Badge variant={dimensionBadge(a.dimension_code)}>{dimensionShortName(a.dimension_code)}</Badge>
                       <span className="min-w-0 flex-1 truncate font-sans text-sm font-medium text-fg">
                         {a.course_title}
                       </span>

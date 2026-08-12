@@ -3,7 +3,7 @@
 import { Sparkles } from "lucide-react";
 import * as React from "react";
 
-import { dimensionStyle } from "@/lib/pillars";
+import { dimensionStyle } from "@/lib/dimension-styles";
 import { cn } from "@/lib/utils";
 
 type Variant = "pill" | "inline" | "card";

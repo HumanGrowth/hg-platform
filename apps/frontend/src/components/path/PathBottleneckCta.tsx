@@ -5,12 +5,12 @@ import * as React from "react";
 
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { apiGetMyResults } from "@/lib/api";
-import { PILLARS } from "@/lib/pillars";
+import { DIMENSIONS_META } from "@/lib/dimension-styles";
 
 const PILLAR_NAME: Record<string, string> = Object.fromEntries(
-  PILLARS.map((p) => [p.id, p.name]),
+  DIMENSIONS_META.map((p) => [p.id, p.name]),
 );
-const DOT: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id, p.dot]));
+const DOT: Record<string, string> = Object.fromEntries(DIMENSIONS_META.map((p) => [p.id, p.dot]));
 
 /**
  * CTA contextual (TASK 08): del assessment, resalta el pilar con el puntaje
@@ -19,7 +19,7 @@ const DOT: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id,
  */
 /** @deprecated cierre-beta TASK 1 — Mi Ruta usa <PathJourney>. Borrar tras 1 sprint. */
 export function PathBottleneckCta() {
-  const [pillar, setPillar] = React.useState<string | null>(null);
+  const [pillar, setDimension] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let alive = true;
@@ -30,7 +30,7 @@ export function PathBottleneckCta() {
         const entries = Object.entries(values).filter(([, v]) => v > 0);
         if (entries.length === 0) return;
         const [lowest] = entries.reduce((a, b) => (b[1] < a[1] ? b : a));
-        setPillar(lowest);
+        setDimension(lowest);
       })
       .catch(() => undefined);
     return () => {

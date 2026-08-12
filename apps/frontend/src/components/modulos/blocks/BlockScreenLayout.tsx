@@ -2,8 +2,8 @@
 
 import * as React from "react";
 
-import { PillarMetaphor } from "@/components/modulos/PillarMetaphor";
-import { dimensionStyle } from "@/lib/pillars";
+import { DimensionMetaphor } from "@/components/modulos/DimensionMetaphor";
+import { dimensionStyle } from "@/lib/dimension-styles";
 import { cn } from "@/lib/utils";
 
 /**
@@ -37,7 +37,7 @@ export function BlockScreenLayout({
       >
         {/* Metáfora del pilar como header → identidad de la dimensión (64-80px). */}
         <span aria-hidden className="shrink-0" style={{ color: style.glow }}>
-          <PillarMetaphor code={dimensionCode ?? "P3"} className="h-16 w-16 sm:h-20 sm:w-20" />
+          <DimensionMetaphor code={dimensionCode ?? "P3"} className="h-16 w-16 sm:h-20 sm:w-20" />
         </span>
         {children}
       </div>

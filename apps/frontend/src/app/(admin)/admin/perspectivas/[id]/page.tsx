@@ -19,7 +19,7 @@ import {
   apiPublishPerspective,
   apiUpdatePerspective,
 } from "@/lib/api";
-import { PILLARS } from "@/lib/pillars";
+import { DIMENSIONS_META } from "@/lib/dimension-styles";
 import { toast } from "@/lib/toast-store";
 import type { Perspective } from "@/lib/types";
 
@@ -31,7 +31,7 @@ function EditorInner() {
 
   // form state
   const [f, setF] = React.useState({
-    title: "", subtitle: "", slug: "", cover_image_url: "", pillar_code: "",
+    title: "", subtitle: "", slug: "", cover_image_url: "", dimension_code: "",
     author_name: "", author_avatar_url: "", tags: "", body_markdown: "", read_minutes: "",
     // business_case
     org_client_name: "", industry: "", challenge: "", solution: "", metrics: "",
@@ -45,7 +45,7 @@ function EditorInner() {
         setP(data);
         setF({
           title: data.title, subtitle: data.subtitle ?? "", slug: data.slug,
-          cover_image_url: data.cover_image_url ?? "", pillar_code: data.pillar_code ?? "",
+          cover_image_url: data.cover_image_url ?? "", dimension_code: data.dimension_code ?? "",
           author_name: data.author_name ?? "", author_avatar_url: data.author_avatar_url ?? "",
           tags: (data.tags ?? []).join(", "), body_markdown: data.body_markdown ?? "",
           read_minutes: data.read_minutes_estimated?.toString() ?? "",
@@ -72,7 +72,7 @@ function EditorInner() {
     try {
       const base = {
         title: f.title, subtitle: f.subtitle || null, slug: f.slug || undefined,
-        cover_image_url: f.cover_image_url || null, pillar_code: f.pillar_code || null,
+        cover_image_url: f.cover_image_url || null, dimension_code: f.dimension_code || null,
         author_name: f.author_name || null, author_avatar_url: f.author_avatar_url || null,
         tags: f.tags.split(",").map((t) => t.trim()).filter(Boolean),
         body_markdown: f.body_markdown || null,
@@ -170,10 +170,10 @@ function EditorInner() {
             <Input id="slug" value={f.slug} onChange={(e) => set("slug", e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="pillar">Pilar (opcional)</Label>
-            <Select id="pillar" value={f.pillar_code} onChange={(e) => set("pillar_code", e.target.value)}>
-              <option value="">Sin pilar</option>
-              {PILLARS.map((pl) => (
+            <Label htmlFor="pillar">Dimensión (opcional)</Label>
+            <Select id="pillar" value={f.dimension_code} onChange={(e) => set("dimension_code", e.target.value)}>
+              <option value="">Sin dimensión</option>
+              {DIMENSIONS_META.map((pl) => (
                 <option key={pl.id} value={pl.id}>{pl.name}</option>
               ))}
             </Select>

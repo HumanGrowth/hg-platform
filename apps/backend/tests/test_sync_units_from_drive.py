@@ -55,10 +55,13 @@ def test_extract_json_from_real_doc_fixture() -> None:
     unit = extract_json_from_doc_text(doc_text)
 
     assert unit["slug"] == "hg-p2-l1-002-proposito-diario"
-    assert unit["dimension_code"] == "P2"
+    # El extract devuelve el JSON crudo del Doc, cuya clave legacy es `pillar_code`
+    # (dato externo de Jorge). El override a `dimension_code` ocurre después, en
+    # build_unit_from_folder — no acá.
+    assert unit["pillar_code"] == "P2"
     assert len(unit["blocks"]) == 5
     # Prosa antes y después del JSON ignorada; nada se coló en el dict.
-    assert set(unit) >= {"slug", "title", "dimension_code", "level_code", "blocks"}
+    assert set(unit) >= {"slug", "title", "pillar_code", "level_code", "blocks"}
 
 
 def test_extract_json_cleans_markdown_escapes() -> None:

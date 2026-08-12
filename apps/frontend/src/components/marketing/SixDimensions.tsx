@@ -7,15 +7,15 @@ import { DecoLayer } from "@/components/motion/DecoLayer";
 import { StaggerBounceGrid } from "@/components/motion/StaggerBounceGrid";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { pillarIconSrc } from "@/lib/pillars";
+import { dimensionIconSrc } from "@/lib/dimension-styles";
 
 /**
  * Las 6 dimensiones (items 9-11). Cada card muestra el hex icon del pilar como
  * watermark sutil al costado derecho (~3/4 visible). id="dimensiones" es el
  * destino del scroll del hero (web-v2-01).
  */
-export default function SixPillars() {
-  const c = useMarketingCopy().sixPillars;
+export default function SixDimensions() {
+  const c = useMarketingCopy().sixDimensions;
   return (
     <section
       id="dimensiones"
@@ -39,7 +39,7 @@ export default function SixPillars() {
 
         <StaggerBounceGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {c.items.map((item) => {
-            const src = pillarIconSrc(item.code);
+            const src = dimensionIconSrc(item.code);
             return (
               <article
                 key={item.code}

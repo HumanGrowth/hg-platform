@@ -5,9 +5,9 @@ import type { LearningUnitFeed, LearningUnitFeedItem } from "@/lib/types";
 
 import ModulosPage from "../page";
 
-const { getModulosFeed, listModulosByPillar, getHomeDashboard, router, searchParams } = vi.hoisted(() => ({
+const { getModulosFeed, listModulosByDimension, getHomeDashboard, router, searchParams } = vi.hoisted(() => ({
   getModulosFeed: vi.fn(),
-  listModulosByPillar: vi.fn(),
+  listModulosByDimension: vi.fn(),
   getHomeDashboard: vi.fn(),
   router: { push: vi.fn(), replace: vi.fn() },
   searchParams: { pillar: null as string | null },
@@ -20,7 +20,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/api", () => ({
   apiGetModulosFeed: getModulosFeed,
-  apiListModulosByPillar: listModulosByPillar,
+  apiListModulosByDimension: listModulosByDimension,
   apiGetHomeDashboard: getHomeDashboard,
 }));
 
@@ -40,7 +40,7 @@ const feed: LearningUnitFeed = { hero: unit, next: [] };
 
 beforeEach(() => {
   getModulosFeed.mockReset().mockResolvedValue(feed);
-  listModulosByPillar.mockReset().mockResolvedValue([unit]);
+  listModulosByDimension.mockReset().mockResolvedValue([unit]);
   getHomeDashboard.mockReset().mockResolvedValue({ stats: { streak_days: 0 } });
   router.push.mockReset();
   searchParams.pillar = null;
@@ -52,15 +52,15 @@ describe("ModulosPage", () => {
     await screen.findByText("Antes de seguir");
     expect(getModulosFeed).toHaveBeenCalled();
     // Sin filtro NO se muestra el chip "Filtrando"; el catálogo agrupado
-    // (DimensionCatalog) sí carga units por dimensión vía apiListModulosByPillar.
+    // (DimensionCatalog) sí carga units por dimensión vía apiListModulosByDimension.
     expect(screen.queryByText(/Filtrando:/)).toBeNull();
   });
 
-  it("with ?pillar=P1 calls apiListModulosByPillar and shows the 'Filtrando' chip", async () => {
+  it("with ?pillar=P1 calls apiListModulosByDimension and shows the 'Filtrando' chip", async () => {
     searchParams.pillar = "P1";
     render(<ModulosPage />);
     await screen.findByText("Antes de seguir");
-    expect(listModulosByPillar).toHaveBeenCalledWith("P1", undefined, 20);
+    expect(listModulosByDimension).toHaveBeenCalledWith("P1", undefined, 20);
     expect(getModulosFeed).not.toHaveBeenCalled();
     expect(screen.getByText(/Filtrando:/)).toBeTruthy();
   });
@@ -75,8 +75,8 @@ describe("ModulosPage", () => {
 
   it("shows the pillar-specific empty state when the filtered list is empty", async () => {
     searchParams.pillar = "P5";
-    listModulosByPillar.mockResolvedValue([]);
+    listModulosByDimension.mockResolvedValue([]);
     render(<ModulosPage />);
-    await screen.findByText("Todavía no hay módulos publicados para este pilar.");
+    await screen.findByText("Todavía no hay módulos publicados para esta dimensión.");
   });
 });
