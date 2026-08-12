@@ -1,7 +1,7 @@
 """P6A · CD-RISC-10 — resiliencia (0-40) → 3 niveles."""
 from __future__ import annotations
 
-from hg.modules.assessment.enums import DimensionCode
+from hg.modules.assessment.enums import PillarCode
 from hg.modules.assessment.scorers.base import BaseScorer, ScoringInput, ScoringOutput
 
 NEXT = {
@@ -17,7 +17,7 @@ LABELS = {
 
 
 class ResilienceScorer(BaseScorer):
-    dimension_code = DimensionCode.P6A
+    pillar_code = PillarCode.P6A
 
     def score(self, inp: ScoringInput) -> ScoringOutput:
         by = inp.by_code
@@ -35,7 +35,7 @@ class ResilienceScorer(BaseScorer):
             state = "Alta"
 
         return ScoringOutput(
-            dimension_code=self.dimension_code,
+            pillar_code=self.pillar_code,
             state_code=state,
             state_label=LABELS[state],
             sub_scores={"total": total, "items_answered": n},

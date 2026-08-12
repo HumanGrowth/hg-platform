@@ -42,15 +42,15 @@
   --hg-amber-600: #ce8a1f;    /* amber hover */
   --hg-orange-700: #c4440a;   /* accent press */
 
-  /* Dimension hues (LU dimensions) — mismos hex que el mapping `dimension-*` de
+  /* Pillar hues (LU dimensions) — mismos hex que el mapping `pillar-*` de
      tailwind.config; expuestos como CSS vars para glows/gradients por pilar
      (ej. --glow-color en star-glow). Sprint UI Identidad · TASK 0. */
-  --dimension-p1: var(--hg-orange);   /* Carrera */
-  --dimension-p2: var(--hg-gold);     /* Propósito */
-  --dimension-p3: var(--hg-green);    /* Relaciones */
-  --dimension-p4: var(--hg-sage);     /* Salud */
-  --dimension-p5: var(--hg-slate);    /* Paz interior */
-  --dimension-p6: var(--hg-amber);    /* Estabilidad */
+  --pillar-p1: var(--hg-orange);   /* Carrera */
+  --pillar-p2: var(--hg-gold);     /* Propósito */
+  --pillar-p3: var(--hg-green);    /* Relaciones */
+  --pillar-p4: var(--hg-sage);     /* Salud */
+  --pillar-p5: var(--hg-slate);    /* Paz interior */
+  --pillar-p6: var(--hg-amber);    /* Estabilidad */
 
   /* =========================================================================
      SEMANTIC ALIASES (DS v2 naming) — link brand to roles

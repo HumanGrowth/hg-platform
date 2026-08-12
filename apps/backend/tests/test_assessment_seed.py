@@ -17,12 +17,12 @@ def test_seed_counts(db: Session) -> None:
         )
         == 18
     )
-    per_dimension = dict(
+    per_pillar = dict(
         db.execute(
-            select(AssessmentItem.dimension_code, func.count()).group_by(AssessmentItem.dimension_code)
+            select(AssessmentItem.pillar_code, func.count()).group_by(AssessmentItem.pillar_code)
         ).all()
     )
-    assert {p.value: c for p, c in per_dimension.items()} == {
+    assert {p.value: c for p, c in per_pillar.items()} == {
         "P1": 5, "P2": 10, "P3": 8, "P4": 8, "P5": 11, "P6A": 10, "P6B": 5,
     }
 

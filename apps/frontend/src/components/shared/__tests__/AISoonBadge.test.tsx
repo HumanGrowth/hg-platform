@@ -5,8 +5,8 @@ import { AISoonBadge } from "../AISoonBadge";
 
 describe("AISoonBadge", () => {
   it("renders the label with a 'Próximamente' tooltip and never captures email", () => {
-    const { container } = render(<AISoonBadge variant="pill" label="Chatear con esta dimensión" />);
-    expect(screen.getByText("Chatear con esta dimensión")).toBeTruthy();
+    const { container } = render(<AISoonBadge variant="pill" label="Chatear con este pilar" />);
+    expect(screen.getByText("Chatear con este pilar")).toBeTruthy();
     expect(container.querySelector("[title='Próximamente']")).not.toBeNull();
     // No captura de email: sin inputs ni forms.
     expect(container.querySelector("input")).toBeNull();

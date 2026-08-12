@@ -1,4 +1,4 @@
-import type { AssessmentDimensionCode, AssessmentResponseType, DimensionResult } from "@/lib/types";
+import type { AssessmentPillarCode, AssessmentResponseType, PillarResult } from "@/lib/types";
 
 /** Etiquetas de los extremos/puntos de cada escala likert (es-CR). */
 export function labelsForScale(type: AssessmentResponseType): string[] {
@@ -28,7 +28,7 @@ export function labelsForScale(type: AssessmentResponseType): string[] {
   }
 }
 
-export const DIMENSION_NAMES: Record<AssessmentDimensionCode, string> = {
+export const PILLAR_NAMES: Record<AssessmentPillarCode, string> = {
   P1: "Carrera e impacto",
   P2: "Propósito y significado",
   P3: "Relaciones y conexión",
@@ -38,16 +38,16 @@ export const DIMENSION_NAMES: Record<AssessmentDimensionCode, string> = {
   P6B: "Bienestar financiero",
 };
 
-export function nextStepLabel(result: DimensionResult): string {
+export function nextStepLabel(result: PillarResult): string {
   return result.suggested_next_step ?? "Seguí explorando este pilar.";
 }
 
-export function sourceLabel(source: DimensionResult["source"]): string {
+export function sourceLabel(source: PillarResult["source"]): string {
   return source === "confirmed" ? "Confirmado" : "Estimación rápida";
 }
 
 /** ¿Se puede re-evaluar ya? (confirmed + ventana de re-take cumplida). */
-export function canRetake(result: DimensionResult): boolean {
+export function canRetake(result: PillarResult): boolean {
   if (result.source !== "confirmed") return false;
   return new Date(result.next_retake_eligible_at).getTime() <= Date.now();
 }
@@ -74,11 +74,11 @@ export function stateToRadarValue(stateCode: string): number {
 }
 
 /** Mapea los 7 estados a los 6 ejes del radar (P6 = promedio P6A+P6B).
- * Acepta cualquier item con pilar + estado (DimensionResult o snapshot histórico). */
+ * Acepta cualquier item con pilar + estado (PillarResult o snapshot histórico). */
 export function radarValuesFromResults(
-  results: Array<{ dimension_code: string; state_code: string }>,
+  results: Array<{ pillar_code: string; state_code: string }>,
 ): Record<string, number> {
-  const by = new Map(results.map((r) => [r.dimension_code, stateToRadarValue(r.state_code)]));
+  const by = new Map(results.map((r) => [r.pillar_code, stateToRadarValue(r.state_code)]));
   const p6a = by.get("P6A");
   const p6b = by.get("P6B");
   const p6 =

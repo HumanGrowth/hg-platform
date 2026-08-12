@@ -5,11 +5,11 @@ import type { Route } from "next";
 import * as React from "react";
 
 import { UnitCardCompact } from "@/components/modulos/UnitCardCompact";
-import { apiListModulosByDimension, apiListPaths } from "@/lib/api";
-import { DIMENSIONS_META } from "@/lib/dimension-styles";
+import { apiListModulosByPillar, apiListPaths } from "@/lib/api";
+import { PILLARS } from "@/lib/pillars";
 import type { CareerPath, LearningUnitFeedItem } from "@/lib/types";
 
-const DOT: Record<string, string> = Object.fromEntries(DIMENSIONS_META.map((p) => [p.id, p.dot]));
+const DOT: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id, p.dot]));
 
 interface Lane {
   path: CareerPath;
@@ -27,7 +27,7 @@ export function PathLanes() {
       const paths = await apiListPaths();
       const lanes = await Promise.all(
         paths.map(async (path) => {
-          const modulos = await apiListModulosByDimension(path.code, undefined, 3);
+          const modulos = await apiListModulosByPillar(path.code, undefined, 3);
           return { path, modulos };
         }),
       );

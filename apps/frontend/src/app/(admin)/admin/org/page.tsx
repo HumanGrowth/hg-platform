@@ -24,12 +24,12 @@ import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { useActingOrg } from "@/lib/acting-org";
 import { apiExportOrgUsersCsv, apiGetOrgMetrics } from "@/lib/api";
-import { DIMENSIONS_META, dimensionShortName } from "@/lib/dimension-styles";
+import { PILLARS, pillarShortName } from "@/lib/pillars";
 import { toast } from "@/lib/toast-store";
 import type { OrgMetrics } from "@/lib/types";
 
 const PILLAR_CODES = ["P1", "P2", "P3", "P4", "P5", "P6"] as const;
-const PILLAR_DOT: Record<string, string> = Object.fromEntries(DIMENSIONS_META.map((p) => [p.id, p.dot]));
+const PILLAR_DOT: Record<string, string> = Object.fromEntries(PILLARS.map((p) => [p.id, p.dot]));
 const LEVELS = ["L1", "L2", "L3", "L4", "L5", "L6"];
 
 function pct(v: number): string {
@@ -116,15 +116,15 @@ function OrgDashboardContent() {
           </React.Suspense>
 
           <section className="mt-10">
-            <Eyebrow className="mb-3">Completion por dimensión</Eyebrow>
+            <Eyebrow className="mb-3">Completion por pilar</Eyebrow>
             <div className="flex flex-col gap-3 rounded-lg border border-border bg-bg-raised p-5">
               {PILLAR_CODES.map((code) => {
-                const pm = m.by_dimension[code];
+                const pm = m.by_pillar[code];
                 const rate = pm?.completion_rate ?? 0;
                 return (
                   <div key={code} className="flex items-center gap-3">
                     <span className="w-24 shrink-0 text-xs text-fg-muted">
-                      {dimensionShortName(code)}
+                      {pillarShortName(code)}
                     </span>
                     <div className="h-3 flex-1 overflow-hidden rounded-full bg-bg-sunken">
                       <div className={`h-full rounded-full ${PILLAR_DOT[code]}`} style={{ width: pct(rate) }} />

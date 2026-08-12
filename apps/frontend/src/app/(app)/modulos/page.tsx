@@ -15,14 +15,14 @@ import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { apiGetHomeDashboard, apiGetModulosFeed, apiListModulosByDimension, apiMyAssignments } from "@/lib/api";
-import { dimensionShortName } from "@/lib/dimension-styles";
+import { apiGetHomeDashboard, apiGetModulosFeed, apiListModulosByPillar, apiMyAssignments } from "@/lib/api";
+import { pillarShortName } from "@/lib/pillars";
 import type { LearningUnitFeed, LearningUnitFeedItem } from "@/lib/types";
 
 function ModulosPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const dimensionFilter = searchParams.get("pillar");
+  const pillarFilter = searchParams.get("pillar");
   const levelFilter = searchParams.get("level"); // "L1".."L4" o null (Todos)
 
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
@@ -43,8 +43,8 @@ function ModulosPageContent() {
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      if (dimensionFilter) {
-        const units = await apiListModulosByDimension(dimensionFilter, levelFilter ?? undefined, 20);
+      if (pillarFilter) {
+        const units = await apiListModulosByPillar(pillarFilter, levelFilter ?? undefined, 20);
         setFilteredUnits(units);
       } else {
         const data = await apiGetModulosFeed();
@@ -61,14 +61,14 @@ function ModulosPageContent() {
     } catch {
       setStreakDays(null);
     }
-  }, [dimensionFilter, levelFilter]);
+  }, [pillarFilter, levelFilter]);
 
   React.useEffect(() => {
     void load();
   }, [load]);
 
   const isEmpty =
-    dimensionFilter
+    pillarFilter
       ? filteredUnits !== null && filteredUnits.length === 0
       : feed !== null && feed.hero === null && feed.next.length === 0;
 
@@ -82,11 +82,11 @@ function ModulosPageContent() {
         Micro-lecciones de 3 a 10 minutos, con evidencia y práctica.
       </p>
 
-      {dimensionFilter && (
+      {pillarFilter && (
         <div className="mt-4 flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <Chip active onClick={() => router.push("/modulos" as Route)} className="pr-2">
-              Filtrando: {dimensionShortName(dimensionFilter)}
+              Filtrando: {pillarShortName(pillarFilter)}
               <X size={14} strokeWidth={2} />
             </Chip>
           </div>
@@ -99,7 +99,7 @@ function ModulosPageContent() {
               { label: "Nivel 3", code: "L3" },
               { label: "Nivel 4", code: "L4" },
             ].map(({ label, code }) => {
-              const params = new URLSearchParams({ pillar: dimensionFilter });
+              const params = new URLSearchParams({ pillar: pillarFilter });
               if (code) params.set("level", code);
               return (
                 <Chip
@@ -135,8 +135,8 @@ function ModulosPageContent() {
           <p className="font-sans text-md font-semibold text-fg">
             {levelFilter
               ? `Nivel ${levelFilter.replace("L", "")} · próximamente`
-              : dimensionFilter
-                ? "Todavía no hay módulos publicados para esta dimensión."
+              : pillarFilter
+                ? "Todavía no hay módulos publicados para este pilar."
                 : "Todavía no hay módulos para vos."}
           </p>
           <p className="max-w-prose text-sm text-fg-muted">
@@ -145,7 +145,7 @@ function ModulosPageContent() {
         </Card>
       )}
 
-      {status === "ok" && !isEmpty && dimensionFilter && filteredUnits && (
+      {status === "ok" && !isEmpty && pillarFilter && filteredUnits && (
         <div className="mt-8 flex flex-col gap-3">
           {[...filteredUnits]
             .sort((a, b) => Number(assignedIds.has(b.id)) - Number(assignedIds.has(a.id)))
@@ -155,7 +155,7 @@ function ModulosPageContent() {
         </div>
       )}
 
-      {status === "ok" && !isEmpty && !dimensionFilter && feed && (
+      {status === "ok" && !isEmpty && !pillarFilter && feed && (
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
           <div className="flex min-w-0 flex-col gap-8">
             {feed.hero && <UnitCardHero unit={feed.hero} />}

@@ -21,7 +21,7 @@ def test_org_metrics_admin_sees_own_org(client, manager_with_reports, factory, a
     # manager + r1 + r2 + r3 + admin = 5 usuarios
     assert body["total_licenses"] >= 5
     assert body["total_courses_completed"] >= 5  # r1 completó 5
-    assert "P1" in body["by_dimension"]
+    assert "P1" in body["by_pillar"]
     assert any(tp["courses_completed"] == 5 for tp in body["top_performers"])
 
 

@@ -1,7 +1,7 @@
 """P5 · ERQ + AAQ-II — reevaluación vs supresión + flexibilidad → 4 niveles."""
 from __future__ import annotations
 
-from hg.modules.assessment.enums import DimensionCode
+from hg.modules.assessment.enums import PillarCode
 from hg.modules.assessment.scorers.base import BaseScorer, ScoringInput, ScoringOutput, avg
 
 LABELS = {"N1": "Reactivo", "N2": "Consciente", "N3": "Regulado", "N4": "Flexible"}
@@ -14,7 +14,7 @@ NEXT = {
 
 
 class InnerPeaceScorer(BaseScorer):
-    dimension_code = DimensionCode.P5
+    pillar_code = PillarCode.P5
 
     def score(self, inp: ScoringInput) -> ScoringOutput:
         by = inp.by_code
@@ -34,7 +34,7 @@ class InnerPeaceScorer(BaseScorer):
             sub_scores["flexibilidad"] = round(float(flex), 2)
 
         return ScoringOutput(
-            dimension_code=self.dimension_code,
+            pillar_code=self.pillar_code,
             state_code=state,
             state_label=LABELS[state],
             sub_scores=sub_scores,

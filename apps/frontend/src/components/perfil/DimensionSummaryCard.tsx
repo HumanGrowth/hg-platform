@@ -2,14 +2,14 @@ import { ArrowRight, RefreshCw } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
-import { DimensionMetaphor } from "@/components/modulos/DimensionMetaphor";
+import { PillarMetaphor } from "@/components/modulos/PillarMetaphor";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { canRetake, sourceLabel } from "@/lib/assessment-utils";
 import type { Dimension } from "@/lib/dimensions";
-import { dimensionStyle } from "@/lib/dimension-styles";
-import type { DimensionResult } from "@/lib/types";
+import { pillarStyle } from "@/lib/pillars";
+import type { PillarResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 function daysUntil(iso: string): number {
@@ -30,11 +30,11 @@ export function DimensionSummaryCard({
 }: {
   dimension: Dimension;
   score: number;
-  result?: DimensionResult;
-  onConfirm?: (result: DimensionResult) => void;
+  result?: PillarResult;
+  onConfirm?: (result: PillarResult) => void;
 }) {
-  const style = dimensionStyle(dimension.careerPath);
-  const detailHref = `/onboarding/detail/${dimension.assessmentDimension}` as Route;
+  const style = pillarStyle(dimension.pillar);
+  const detailHref = `/onboarding/detail/${dimension.assessmentPillar}` as Route;
   const ready = result != null && (result.source === "preliminary" || canRetake(result));
   const wait = result && !ready ? daysUntil(result.next_retake_eligible_at) : 0;
 
@@ -49,7 +49,7 @@ export function DimensionSummaryCard({
               background: `color-mix(in srgb, ${style.glow} 10%, transparent)`,
             }}
           >
-            <DimensionMetaphor code={dimension.code} className="h-6 w-6" />
+            <PillarMetaphor code={dimension.code} className="h-6 w-6" />
           </span>
           <div className="min-w-0">
             <h3 className="truncate font-sans text-md font-semibold text-fg">{dimension.name}</h3>

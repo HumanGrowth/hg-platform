@@ -1,24 +1,24 @@
-import type { AssessmentDimensionCode } from "@/lib/types";
+import type { AssessmentPillarCode } from "@/lib/types";
 
 /**
  * Registro canónico de las 6 dimensiones del crecimiento (Sprint Tarde · TASK 2).
  *
  * Fuente única de verdad que puentea los tres vocabularios que conviven en la app:
- *  - `code`       → código Drive/modulos ("CP", "PR", …) que guardan las units.
- *  - `careerPath` → career-path del DS (P1..P6) para color/label/ícono.
- *  - `assessmentDimension` → código del assessment para "Reevaluar" (P6 → P6A).
+ *  - `code`   → código Drive/modulos ("CP", "PR", …) que guardan las units.
+ *  - `pillar` → pilar del DS (P1..P6) para color/label/ícono.
+ *  - `assessmentPillar` → pilar del assessment para "Reevaluar" (P6 → P6A).
  *
  * Hoy sólo CP tiene contenido publicado; las otras 5 se muestran en estado
  * "Contenido próximamente" (header + reevaluar siguen funcionando).
  */
 export type DimensionCode = "CP" | "PR" | "RE" | "SA" | "PI" | "ES";
-export type CareerPathCode = "P1" | "P2" | "P3" | "P4" | "P5" | "P6";
+export type PillarCode = "P1" | "P2" | "P3" | "P4" | "P5" | "P6";
 
 export interface Dimension {
   code: DimensionCode;
-  careerPath: CareerPathCode;
-  /** Código del assessment al que apunta "Reevaluar esta dimensión". */
-  assessmentDimension: AssessmentDimensionCode;
+  pillar: PillarCode;
+  /** Pilar del assessment al que apunta "Reevaluar esta dimensión". */
+  assessmentPillar: AssessmentPillarCode;
   /** Nombre completo (headings, display). */
   name: string;
   /** Label corto (radar, chips) — una palabra cuando se puede. */
@@ -32,8 +32,8 @@ export interface Dimension {
 export const DIMENSIONS: Dimension[] = [
   {
     code: "CP",
-    careerPath: "P1",
-    assessmentDimension: "P1",
+    pillar: "P1",
+    assessmentPillar: "P1",
     name: "Carrera e impacto",
     short: "Carrera",
     description:
@@ -42,8 +42,8 @@ export const DIMENSIONS: Dimension[] = [
   },
   {
     code: "PR",
-    careerPath: "P2",
-    assessmentDimension: "P2",
+    pillar: "P2",
+    assessmentPillar: "P2",
     name: "Propósito y significado",
     short: "Propósito",
     description:
@@ -52,8 +52,8 @@ export const DIMENSIONS: Dimension[] = [
   },
   {
     code: "RE",
-    careerPath: "P3",
-    assessmentDimension: "P3",
+    pillar: "P3",
+    assessmentPillar: "P3",
     name: "Relaciones y conexión",
     short: "Relaciones",
     description:
@@ -62,8 +62,8 @@ export const DIMENSIONS: Dimension[] = [
   },
   {
     code: "SA",
-    careerPath: "P4",
-    assessmentDimension: "P4",
+    pillar: "P4",
+    assessmentPillar: "P4",
     name: "Salud y bienestar",
     short: "Salud",
     description:
@@ -72,8 +72,8 @@ export const DIMENSIONS: Dimension[] = [
   },
   {
     code: "PI",
-    careerPath: "P5",
-    assessmentDimension: "P5",
+    pillar: "P5",
+    assessmentPillar: "P5",
     name: "Paz interior y claridad",
     short: "Paz",
     description:
@@ -82,10 +82,10 @@ export const DIMENSIONS: Dimension[] = [
   },
   {
     code: "ES",
-    careerPath: "P6",
+    pillar: "P6",
     // El assessment separa P6 en resiliencia (P6A) y finanzas (P6B); "Reevaluar"
     // apunta a P6A por defecto (resiliencia emocional).
-    assessmentDimension: "P6A",
+    assessmentPillar: "P6A",
     name: "Estabilidad emocional y material",
     short: "Estabilidad",
     description:
@@ -97,7 +97,7 @@ export const DIMENSIONS: Dimension[] = [
 export const DIMENSION_CODES: DimensionCode[] = DIMENSIONS.map((d) => d.code);
 
 const BY_CODE = new Map(DIMENSIONS.map((d) => [d.code, d]));
-const BY_CAREER_PATH = new Map(DIMENSIONS.map((d) => [d.careerPath, d]));
+const BY_PILLAR = new Map(DIMENSIONS.map((d) => [d.pillar, d]));
 
 /** Dimensión por código Drive/modulos (case-insensitive). */
 export function dimensionByCode(code: string | undefined): Dimension | undefined {
@@ -105,9 +105,9 @@ export function dimensionByCode(code: string | undefined): Dimension | undefined
   return BY_CODE.get(code.toUpperCase() as DimensionCode);
 }
 
-/** Dimensión por career-path del DS (P6A/P6B → P6). */
-export function dimensionByCareerPath(careerPath: string | undefined): Dimension | undefined {
-  if (!careerPath) return undefined;
-  const base = careerPath.startsWith("P6") ? "P6" : careerPath;
-  return BY_CAREER_PATH.get(base as CareerPathCode);
+/** Dimensión por pilar del DS (P6A/P6B → P6). */
+export function dimensionByPillar(pillar: string | undefined): Dimension | undefined {
+  if (!pillar) return undefined;
+  const base = pillar.startsWith("P6") ? "P6" : pillar;
+  return BY_PILLAR.get(base as PillarCode);
 }

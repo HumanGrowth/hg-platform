@@ -24,8 +24,8 @@ from dataclasses import dataclass, field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from hg.modules.assessment.models import DimensionResult
-from hg.modules.assessment.service import latest_dimension_results
+from hg.modules.assessment.models import PillarResult
+from hg.modules.assessment.service import latest_pillar_results
 from hg.modules.learning.models import CareerPath
 from hg.modules.learning_units.dimensions import career_path_for_dimension
 from hg.modules.learning_units.models import LearningUnit, LearningUnitAttempt
@@ -68,7 +68,7 @@ def _level_num(level_code: str) -> int:
     return int(m.group(1)) if m else 99
 
 
-def _dimension_score(result: DimensionResult | None) -> float:
+def _dimension_score(result: PillarResult | None) -> float:
     """Score 0..1 aproximado de una dimensión (menor = necesita más trabajo).
     Best-effort sobre escalas heterogéneas: nivel Lx normalizado, o media de los
     sub_scores numéricos, o 0.5 neutro."""
@@ -84,9 +84,9 @@ def _dimension_score(result: DimensionResult | None) -> float:
     return 0.5
 
 
-def _career_path_for_dimension(dimension_code: str) -> str:
-    """Assessment dimension (P1..P5, P6A/P6B) → career_path (P6A/P6B → P6)."""
-    return "P6" if dimension_code.startswith("P6") else dimension_code
+def _career_path_for_pillar(pillar_code: str) -> str:
+    """Assessment pillar (P1..P5, P6A/P6B) → career_path (P6A/P6B → P6)."""
+    return "P6" if pillar_code.startswith("P6") else pillar_code
 
 
 def _interleave(groups: list[list[PathStep]]) -> list[PathStep]:
@@ -127,10 +127,10 @@ def build_path(db: Session, user_id: uuid.UUID, upcoming_n: int = 5) -> PathResu
     paths = {p.code: p for p in db.scalars(select(CareerPath)).all()}
 
     # Score por career_path desde el último assessment (para priorizar).
-    results = latest_dimension_results(db, user_id)
+    results = latest_pillar_results(db, user_id)
     score_by_cp: dict[str, float] = {}
     for r in results:
-        pcp = _career_path_for_dimension(r.dimension_code.value)
+        pcp = _career_path_for_pillar(r.pillar_code.value)
         score_by_cp[pcp] = min(score_by_cp.get(pcp, 1.0), _dimension_score(r))
 
     # dimensions_progress por career_path (dimensión Drive → career_path).

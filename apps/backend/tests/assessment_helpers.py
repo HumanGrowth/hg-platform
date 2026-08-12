@@ -17,15 +17,15 @@ def run_session(
     client: TestClient,
     headers: dict[str, str],
     kind: str,
-    target_dimension: str | None = None,
+    target_pillar: str | None = None,
     answers: dict[str, int] | None = None,
 ) -> dict:
     """Inicia, responde todos los items y finaliza una sesión. Devuelve el JSON
     del finalize ({session_id, results})."""
     answers = answers or {}
     payload: dict = {"kind": kind}
-    if target_dimension:
-        payload["target_dimension"] = target_dimension
+    if target_pillar:
+        payload["target_pillar"] = target_pillar
     res = client.post("/api/v1/assessment/sessions", headers=headers, json=payload)
     assert res.status_code == 201, res.text
     session = res.json()

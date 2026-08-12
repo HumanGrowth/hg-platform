@@ -1,7 +1,7 @@
 """P2 · MLQ-10 — Presencia vs Búsqueda → 4 estados Damon."""
 from __future__ import annotations
 
-from hg.modules.assessment.enums import DimensionCode
+from hg.modules.assessment.enums import PillarCode
 from hg.modules.assessment.scorers.base import BaseScorer, ScoringInput, ScoringOutput, avg
 
 THRESHOLD = 5.0
@@ -21,7 +21,7 @@ LABELS = {
 
 
 class PurposeScorer(BaseScorer):
-    dimension_code = DimensionCode.P2
+    pillar_code = PillarCode.P2
 
     def score(self, inp: ScoringInput) -> ScoringOutput:
         by = inp.by_code
@@ -45,7 +45,7 @@ class PurposeScorer(BaseScorer):
             state = "Latente"
 
         return ScoringOutput(
-            dimension_code=self.dimension_code,
+            pillar_code=self.pillar_code,
             state_code=state,
             state_label=LABELS[state],
             sub_scores={"presencia": round(presencia, 2), "busqueda": round(busqueda, 2)},

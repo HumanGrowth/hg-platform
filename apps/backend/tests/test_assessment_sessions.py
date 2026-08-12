@@ -20,12 +20,12 @@ def test_start_onboarding_short_ok(client: TestClient, factory, auth_headers) ->
     assert body["next_item"] is not None
 
 
-def test_start_dimension_detail_requires_preliminary(client, factory, auth_headers) -> None:
+def test_start_pillar_detail_requires_preliminary(client, factory, auth_headers) -> None:
     org = factory.make_org()
     user = factory.make_user(org=org)
     res = client.post(
         "/api/v1/assessment/sessions", headers=auth_headers(user),
-        json={"kind": "dimension_detail", "target_dimension": "P2"},
+        json={"kind": "pillar_detail", "target_pillar": "P2"},
     )
     assert res.status_code == 422  # sin preliminary previo
 
@@ -77,8 +77,8 @@ def test_finalize_creates_results_and_profile(client, factory, auth_headers) -> 
     user = factory.make_user(org=org)
     h = auth_headers(user)
     out = run_session(client, h, "onboarding_short")
-    dimensions = {r["dimension_code"] for r in out["results"]}
-    assert dimensions == {"P1", "P2", "P3", "P4", "P5", "P6A", "P6B"}
+    pillars = {r["pillar_code"] for r in out["results"]}
+    assert pillars == {"P1", "P2", "P3", "P4", "P5", "P6A", "P6B"}
     assert all(r["source"] == "preliminary" for r in out["results"])
     # /me/results refleja el snapshot
     res = client.get("/api/v1/assessment/me/results", headers=h)
@@ -86,13 +86,13 @@ def test_finalize_creates_results_and_profile(client, factory, auth_headers) -> 
     assert len(res.json()["results"]) == 7
 
 
-def test_dimension_detail_after_preliminary_ok(client, factory, auth_headers) -> None:
+def test_pillar_detail_after_preliminary_ok(client, factory, auth_headers) -> None:
     org = factory.make_org()
     user = factory.make_user(org=org)
     h = auth_headers(user)
     run_session(client, h, "onboarding_short")  # crea preliminary
-    out = run_session(client, h, "dimension_detail", target_dimension="P2")
-    assert out["results"][0]["dimension_code"] == "P2"
+    out = run_session(client, h, "pillar_detail", target_pillar="P2")
+    assert out["results"][0]["pillar_code"] == "P2"
     assert out["results"][0]["source"] == "confirmed"
 
 
@@ -102,11 +102,11 @@ def test_rrhh_can_reset_retake(client, factory, auth_headers) -> None:
     admin = factory.make_user(org=org, role=UserRole.admin)
     h = auth_headers(user)
     run_session(client, h, "onboarding_short")
-    run_session(client, h, "dimension_detail", target_dimension="P2")  # confirmed (retake en 30d)
+    run_session(client, h, "pillar_detail", target_pillar="P2")  # confirmed (retake en 30d)
     # re-take inmediato debe estar bloqueado
     blocked = client.post(
         "/api/v1/assessment/sessions", headers=h,
-        json={"kind": "dimension_detail", "target_dimension": "P2"},
+        json={"kind": "pillar_detail", "target_pillar": "P2"},
     )
     assert blocked.status_code == 422
     # RRHH resetea
@@ -116,6 +116,6 @@ def test_rrhh_can_reset_retake(client, factory, auth_headers) -> None:
     assert reset.status_code == 204
     ok = client.post(
         "/api/v1/assessment/sessions", headers=h,
-        json={"kind": "dimension_detail", "target_dimension": "P2"},
+        json={"kind": "pillar_detail", "target_pillar": "P2"},
     )
     assert ok.status_code == 201

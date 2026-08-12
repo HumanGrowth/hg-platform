@@ -10,7 +10,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
-from hg.modules.assessment.enums import DimensionCode, ResultSource
+from hg.modules.assessment.enums import PillarCode, ResultSource
 from hg.modules.assessment.models import AssessmentItem, AssessmentResponse
 
 
@@ -33,7 +33,7 @@ class ScoringInput:
 
 @dataclass
 class ScoringOutput:
-    dimension_code: DimensionCode
+    pillar_code: PillarCode
     state_code: str
     state_label: str
     sub_scores: dict = field(default_factory=dict)
@@ -43,7 +43,7 @@ class ScoringOutput:
 
 
 class BaseScorer:
-    dimension_code: DimensionCode
+    pillar_code: PillarCode
 
     def score(self, inp: ScoringInput) -> ScoringOutput:
         raise NotImplementedError

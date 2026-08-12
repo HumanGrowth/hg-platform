@@ -19,7 +19,7 @@ real (``_EMBEDDED_UNIT_1``) para que el seed siga funcionando en cualquier
 entorno; se loguea cuál fuente se usó.
 
 **Videos**: ningún MP4 está subido a R2 todavía. Sea que se encuentre un
-MP4 local con naming matching (``CP-{level}-{dimension}-{seq}*.mp4``) o no,
+MP4 local con naming matching (``CP-{level}-{pillar}-{seq}*.mp4``) o no,
 el ``video_url`` real que se persiste es SIEMPRE un placeholder (la URL de
 un ``event`` existente del mismo pilar, o una URL genérica si no hay
 ninguno) — un MP4 local no sirve como URL http(s) reproducible por el
@@ -98,26 +98,26 @@ def _find_local_videos(content_dir: Path | None, slug: str) -> list[Path]:
     m = _SLUG_RE.match(slug)
     if not m:
         return []
-    dimension, level, seq = m.group(1).upper(), m.group(2).upper(), m.group(3)
-    return sorted(content_dir.glob(f"CP-{level}-{dimension}-{seq}*.mp4"))
+    pillar, level, seq = m.group(1).upper(), m.group(2).upper(), m.group(3)
+    return sorted(content_dir.glob(f"CP-{level}-{pillar}-{seq}*.mp4"))
 
 
-def _fallback_event_video_url(db: Session, dimension_code: str) -> str | None:
+def _fallback_event_video_url(db: Session, pillar_code: str) -> str | None:
     return db.scalar(
         select(Event.video_url)
         .join(CareerPath, Event.career_path_id == CareerPath.id)
-        .where(CareerPath.code == dimension_code, Event.video_url.isnot(None))
+        .where(CareerPath.code == pillar_code, Event.video_url.isnot(None))
         .limit(1)
     )
 
 
-def _build_video_specs(db: Session, content_dir: Path | None, slug: str, dimension_code: str) -> list[dict[str, Any]]:
+def _build_video_specs(db: Session, content_dir: Path | None, slug: str, pillar_code: str) -> list[dict[str, Any]]:
     """Uno o más specs de video_teaching — video_url siempre es un placeholder
     http(s) reproducible (evento existente del pilar, o genérico); el MP4
     local (si existe) solo se documenta en eyebrow_label para el upload a R2
     post-merge, nunca se usa como video_url directamente (no es http(s))."""
     local_videos = _find_local_videos(content_dir, slug)
-    fallback_url = _fallback_event_video_url(db, dimension_code) or FALLBACK_VIDEO_URL
+    fallback_url = _fallback_event_video_url(db, pillar_code) or FALLBACK_VIDEO_URL
     if local_videos:
         return [
             {

@@ -5,14 +5,14 @@ import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 
-import { DimensionMetaphor } from "@/components/modulos/DimensionMetaphor";
+import { PillarMetaphor } from "@/components/modulos/PillarMetaphor";
 import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Card } from "@/components/ui/card";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { buttonVariants } from "@/components/ui/button";
 import { apiGetModulosFeed } from "@/lib/api";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
-import { dimensionStyle } from "@/lib/dimension-styles";
+import { dimensionStyle } from "@/lib/pillars";
 import type { LearningUnitAttempt, LearningUnitDetail, LearningUnitFeedItem } from "@/lib/types";
 import { unitCanonicalPath } from "@/lib/modulos";
 import { cn, formatApproxMinutes } from "@/lib/utils";
@@ -78,7 +78,7 @@ export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionC
           shouldAnimate && "animate-star-glow",
         )}
       >
-        <DimensionMetaphor code={unit.dimension_code} className="h-12 w-12" />
+        <PillarMetaphor code={unit.dimension_code} className="h-12 w-12" />
       </motion.div>
       <div>
         <Eyebrow accent>Módulo completado</Eyebrow>

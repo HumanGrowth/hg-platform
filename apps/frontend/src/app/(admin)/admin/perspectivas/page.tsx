@@ -88,7 +88,7 @@ function PerspectivasAdminInner() {
             <tr className="font-sans text-micro uppercase tracking-meta text-fg-muted">
               <th className="px-5 py-3 font-semibold">Título</th>
               <th className="px-5 py-3 font-semibold">Tipo</th>
-              <th className="px-5 py-3 font-semibold">Dimensión</th>
+              <th className="px-5 py-3 font-semibold">Pilar</th>
               <th className="px-5 py-3 font-semibold">Estado</th>
               <th className="px-5 py-3 font-semibold">Editado</th>
               <th className="px-5 py-3" />
@@ -104,7 +104,7 @@ function PerspectivasAdminInner() {
                 <tr key={p.id} className="border-b border-border last:border-0">
                   <td className="px-5 py-3 text-sm font-medium text-fg">{p.title}</td>
                   <td className="px-5 py-3"><Badge>{TYPE_LABEL[p.content_type]}</Badge></td>
-                  <td className="px-5 py-3 text-sm text-fg-muted">{p.dimension_code ?? "—"}</td>
+                  <td className="px-5 py-3 text-sm text-fg-muted">{p.pillar_code ?? "—"}</td>
                   <td className="px-5 py-3">
                     <Badge variant={p.published_at ? "success" : "default"}>
                       {p.published_at ? "Publicado" : "Borrador"}

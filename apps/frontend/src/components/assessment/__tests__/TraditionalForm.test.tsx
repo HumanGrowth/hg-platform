@@ -7,14 +7,14 @@ import { TraditionalForm } from "../TraditionalForm";
 
 function likert(response_type: AssessmentItem["response_type"], min: number, max: number): AssessmentItem {
   return {
-    id: "i1", item_code: "X-1", dimension_code: "P5", sub_scale: null, sub_domain: null,
+    id: "i1", item_code: "X-1", pillar_code: "P5", sub_scale: null, sub_domain: null,
     response_type, scale_min: min, scale_max: max, prompt: "¿Pregunta likert?", order_index: 1,
     options: null,
   };
 }
 
 const mc: AssessmentItem = {
-  id: "i2", item_code: "PRO-1b", dimension_code: "P4", sub_scale: "Intención", sub_domain: "Sueño",
+  id: "i2", item_code: "PRO-1b", pillar_code: "P4", sub_scale: "Intención", sub_domain: "Sueño",
   response_type: "multiple_choice", scale_min: 1, scale_max: 5, prompt: "¿Cuál te describe?",
   order_index: 1,
   options: [

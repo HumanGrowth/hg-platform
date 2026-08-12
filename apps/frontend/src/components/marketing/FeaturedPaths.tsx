@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
-import { GROWTH_PATHS, type DimensionId } from "@/lib/growth-paths";
-import { DIMENSIONS_META, dimensionShortName } from "@/lib/dimension-styles";
+import { GROWTH_PATHS, type PillarId } from "@/lib/growth-paths";
+import { PILLARS, pillarShortName } from "@/lib/pillars";
 
 import { PathCard } from "./PathCard";
 
@@ -17,7 +17,7 @@ import { PathCard } from "./PathCard";
 /** @deprecated Sin consumidores desde web-v3-11: /perspectivas ahora usa PerspectivasFilter (content types CMS). */
 export function FeaturedPaths() {
   const c = useMarketingCopy();
-  const [pillar, setDimension] = useState<DimensionId | "all">("all");
+  const [pillar, setPillar] = useState<PillarId | "all">("all");
 
   const shown = useMemo(
     () => (pillar === "all" ? GROWTH_PATHS : GROWTH_PATHS.filter((p) => p.pillar === pillar)),
@@ -34,17 +34,17 @@ export function FeaturedPaths() {
   return (
     <section className="max-w-marketing mx-auto px-8 pb-32">
       <div className="mb-10 flex flex-wrap gap-2">
-        <button type="button" className={chip(pillar === "all")} onClick={() => setDimension("all")}>
+        <button type="button" className={chip(pillar === "all")} onClick={() => setPillar("all")}>
           Todas
         </button>
-        {DIMENSIONS_META.map((p) => (
+        {PILLARS.map((p) => (
           <button
             key={p.id}
             type="button"
             className={chip(pillar === p.id)}
-            onClick={() => setDimension(p.id)}
+            onClick={() => setPillar(p.id)}
           >
-            {dimensionShortName(p.id)}
+            {pillarShortName(p.id)}
           </button>
         ))}
       </div>

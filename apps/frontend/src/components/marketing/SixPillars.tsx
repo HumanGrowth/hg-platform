@@ -7,15 +7,15 @@ import { DecoLayer } from "@/components/motion/DecoLayer";
 import { StaggerBounceGrid } from "@/components/motion/StaggerBounceGrid";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { dimensionIconSrc } from "@/lib/dimension-styles";
+import { pillarIconSrc } from "@/lib/pillars";
 
 /**
  * Las 6 dimensiones (items 9-11). Cada card muestra el hex icon del pilar como
  * watermark sutil al costado derecho (~3/4 visible). id="dimensiones" es el
  * destino del scroll del hero (web-v2-01).
  */
-export default function SixDimensions() {
-  const c = useMarketingCopy().sixDimensions;
+export default function SixPillars() {
+  const c = useMarketingCopy().sixPillars;
   return (
     <section
       id="dimensiones"
@@ -39,7 +39,7 @@ export default function SixDimensions() {
 
         <StaggerBounceGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {c.items.map((item) => {
-            const src = dimensionIconSrc(item.code);
+            const src = pillarIconSrc(item.code);
             return (
               <article
                 key={item.code}
@@ -55,7 +55,7 @@ export default function SixDimensions() {
                   />
                 )}
                 <div className="relative z-10">
-                  <div className={`h-2 w-12 rounded-full bg-dimension-${item.code.toLowerCase()}`} />
+                  <div className={`h-2 w-12 rounded-full bg-pillar-${item.code.toLowerCase()}`} />
                   <h3 className="mt-4 font-heading text-xl font-semibold text-fg">{item.title}</h3>
                   <p className="body-sm mt-2 max-w-[24rem] text-hg-charcoal">{item.body}</p>
                 </div>

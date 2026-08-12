@@ -6,7 +6,7 @@ ese dominio. Estado general = MIN de los 4. Recaída general = cualquier dominio
 """
 from __future__ import annotations
 
-from hg.modules.assessment.enums import DimensionCode
+from hg.modules.assessment.enums import PillarCode
 from hg.modules.assessment.scorers.base import BaseScorer, ScoringInput, ScoringOutput
 
 # (key, b_code, a_code, umbral_conductual_min) — value del item *a (0..4).
@@ -30,7 +30,7 @@ STAGE_NEXT = {
 
 
 class HealthScorer(BaseScorer):
-    dimension_code = DimensionCode.P4
+    pillar_code = PillarCode.P4
 
     def score(self, inp: ScoringInput) -> ScoringOutput:
         by = inp.by_code
@@ -54,7 +54,7 @@ class HealthScorer(BaseScorer):
             nxt += " ⚠ La conducta no respalda algún hábito declarado — conversación recomendada."
 
         return ScoringOutput(
-            dimension_code=self.dimension_code,
+            pillar_code=self.pillar_code,
             state_code=f"E{general}",
             state_label=STAGE_LABEL[general],
             sub_scores=sub_scores,

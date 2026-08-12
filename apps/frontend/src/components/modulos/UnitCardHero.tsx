@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { HexIcon } from "@/components/ui/hex-icon";
-import { DIMENSIONS_META, driveToCareerPath, dimensionBadgeVariant, dimensionShortName } from "@/lib/dimension-styles";
+import { PILLARS, dimensionToPillar, pillarBadgeVariant, pillarShortName } from "@/lib/pillars";
 import type { LearningUnitFeedItem } from "@/lib/types";
 import { unitCanonicalPath } from "@/lib/modulos";
 import { cn, formatApproxMinutes } from "@/lib/utils";
@@ -17,19 +17,19 @@ const CTA_LABEL: Record<LearningUnitFeedItem["attempt_status"], string> = {
 };
 
 export function UnitCardHero({ unit }: { unit: LearningUnitFeedItem }) {
-  // La unit guarda la dimensión Drive (CP…); el DS colorea por dimensión → resolvemos.
-  const pillar = driveToCareerPath(unit.dimension_code);
-  const dimensionDot = DIMENSIONS_META.find((p) => p.id === pillar)?.dot;
+  // La unit guarda la dimensión Drive (CP…); el DS colorea por pilar → resolvemos.
+  const pillar = dimensionToPillar(unit.dimension_code);
+  const pillarDot = PILLARS.find((p) => p.id === pillar)?.dot;
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-bg-raised">
       {unit.poster_url ? (
         <div className="relative aspect-video w-full overflow-hidden bg-bg-sunken">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={unit.poster_url} alt="" className="h-full w-full object-cover" />
-          <div className={cn("absolute inset-x-0 top-0 h-1.5", dimensionDot ?? "bg-bg-sunken")} aria-hidden />
+          <div className={cn("absolute inset-x-0 top-0 h-1.5", pillarDot ?? "bg-bg-sunken")} aria-hidden />
         </div>
       ) : (
-        <div className={cn("h-1.5 w-full", dimensionDot ?? "bg-bg-sunken")} aria-hidden />
+        <div className={cn("h-1.5 w-full", pillarDot ?? "bg-bg-sunken")} aria-hidden />
       )}
       <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
@@ -38,8 +38,8 @@ export function UnitCardHero({ unit }: { unit: LearningUnitFeedItem }) {
             {unit.title}
           </h2>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Badge variant={dimensionBadgeVariant(pillar)}>
-              {dimensionShortName(pillar)}
+            <Badge variant={pillarBadgeVariant(pillar)}>
+              {pillarShortName(pillar)}
             </Badge>
             <Badge>{unit.level_code}</Badge>
             <span className="text-xs text-fg-muted">

@@ -589,9 +589,8 @@ def _process_folder(
         return
 
     unit_json = sanitize_unit_json(unit_json)
-    # Override autoritativo desde el folder (la clave `pillar_code` del Doc es
-    # legacy — es dato externo de Jorge y mete el pilar dentro de lo que debería
-    # ser la dimensión; se descarta y se re-deriva del nombre de carpeta).
+    # Override autoritativo desde el folder (el pillar_code del Doc es legacy y
+    # mete el pilar dentro de lo que debería ser la dimensión).
     unit_json["dimension_code"] = code.dimension
     unit_json["pillar_number"] = code.pillar
     unit_json["unit_number"] = code.number

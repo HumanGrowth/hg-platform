@@ -19,7 +19,7 @@ import { apiGetMyRadar, apiGetMyResults, apiSetOnboardingSeen } from "@/lib/api"
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
-import type { DimensionResult, RadarHistory } from "@/lib/types";
+import type { PillarResult, RadarHistory } from "@/lib/types";
 
 const ROLE_LABEL: Record<string, string> = {
   collaborator: "Colaborador/a",
@@ -42,7 +42,7 @@ export default function PerfilPage() {
     }
   }, [router, setUser]);
 
-  const [results, setResults] = React.useState<DimensionResult[]>([]);
+  const [results, setResults] = React.useState<PillarResult[]>([]);
   const [radarHistory, setRadarHistory] = React.useState<RadarHistory | null>(null);
   const [showPrevious, setShowPrevious] = React.useState(true);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
@@ -189,7 +189,7 @@ export default function PerfilPage() {
                   </span>
                 </p>
                 <p className="mt-1 text-xs text-fg-muted">
-                  Tu evolución por dimensión aparecerá acá a medida que vuelvas a evaluarte.
+                  Tu evolución por pilar aparecerá acá a medida que vuelvas a evaluarte.
                 </p>
               </Card>
             ) : (

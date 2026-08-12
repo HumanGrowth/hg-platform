@@ -48,9 +48,9 @@ export function StreakHeatmap({ data }: { data: StreakDay[] }) {
         <span className="flex items-center gap-1" aria-hidden>
           <span>menos</span>
           <span className="h-2.5 w-2.5 rounded-[2px] bg-surface-sunken" />
-          <span className="h-2.5 w-2.5 rounded-[2px] bg-dimension-p1/40" />
-          <span className="h-2.5 w-2.5 rounded-[2px] bg-dimension-p1/70" />
-          <span className="h-2.5 w-2.5 rounded-[2px] bg-dimension-p1" />
+          <span className="h-2.5 w-2.5 rounded-[2px] bg-pillar-p1/40" />
+          <span className="h-2.5 w-2.5 rounded-[2px] bg-pillar-p1/70" />
+          <span className="h-2.5 w-2.5 rounded-[2px] bg-pillar-p1" />
           <span>más</span>
         </span>
       </div>

@@ -1,7 +1,7 @@
 """P6B · CFPB-5 — bienestar financiero (0-23) → 3 niveles. B4 invertido."""
 from __future__ import annotations
 
-from hg.modules.assessment.enums import DimensionCode
+from hg.modules.assessment.enums import PillarCode
 from hg.modules.assessment.scorers.base import BaseScorer, ScoringInput, ScoringOutput
 
 NEXT = {
@@ -17,7 +17,7 @@ LABELS = {
 
 
 class FinancialScorer(BaseScorer):
-    dimension_code = DimensionCode.P6B
+    pillar_code = PillarCode.P6B
 
     def score(self, inp: ScoringInput) -> ScoringOutput:
         by = inp.by_code
@@ -39,7 +39,7 @@ class FinancialScorer(BaseScorer):
             state = "Estable"
 
         return ScoringOutput(
-            dimension_code=self.dimension_code,
+            pillar_code=self.pillar_code,
             state_code=state,
             state_label=LABELS[state],
             sub_scores={"total": total},

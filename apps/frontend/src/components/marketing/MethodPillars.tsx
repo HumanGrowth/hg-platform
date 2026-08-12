@@ -11,12 +11,12 @@ export interface MethodPillar {
 }
 
 /**
- * Las 6 dimensiones en /metodo, versión user-friendly (web-v3-08 · decisión K):
+ * Los 6 pilares en /metodo, versión user-friendly (web-v3-08 · decisión K):
  * qué mide + ruta de crecimiento, sin jerga académica ni citas. La
  * investigación completa vive en el marco teórico interno. Entrada
- * stagger-bounce, consistente con SixDimensions en home.
+ * stagger-bounce, consistente con SixPillars en home.
  */
-export function MethodDimensions({ pillars }: { pillars: readonly MethodPillar[] }) {
+export function MethodPillars({ pillars }: { pillars: readonly MethodPillar[] }) {
   return (
     <StaggerBounceGrid className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {pillars.map((p) => (

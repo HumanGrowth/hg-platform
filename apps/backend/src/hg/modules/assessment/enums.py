@@ -4,7 +4,7 @@ from __future__ import annotations
 from enum import Enum
 
 
-class DimensionCode(str, Enum):
+class PillarCode(str, Enum):
     P1 = "P1"  # Carrera
     P2 = "P2"  # Propósito
     P3 = "P3"  # Relaciones
@@ -35,7 +35,7 @@ class ResponseType(str, Enum):
 
 class SessionKind(str, Enum):
     onboarding_short = "onboarding_short"
-    dimension_detail = "dimension_detail"
+    pillar_detail = "pillar_detail"
 
 
 class SessionStatus(str, Enum):
@@ -47,4 +47,4 @@ class SessionStatus(str, Enum):
 
 class ResultSource(str, Enum):
     preliminary = "preliminary"  # del onboarding_short
-    confirmed = "confirmed"  # del dimension_detail
+    confirmed = "confirmed"  # del pillar_detail
