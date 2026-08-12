@@ -32,8 +32,8 @@ def test_has_completed_onboarding_reflects_results(client: TestClient, factory, 
     SessionGate del frontend lo usa para mandar al assessment inicial si falta."""
     from datetime import UTC, datetime, timedelta
 
-    from hg.modules.assessment.enums import PillarCode
-    from hg.modules.assessment.models import PillarResult
+    from hg.modules.assessment.enums import DimensionCode
+    from hg.modules.assessment.models import DimensionResult
 
     org = factory.make_org()
     user = factory.make_user(org=org)
@@ -45,8 +45,8 @@ def test_has_completed_onboarding_reflects_results(client: TestClient, factory, 
 
     # con un resultado preliminar → True.
     factory.session.add(
-        PillarResult(
-            org_id=org.id, user_id=user.id, pillar_code=PillarCode.P1,
+        DimensionResult(
+            org_id=org.id, user_id=user.id, dimension_code=DimensionCode.P1,
             state_code="L3", state_label="Nivel 3", sub_scores={},
             next_retake_eligible_at=datetime.now(UTC) + timedelta(days=30),
         )
