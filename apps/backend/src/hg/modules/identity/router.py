@@ -66,6 +66,21 @@ def _reports_count(db: Session, user_id: object) -> int:
     )
 
 
+def _has_completed_onboarding(db: Session, user_id: object) -> bool:
+    """True si el usuario ya tiene >=1 resultado de assessment (= completó la
+    evaluación inicial onboarding_short). El SessionGate del frontend gatea con
+    esto: si es False, redirige al usuario a la evaluación inicial."""
+    from sqlalchemy import func, select
+
+    from hg.modules.assessment.models import PillarResult
+
+    return bool(
+        db.scalar(
+            select(func.count()).select_from(PillarResult).where(PillarResult.user_id == user_id)
+        )
+    )
+
+
 @router.get("/me", response_model=MeResponse)
 def me(
     user: User = Depends(get_current_user),
@@ -76,6 +91,7 @@ def me(
         **UserOut.model_validate(user).model_dump(),
         org_name=org.name if org else "",
         reports_count=_reports_count(db, user.id),
+        has_completed_onboarding=_has_completed_onboarding(db, user.id),
     )
 
 
@@ -104,6 +120,7 @@ def update_me(
         **UserOut.model_validate(db_user).model_dump(),
         org_name=org.name if org else "",
         reports_count=_reports_count(db, db_user.id),
+        has_completed_onboarding=_has_completed_onboarding(db, db_user.id),
     )
 
 
@@ -130,6 +147,7 @@ def set_onboarding_seen(
         **UserOut.model_validate(db_user).model_dump(),
         org_name=org.name if org else "",
         reports_count=_reports_count(db, db_user.id),
+        has_completed_onboarding=_has_completed_onboarding(db, db_user.id),
     )
 
 

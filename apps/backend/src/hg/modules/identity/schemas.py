@@ -47,6 +47,10 @@ class MeResponse(UserOut):
 
     org_name: str
     reports_count: int = 0
+    # ¿El usuario ya completó la evaluación inicial (onboarding_short)? El
+    # SessionGate del frontend usa este flag: si es False, redirige a
+    # /onboarding/welcome. Se computa (no es columna): tiene >=1 resultado.
+    has_completed_onboarding: bool = False
 
 
 class MeUpdateRequest(BaseModel):
