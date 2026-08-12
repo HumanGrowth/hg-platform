@@ -1,26 +1,21 @@
 """GET /api/v1/me/home — dashboard agregado del colaborador (B3-04).
 
 Solo devuelve la data del usuario autenticado (RLS); las agregaciones se
-calculan on-demand sobre course_progress (ADR-0009).
+calculan on-demand sobre el modelo nuevo (learning_unit_attempts +
+block_progress). La actividad se mide en **bloques completados** (ADR-0009).
 """
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from hg.modules.identity.models import UserRole
-from hg.modules.learning.models import (
-    CareerLevel,
-    CareerPath,
-    CourseProgress,
-    Enrollment,
-    Event,
-    EventTrack,
-)
+from hg.modules.learning.models import CareerPath, Enrollment
+
+from ._lu_helpers import cleanup_units, make_unit, seed_attempt
 
 _PATHS = [
     ("P1", "Carrera e impacto", 1), ("P2", "Propósito y significado", 2),
@@ -36,49 +31,31 @@ def _ensure_paths(s) -> None:
     s.commit()
 
 
-def _make_course(s, path_code: str, *, duration: int = 300) -> Event:
-    path = s.scalar(select(CareerPath).where(CareerPath.code == path_code))
-    c = Event(
-        career_path_id=path.id, title=f"Home Event {path_code}", slug=f"hc-{uuid4().hex[:10]}",
-        order_index=0, career_level=CareerLevel.L1, track=EventTrack.competency,
-        duration_seconds=duration,
-    )
-    s.add(c)
-    s.commit()
-    return c
-
-
-def _progress(s, *, org_id, user_id, course, watch_pct, completed, last_played, pos=150):
-    s.add(CourseProgress(
-        org_id=org_id, user_id=user_id, course_id=course.id, last_position_seconds=pos,
-        watch_pct=watch_pct, is_completed=completed,
-        first_played_at=last_played, last_played_at=last_played,
-        completed_at=last_played if completed else None,
-    ))
-    s.commit()
-
-
 @pytest.fixture
 def home_env(factory):
-    """Org + user colaborador con catálogo P1..P6 asegurado. Limpia los courses
-    creados (su progress cae por CASCADE); la org cae por el teardown de factory."""
+    """Org + user colaborador con catálogo P1..P6 asegurado. Limpia las units
+    creadas (attempts/block_progress caen por CASCADE)."""
     s = factory.session
     _ensure_paths(s)
     org = factory.make_org()
     user = factory.make_user(org=org, role=UserRole.collaborator, full_name="Home User")
-    created: list = []
+    unit_ids: list = []
 
-    def course(path_code="P1", **kw):
-        c = _make_course(s, path_code, **kw)
-        created.append(c.id)
-        return c
+    def unit(*, dimension_code="CP", n_blocks=1, **kw):
+        u = make_unit(s, dimension_code=dimension_code, n_blocks=n_blocks, **kw)
+        unit_ids.append(u.id)
+        return u
+
+    def activity(u, *, when, user_id=None, completed=False, completed_blocks=None):
+        return seed_attempt(
+            s, org_id=org.id, user_id=user_id or user.id, unit=u,
+            when=when, completed=completed, completed_blocks=completed_blocks,
+        )
 
     from types import SimpleNamespace
-    yield SimpleNamespace(s=s, org=org, user=user, course=course, factory=factory)
+    yield SimpleNamespace(s=s, org=org, user=user, unit=unit, activity=activity, factory=factory)
 
-    from sqlalchemy import delete
-    s.execute(delete(Event).where(Event.id.in_(created)))
-    s.commit()
+    cleanup_units(s, unit_ids)
 
 
 def test_home_requires_auth(client: TestClient) -> None:
@@ -106,12 +83,10 @@ def test_home_empty_user_returns_defaults(client, home_env, auth_headers) -> Non
 def test_home_next_step_is_most_recent_in_progress(client, home_env, auth_headers) -> None:
     e = home_env
     now = datetime.now(UTC)
-    older = e.course()
-    recent = e.course()
-    _progress(e.s, org_id=e.org.id, user_id=e.user.id, course=older,
-              watch_pct=20.0, completed=False, last_played=now - timedelta(days=2))
-    _progress(e.s, org_id=e.org.id, user_id=e.user.id, course=recent,
-              watch_pct=40.0, completed=False, last_played=now - timedelta(hours=1))
+    older = e.unit(n_blocks=5)
+    recent = e.unit(n_blocks=5)
+    e.activity(older, when=now - timedelta(days=2), completed_blocks=1)  # 20%
+    e.activity(recent, when=now - timedelta(hours=1), completed_blocks=2)  # 40%
     body = client.get("/api/v1/me/home", headers=auth_headers(e.user)).json()
     assert body["next_step"]["course_id"] == str(recent.id)
     assert body["next_step"]["dimension_code"] == "P1"
@@ -121,14 +96,11 @@ def test_home_next_step_is_most_recent_in_progress(client, home_env, auth_header
 def test_home_next_step_excludes_completed_and_near_finished(client, home_env, auth_headers) -> None:
     e = home_env
     now = datetime.now(UTC)
-    done = e.course()
-    almost = e.course()
-    _progress(e.s, org_id=e.org.id, user_id=e.user.id, course=done,
-              watch_pct=100.0, completed=True, last_played=now)
-    _progress(e.s, org_id=e.org.id, user_id=e.user.id, course=almost,
-              watch_pct=85.0, completed=False, last_played=now)
+    done = e.unit(n_blocks=1)
+    almost = e.unit(n_blocks=5)
+    e.activity(done, when=now, completed=True)
+    e.activity(almost, when=now, completed_blocks=4)  # 80% → no califica
     body = client.get("/api/v1/me/home", headers=auth_headers(e.user)).json()
-    # Completado y ≥80% no califican como próximo paso.
     assert body["next_step"] is None
 
 
@@ -136,9 +108,7 @@ def test_home_recent_activity_limited_to_5_desc(client, home_env, auth_headers) 
     e = home_env
     now = datetime.now(UTC)
     for i in range(7):
-        c = e.course()
-        _progress(e.s, org_id=e.org.id, user_id=e.user.id, course=c,
-                  watch_pct=10.0 * i, completed=False, last_played=now - timedelta(hours=i))
+        e.activity(e.unit(), when=now - timedelta(hours=i), completed_blocks=1)
     body = client.get("/api/v1/me/home", headers=auth_headers(e.user)).json()
     activity = body["recent_activity"]
     assert len(activity) == 5
@@ -150,37 +120,31 @@ def test_home_stats_counts(client, home_env, auth_headers) -> None:
     e = home_env
     now = datetime.now(UTC)
     for _ in range(2):
-        _progress(e.s, org_id=e.org.id, user_id=e.user.id, course=e.course(),
-                  watch_pct=100.0, completed=True, last_played=now, pos=300)
-    _progress(e.s, org_id=e.org.id, user_id=e.user.id, course=e.course(),
-              watch_pct=30.0, completed=False, last_played=now, pos=300)
+        e.activity(e.unit(), when=now, completed=True)  # 2 units completadas (1 bloque c/u)
+    e.activity(e.unit(), when=now, completed_blocks=1)  # 1 en progreso (1 bloque)
     stats = client.get("/api/v1/me/home", headers=auth_headers(e.user)).json()["stats"]
     assert stats["courses_completed"] == 2
     assert stats["courses_in_progress"] == 1
-    assert stats["total_watch_minutes"] == 15  # 3 * 300s = 900s = 15min
+    assert stats["total_watch_minutes"] == 3  # 3 bloques completados en total
 
 
 def test_home_month_watch_minutes_excludes_old(client, home_env, auth_headers) -> None:
     e = home_env
     now = datetime.now(UTC)
-    _progress(e.s, org_id=e.org.id, user_id=e.user.id, course=e.course(),
-              watch_pct=50.0, completed=False, last_played=now, pos=600)
-    _progress(e.s, org_id=e.org.id, user_id=e.user.id, course=e.course(),
-              watch_pct=50.0, completed=False, last_played=now - timedelta(days=60), pos=600)
+    e.activity(e.unit(), when=now, completed_blocks=1)  # este mes
+    e.activity(e.unit(), when=now - timedelta(days=60), completed_blocks=1)  # viejo
     stats = client.get("/api/v1/me/home", headers=auth_headers(e.user)).json()["stats"]
-    assert stats["total_watch_minutes"] == 20  # 1200s
-    assert stats["month_watch_minutes"] == 10  # solo el de este mes (600s)
+    assert stats["total_watch_minutes"] == 2  # 2 bloques all-time
+    assert stats["month_watch_minutes"] == 1  # solo el de este mes
 
 
 def test_home_streak_counts_consecutive_days(client, home_env, auth_headers) -> None:
     e = home_env
     today = datetime.now(UTC).replace(hour=12, minute=0, second=0, microsecond=0)
     for d in range(3):  # hoy, ayer, anteayer
-        _progress(e.s, org_id=e.org.id, user_id=e.user.id, course=e.course(),
-                  watch_pct=20.0, completed=False, last_played=today - timedelta(days=d))
+        e.activity(e.unit(), when=today - timedelta(days=d), completed_blocks=1)
     # Hueco: nada hace 4 días -> no extiende la racha.
-    _progress(e.s, org_id=e.org.id, user_id=e.user.id, course=e.course(),
-              watch_pct=20.0, completed=False, last_played=today - timedelta(days=5))
+    e.activity(e.unit(), when=today - timedelta(days=5), completed_blocks=1)
     stats = client.get("/api/v1/me/home", headers=auth_headers(e.user)).json()["stats"]
     assert stats["streak_days"] == 3
 
@@ -204,12 +168,10 @@ def test_home_only_returns_own_data(client, home_env, auth_headers) -> None:
     e = home_env
     now = datetime.now(UTC)
     other = e.factory.make_user(org=e.org, role=UserRole.collaborator, full_name="Other User")
-    mine = e.course()
-    theirs = e.course()
-    _progress(e.s, org_id=e.org.id, user_id=e.user.id, course=mine,
-              watch_pct=30.0, completed=False, last_played=now)
-    _progress(e.s, org_id=e.org.id, user_id=other.id, course=theirs,
-              watch_pct=100.0, completed=True, last_played=now)
+    mine = e.unit()
+    theirs = e.unit()
+    e.activity(mine, when=now, completed_blocks=1)
+    e.activity(theirs, when=now, user_id=other.id, completed=True)
     body = client.get("/api/v1/me/home", headers=auth_headers(e.user)).json()
     course_ids = {a["course_id"] for a in body["recent_activity"]}
     assert str(mine.id) in course_ids

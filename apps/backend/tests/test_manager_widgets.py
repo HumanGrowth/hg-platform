@@ -2,52 +2,33 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import delete, select
 
 from hg.modules.identity.models import UserRole
-from hg.modules.learning.models import (
-    CareerLevel,
-    CareerPath,
-    CourseProgress,
-    Event,
-    EventTrack,
-)
+
+from ._lu_helpers import cleanup_units, make_unit, seed_attempt
 
 
 @pytest.fixture
 def manager_buckets(factory):
     """Manager con 6 reportes, uno por bucket de inactividad."""
     s = factory.session
-    if not s.scalar(select(CareerPath).where(CareerPath.code == "P1")):
-        s.add(CareerPath(code="P1", name="Carrera e impacto", order_index=1))
-        s.commit()
-    path = s.scalar(select(CareerPath).where(CareerPath.code == "P1"))
     org = factory.make_org()
     mgr = factory.make_user(org=org, role=UserRole.manager, full_name="Bucket Mgr")
     now = datetime.now(UTC)
-    created: list = []
+    unit_ids: list = []
 
     def report(name: str, gap_days: int | None):
         u = factory.make_user(org=org, manager_id=mgr.id, full_name=name)
         if gap_days is not None:
-            c = Event(
-                career_path_id=path.id, title="BC", slug=f"bc-{uuid4().hex[:10]}",
-                order_index=0, career_level=CareerLevel.L1, track=EventTrack.competency,
-                duration_seconds=600,
+            unit = make_unit(s, dimension_code="CP")
+            unit_ids.append(unit.id)
+            seed_attempt(
+                s, org_id=org.id, user_id=u.id, unit=unit,
+                when=now - timedelta(days=gap_days), completed=False,
             )
-            s.add(c)
-            s.commit()
-            created.append(c.id)
-            when = now - timedelta(days=gap_days)
-            s.add(CourseProgress(
-                org_id=org.id, user_id=u.id, course_id=c.id, last_position_seconds=300,
-                watch_pct=50.0, is_completed=False, first_played_at=when, last_played_at=when,
-            ))
-            s.commit()
         return u
 
     r_active = report("R Active", 0)
@@ -62,8 +43,7 @@ def manager_buckets(factory):
         org=org, mgr=mgr,
         ids={r_active.id, r_1_7.id, r_8_14.id, r_15_30.id, r_gt30.id, r_never.id},
     )
-    s.execute(delete(Event).where(Event.id.in_(created)))
-    s.commit()
+    cleanup_units(s, unit_ids)
 
 
 def test_manager_widgets_only_direct_reports(client: TestClient, manager_with_reports, auth_headers) -> None:

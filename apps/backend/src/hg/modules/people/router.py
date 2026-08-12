@@ -8,7 +8,7 @@ from __future__ import annotations
 import csv
 import io
 from collections import Counter
-from datetime import timedelta
+from datetime import datetime, timedelta
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
@@ -22,11 +22,17 @@ from hg.modules.learning import enrollments_service
 from hg.modules.learning.enrollments_service import InvalidPathCodeError
 from hg.modules.learning.models import (
     CareerPath,
-    CourseProgress,
     Enrollment,
-    Event,
 )
 from hg.modules.learning.schemas import EnrollmentIn, EnrollmentOut
+from hg.modules.learning_units.dimensions import career_path_for_dimension
+from hg.modules.learning_units.models import (
+    BlockProgress,
+    BlockProgressStatus,
+    LearningUnit,
+    LearningUnitAttempt,
+    UnitBlock,
+)
 from hg.modules.people import service
 from hg.modules.people.schemas import (
     AdoptionMonthPoint,
@@ -158,31 +164,78 @@ def list_my_team(
     return TeamResponse(items=paged, total=total, inactive_count=inactive_count)
 
 
+def _completed_blocks_by_attempt(db: Session, attempt_ids: list[UUID]) -> dict[UUID, int]:
+    if not attempt_ids:
+        return {}
+    return {
+        aid: int(n)
+        for aid, n in db.execute(
+            select(BlockProgress.attempt_id, func.count())
+            .where(
+                BlockProgress.attempt_id.in_(attempt_ids),
+                BlockProgress.status == BlockProgressStatus.completed,
+            )
+            .group_by(BlockProgress.attempt_id)
+        ).all()
+    }
+
+
+def _total_blocks_by_unit(db: Session, unit_ids: list[UUID]) -> dict[UUID, int]:
+    if not unit_ids:
+        return {}
+    return {
+        uid: int(n)
+        for uid, n in db.execute(
+            select(UnitBlock.unit_id, func.count())
+            .where(UnitBlock.unit_id.in_(unit_ids))
+            .group_by(UnitBlock.unit_id)
+        ).all()
+    }
+
+
+def _completion_pct(completed_blocks: int, total_blocks: int) -> float:
+    """% de avance de una unit = bloques completados / bloques totales."""
+    if total_blocks <= 0:
+        return 0.0
+    return round(min(completed_blocks / total_blocks, 1.0) * 100, 1)
+
+
 def _course_progress_list(
     db: Session, user_id: UUID, *, completed: bool, limit: int = 10
 ) -> list[CourseProgressDetailOut]:
+    """Units en progreso / completadas de un user (modelo nuevo), top-N recientes."""
     rows = db.execute(
-        select(CourseProgress, Event)
-        .join(Event, Event.id == CourseProgress.course_id)
+        select(LearningUnitAttempt, LearningUnit)
+        .join(LearningUnit, LearningUnit.id == LearningUnitAttempt.unit_id)
         .where(
-            CourseProgress.user_id == user_id,
-            CourseProgress.is_completed.is_(completed),
-            *([] if completed else [CourseProgress.watch_pct > 0]),
+            LearningUnitAttempt.user_id == user_id,
+            LearningUnitAttempt.completed_at.is_not(None)
+            if completed
+            else LearningUnitAttempt.completed_at.is_(None),
+            *([] if completed else [LearningUnitAttempt.started_at.is_not(None)]),
         )
-        .order_by(CourseProgress.last_played_at.desc())
+        .order_by(
+            func.coalesce(
+                LearningUnitAttempt.completed_at, LearningUnitAttempt.started_at
+            ).desc()
+        )
         .limit(limit)
     ).all()
+    completed_blocks = _completed_blocks_by_attempt(db, [a.id for a, _ in rows])
+    total_blocks = _total_blocks_by_unit(db, [u.id for _, u in rows])
     return [
         CourseProgressDetailOut(
-            course_slug=c.slug,
-            course_title=c.title,
-            career_level=c.career_level.value,
-            competency_code=c.competency_code.value if c.competency_code else None,
-            watch_pct=cp.watch_pct,
-            is_completed=cp.is_completed,
-            last_played_at=cp.last_played_at,
+            course_slug=u.slug,
+            course_title=u.title,
+            career_level=u.level_code,
+            competency_code=u.competency_code.value if u.competency_code else None,
+            watch_pct=100.0
+            if a.completed_at is not None
+            else _completion_pct(completed_blocks.get(a.id, 0), total_blocks.get(u.id, 0)),
+            is_completed=a.completed_at is not None,
+            last_played_at=a.completed_at or a.started_at,
         )
-        for cp, c in rows
+        for a, u in rows
     ]
 
 
@@ -375,80 +428,85 @@ def get_my_home_dashboard(
 ) -> HomeDashboardOut:
     uid = current_user.id
 
-    # next_step: curso en progreso (no completado, <80%) jugado más recientemente.
-    ns = db.execute(
-        select(CourseProgress, Event, CareerPath)
-        .join(Event, Event.id == CourseProgress.course_id)
-        .join(CareerPath, CareerPath.id == Event.career_path_id)
+    # Todos los attempts del user + su unit (para next_step y recent_activity).
+    attempt_rows = db.execute(
+        select(LearningUnitAttempt, LearningUnit)
+        .join(LearningUnit, LearningUnit.id == LearningUnitAttempt.unit_id)
         .where(
-            CourseProgress.user_id == uid,
-            CourseProgress.is_completed.is_(False),
-            CourseProgress.watch_pct < 80,
+            LearningUnitAttempt.user_id == uid,
+            LearningUnitAttempt.started_at.is_not(None),
         )
-        .order_by(CourseProgress.last_played_at.desc())
-        .limit(1)
-    ).first()
-    next_step = (
-        NextStepOut(
-            course_id=ns[1].id,
-            course_slug=ns[1].slug,
-            course_title=ns[1].title,
-            dimension_code=ns[2].code,
-            career_level=ns[1].career_level.value,
-            duration_seconds=ns[1].duration_seconds,
-            watch_pct=ns[0].watch_pct,
-            last_played_at=ns[0].last_played_at,
-        )
-        if ns
-        else None
-    )
-
-    # recent_activity: últimos 5 eventos (completados + en progreso).
-    recent_rows = db.execute(
-        select(CourseProgress, Event, CareerPath)
-        .join(Event, Event.id == CourseProgress.course_id)
-        .join(CareerPath, CareerPath.id == Event.career_path_id)
-        .where(CourseProgress.user_id == uid)
-        .order_by(CourseProgress.last_played_at.desc())
-        .limit(5)
     ).all()
+    completed_blocks = _completed_blocks_by_attempt(db, [a.id for a, _ in attempt_rows])
+    total_blocks = _total_blocks_by_unit(db, [u.id for _, u in attempt_rows])
+
+    def _activity_ts(a: LearningUnitAttempt) -> datetime:
+        return a.completed_at or a.started_at  # type: ignore[return-value]
+
+    def _pillar(u: LearningUnit) -> str:
+        return career_path_for_dimension(u.dimension_code) or "P1"
+
+    ordered = sorted(attempt_rows, key=lambda r: _activity_ts(r[0]), reverse=True)
+
+    # next_step: unit en progreso (no completada, <80%) con actividad más reciente.
+    next_step = None
+    for a, u in ordered:
+        if a.completed_at is not None:
+            continue
+        pct = _completion_pct(completed_blocks.get(a.id, 0), total_blocks.get(u.id, 0))
+        if pct >= 80:
+            continue
+        next_step = NextStepOut(
+            course_id=u.id,
+            course_slug=u.slug,
+            course_title=u.title,
+            dimension_code=_pillar(u),
+            career_level=u.level_code,
+            duration_seconds=u.estimated_duration_seconds or 0,
+            watch_pct=pct,
+            last_played_at=_activity_ts(a),
+        )
+        break
+
+    # recent_activity: últimos 5 módulos tocados (completados + en progreso).
     recent_activity = [
         RecentActivityItem(
-            course_id=c.id,
-            course_slug=c.slug,
-            course_title=c.title,
-            dimension_code=p.code,
-            is_completed=cp.is_completed,
-            last_played_at=cp.last_played_at,
-            completed_at=cp.completed_at,
+            course_id=u.id,
+            course_slug=u.slug,
+            course_title=u.title,
+            dimension_code=_pillar(u),
+            is_completed=a.completed_at is not None,
+            last_played_at=_activity_ts(a),
+            completed_at=a.completed_at,
         )
-        for cp, c, p in recent_rows
+        for a, u in ordered[:5]
     ]
 
-    # stats
+    # stats — actividad = bloques completados (fechados en submitted_at).
     agg = activity_by_users(db, [uid])[uid]
     now = now_utc()
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    month_sec = (
-        db.scalar(
-            select(func.coalesce(func.sum(CourseProgress.last_position_seconds), 0)).where(
-                CourseProgress.user_id == uid, CourseProgress.last_played_at >= month_start
+    block_submits = [
+        ts
+        for ts in db.scalars(
+            select(BlockProgress.submitted_at)
+            .join(LearningUnitAttempt, LearningUnitAttempt.id == BlockProgress.attempt_id)
+            .where(
+                LearningUnitAttempt.user_id == uid,
+                BlockProgress.status == BlockProgressStatus.completed,
+                BlockProgress.submitted_at.is_not(None),
             )
-        )
-        or 0
-    )
-    played_dates = {
-        d.date()
-        for d in db.scalars(
-            select(CourseProgress.last_played_at).where(CourseProgress.user_id == uid)
         ).all()
-    }
+        if ts is not None
+    ]
+    month_blocks = sum(1 for ts in block_submits if ts >= month_start)
+    block_dates = {ts.date() for ts in block_submits}
     stats = HomeStats(
         courses_in_progress=agg.courses_in_progress,
         courses_completed=agg.courses_completed,
         total_watch_minutes=agg.total_watch_minutes,
-        month_watch_minutes=int(month_sec) // 60,
-        streak_days=streak_days(played_dates, now.date()),
+        month_watch_minutes=month_blocks,
+        streak_days=streak_days(block_dates, now.date()),
     )
 
     enrollments = enrollments_service.list_user_enrollments(db, user_id=uid, active_only=True)

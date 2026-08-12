@@ -25,3 +25,32 @@ def test_set_and_reset_onboarding_seen(client: TestClient, factory, auth_headers
 
 def test_onboarding_seen_requires_auth(client: TestClient) -> None:
     assert client.post("/api/v1/auth/me/onboarding-seen", json={"seen": True}).status_code in (401, 403)
+
+
+def test_has_completed_onboarding_reflects_results(client: TestClient, factory, auth_headers) -> None:
+    """/me.has_completed_onboarding = tiene >=1 resultado de assessment. El
+    SessionGate del frontend lo usa para mandar al assessment inicial si falta."""
+    from datetime import UTC, datetime, timedelta
+
+    from hg.modules.assessment.enums import PillarCode
+    from hg.modules.assessment.models import PillarResult
+
+    org = factory.make_org()
+    user = factory.make_user(org=org)
+
+    # sin resultados → False (el gate redirige al onboarding).
+    res = client.get("/api/v1/auth/me", headers=auth_headers(user))
+    assert res.status_code == 200
+    assert res.json()["has_completed_onboarding"] is False
+
+    # con un resultado preliminar → True.
+    factory.session.add(
+        PillarResult(
+            org_id=org.id, user_id=user.id, pillar_code=PillarCode.P1,
+            state_code="L3", state_label="Nivel 3", sub_scores={},
+            next_retake_eligible_at=datetime.now(UTC) + timedelta(days=30),
+        )
+    )
+    factory.session.commit()
+    res2 = client.get("/api/v1/auth/me", headers=auth_headers(user))
+    assert res2.json()["has_completed_onboarding"] is True

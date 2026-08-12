@@ -35,7 +35,7 @@ export function StreakHeatmap({ data }: { data: StreakDay[] }) {
         {data.map((d) => (
           <div
             key={d.date}
-            title={`${formatDayShort(d.date)} · ${d.minutes} min`}
+            title={`${formatDayShort(d.date)} · ${d.minutes} ${d.minutes === 1 ? "bloque" : "bloques"}`}
             className={`h-3 w-3 rounded-[3px] ${widgetColorScale(d.minutes, max)}`}
           />
         ))}
@@ -57,7 +57,7 @@ export function StreakHeatmap({ data }: { data: StreakDay[] }) {
 
       <WidgetSrTable
         caption={`Actividad diaria. ${summaryText}`}
-        columns={["Día", "Minutos"]}
+        columns={["Día", "Bloques"]}
         rows={data.filter((d) => d.has_activity).map((d) => [formatDayShort(d.date), d.minutes])}
       />
     </div>

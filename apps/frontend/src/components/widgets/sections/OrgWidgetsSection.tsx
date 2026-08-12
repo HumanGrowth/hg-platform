@@ -52,8 +52,8 @@ export default function OrgWidgetsSection({ orgId }: { orgId?: string }) {
           {data ? <OnboardingFunnelChart funnel={data.onboarding_funnel} /> : null}
         </WidgetCard>
         <WidgetCard
-          title="Tiempo invertido por mes"
-          description="Horas totales de la org, últimos 12 meses."
+          title="Actividad por mes"
+          description="Bloques completados por la org, últimos 12 meses."
           state={state}
           onRetry={load}
         >

@@ -36,7 +36,7 @@ export default function TeamWidgetsSection() {
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <WidgetCard
           title="Actividad del equipo"
-          description="Minutos por persona en los últimos 30 días."
+          description="Bloques completados por persona en los últimos 30 días."
           state={activityState}
           onRetry={load}
           emptyMessage="Sin actividad del equipo en los últimos 30 días."
