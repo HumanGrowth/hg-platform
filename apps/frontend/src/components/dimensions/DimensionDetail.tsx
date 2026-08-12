@@ -61,7 +61,7 @@ export function DimensionDetail({ dimension }: { dimension: Dimension }) {
       const [res, unitList] = await Promise.all([
         apiGetMyResults().then((r) => r.results).catch(() => [] as DimensionResult[]),
         dimension.hasContent
-          ? apiListModulosByDimension(dimension.careerPath, undefined, 60).catch(() => [])
+          ? apiListModulosByDimension(dimension.careerPath, undefined, 50).catch(() => [])
           : Promise.resolve([] as LearningUnitFeedItem[]),
       ]);
       setResults(res);

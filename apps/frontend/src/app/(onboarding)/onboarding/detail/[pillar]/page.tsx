@@ -39,7 +39,23 @@ export default function PillarDetailPage() {
       setSession(s);
       setStatus("ok");
       startRef.current = Date.now();
-    } catch {
+    } catch (e) {
+      // Red de seguridad: si el start falla con un 422 de regla de negocio,
+      // guiamos al usuario en vez de mostrar el error opaco.
+      const status = (e as { response?: { status?: number } })?.response?.status;
+      const detail = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      if (status === 422 && typeof detail === "string") {
+        if (detail.includes("preliminar")) {
+          toast("Primero completá tu evaluación inicial.", "default");
+          router.replace("/onboarding/welcome");
+          return;
+        }
+        if (detail.includes("no disponible")) {
+          toast("Ya evaluaste esta dimensión. Vas a poder reevaluarla más adelante.", "default");
+          router.replace("/perfil");
+          return;
+        }
+      }
       setStatus("error");
     }
   }, [pillar, router]);
