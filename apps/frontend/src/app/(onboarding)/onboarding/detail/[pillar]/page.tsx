@@ -5,7 +5,7 @@ import * as React from "react";
 
 import { TraditionalForm } from "@/components/assessment/TraditionalForm";
 import { EmptyRing } from "@/components/EmptyRing";
-import { apiFinalizeSession, apiRespondItem, apiStartSession } from "@/lib/api";
+import { apiFinalizeSession, apiGetMyResults, apiRespondItem, apiStartSession } from "@/lib/api";
 import { PILLAR_NAMES } from "@/lib/assessment-utils";
 import type { AssessmentPillarCode, AssessmentSession } from "@/lib/types";
 import { toast } from "@/lib/toast-store";
@@ -25,6 +25,16 @@ export default function PillarDetailPage() {
   const begin = React.useCallback(async () => {
     setStatus("loading");
     try {
+      // Gate: el deep-dive de un pilar requiere un resultado preliminar de la
+      // evaluación inicial. Sin él el backend responde 422 y el usuario veía un
+      // error opaco ("No se pudo iniciar…"). Si falta, lo mandamos a la
+      // evaluación inicial en vez de fallar.
+      const { results } = await apiGetMyResults();
+      if (!results.some((r) => r.pillar_code === pillar)) {
+        toast("Primero completá tu evaluación inicial.", "default");
+        router.replace("/onboarding/welcome");
+        return;
+      }
       const s = await apiStartSession({ kind: "pillar_detail", target_pillar: pillar });
       setSession(s);
       setStatus("ok");
@@ -32,7 +42,7 @@ export default function PillarDetailPage() {
     } catch {
       setStatus("error");
     }
-  }, [pillar]);
+  }, [pillar, router]);
 
   React.useEffect(() => {
     if (!VALID.includes(pillar)) {
