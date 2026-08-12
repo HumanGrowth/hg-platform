@@ -55,7 +55,7 @@ export default function SixDimensions() {
                   />
                 )}
                 <div className="relative z-10">
-                  <div className={`h-2 w-12 rounded-full bg-pillar-${item.code.toLowerCase()}`} />
+                  <div className={`h-2 w-12 rounded-full bg-dimension-${item.code.toLowerCase()}`} />
                   <h3 className="mt-4 font-heading text-xl font-semibold text-fg">{item.title}</h3>
                   <p className="body-sm mt-2 max-w-[24rem] text-hg-charcoal">{item.body}</p>
                 </div>
