@@ -78,7 +78,7 @@ def test_get_user_detail_includes_enrollments_and_progress(client, manager_with_
     assert any(e["career_path_code"] == "P1" for e in body["enrollments"])
     assert len(body["courses_completed_list"]) == 5
     assert body["courses_completed"] == 5
-    assert "P1" in body["pillar_completion_rate"]
+    assert "P1" in body["dimension_completion_rate"]
 
 
 def test_get_user_detail_not_my_report_404(client, manager_with_reports, factory, auth_headers) -> None:

@@ -68,7 +68,7 @@ class EventType(str, enum.Enum):
 
 
 class CareerPath(Base):
-    """One of the 6 growth pillars (P1-P6)."""
+    """One of the 6 growth dimensions (P1-P6)."""
 
     __tablename__ = "career_paths"
 
@@ -227,8 +227,8 @@ class CourseProgress(Base):
 class UserLearningProfile(Base):
     """Snapshot agregado por user del estado actual de los pilares (read-optimized).
 
-    Productivo (B2-02). ``pillar_states`` es un resumen del último ``PillarResult``
-    por pilar; la fuente de verdad histórica vive en ``pillar_results``."""
+    Productivo (B2-02). ``dimension_states`` es un resumen del último ``DimensionResult``
+    por pilar; la fuente de verdad histórica vive en ``dimension_results``."""
 
     __tablename__ = "user_learning_profiles"
 
@@ -245,7 +245,7 @@ class UserLearningProfile(Base):
     #   "P2": {"state": "Direccionado", "source": "confirmed", "sub_scores": {...}, ...},
     #   ...
     # }
-    pillar_states: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    dimension_states: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     onboarding_short_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_assessment_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

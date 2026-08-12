@@ -30,7 +30,7 @@ class PerspectivePost(Base):
     subtitle: Mapped[str | None] = mapped_column(String(500))
     cover_image_url: Mapped[str | None] = mapped_column(String(2048))
     # career_path code (P1..P6), opcional. Sin FK dura para no acoplar a la tabla.
-    pillar_code: Mapped[str | None] = mapped_column(String(10), index=True)
+    dimension_code: Mapped[str | None] = mapped_column(String(10), index=True)
     author_name: Mapped[str | None] = mapped_column(String(200))
     author_avatar_url: Mapped[str | None] = mapped_column(String(2048))
     tags: Mapped[list[str]] = mapped_column(ARRAY(String), server_default="{}", nullable=False)

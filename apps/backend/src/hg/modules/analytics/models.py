@@ -39,7 +39,7 @@ class OrgAssessmentAggregate(Base):
     total_users: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     active_users: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     # e.g. {"P1": 0.72, "P2": 0.55, ...}
-    completion_rate_by_pillar: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    completion_rate_by_dimension: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     # e.g. {"P1": 0.81, "P2": 0.63, ...}
-    avg_scores_by_pillar: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    avg_scores_by_dimension: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

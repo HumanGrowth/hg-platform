@@ -13,7 +13,7 @@ import type { Config } from "tailwindcss";
  *
  * DS-07: los aliases legacy v1 (orange/cream/warm/ink/gold/forest/sage/amber)
  * fueron eliminados; todo el código usa los tokens v2 (hg-*, primary, surface-*,
- * bg/fg/border semánticos, pillar-*).
+ * bg/fg/border semánticos, dimension-*).
  *
  * ⚠️ SWAP CLAVE: --accent es GREEN (era ORANGE). Componentes que usan
  * bg-accent, ring-accent ven el swap.
@@ -82,9 +82,9 @@ const config: Config = {
         danger: { DEFAULT: "var(--color-danger)", bg: "var(--color-danger-bg)" },
         info: { DEFAULT: "var(--color-info)", bg: "var(--color-info-bg)" },
 
-        // ---- Pillar colors (mapping DS v2 · §4.2 delta doc) --------------
+        // ---- Dimension colors (mapping DS v2 · §4.2 delta doc) --------------
         // P6 pasa de gray → amber (más visible en dashboards)
-        pillar: {
+        dimension: {
           p1: "#e8530a", // Carrera — orange (accent)
           p2: "#c8a76e", // Propósito — gold
           p3: "#4a7a54", // Relaciones — green (primary)

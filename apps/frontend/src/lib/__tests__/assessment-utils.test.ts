@@ -7,11 +7,11 @@ import {
   sourceLabel,
   stateToRadarValue,
 } from "@/lib/assessment-utils";
-import type { PillarResult } from "@/lib/types";
+import type { DimensionResult } from "@/lib/types";
 
-function result(pillar: PillarResult["pillar_code"], state: string, over: Partial<PillarResult> = {}): PillarResult {
+function result(pillar: DimensionResult["dimension_code"], state: string, over: Partial<DimensionResult> = {}): DimensionResult {
   return {
-    pillar_code: pillar,
+    dimension_code: pillar,
     source: "preliminary",
     state_code: state,
     state_label: state,

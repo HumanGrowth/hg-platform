@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { DIMENSIONS, DIMENSION_CODES, dimensionByCode, dimensionByPillar } from "@/lib/dimensions";
-import { dimensionToPillar } from "@/lib/pillars";
+import { DIMENSIONS, DIMENSION_CODES, dimensionByCode, dimensionByCareerPath } from "@/lib/dimensions";
+import { driveToCareerPath } from "@/lib/dimension-styles";
 
 describe("dimensions registry", () => {
   it("has the 6 canonical dimensions mapped 1:1 to P1..P6", () => {
     expect(DIMENSION_CODES).toEqual(["CP", "PR", "RE", "SA", "PI", "ES"]);
-    expect(DIMENSIONS.map((d) => d.pillar)).toEqual(["P1", "P2", "P3", "P4", "P5", "P6"]);
+    expect(DIMENSIONS.map((d) => d.careerPath)).toEqual(["P1", "P2", "P3", "P4", "P5", "P6"]);
   });
 
   it("only CP has content today", () => {
@@ -21,18 +21,18 @@ describe("dimensions registry", () => {
   });
 
   it("resolves by pillar, folding P6A/P6B into ES", () => {
-    expect(dimensionByPillar("P1")?.code).toBe("CP");
-    expect(dimensionByPillar("P6A")?.code).toBe("ES");
-    expect(dimensionByPillar("P6B")?.code).toBe("ES");
+    expect(dimensionByCareerPath("P1")?.code).toBe("CP");
+    expect(dimensionByCareerPath("P6A")?.code).toBe("ES");
+    expect(dimensionByCareerPath("P6B")?.code).toBe("ES");
   });
 
   it("ES reevaluates against P6A (resiliencia) since assessment splits P6", () => {
-    expect(dimensionByCode("ES")?.assessmentPillar).toBe("P6A");
+    expect(dimensionByCode("ES")?.assessmentDimension).toBe("P6A");
   });
 
-  it("stays consistent with pillars.dimensionToPillar for every code", () => {
+  it("stays consistent with pillars.driveToCareerPath for every code", () => {
     for (const d of DIMENSIONS) {
-      expect(dimensionToPillar(d.code)).toBe(d.pillar);
+      expect(driveToCareerPath(d.code)).toBe(d.careerPath);
     }
   });
 });
