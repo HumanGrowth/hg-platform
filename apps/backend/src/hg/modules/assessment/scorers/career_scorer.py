@@ -1,7 +1,7 @@
 """P1 · PMM v3 — weakest link (MIN de C1..C5)."""
 from __future__ import annotations
 
-from hg.modules.assessment.enums import PillarCode
+from hg.modules.assessment.enums import DimensionCode
 from hg.modules.assessment.scorers.base import BaseScorer, ScoringInput, ScoringOutput
 
 COMPETENCIES = ["C1", "C2", "C3", "C4", "C5"]
@@ -19,7 +19,7 @@ COMPETENCY_NAME = {
 
 
 class CareerScorer(BaseScorer):
-    pillar_code = PillarCode.P1
+    dimension_code = DimensionCode.P1
 
     def score(self, inp: ScoringInput) -> ScoringOutput:
         by = inp.by_code
@@ -33,7 +33,7 @@ class CareerScorer(BaseScorer):
             f"{COMPETENCY_NAME[bottleneck]}. Enfocá tu desarrollo ahí para subir de nivel."
         )
         return ScoringOutput(
-            pillar_code=self.pillar_code,
+            dimension_code=self.dimension_code,
             state_code=f"L{general}",
             state_label=LEVEL_LABEL[general],
             sub_scores=sub_scores,

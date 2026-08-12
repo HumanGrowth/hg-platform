@@ -236,8 +236,8 @@ def _feed_item(db: Session, unit: LearningUnit, user: User) -> LearningUnitFeedI
 def _select_feed_units(db: Session, user: User) -> tuple[LearningUnit | None, list[LearningUnit]]:
     """Selección del "unit del día" — versión MVP (decisión doc §"Selección del
     unit del día"): (1) attempt in_progress existente, si no (3) fallback a
-    units publicadas no completadas del pillar de una enrollment activa (o
-    cualquier publicada si no hay enrollments). El ranking por pillar_score
+    units publicadas no completadas del dimension de una enrollment activa (o
+    cualquier publicada si no hay enrollments). El ranking por dimension_score
     más rezagado (paso 2) queda deferred a Fase 2."""
     in_progress_attempt = db.scalar(
         select(LearningUnitAttempt).where(
@@ -258,7 +258,7 @@ def _select_feed_units(db: Session, user: User) -> tuple[LearningUnit | None, li
         ).all()
     )
 
-    enrolled_pillars = list(
+    enrolled_dimensions = list(
         db.scalars(
             select(CareerPath.code)
             .join(Enrollment, Enrollment.career_path_id == CareerPath.id)
@@ -269,11 +269,11 @@ def _select_feed_units(db: Session, user: User) -> tuple[LearningUnit | None, li
     candidates_q = select(LearningUnit).where(LearningUnit.published_at.isnot(None))
     if completed_unit_ids:
         candidates_q = candidates_q.where(LearningUnit.id.notin_(completed_unit_ids))
-    if enrolled_pillars:
+    if enrolled_dimensions:
         # units guardan el código Drive (CP…); traducimos los career paths
         # inscriptos (P1..P6) a sus dimensiones Drive. Si ninguna mapea, no se
         # filtra por dimensión (mejor mostrar algo que nada).
-        enrolled_dims = dimensions_for_career_paths(enrolled_pillars)
+        enrolled_dims = dimensions_for_career_paths(enrolled_dimensions)
         if enrolled_dims:
             candidates_q = candidates_q.where(LearningUnit.dimension_code.in_(enrolled_dims))
     candidates = list(db.scalars(candidates_q.order_by(LearningUnit.created_at)).all())
@@ -300,9 +300,9 @@ def get_feed(
     return LearningUnitFeed(hero=hero_item, next=next_items)
 
 
-@router.get("/modulos/by-pillar", response_model=list[LearningUnitFeedItem])
-def list_modulos_by_pillar(
-    pillar_code: str = Query(..., pattern=r"^P[1-6]$"),
+@router.get("/modulos/by-dimension", response_model=list[LearningUnitFeedItem])
+def list_modulos_by_dimension(
+    dimension_code: str = Query(..., pattern=r"^P[1-6]$"),
     level_code: str | None = Query(default=None, pattern=r"^L[1-6]$"),
     limit: int = Query(default=10, ge=1, le=50),
     db: Session = Depends(get_db),
@@ -319,7 +319,7 @@ def list_modulos_by_pillar(
     Orden por la convención del Drive `Dimensión-Nivel-Pilar-Número`: dentro de la
     dimensión, `level_code` ASC → `pillar_number` ASC → `unit_number` ASC (no por
     orden de import). Excluye units reemplazadas (`superseded_by_unit_id`)."""
-    dims = dimensions_for_career_paths([pillar_code])
+    dims = dimensions_for_career_paths([dimension_code])
     conds: list[ColumnElement[bool]] = [
         LearningUnit.dimension_code.in_(dims) if dims else sa_false(),
         LearningUnit.published_at.isnot(None),

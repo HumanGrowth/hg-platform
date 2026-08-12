@@ -498,7 +498,7 @@ def test_quiz_submit_all_five_remaining_question_types(client: TestClient, facto
         _cleanup(unit_id)
 
 
-# ─────────────────────── /modulos/by-pillar (TASK lu-refine-A-03) ───────────────────────
+# ─────────────────────── /modulos/by-dimension (TASK lu-refine-A-03) ───────────────────────
 
 
 def _make_minimal_unit(
@@ -511,7 +511,7 @@ def _make_minimal_unit(
     superseded_by: uuid.UUID | None = None,
 ) -> uuid.UUID:
     """Unit publicada sin bloques — alcanza para probar filtro/orden/attempt_status
-    de /modulos/by-pillar, que no toca el contenido de los bloques."""
+    de /modulos/by-dimension, que no toca el contenido de los bloques."""
     s = SessionLocal()
     try:
         unit = LearningUnit(
@@ -526,7 +526,7 @@ def _make_minimal_unit(
         s.close()
 
 
-def test_by_pillar_filters_by_dimension_and_orders_by_level_pillar_unit(
+def test_by_dimension_filters_by_dimension_and_orders_by_level_dimension_unit(
     client: TestClient, factory, auth_headers
 ) -> None:
     """Agrupa por `dimension_code` (CP=Carrera → P1); ordena por la convención del
@@ -543,17 +543,17 @@ def test_by_pillar_filters_by_dimension_and_orders_by_level_pillar_unit(
         ids.append(_make_minimal_unit(slugs[2], dimension_code="CP", level_code="L1", pillar_number=1, unit_number=1))
         ids.append(_make_minimal_unit(slugs[3], dimension_code="PR", level_code="L1", pillar_number=1, unit_number=1))
 
-        res = client.get("/api/v1/modulos/by-pillar", headers=headers, params={"pillar_code": "P1"})
+        res = client.get("/api/v1/modulos/by-dimension", headers=headers, params={"dimension_code": "P1"})
         assert res.status_code == 200, res.text
         returned_slugs = [u["slug"] for u in res.json()]
         assert slugs[3] not in returned_slugs  # dimensión PR (Propósito), no Carrera
-        # L1 antes que L2; dentro de L1, pillar 1 (slugs[2]) antes que pillar 2 (slugs[1]).
+        # L1 antes que L2; dentro de L1, dimension 1 (slugs[2]) antes que dimension 2 (slugs[1]).
         assert returned_slugs.index(slugs[2]) < returned_slugs.index(slugs[1])
         assert returned_slugs.index(slugs[1]) < returned_slugs.index(slugs[0])
         assert all(u["attempt_status"] == "not_started" for u in res.json())
 
         # P2 (Propósito → PR) trae la unit PR y NO las de Carrera.
-        res_p2 = client.get("/api/v1/modulos/by-pillar", headers=headers, params={"pillar_code": "P2"})
+        res_p2 = client.get("/api/v1/modulos/by-dimension", headers=headers, params={"dimension_code": "P2"})
         p2_slugs = [u["slug"] for u in res_p2.json()]
         assert slugs[3] in p2_slugs
         assert slugs[0] not in p2_slugs
@@ -565,7 +565,7 @@ def test_by_pillar_filters_by_dimension_and_orders_by_level_pillar_unit(
             s.close()
 
 
-def test_by_pillar_level_filter_and_excludes_superseded(
+def test_by_dimension_level_filter_and_excludes_superseded(
     client: TestClient, factory, auth_headers
 ) -> None:
     _, headers = _auth(factory, auth_headers)
@@ -584,8 +584,8 @@ def test_by_pillar_level_filter_and_excludes_superseded(
         ids = [new_id, old_id, other_level_id]
 
         res = client.get(
-            "/api/v1/modulos/by-pillar", headers=headers,
-            params={"pillar_code": "P1", "level_code": "L1"},
+            "/api/v1/modulos/by-dimension", headers=headers,
+            params={"dimension_code": "P1", "level_code": "L1"},
         )
         assert res.status_code == 200, res.text
         returned_slugs = {u["slug"] for u in res.json()}
@@ -600,16 +600,16 @@ def test_by_pillar_level_filter_and_excludes_superseded(
             s.close()
 
 
-def test_by_pillar_requires_valid_pillar_code(client: TestClient, factory, auth_headers) -> None:
+def test_by_dimension_requires_valid_dimension_code(client: TestClient, factory, auth_headers) -> None:
     _, headers = _auth(factory, auth_headers)
-    res = client.get("/api/v1/modulos/by-pillar", headers=headers, params={"pillar_code": "P9"})
+    res = client.get("/api/v1/modulos/by-dimension", headers=headers, params={"dimension_code": "P9"})
     assert res.status_code == 422
 
 
-def test_seed_then_by_pillar_returns_real_unit(client: TestClient, factory, auth_headers) -> None:
+def test_seed_then_by_dimension_returns_real_unit(client: TestClient, factory, auth_headers) -> None:
     """Integración de punta a punta (TASK lu-refine-A-05): corre el seed real
     (o su fallback embebido, según la máquina) y confirma que la unit real
-    "Antes de seguir" aparece en /modulos/by-pillar?pillar_code=P1 — mismo
+    "Antes de seguir" aparece en /modulos/by-dimension?dimension_code=P1 — mismo
     flujo que un usuario real vería en /path."""
     from hg.scripts.seed_learning_units import _load_unit_1_spec, _seed_unit
 
@@ -620,7 +620,7 @@ def test_seed_then_by_pillar_returns_real_unit(client: TestClient, factory, auth
         _seed_unit(s, spec, content_dir)
         s.commit()
 
-        res = client.get("/api/v1/modulos/by-pillar", headers=headers, params={"pillar_code": "P1"})
+        res = client.get("/api/v1/modulos/by-dimension", headers=headers, params={"dimension_code": "P1"})
         assert res.status_code == 200, res.text
         units = res.json()
         matching = [u for u in units if u["slug"] == "hg-p1-l1-001-antes-de-seguir"]

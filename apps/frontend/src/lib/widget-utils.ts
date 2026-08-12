@@ -64,13 +64,13 @@ export function getStreakSummary(streak: StreakDay[]): StreakSummary {
 //     + safety net global en globals.css).
 //
 // Clases Tailwind literales (necesarias para que el JIT las incluya). 5 niveles
-// de intensidad sobre pillar-p1 + cream-200 para "sin actividad".
+// de intensidad sobre dimension-p1 + cream-200 para "sin actividad".
 const SCALE = [
   "bg-surface-sunken",
-  "bg-pillar-p1/30",
-  "bg-pillar-p1/50",
-  "bg-pillar-p1/70",
-  "bg-pillar-p1",
+  "bg-dimension-p1/30",
+  "bg-dimension-p1/50",
+  "bg-dimension-p1/70",
+  "bg-dimension-p1",
 ] as const;
 
 /** Devuelve la clase de fondo según intensidad relativa (0..max). */

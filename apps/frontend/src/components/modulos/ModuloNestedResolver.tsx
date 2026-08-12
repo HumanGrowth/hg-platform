@@ -6,8 +6,8 @@ import * as React from "react";
 import { ModuloDetailView } from "@/components/modulos/ModuloDetailView";
 import { EmptyRing } from "@/components/EmptyRing";
 import { Card } from "@/components/ui/card";
-import { apiListModulosByPillar } from "@/lib/api";
-import { dimensionToPillar } from "@/lib/pillars";
+import { apiListModulosByDimension } from "@/lib/api";
+import { driveToCareerPath } from "@/lib/dimension-styles";
 
 /**
  * Resuelve la ruta canónica anidada `/modulos/<DIM>/<Ln>/P<n>/<seq>` a la unit
@@ -35,7 +35,7 @@ export function ModuloNestedResolver({
     let active = true;
     const pillarNumber = Number.parseInt(pillar.replace(/^P/i, ""), 10);
     const unitNumber = Number.parseInt(unit, 10);
-    apiListModulosByPillar(dimensionToPillar(dimension), level, 50)
+    apiListModulosByDimension(driveToCareerPath(dimension), level, 50)
       .then((units) => {
         if (!active) return;
         const match = units.find(

@@ -7,7 +7,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from hg.modules.assessment.enums import PillarCode
+from hg.modules.assessment.enums import DimensionCode
 
 
 class AssessmentItemOptionOut(BaseModel):
@@ -20,7 +20,7 @@ class AssessmentItemOptionOut(BaseModel):
 class AssessmentItemOut(BaseModel):
     id: UUID
     item_code: str
-    pillar_code: str
+    dimension_code: str
     sub_scale: str | None
     sub_domain: str | None
     response_type: str
@@ -32,14 +32,14 @@ class AssessmentItemOut(BaseModel):
 
 
 class SessionStartIn(BaseModel):
-    kind: Literal["onboarding_short", "pillar_detail"]
-    target_pillar: PillarCode | None = None
+    kind: Literal["onboarding_short", "dimension_detail"]
+    target_dimension: DimensionCode | None = None
 
 
 class SessionOut(BaseModel):
     id: UUID
     kind: str
-    target_pillar: str | None
+    target_dimension: str | None
     status: str
     started_at: datetime
     expires_at: datetime
@@ -56,8 +56,8 @@ class ResponseIn(BaseModel):
     response_time_ms: int | None = None
 
 
-class PillarResultOut(BaseModel):
-    pillar_code: str
+class DimensionResultOut(BaseModel):
+    dimension_code: str
     source: str
     state_code: str
     state_label: str
@@ -72,17 +72,17 @@ class PillarResultOut(BaseModel):
 
 class FinalizeOut(BaseModel):
     session_id: UUID
-    results: list[PillarResultOut]
+    results: list[DimensionResultOut]
 
 
 class MeResultsOut(BaseModel):
-    results: list[PillarResultOut]
+    results: list[DimensionResultOut]
 
 
 class RadarSnapshotItem(BaseModel):
     """Estado de un pilar en un punto del tiempo (para el radar · TASK 6.3)."""
 
-    pillar_code: str
+    dimension_code: str
     state_code: str
     derived_at: datetime
 
@@ -90,7 +90,7 @@ class RadarSnapshotItem(BaseModel):
 class RadarHistoryOut(BaseModel):
     """Radar actual + evaluación anterior (overlay histórico · TASK 6.3).
 
-    `current` = último PillarResult por pilar; `previous` = anteúltimo por pilar
+    `current` = último DimensionResult por pilar; `previous` = anteúltimo por pilar
     (sólo los pilares con ≥2 evaluaciones); `previous_date` = fecha más reciente
     del set anterior. `previous`/`previous_date` en null si no hay evolución.
     """

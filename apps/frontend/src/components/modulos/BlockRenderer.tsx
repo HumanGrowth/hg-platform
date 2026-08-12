@@ -14,7 +14,7 @@ export interface BlockRendererHandlers {
 
 export interface BlockRendererProps extends BlockRendererHandlers {
   block: Block;
-  /** Pilar de la unit — para la identidad visual por pilar de los templates
+  /** Pilar de la unit — para la identidad visual por dimensión de los templates
    * (Sprint UI). Opcional: default primary si no se pasa. */
   dimensionCode?: string;
   /** Navegación del player (avanzar/cerrar) — la usa el botón "Finalizar" del

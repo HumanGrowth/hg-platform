@@ -172,7 +172,7 @@ def get_event_detail(
     return EventDetailOut(
         **EventOut.model_validate(event).model_dump(),
         progress=CourseProgressOut.model_validate(prog) if prog else None,
-        pillar_code=path.code if path else None,
+        dimension_code=path.code if path else None,
     )
 
 

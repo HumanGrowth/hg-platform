@@ -72,11 +72,11 @@ def _has_completed_onboarding(db: Session, user_id: object) -> bool:
     esto: si es False, redirige al usuario a la evaluación inicial."""
     from sqlalchemy import func, select
 
-    from hg.modules.assessment.models import PillarResult
+    from hg.modules.assessment.models import DimensionResult
 
     return bool(
         db.scalar(
-            select(func.count()).select_from(PillarResult).where(PillarResult.user_id == user_id)
+            select(func.count()).select_from(DimensionResult).where(DimensionResult.user_id == user_id)
         )
     )
 

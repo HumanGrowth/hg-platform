@@ -3,20 +3,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DimensionDetail } from "../DimensionDetail";
 import { dimensionByCode } from "@/lib/dimensions";
-import type { LearningUnitFeedItem, PillarResult } from "@/lib/types";
+import type { LearningUnitFeedItem, DimensionResult } from "@/lib/types";
 
-const { getMyResults, listModulosByPillar } = vi.hoisted(() => ({
+const { getMyResults, listModulosByDimension } = vi.hoisted(() => ({
   getMyResults: vi.fn(),
-  listModulosByPillar: vi.fn(),
+  listModulosByDimension: vi.fn(),
 }));
 
 vi.mock("@/lib/api", () => ({
   apiGetMyResults: getMyResults,
-  apiListModulosByPillar: listModulosByPillar,
+  apiListModulosByDimension: listModulosByDimension,
 }));
 
-const result: PillarResult = {
-  pillar_code: "P1",
+const result: DimensionResult = {
+  dimension_code: "P1",
   source: "confirmed",
   state_code: "L3",
   state_label: "En construcción",
@@ -46,12 +46,12 @@ const unit: LearningUnitFeedItem = {
 describe("DimensionDetail", () => {
   beforeEach(() => {
     getMyResults.mockReset();
-    listModulosByPillar.mockReset();
+    listModulosByDimension.mockReset();
   });
 
   it("renders header, score, state label and units for a dimension with content (CP)", async () => {
     getMyResults.mockResolvedValue({ results: [result] });
-    listModulosByPillar.mockResolvedValue([unit]);
+    listModulosByDimension.mockResolvedValue([unit]);
 
     render(<DimensionDetail dimension={dimensionByCode("CP")!} />);
 
@@ -59,7 +59,7 @@ describe("DimensionDetail", () => {
     // Aparece 2 veces: en el hero de progreso y en el historial.
     await waitFor(() => expect(screen.getAllByText("En construcción").length).toBeGreaterThan(0));
     expect(screen.getByText("Antes de seguir")).toBeTruthy();
-    // Reevaluar apunta al flujo de assessment por pilar.
+    // Reevaluar apunta al flujo de assessment por dimensión.
     const reeval = screen.getByText("Reevaluar").closest("a") as HTMLAnchorElement;
     expect(reeval.getAttribute("href")).toBe("/onboarding/detail/P1");
   });
@@ -72,7 +72,7 @@ describe("DimensionDetail", () => {
     await waitFor(() =>
       expect(screen.getByText("Contenido próximamente para esta dimensión")).toBeTruthy(),
     );
-    expect(listModulosByPillar).not.toHaveBeenCalled();
+    expect(listModulosByDimension).not.toHaveBeenCalled();
     // Sin evaluación previa → CTA "Evaluar" hacia P2.
     const cta = screen.getByText("Evaluar").closest("a") as HTMLAnchorElement;
     expect(cta.getAttribute("href")).toBe("/onboarding/detail/P2");
