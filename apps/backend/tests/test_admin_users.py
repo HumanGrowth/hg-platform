@@ -107,7 +107,7 @@ def test_reactivate_without_license_400(client: TestClient, factory, auth_header
         f"/api/v1/admin/users/{collab.id}", headers=auth_headers(admin), json={"is_active": True}
     )
     assert res.status_code == 400
-    assert res.json()["detail"] == "no licenses available"
+    assert res.json()["detail"] == "organization license cap reached"
 
 
 # ─────────────────────────── patch: cross-org / self / role ───────────────────────────

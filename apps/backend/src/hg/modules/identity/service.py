@@ -54,9 +54,39 @@ def _now() -> datetime:
 
 def _org_cap_reached(org: Organization) -> bool:
     """True si la org tiene un cap propio y ya lo alcanzó. ``licenses_total`` NULL
-    = sin cap propio (consume del pool de la Empresa; el chequeo del pool vive en
-    TASK 3 — Capa Empresa). Backward-compat tras CE-01 que dejó el cap en NULL."""
+    = sin cap propio (consume del pool de la Empresa). Un cap NULL nunca bloquea;
+    el límite real es el pool de la Empresa (``check_license_available``)."""
     return org.licenses_total is not None and (org.licenses_used or 0) >= org.licenses_total
+
+
+def company_active_users(db: Session, company_id: UUID) -> int:
+    """Uso del pool de la Empresa = users activos de todas sus orgs (Capa Empresa
+    · TASK 3). Punto único de verdad — ``companies.licenses_used`` no se almacena."""
+    return int(
+        db.scalar(
+            select(func.count())
+            .select_from(User)
+            .where(User.company_id == company_id, User.is_active.is_(True))
+        )
+        or 0
+    )
+
+
+def check_license_available(db: Session, org: Organization) -> None:
+    """Valida, antes de sumar un user activo a ``org``, el **pool de la Empresa**
+    y el **cap opcional de la org** (Capa Empresa · TASK 3). Mensajes distintos
+    para cada límite. Reemplaza el viejo chequeo por-org de licencias."""
+    company = db.get(Company, org.company_id)
+    if company is not None and company_active_users(db, company.id) >= company.licenses_total:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="company license pool exhausted",
+        )
+    if _org_cap_reached(org):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="organization license cap reached",
+        )
 
 
 def _issue_session(db: Session, user: User) -> tuple[str, str]:
@@ -206,10 +236,7 @@ def accept_invite(
     org = db.get(Organization, invitation.org_id)
     if org is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="organization not found")
-    if _org_cap_reached(org):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="no licenses available"
-        )
+    check_license_available(db, org)
 
     # Release TASK 3.4: el form pide "usuario o correo" único. Si es email, debe
     # coincidir con el invitado; si es username, se guarda como username (único
@@ -336,10 +363,7 @@ def create_invitation(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="cannot invite to another organization"
         )
-    if _org_cap_reached(org):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="no licenses available"
-        )
+    check_license_available(db, org)
 
     plain, token_hash = generate_opaque_token()
     invitation = Invitation(
@@ -495,11 +519,8 @@ def update_user(db: Session, *, user_id: UUID, actor: User, payload: dict) -> Us
     if new_active is not None and new_active != target.is_active:
         org = db.get(Organization, target.org_id)
         if new_active is True:
-            if org is not None and _org_cap_reached(org):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="no licenses available"
-                )
             if org is not None:
+                check_license_available(db, org)
                 org.licenses_used = (org.licenses_used or 0) + 1
         else:
             if org is not None and (org.licenses_used or 0) > 0:

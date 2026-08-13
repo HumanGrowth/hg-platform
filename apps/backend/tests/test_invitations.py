@@ -67,7 +67,7 @@ def test_invite_without_licenses_400(client: TestClient, factory, auth_headers) 
         json={"email": "nope@hgtest.test", "role": "collaborator"},
     )
     assert res.status_code == 400
-    assert res.json()["detail"] == "no licenses available"
+    assert res.json()["detail"] == "organization license cap reached"
 
 
 def test_accept_invite_creates_user_and_consumes_license(
