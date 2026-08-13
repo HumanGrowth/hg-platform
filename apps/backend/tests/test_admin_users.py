@@ -141,11 +141,17 @@ def test_cannot_deactivate_last_superadmin(db: Session, factory) -> None:
     """Service-level: el seed tiene un superadmin global, así que neutralizamos
     los superadmins activos dentro de la transacción (rollback) para aislar."""
     db.execute(update(User).where(User.role == UserRole.superadmin).values(is_active=False))
-    org = Organization(name="HGtest", slug="hgtest-last-sa", licenses_total=5)
+    from hg.modules.identity.models import Company
+
+    company = Company(name="HGtest", slug="hgtest-last-sa-co", licenses_total=5)
+    db.add(company)
+    db.flush()
+    org = Organization(name="HGtest", slug="hgtest-last-sa", company_id=company.id)
     db.add(org)
     db.flush()
     only_sa = User(
         org_id=org.id,
+        company_id=company.id,
         email="only-sa@hgtest.test",
         hashed_password="x" * 20,
         full_name="Only SA",

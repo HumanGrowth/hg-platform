@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from hg.core.security import hash_password
 from hg.db import SessionLocal
 from hg.modules.identity.invitations import Invitation
-from hg.modules.identity.models import Organization, OrgTier, User, UserRole
+from hg.modules.identity.models import Company, Organization, OrgTier, User, UserRole
 from hg.scripts.seed_data.realistic_names import (
     ACME_PROSPECTS,
     ACME_USERS,
@@ -67,11 +67,26 @@ LEGACY_INVITE_EMAILS: dict[str, str] = {
 }
 
 
+def _get_or_create_company(db: Session, *, slug: str, name: str, licenses_total: int) -> Company:
+    company = db.execute(select(Company).where(Company.slug == slug)).scalar_one_or_none()
+    if company:
+        return company
+    company = Company(slug=slug, name=name, licenses_total=licenses_total)
+    db.add(company)
+    db.flush()
+    return company
+
+
 def _get_or_create_org(db: Session, *, slug: str, **kwargs) -> Organization:
     org = db.execute(select(Organization).where(Organization.slug == slug)).scalar_one_or_none()
     if org:
         return org
-    org = Organization(slug=slug, **kwargs)
+    # Capa Empresa (CE-01): la org vive bajo una Company envoltura (demo 1:1).
+    company = _get_or_create_company(
+        db, slug=f"{slug}-co", name=kwargs.get("name", slug),
+        licenses_total=kwargs.get("licenses_total", 0) or 0,
+    )
+    org = Organization(slug=slug, company_id=company.id, **kwargs)
     db.add(org)
     db.flush()
     return org
@@ -97,6 +112,7 @@ def _upsert_user(
         return user
     user = User(
         org_id=org.id,
+        company_id=org.company_id,
         email=email,
         hashed_password=hash_password(password),
         full_name=full_name,
@@ -106,7 +122,7 @@ def _upsert_user(
     db.add(user)
     db.flush()
     if org.licenses_total:
-        org.licenses_used += 1
+        org.licenses_used = (org.licenses_used or 0) + 1
     return user
 
 

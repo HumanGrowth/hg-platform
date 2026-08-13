@@ -50,10 +50,18 @@ def raw_db() -> Generator[Session, None, None]:
 
 
 def _bootstrap_org_user(db: Session) -> tuple[Organization, User]:
-    org = Organization(name="RLS Tx Org", slug=f"rls-tx-org-{id(db)}")
+    from hg.modules.identity.models import Company
+
+    company = Company(name="RLS Tx Co", slug=f"rls-tx-co-{id(db)}")
+    db.add(company)
+    db.commit()
+    org = Organization(name="RLS Tx Org", slug=f"rls-tx-org-{id(db)}", company_id=company.id)
     db.add(org)
     db.commit()
-    user = User(org_id=org.id, email=f"rlstx-{id(db)}@a.com", hashed_password="h" * 10, full_name="U")
+    user = User(
+        org_id=org.id, company_id=company.id, email=f"rlstx-{id(db)}@a.com",
+        hashed_password="h" * 10, full_name="U",
+    )
     db.add(user)
     db.commit()
     return org, user
@@ -62,8 +70,12 @@ def _bootstrap_org_user(db: Session) -> tuple[Organization, User]:
 def _cleanup(db: Session, org: Organization) -> None:
     # Reset to the session's real login role (hg, superuser) regardless of
     # whichever transaction/role state the test body left us in.
+    from hg.modules.identity.models import Company
+
+    company_id = org.company_id
     db.rollback()
-    db.execute(delete(Organization).where(Organization.id == org.id))
+    # Borrar por Company: CASCADE elimina org → user → sessions.
+    db.execute(delete(Company).where(Company.id == company_id))
     db.commit()
 
 

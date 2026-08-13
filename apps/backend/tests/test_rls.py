@@ -8,26 +8,34 @@ non-superuser ``hg_app`` (``SET LOCAL ROLE``) and drive
 """
 from __future__ import annotations
 
+from uuid import uuid4
+
 import pytest
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
-from hg.modules.identity.models import Organization, User
+from hg.modules.identity.models import Company, Organization, User
 
 
 def _bootstrap_two_orgs(db: Session) -> tuple[Organization, Organization]:
-    """Create org A + org B, each with exactly one user. Runs as superuser
-    (RLS bypassed) so no org context is required for the inserts."""
-    org_a = Organization(name="Org A", slug="org-a")
-    org_b = Organization(name="Org B", slug="org-b")
+    """Create org A + org B (cada una bajo su Company · CE-01), con un user cada
+    una. Corre como superuser (RLS bypassed) — no requiere contexto de org."""
+    co_a = Company(name="Co A", slug=f"c-{uuid4().hex[:10]}")
+    co_b = Company(name="Co B", slug=f"c-{uuid4().hex[:10]}")
+    db.add_all([co_a, co_b])
+    db.flush()
+    org_a = Organization(name="Org A", slug="org-a", company_id=co_a.id)
+    org_b = Organization(name="Org B", slug="org-b", company_id=co_b.id)
     db.add_all([org_a, org_b])
     db.flush()
 
     db.add_all(
         [
-            User(org_id=org_a.id, email="a@a.com", hashed_password="h" * 10, full_name="A"),
-            User(org_id=org_b.id, email="b@b.com", hashed_password="h" * 10, full_name="B"),
+            User(org_id=org_a.id, company_id=co_a.id, email="a@a.com",
+                 hashed_password="h" * 10, full_name="A"),
+            User(org_id=org_b.id, company_id=co_b.id, email="b@b.com",
+                 hashed_password="h" * 10, full_name="B"),
         ]
     )
     db.flush()
