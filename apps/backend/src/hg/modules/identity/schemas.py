@@ -116,8 +116,9 @@ class OrgOut(BaseModel):
     country: str | None
     billing_status: str
     billing_cycle: str | None
-    licenses_total: int
-    licenses_used: int
+    # Cap opcional de la org (Capa Empresa · CE-01): NULL = sin cap propio.
+    licenses_total: int | None
+    licenses_used: int | None
     is_active: bool
     created_at: datetime
 

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime, timedelta
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
@@ -25,7 +25,14 @@ from hg.core.security import (
     verify_password,
 )
 from hg.modules.identity.invitations import Invitation
-from hg.modules.identity.models import Organization, User, UserRole, UserSession
+from hg.modules.identity.models import (
+    Company,
+    Organization,
+    OrgTier,
+    User,
+    UserRole,
+    UserSession,
+)
 from hg.modules.notifications.email_service import email_service
 
 logger = logging.getLogger("hg.identity")
@@ -43,6 +50,13 @@ _INVALID_CREDENTIALS = "invalid credentials"
 
 def _now() -> datetime:
     return datetime.now(UTC)
+
+
+def _org_cap_reached(org: Organization) -> bool:
+    """True si la org tiene un cap propio y ya lo alcanzó. ``licenses_total`` NULL
+    = sin cap propio (consume del pool de la Empresa; el chequeo del pool vive en
+    TASK 3 — Capa Empresa). Backward-compat tras CE-01 que dejó el cap en NULL."""
+    return org.licenses_total is not None and (org.licenses_used or 0) >= org.licenses_total
 
 
 def _issue_session(db: Session, user: User) -> tuple[str, str]:
@@ -192,7 +206,7 @@ def accept_invite(
     org = db.get(Organization, invitation.org_id)
     if org is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="organization not found")
-    if org.licenses_used >= org.licenses_total:
+    if _org_cap_reached(org):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="no licenses available"
         )
@@ -219,6 +233,7 @@ def accept_invite(
 
     user = User(
         org_id=org.id,
+        company_id=org.company_id,  # denormalizado (Capa Empresa · CE-01)
         email=invitation.email,
         hashed_password=hash_password(password),
         full_name=display_name,
@@ -235,7 +250,7 @@ def accept_invite(
             detail="ese usuario o correo ya existe en la organización",
         ) from e
 
-    org.licenses_used += 1
+    org.licenses_used = (org.licenses_used or 0) + 1
     invitation.accepted_at = _now()
     invitation.accepted_user_id = user.id
 
@@ -259,7 +274,25 @@ def accept_invite(
 
 
 def create_org(db: Session, *, data: dict) -> Organization:
-    org = Organization(**data)
+    # Capa Empresa (CE-01): toda org vive bajo una Company. El endpoint admin
+    # existente crea una Company envoltura 1:1 — el ``licenses_total`` pasado se
+    # usa como pool de la Company y el cap de la org queda en NULL (consume del
+    # pool). TASK 2 agregará crear una org bajo una Company existente.
+    data = dict(data)
+    pool = data.pop("licenses_total", 0) or 0
+    company = Company(
+        name=data["name"],
+        slug=f"c-{uuid4().hex[:10]}",
+        tier=data.get("tier", OrgTier.C),
+        billing_status=data.get("billing_status", "trial"),
+        billing_cycle=data.get("billing_cycle"),
+        contract_start=data.get("contract_start"),
+        contract_end=data.get("contract_end"),
+        licenses_total=pool,
+    )
+    db.add(company)
+    db.flush()
+    org = Organization(company_id=company.id, **data)
     db.add(org)
     try:
         db.flush()
@@ -303,7 +336,7 @@ def create_invitation(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="cannot invite to another organization"
         )
-    if org.licenses_used >= org.licenses_total:
+    if _org_cap_reached(org):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="no licenses available"
         )
@@ -462,15 +495,15 @@ def update_user(db: Session, *, user_id: UUID, actor: User, payload: dict) -> Us
     if new_active is not None and new_active != target.is_active:
         org = db.get(Organization, target.org_id)
         if new_active is True:
-            if org is not None and org.licenses_used >= org.licenses_total:
+            if org is not None and _org_cap_reached(org):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST, detail="no licenses available"
                 )
             if org is not None:
-                org.licenses_used += 1
+                org.licenses_used = (org.licenses_used or 0) + 1
         else:
-            if org is not None and org.licenses_used > 0:
-                org.licenses_used -= 1
+            if org is not None and (org.licenses_used or 0) > 0:
+                org.licenses_used = (org.licenses_used or 0) - 1
         target.is_active = new_active
 
     if new_role is not None:

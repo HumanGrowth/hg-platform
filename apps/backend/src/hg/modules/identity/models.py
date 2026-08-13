@@ -24,6 +24,7 @@ from hg.db import Base
 
 class UserRole(str, enum.Enum):
     superadmin = "superadmin"
+    company_admin = "company_admin"  # RRHH: ve toda su Empresa (TASK 1/2)
     admin = "admin"
     manager = "manager"
     collaborator = "collaborator"
@@ -33,6 +34,40 @@ class OrgTier(str, enum.Enum):
     A = "A"
     B = "B"
     C = "C"
+
+
+class Company(Base):
+    """Empresa: raíz jerárquica por encima de Organization (Capa Empresa · TASK 1).
+
+    Gobernada por superadmin HG (crea la Empresa y asigna el pool de licencias).
+    Sin ``org_id`` y **sin RLS** — mismo criterio que ``organizations`` (raíz de
+    tenant). ``licenses_total`` es el pool de la Empresa; ``licenses_used`` NO se
+    almacena: se computa como la suma de users activos de todas sus orgs (TASK 3).
+    """
+
+    __tablename__ = "companies"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    tier: Mapped[OrgTier] = mapped_column(
+        Enum(OrgTier, name="org_tier", create_type=False), nullable=False, default=OrgTier.C
+    )
+    billing_status: Mapped[str] = mapped_column(String(50), nullable=False, default="trial")
+    billing_cycle: Mapped[str | None] = mapped_column(String(20))  # monthly | annual
+    contract_start: Mapped[date | None] = mapped_column(Date)
+    contract_end: Mapped[date | None] = mapped_column(Date)
+    # Pool de licencias de la Empresa (lo asigna superadmin HG).
+    licenses_total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    organizations: Mapped[list[Organization]] = relationship(
+        "Organization", back_populates="company", lazy="raise"
+    )
 
 
 class CareerLevel(str, enum.Enum):
@@ -47,6 +82,11 @@ class Organization(Base):
     __tablename__ = "organizations"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # Empresa a la que pertenece (Capa Empresa · TASK 1). NOT NULL tras la
+    # migración CE-01 (cada org existente se envolvió en una Company 1:1).
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     tier: Mapped[OrgTier] = mapped_column(
@@ -57,8 +97,12 @@ class Organization(Base):
     billing_cycle: Mapped[str | None] = mapped_column(String(20))  # monthly | annual
     contract_start: Mapped[date | None] = mapped_column(Date)
     contract_end: Mapped[date | None] = mapped_column(Date)
-    licenses_total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    licenses_used: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # Cap opcional de la org sobre el pool de la Empresa. NULL = sin cap propio
+    # (consume del pool de la Company). El pool real vive en la Company.
+    licenses_total: Mapped[int | None] = mapped_column(Integer)
+    # Contador de uso de la org (se conserva). El pool de la Empresa se computa
+    # aparte (TASK 3). Default 0 para orgs nuevas.
+    licenses_used: Mapped[int | None] = mapped_column(Integer, default=0, server_default="0")
     settings: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     logo_url: Mapped[str | None] = mapped_column(String(2048))
     primary_color: Mapped[str | None] = mapped_column(String(7))  # hex e.g. #3B82F6
@@ -68,6 +112,7 @@ class Organization(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
+    company: Mapped[Company] = relationship("Company", back_populates="organizations", lazy="raise")
     users: Mapped[list[User]] = relationship("User", back_populates="organization", lazy="raise")
 
 
@@ -81,6 +126,11 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     org_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # Empresa del user (denormalizado = organizations.company_id) para el scope
+    # del company_admin sin join por org. NOT NULL tras CE-01. Capa Empresa · TASK 1.
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True
     )
     email: Mapped[str] = mapped_column(String(254), nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)

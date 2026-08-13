@@ -80,17 +80,29 @@ def factory() -> Generator[SimpleNamespace, None, None]:
     users / sessions / invitations). Slugs/emails únicos evitan colisiones
     con el seed existente.
     """
+    from hg.modules.identity.models import Company
+
     s = SessionLocal()
-    created_org_ids: list = []
+    created_company_ids: list = []
+
+    def make_company(*, name: str = "Test Company", licenses_total: int = 1000, **kw) -> Company:
+        company = Company(name=name, slug=f"c-{uuid4().hex[:10]}", licenses_total=licenses_total, **kw)
+        s.add(company)
+        s.commit()
+        created_company_ids.append(company.id)
+        return company
 
     def make_org(*, slug: str | None = None, name: str = "Test Org", licenses_total: int = 50,
-                 **kw) -> Organization:
+                 company: Company | None = None, **kw) -> Organization:
+        # Capa Empresa (CE-01): toda org vive bajo una Company. Si no se pasa una,
+        # se crea una envoltura 1:1 (mismo patrón que la migración).
+        company = company or make_company(name=name)
         org = Organization(
-            name=name, slug=slug or f"t-{uuid4().hex[:10]}", licenses_total=licenses_total, **kw
+            name=name, slug=slug or f"t-{uuid4().hex[:10]}",
+            company_id=company.id, licenses_total=licenses_total, **kw
         )
         s.add(org)
         s.commit()
-        created_org_ids.append(org.id)
         return org
 
     def make_user(*, org: Organization, role: UserRole = UserRole.collaborator,
@@ -98,6 +110,7 @@ def factory() -> Generator[SimpleNamespace, None, None]:
                   full_name: str = "Test User", **kw) -> User:
         user = User(
             org_id=org.id,
+            company_id=org.company_id,
             email=email or f"u-{uuid4().hex[:10]}@hgtest.test",
             hashed_password=hash_password(password),
             full_name=full_name,
@@ -105,14 +118,17 @@ def factory() -> Generator[SimpleNamespace, None, None]:
             **kw,
         )
         s.add(user)
-        org.licenses_used += 1
+        org.licenses_used = (org.licenses_used or 0) + 1
         s.commit()
         return user
 
-    yield SimpleNamespace(make_org=make_org, make_user=make_user, session=s)
+    yield SimpleNamespace(
+        make_company=make_company, make_org=make_org, make_user=make_user, session=s
+    )
 
-    for oid in created_org_ids:
-        s.execute(delete(Organization).where(Organization.id == oid))
+    # Borrar por Company: CASCADE elimina orgs → users → sessions / invitations.
+    for cid in created_company_ids:
+        s.execute(delete(Company).where(Company.id == cid))
     s.commit()
     s.close()
 
