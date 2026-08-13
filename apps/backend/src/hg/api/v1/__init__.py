@@ -9,6 +9,8 @@ from hg.modules.assessment.router import router as assessment_router
 from hg.modules.badges.router import me_router as badges_me_router
 from hg.modules.community_events.router import admin_router as community_events_admin_router
 from hg.modules.community_events.router import public_router as community_events_public_router
+from hg.modules.company.router import admin_router as company_admin_router
+from hg.modules.company.router import company_router
 from hg.modules.identity.router import router as identity_router
 from hg.modules.learning.router import router as learning_router
 from hg.modules.learning_units.admin_router import router as learning_units_admin_router
@@ -34,6 +36,9 @@ def api_root() -> dict[str, str]:
 
 router.include_router(identity_router, prefix="/auth", tags=["auth"])
 router.include_router(admin_router, prefix="/admin", tags=["admin"])
+# Capa Empresa (TASK 2): /company/* (company_admin + superadmin) + /admin/companies (superadmin).
+router.include_router(company_router, prefix="/company", tags=["company"])
+router.include_router(company_admin_router, prefix="/admin", tags=["admin", "company"])
 # Upload de imágenes admin → R2: POST /admin/upload/image (superadmin)
 router.include_router(admin_upload_router, prefix="/admin", tags=["admin", "upload"])
 # Marketing: POST /contact/inquiry (público) + GET /admin/contact/inquiries (superadmin)
