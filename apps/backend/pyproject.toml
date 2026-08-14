@@ -39,6 +39,9 @@ dependencies = [
     "python-slugify>=8.0",
     "orjson>=3.10",
 
+    # Spreadsheets (bulk import de miembros · Capa Empresa TASK 4)
+    "openpyxl>=3.1",
+
     # Email
     "resend>=2.0",
 
@@ -96,6 +99,7 @@ extend-immutable-calls = [
     "fastapi.Depends",
     "fastapi.Query",
     "fastapi.Header",
+    "fastapi.File",
     "hg.core.deps.require_role",
     "hg.core.auth_middleware.require_role",
 ]

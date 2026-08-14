@@ -99,3 +99,23 @@ class CompanyInviteResponse(BaseModel):
     role: UserRole
     invite_url: str
     expires_at: datetime
+
+
+# ─────────────────────────── Bulk import (TASK 4) ───────────────────────────
+
+
+class BulkImportRowOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    fila: int
+    email: str
+    estado: str  # creado | actualizado | error
+    motivo: str | None = None
+
+
+class BulkImportResponse(BaseModel):
+    total: int
+    creados: int
+    actualizados: int
+    errores: int
+    filas: list[BulkImportRowOut]

@@ -10,12 +10,15 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
 from hg.core.deps import get_db_as_superadmin, require_role
-from hg.modules.company import service
+from hg.modules.company import bulk_service, service
+from hg.modules.company.bulk_service import BulkImportError
 from hg.modules.company.schemas import (
+    BulkImportResponse,
+    BulkImportRowOut,
     CompanyInviteRequest,
     CompanyInviteResponse,
     CompanyMemberOut,
@@ -28,6 +31,8 @@ from hg.modules.company.schemas import (
 from hg.modules.identity import service as identity_service
 from hg.modules.identity.models import User
 from hg.modules.identity.schemas import UserOut
+
+_MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
 
 # /company/* — RRHH (company_admin) + superadmin.
 company_router = APIRouter()
@@ -127,3 +132,53 @@ def update_member(
         user_id=user_id, payload=body,
     )
     return UserOut.model_validate(member)
+
+
+# ─────────────────────────── Bulk import (TASK 4) ───────────────────────────
+
+
+@company_router.get("/members/bulk-import/template")
+def bulk_import_template(
+    _: User = Depends(require_role("company_admin", "superadmin")),
+) -> Response:
+    """Descarga el `.xlsx` de plantilla (headers + fila de ejemplo)."""
+    content = bulk_service.build_template_xlsx()
+    return Response(
+        content=content,
+        media_type=bulk_service.XLSX_MIME,
+        headers={"Content-Disposition": 'attachment; filename="plantilla_miembros.xlsx"'},
+    )
+
+
+@company_router.post("/members/bulk-import", response_model=BulkImportResponse)
+async def bulk_import_members(
+    file: UploadFile = File(...),
+    company_id: UUID | None = Query(None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role("company_admin", "superadmin")),
+) -> BulkImportResponse:
+    """Alta/actualización masiva de miembros desde un `.xlsx`. Idempotente por
+    email; devuelve un reporte fila por fila (nunca falla todo por una fila mala)."""
+    content = await file.read()
+    if len(content) > _MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="el archivo excede el tamaño máximo (5 MB)",
+        )
+    try:
+        rows = bulk_service.bulk_import(
+            db, company_id=service.resolve_company_id(actor, company_id),
+            actor=actor, content=content,
+        )
+    except BulkImportError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
+        ) from exc
+    filas = [BulkImportRowOut.model_validate(r) for r in rows]
+    return BulkImportResponse(
+        total=len(filas),
+        creados=sum(1 for r in filas if r.estado == "creado"),
+        actualizados=sum(1 for r in filas if r.estado == "actualizado"),
+        errores=sum(1 for r in filas if r.estado == "error"),
+        filas=filas,
+    )
