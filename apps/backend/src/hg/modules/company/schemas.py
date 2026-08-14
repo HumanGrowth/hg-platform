@@ -73,7 +73,11 @@ class CompanyMemberOut(BaseModel):
     last_active_at: datetime | None
     modules_completed: int
     modules_in_progress: int
+    # Estado de consentimiento (docx §6.2): pending | declined |
+    # authorized_no_activity | data_available. Reemplaza el "sin datos" genérico.
+    consent_status: str
     # Estados del assessment por dimensión (RRHH ve estados/score, NUNCA respuestas).
+    # Vacío salvo consent_status == data_available/authorized (autorización a RRHH).
     dimension_states: dict[str, MemberDimensionStateOut]
 
 

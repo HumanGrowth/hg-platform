@@ -24,9 +24,15 @@ export function SessionGate({
   const { accessToken, hydrating, setSession, clear, user } = useAuthStore();
   const [ready, setReady] = React.useState(Boolean(accessToken));
 
-  // Gatea onboarding sólo si el backend dice explícitamente que falta.
+  // Gate del onboarding. Precedencia: consentimiento (paso 2, docx §3) antes del
+  // assessment. `consent === null` = pendiente; `undefined` = /me aún no cargó.
   React.useEffect(() => {
-    if (ready && requireOnboarding && user?.has_completed_onboarding === false) {
+    if (!ready || !requireOnboarding || !user) return;
+    const consentPending =
+      user.consent_manager === null && user.consent_hr === null;
+    if (consentPending) {
+      router.replace("/consentimiento" as never);
+    } else if (user.has_completed_onboarding === false) {
       router.replace("/onboarding/welcome" as never);
     }
   }, [ready, requireOnboarding, user, router]);

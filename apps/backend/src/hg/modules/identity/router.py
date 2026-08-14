@@ -81,6 +81,16 @@ def _has_completed_onboarding(db: Session, user_id: object) -> bool:
     )
 
 
+def _consent_fields(db: Session, user_id: object) -> dict[str, bool | None]:
+    """Consentimiento granular del user para MeResponse (TASK 5 v2). null=pendiente."""
+    from hg.modules.consent import service as consent_service
+
+    consent = consent_service.get_privacy_consent(db, user_id)  # type: ignore[arg-type]
+    if consent is None:
+        return {"consent_manager": None, "consent_hr": None}
+    return {"consent_manager": consent.consent_manager, "consent_hr": consent.consent_hr}
+
+
 @router.get("/me", response_model=MeResponse)
 def me(
     user: User = Depends(get_current_user),
@@ -92,6 +102,7 @@ def me(
         org_name=org.name if org else "",
         reports_count=_reports_count(db, user.id),
         has_completed_onboarding=_has_completed_onboarding(db, user.id),
+        **_consent_fields(db, user.id),
     )
 
 
@@ -121,6 +132,7 @@ def update_me(
         org_name=org.name if org else "",
         reports_count=_reports_count(db, db_user.id),
         has_completed_onboarding=_has_completed_onboarding(db, db_user.id),
+        **_consent_fields(db, db_user.id),
     )
 
 
@@ -148,6 +160,7 @@ def set_onboarding_seen(
         org_name=org.name if org else "",
         reports_count=_reports_count(db, db_user.id),
         has_completed_onboarding=_has_completed_onboarding(db, db_user.id),
+        **_consent_fields(db, db_user.id),
     )
 
 
