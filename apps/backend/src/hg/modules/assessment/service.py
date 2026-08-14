@@ -266,7 +266,20 @@ def finalize_session(db: Session, session: AssessmentSession) -> list[DimensionR
     db.flush()
     _update_profile(db, session, results)
     db.flush()
+    _recompute_progression(db, session.user_id, [r.dimension_code.value for r in results])
     return results
+
+
+def _recompute_progression(db: Session, user_id: uuid.UUID, assessment_codes: list[str]) -> None:
+    """Recalcula el completion + badges de las dimensiones tocadas por el assessment
+    (Capa Empresa · TASK 6). Best-effort: no rompe el finalize si algo falla."""
+    from hg.modules.badges import progression
+
+    user = db.get(User, user_id)
+    if user is None:
+        return
+    for code in set(assessment_codes):
+        progression.recompute_for_assessment_code(db, user, code)
 
 
 def _update_profile(db: Session, session: AssessmentSession, results: list[DimensionResult]) -> None:
@@ -336,6 +349,7 @@ def confirm_dimension(db: Session, user: User, dimension: DimensionCode) -> Dime
     # _result_out(result) read (harmless here since it's plain attrs, but
     # keeping the pattern consistent avoids re-introducing this class of bug).
     db.flush()
+    _recompute_progression(db, user.id, [dimension.value])
     return latest
 
 
