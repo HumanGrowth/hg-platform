@@ -139,6 +139,11 @@ def list_my_team(
     current_user: User = Depends(get_current_user),
 ) -> TeamResponse:
     members = _team_members(db, current_user)
+    # Auditoría (TASK 5): el manager consultó el roster de su equipo. El listado no
+    # expone el estado por dimensión (solo agregados), así que no requiere gate.
+    from hg.modules.consent import service as consent_service
+
+    consent_service.log_access(db, actor=current_user, resource=consent_service.RESOURCE_ROSTER)
     aggs = activity_by_users(db, [m.id for m in members])
     rows = [_member_out(m, aggs[m.id]) for m in members]
 
@@ -255,8 +260,19 @@ def get_user_detail(
     # snapshot denormalizado — así el manager ve lo mismo que el colaborador
     # en /perfil (Release TASK 2, consistencia cross-role).
     from hg.modules.assessment.service import assessment_states_snapshot, latest_dimension_results
+    from hg.modules.consent import service as consent_service
 
-    states = assessment_states_snapshot(latest_dimension_results(db, target.id))
+    # Gate de consentimiento (TASK 5): sin consentimiento vigente del colaborador,
+    # el manager no ve su estado individual (queda "sin datos"). El acceso se audita.
+    states = (
+        assessment_states_snapshot(latest_dimension_results(db, target.id))
+        if consent_service.has_active_consent(db, target.id)
+        else {}
+    )
+    consent_service.log_access(
+        db, actor=current_user,
+        resource=consent_service.RESOURCE_ASSESSMENT_STATE, target_user_id=target.id,
+    )
     return TeamMemberDetailOut(
         **base.model_dump(),
         enrollments=[_enrollment_out(db, e) for e in enrollments],

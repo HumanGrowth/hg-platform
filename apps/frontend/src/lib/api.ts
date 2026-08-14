@@ -658,3 +658,23 @@ export const apiPublishPerspective = async (id: string, publish: boolean): Promi
 export const apiDeletePerspective = async (id: string): Promise<void> => {
   await backend.delete(`/api/v1/admin/perspectives/${id}`);
 };
+
+// ─────────────────────────── Consentimiento de privacidad (Capa Empresa · TASK 5) ───────────────────────────
+
+export interface ConsentStatus {
+  current_version: string;
+  accepted: boolean;
+  accepted_at: string | null;
+}
+
+/** Estado del consentimiento del colaborador frente a la versión vigente. */
+export const apiGetConsent = async (): Promise<ConsentStatus> => {
+  const res = await backend.get<ConsentStatus>("/api/v1/me/consent");
+  return res.data;
+};
+
+/** Acepta la versión vigente del consentimiento (idempotente). */
+export const apiAcceptConsent = async (): Promise<ConsentStatus> => {
+  const res = await backend.post<ConsentStatus>("/api/v1/me/consent");
+  return res.data;
+};

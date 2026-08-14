@@ -163,13 +163,19 @@ def create_org_in_company(
 # ─────────────────────────── company_admin: members (roster) ───────────────────────────
 
 
-def list_company_members(db: Session, company_id: UUID) -> list[CompanyMemberOut]:
+def list_company_members(db: Session, company_id: UUID, actor: User) -> list[CompanyMemberOut]:
     """Roster de toda la Empresa: info + progreso + estados del assessment por
-    dimensión. RRHH ve estados/score, NUNCA respuestas item-by-item (privacidad)."""
+    dimensión. RRHH ve estados/score, NUNCA respuestas item-by-item (privacidad).
+
+    Gate de consentimiento (TASK 5): el `state` individual solo se muestra si el
+    colaborador aceptó la versión vigente; sin consentimiento queda vacío ("sin
+    datos"; igual cuenta en los agregados de la org). El acceso al roster se
+    audita (``data_access_log``)."""
     from hg.modules.assessment.service import (
         assessment_states_snapshot,
         latest_dimension_results,
     )
+    from hg.modules.consent import service as consent_service
     from hg.modules.people.service import activity_by_users
 
     _get_company(db, company_id)
@@ -181,11 +187,18 @@ def list_company_members(db: Session, company_id: UUID) -> list[CompanyMemberOut
     ).all()
     users = [u for u, _ in rows]
     aggs = activity_by_users(db, [u.id for u in users])
+    consented = consent_service.consented_user_ids(db, [u.id for u in users])
+    consent_service.log_access(db, actor=actor, resource=consent_service.RESOURCE_ROSTER)
 
     out: list[CompanyMemberOut] = []
     for user, org_name in rows:
         agg = aggs[user.id]
-        states = assessment_states_snapshot(latest_dimension_results(db, user.id))
+        # Sin consentimiento vigente → no exponer el estado individual.
+        states = (
+            assessment_states_snapshot(latest_dimension_results(db, user.id))
+            if user.id in consented
+            else {}
+        )
         out.append(
             CompanyMemberOut(
                 id=user.id, full_name=user.full_name, email=user.email, role=user.role,
