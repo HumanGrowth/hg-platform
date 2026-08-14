@@ -469,6 +469,10 @@ def complete_block(
     progress = _upsert_block_progress(db, attempt, unit_block.id, BlockProgressStatus.completed)
     _maybe_complete_unit(db, unit, attempt)
     db.flush()
+    # Recalcular el completion + badges de nivel de la dimensión (Capa Empresa · TASK 6).
+    from hg.modules.badges import progression
+
+    progression.recompute_dimension(db, current_user, unit.dimension_code)
     db.refresh(progress)
     return progress
 
