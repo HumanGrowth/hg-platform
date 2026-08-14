@@ -151,7 +151,9 @@ def list_members(
     db: Session = Depends(get_db_as_superadmin),
     actor: User = Depends(require_role("company_admin", "superadmin")),
 ) -> list[CompanyMemberOut]:
-    return service.list_company_members(db, service.resolve_company_id(actor, company_id))
+    return service.list_company_members(
+        db, service.resolve_company_id(actor, company_id), actor
+    )
 
 
 @company_router.post(
