@@ -141,3 +141,23 @@ class SetCompanyAccessRequest(BaseModel):
     """Reemplaza el set completo de Áreas habilitadas de la Empresa (PUT)."""
 
     area_codes: list[str] = Field(default_factory=list, max_length=50)
+
+
+# ─────────────────────────── Bulk import (TASK 4) ───────────────────────────
+
+
+class BulkImportRowOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    fila: int
+    email: str
+    estado: str  # creado | actualizado | error
+    motivo: str | None = None
+
+
+class BulkImportResponse(BaseModel):
+    total: int
+    creados: int
+    actualizados: int
+    errores: int
+    filas: list[BulkImportRowOut]
