@@ -661,20 +661,26 @@ export const apiDeletePerspective = async (id: string): Promise<void> => {
 
 // ─────────────────────────── Consentimiento de privacidad (Capa Empresa · TASK 5) ───────────────────────────
 
+/** Consentimiento granular (docx v1.0). null=pendiente, true=autorizó, false=declinó/revocó. */
 export interface ConsentStatus {
-  current_version: string;
-  accepted: boolean;
-  accepted_at: string | null;
+  consent_manager: boolean | null;
+  consent_hr: boolean | null;
+  updated_at: string | null;
 }
 
-/** Estado del consentimiento del colaborador frente a la versión vigente. */
 export const apiGetConsent = async (): Promise<ConsentStatus> => {
   const res = await backend.get<ConsentStatus>("/api/v1/me/consent");
   return res.data;
 };
 
-/** Acepta la versión vigente del consentimiento (idempotente). */
-export const apiAcceptConsent = async (): Promise<ConsentStatus> => {
-  const res = await backend.post<ConsentStatus>("/api/v1/me/consent");
+/** Setea ambos scopes (aceptar / "Ahora no"=ambos false / revocar). */
+export const apiSetConsent = async (
+  consentManager: boolean,
+  consentHr: boolean,
+): Promise<ConsentStatus> => {
+  const res = await backend.post<ConsentStatus>("/api/v1/me/consent", {
+    consent_manager: consentManager,
+    consent_hr: consentHr,
+  });
   return res.data;
 };

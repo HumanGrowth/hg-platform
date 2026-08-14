@@ -17,6 +17,10 @@ export interface User {
    * Si viene `false`, el SessionGate manda al onboarding. `undefined` = no
    * forzar (usuarios actuales no se ven afectados). */
   has_completed_onboarding?: boolean;
+  /** Consentimiento granular (TASK 5 v2). `null` = pendiente → el SessionGate
+   * manda a /consentimiento antes del onboarding. `undefined` = aún no cargado. */
+  consent_manager?: boolean | null;
+  consent_hr?: boolean | null;
 }
 
 /** /api/v1/auth/me = User + org_name. */
