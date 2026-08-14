@@ -25,6 +25,7 @@ from hg.db import get_db
 from hg.modules.identity.models import User
 from hg.modules.learning.models import CareerPath, Enrollment
 from hg.modules.learning_units import quiz_grading
+from hg.modules.learning_units.area_access import visible_units_predicate
 from hg.modules.learning_units.dimensions import dimensions_for_career_paths
 from hg.modules.learning_units.models import (
     BLOCK_TYPE_TO_MODEL,
@@ -76,9 +77,15 @@ _VIDEO_TYPES = {UnitBlockType.video_intro, UnitBlockType.video_teaching, UnitBlo
 # ─────────────────────────── Helpers ───────────────────────────
 
 
-def _published_unit_or_404(db: Session, slug: str) -> LearningUnit:
+def _published_unit_or_404(db: Session, slug: str, user: User) -> LearningUnit:
+    # Gating por Área (TASK 8): si el Área de la unit no está habilitada para la
+    # Empresa del user, respondemos 404 (no 403) para no filtrar su existencia.
     unit = db.scalar(
-        select(LearningUnit).where(LearningUnit.slug == slug, LearningUnit.published_at.isnot(None))
+        select(LearningUnit).where(
+            LearningUnit.slug == slug,
+            LearningUnit.published_at.isnot(None),
+            visible_units_predicate(user),
+        )
     )
     if unit is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="unit not found")
@@ -266,7 +273,10 @@ def _select_feed_units(db: Session, user: User) -> tuple[LearningUnit | None, li
         ).all()
     )
 
-    candidates_q = select(LearningUnit).where(LearningUnit.published_at.isnot(None))
+    candidates_q = select(LearningUnit).where(
+        LearningUnit.published_at.isnot(None),
+        visible_units_predicate(user),  # gating por Área de la Empresa (TASK 8)
+    )
     if completed_unit_ids:
         candidates_q = candidates_q.where(LearningUnit.id.notin_(completed_unit_ids))
     if enrolled_dimensions:
@@ -324,6 +334,7 @@ def list_modulos_by_dimension(
         LearningUnit.dimension_code.in_(dims) if dims else sa_false(),
         LearningUnit.published_at.isnot(None),
         LearningUnit.superseded_by_unit_id.is_(None),
+        visible_units_predicate(current_user),  # gating por Área (TASK 8)
     ]
     if level_code:
         conds.append(LearningUnit.level_code == level_code)
@@ -345,9 +356,9 @@ def list_modulos_by_dimension(
 def get_unit_detail(
     slug: str,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> LearningUnitDetail:
-    unit = _published_unit_or_404(db, slug)
+    unit = _published_unit_or_404(db, slug, current_user)
     return _load_unit_detail(db, unit)
 
 
@@ -357,7 +368,7 @@ def start_attempt(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> LearningUnitAttempt:
-    unit = _published_unit_or_404(db, slug)
+    unit = _published_unit_or_404(db, slug, current_user)
     attempt = _get_attempt(db, unit.id, current_user)
     now = datetime.now(UTC)
 
@@ -387,7 +398,7 @@ def get_attempt(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> LearningUnitAttempt:
-    unit = _published_unit_or_404(db, slug)
+    unit = _published_unit_or_404(db, slug, current_user)
     return _own_attempt_or_404(db, unit, current_user)
 
 
@@ -447,7 +458,7 @@ def complete_block(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> BlockProgress:
-    unit = _published_unit_or_404(db, slug)
+    unit = _published_unit_or_404(db, slug, current_user)
     unit_block = _unit_block_or_404(db, unit, block_id)
     if unit_block.block_type in (UnitBlockType.quiz_recall, UnitBlockType.reflection_write):
         raise HTTPException(
@@ -470,7 +481,7 @@ def submit_quiz(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> QuizSubmitResponse:
-    unit = _published_unit_or_404(db, slug)
+    unit = _published_unit_or_404(db, slug, current_user)
     unit_block = _unit_block_or_404(db, unit, block_id)
     if unit_block.block_type != UnitBlockType.quiz_recall:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="block is not a quiz_recall")
@@ -527,7 +538,7 @@ def submit_reflection(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ReflectionSubmitOut:
-    unit = _published_unit_or_404(db, slug)
+    unit = _published_unit_or_404(db, slug, current_user)
     unit_block = _unit_block_or_404(db, unit, block_id)
     if unit_block.block_type != UnitBlockType.reflection_write:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="block is not a reflection_write")

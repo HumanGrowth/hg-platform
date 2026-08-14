@@ -14,18 +14,24 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from hg.modules.company.models import CompanyAreaAccess
 from hg.modules.company.schemas import (
+    AreaOut,
+    CompanyAccessOut,
     CompanyMemberOut,
     CompanyOrgOut,
     CompanyOut,
+    CreateAreaRequest,
     CreateCompanyOrgRequest,
     CreateCompanyRequest,
     MemberDimensionStateOut,
+    UpdateAreaRequest,
     UpdateMemberRequest,
 )
 from hg.modules.identity import service as identity_service
 from hg.modules.identity.invitations import Invitation
 from hg.modules.identity.models import Company, Organization, User, UserRole
+from hg.modules.learning_units.models import Area
 
 # ─────────────────────────── Scope de Empresa (frontera en app) ───────────────────────────
 
@@ -239,3 +245,93 @@ def update_company_member(
 
     db.flush()
     return member
+
+
+# ─────────────────────────── Áreas de contenido (superadmin · TASK 8) ───────────────────────────
+
+
+def list_areas(db: Session) -> list[AreaOut]:
+    rows = db.scalars(select(Area).order_by(Area.code)).all()
+    return [AreaOut.model_validate(a) for a in rows]
+
+
+def create_area(db: Session, *, data: CreateAreaRequest) -> AreaOut:
+    if db.get(Area, data.code) is not None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="area code already exists")
+    area = Area(code=data.code, name=data.name, description=data.description)
+    db.add(area)
+    db.flush()
+    db.refresh(area)
+    return AreaOut.model_validate(area)
+
+
+def update_area(db: Session, *, code: str, data: UpdateAreaRequest) -> AreaOut:
+    area = db.get(Area, code)
+    if area is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="area not found")
+    if data.name is not None:
+        area.name = data.name
+    if data.description is not None:
+        area.description = data.description
+    if data.is_active is not None:
+        area.is_active = data.is_active
+    db.flush()
+    db.refresh(area)
+    return AreaOut.model_validate(area)
+
+
+# ─────────────────────────── Acceso Empresa↔Área (superadmin · TASK 8) ───────────────────────────
+
+
+def get_company_access(db: Session, company_id: UUID) -> CompanyAccessOut:
+    _require_company(db, company_id)
+    codes = list(
+        db.scalars(
+            select(CompanyAreaAccess.area_code)
+            .where(CompanyAreaAccess.company_id == company_id)
+            .order_by(CompanyAreaAccess.area_code)
+        ).all()
+    )
+    return CompanyAccessOut(company_id=company_id, area_codes=codes)
+
+
+def set_company_access(
+    db: Session, *, company_id: UUID, area_codes: list[str], granted_by: User
+) -> CompanyAccessOut:
+    """Reemplaza el set de Áreas habilitadas de la Empresa (diff add/remove).
+
+    Valida que la Empresa exista y que cada código sea un Área real; luego borra
+    los rows sobrantes y agrega los faltantes (idempotente vía diff)."""
+    _require_company(db, company_id)
+    wanted = set(area_codes)
+    if wanted:
+        real = set(db.scalars(select(Area.code).where(Area.code.in_(wanted))).all())
+        unknown = wanted - real
+        if unknown:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"áreas inexistentes: {sorted(unknown)}",
+            )
+    current = {
+        row.area_code: row
+        for row in db.scalars(
+            select(CompanyAreaAccess).where(CompanyAreaAccess.company_id == company_id)
+        ).all()
+    }
+    for code in current.keys() - wanted:  # revocar
+        db.delete(current[code])
+    for code in wanted - current.keys():  # otorgar
+        db.add(
+            CompanyAreaAccess(
+                company_id=company_id, area_code=code, granted_by_user_id=granted_by.id
+            )
+        )
+    db.flush()
+    return CompanyAccessOut(company_id=company_id, area_codes=sorted(wanted))
+
+
+def _require_company(db: Session, company_id: UUID) -> Company:
+    company = db.get(Company, company_id)
+    if company is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="company not found")
+    return company

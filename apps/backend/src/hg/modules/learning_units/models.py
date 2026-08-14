@@ -78,6 +78,22 @@ class BlockProgressStatus(str, enum.Enum):
     completed = "completed"
 
 
+class Area(Base):
+    """Área de contenido (vertical funcional/industria: Manufactura, IT, Cost
+    center, …) · Capa Empresa TASK 8. Catálogo global sin RLS (gobernado por
+    superadmin). ``LearningUnit.area_code = NULL`` es contenido **general**,
+    visible para todas las empresas; un código restringe la unit a las empresas
+    con acceso a esa Área (``company_area_access``)."""
+
+    __tablename__ = "areas"
+
+    code: Mapped[str] = mapped_column(String(10), primary_key=True)  # ej. MFG / IT / CC
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class LearningUnit(Base):
     """Cabecera de un módulo de aprendizaje: meta + secuencia ordenada de bloques."""
 
@@ -98,6 +114,13 @@ class LearningUnit(Base):
     # career_paths (los códigos Drive no viven en esa tabla). El mapeo
     # dimensión→color/label del DS se resuelve en el frontend.
     dimension_code: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
+    # Área de contenido (Capa Empresa · TASK 8). NULL = general (visible a todas
+    # las empresas); un código de `areas` restringe la unit a las empresas con
+    # acceso a esa Área (ver company_area_access). Naming Drive:
+    # `<AREA>-<DIM>-L<n>-P<n>-<seq>` (GEN → NULL).
+    area_code: Mapped[str | None] = mapped_column(
+        String(10), ForeignKey("areas.code", ondelete="SET NULL"), index=True
+    )
     # Pilar (P<n>) y correlativo del código Drive `<DIM>-L<n>-P<n>-<seq>`.
     pillar_number: Mapped[int | None] = mapped_column(nullable=True)
     unit_number: Mapped[int | None] = mapped_column(nullable=True)

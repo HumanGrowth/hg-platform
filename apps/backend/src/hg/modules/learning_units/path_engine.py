@@ -26,7 +26,9 @@ from sqlalchemy.orm import Session
 
 from hg.modules.assessment.models import DimensionResult
 from hg.modules.assessment.service import latest_dimension_results
+from hg.modules.identity.models import User
 from hg.modules.learning.models import CareerPath
+from hg.modules.learning_units.area_access import visible_units_predicate
 from hg.modules.learning_units.dimensions import career_path_for_dimension
 from hg.modules.learning_units.models import LearningUnit, LearningUnitAttempt
 
@@ -106,11 +108,15 @@ def _interleave(groups: list[list[PathStep]]) -> list[PathStep]:
 
 
 def build_path(db: Session, user_id: uuid.UUID, upcoming_n: int = 5) -> PathResult:
+    user = db.get(User, user_id)
+    if user is None:
+        raise ValueError(f"user {user_id} not found")
     units = list(
         db.scalars(
             select(LearningUnit).where(
                 LearningUnit.published_at.isnot(None),
                 LearningUnit.superseded_by_unit_id.is_(None),
+                visible_units_predicate(user),  # gating por Área de la Empresa (TASK 8)
             )
         ).all()
     )
