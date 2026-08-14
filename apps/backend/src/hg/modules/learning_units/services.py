@@ -294,6 +294,7 @@ def upsert_unit_from_dict(
             slug=slug,
             title=unit_dict["title"],
             dimension_code=unit_dict["dimension_code"],
+            area_code=unit_dict.get("area_code"),
             pillar_number=unit_dict.get("pillar_number"),
             unit_number=unit_dict.get("unit_number"),
             competency_code=unit_dict.get("competency_code"),

@@ -17,15 +17,20 @@ from hg.core.deps import get_db_as_superadmin, require_role
 from hg.modules.company import bulk_service, service
 from hg.modules.company.bulk_service import BulkImportError
 from hg.modules.company.schemas import (
+    AreaOut,
     BulkImportResponse,
     BulkImportRowOut,
+    CompanyAccessOut,
     CompanyInviteRequest,
     CompanyInviteResponse,
     CompanyMemberOut,
     CompanyOrgOut,
     CompanyOut,
+    CreateAreaRequest,
     CreateCompanyOrgRequest,
     CreateCompanyRequest,
+    SetCompanyAccessRequest,
+    UpdateAreaRequest,
     UpdateMemberRequest,
 )
 from hg.modules.identity import service as identity_service
@@ -58,6 +63,60 @@ def create_company(
     _: User = Depends(require_role("superadmin")),
 ) -> CompanyOut:
     return service.create_company(db, data=body)
+
+
+# ─────────────────────────── Superadmin: /admin/areas (catálogo global · TASK 8) ─────────────
+
+
+@admin_router.get("/areas", response_model=list[AreaOut])
+def list_areas(
+    db: Session = Depends(get_db_as_superadmin),
+    _: User = Depends(require_role("superadmin")),
+) -> list[AreaOut]:
+    return service.list_areas(db)
+
+
+@admin_router.post("/areas", response_model=AreaOut, status_code=status.HTTP_201_CREATED)
+def create_area(
+    body: CreateAreaRequest,
+    db: Session = Depends(get_db_as_superadmin),
+    _: User = Depends(require_role("superadmin")),
+) -> AreaOut:
+    return service.create_area(db, data=body)
+
+
+@admin_router.patch("/areas/{code}", response_model=AreaOut)
+def update_area(
+    code: str,
+    body: UpdateAreaRequest,
+    db: Session = Depends(get_db_as_superadmin),
+    _: User = Depends(require_role("superadmin")),
+) -> AreaOut:
+    return service.update_area(db, code=code.upper(), data=body)
+
+
+# ─── Superadmin: /admin/companies/{id}/access (entitlements Empresa↔Área · TASK 8) ───
+
+
+@admin_router.get("/companies/{company_id}/access", response_model=CompanyAccessOut)
+def get_company_access(
+    company_id: UUID,
+    db: Session = Depends(get_db_as_superadmin),
+    _: User = Depends(require_role("superadmin")),
+) -> CompanyAccessOut:
+    return service.get_company_access(db, company_id)
+
+
+@admin_router.put("/companies/{company_id}/access", response_model=CompanyAccessOut)
+def set_company_access(
+    company_id: UUID,
+    body: SetCompanyAccessRequest,
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role("superadmin")),
+) -> CompanyAccessOut:
+    return service.set_company_access(
+        db, company_id=company_id, area_codes=[c.upper() for c in body.area_codes], granted_by=actor
+    )
 
 
 # ─────────────────────────── company_admin: /company/* ───────────────────────────

@@ -327,6 +327,8 @@ class LearningUnitCreate(BaseModel):
     slug: str = Field(pattern=r"^[a-z0-9]+(-[a-z0-9]+)*$", min_length=3, max_length=120)
     title: str = Field(min_length=1, max_length=200)
     dimension_code: str
+    # Área de contenido (Capa Empresa · TASK 8). None = general.
+    area_code: str | None = None
     pillar_number: int | None = None
     unit_number: int | None = None
     competency_code: str | None = None
