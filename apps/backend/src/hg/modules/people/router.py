@@ -262,11 +262,12 @@ def get_user_detail(
     from hg.modules.assessment.service import assessment_states_snapshot, latest_dimension_results
     from hg.modules.consent import service as consent_service
 
-    # Gate de consentimiento (TASK 5): sin consentimiento vigente del colaborador,
-    # el manager no ve su estado individual (queda "sin datos"). El acceso se audita.
+    # Gate de consentimiento granular (TASK 5 · docx): el manager ve el estado
+    # individual solo si el colaborador autorizó a su jefe directo (consent_manager).
+    # El acceso se audita.
     states = (
         assessment_states_snapshot(latest_dimension_results(db, target.id))
-        if consent_service.has_active_consent(db, target.id)
+        if consent_service.consent_manager_ok(consent_service.get_privacy_consent(db, target.id))
         else {}
     )
     consent_service.log_access(

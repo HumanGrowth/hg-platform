@@ -167,10 +167,11 @@ def list_company_members(db: Session, company_id: UUID, actor: User) -> list[Com
     """Roster de toda la Empresa: info + progreso + estados del assessment por
     dimensión. RRHH ve estados/score, NUNCA respuestas item-by-item (privacidad).
 
-    Gate de consentimiento (TASK 5): el `state` individual solo se muestra si el
-    colaborador aceptó la versión vigente; sin consentimiento queda vacío ("sin
-    datos"; igual cuenta en los agregados de la org). El acceso al roster se
-    audita (``data_access_log``)."""
+    Gate de consentimiento granular (TASK 5 · docx §6.2): el `state` individual
+    solo se expone si el colaborador autorizó a RRHH (``consent_hr``). Además cada
+    miembro trae un ``consent_status`` de 4 valores (pending/declined/
+    authorized_no_activity/data_available) que reemplaza el "sin datos" genérico.
+    El acceso al roster se audita (``data_access_log``)."""
     from hg.modules.assessment.service import (
         assessment_states_snapshot,
         latest_dimension_results,
@@ -187,16 +188,21 @@ def list_company_members(db: Session, company_id: UUID, actor: User) -> list[Com
     ).all()
     users = [u for u, _ in rows]
     aggs = activity_by_users(db, [u.id for u in users])
-    consented = consent_service.consented_user_ids(db, [u.id for u in users])
+    consents = consent_service.privacy_consents_by_user(db, [u.id for u in users])
     consent_service.log_access(db, actor=actor, resource=consent_service.RESOURCE_ROSTER)
 
     out: list[CompanyMemberOut] = []
     for user, org_name in rows:
         agg = aggs[user.id]
-        # Sin consentimiento vigente → no exponer el estado individual.
+        consent = consents.get(user.id)
+        has_activity = agg.courses_completed > 0 or agg.courses_in_progress > 0
+        status = consent_service.consent_status(
+            consent.consent_hr if consent is not None else None, has_activity
+        )
+        # El estado por dimensión solo se muestra con autorización a RRHH.
         states = (
             assessment_states_snapshot(latest_dimension_results(db, user.id))
-            if user.id in consented
+            if consent_service.consent_hr_ok(consent)
             else {}
         )
         out.append(
@@ -206,6 +212,7 @@ def list_company_members(db: Session, company_id: UUID, actor: User) -> list[Com
                 last_active_at=agg.last_active_at,
                 modules_completed=agg.courses_completed,
                 modules_in_progress=agg.courses_in_progress,
+                consent_status=status,
                 dimension_states={
                     k: MemberDimensionStateOut(**v) for k, v in states.items()
                 },
