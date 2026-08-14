@@ -3,6 +3,7 @@
 import { Plus, Upload } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import * as React from "react";
 
 import { CompanyAdminGate } from "@/components/CompanyAdminGate";
@@ -18,6 +19,9 @@ import { toast } from "@/lib/toast-store";
 import type { CompanyMember, CompanyOrg } from "@/lib/types";
 
 function MembersContent() {
+  // Superadmin puede scopear a una empresa con ?company_id (vista de empresa
+  // seleccionada, CE-06). El company_admin lo omite → su propia empresa.
+  const companyId = useSearchParams().get("company_id") ?? undefined;
   const [members, setMembers] = React.useState<CompanyMember[] | null>(null);
   const [orgs, setOrgs] = React.useState<CompanyOrg[]>([]);
   const [open, setOpen] = React.useState(false);
@@ -25,13 +29,13 @@ function MembersContent() {
   const [submitting, setSubmitting] = React.useState(false);
 
   const load = React.useCallback(() => {
-    apiCompanyMembers()
+    apiCompanyMembers(companyId)
       .then(setMembers)
       .catch(() => setMembers([]));
-    apiCompanyOrgs()
+    apiCompanyOrgs(companyId)
       .then(setOrgs)
       .catch(() => setOrgs([]));
-  }, []);
+  }, [companyId]);
   React.useEffect(load, [load]);
 
   async function onInvite(e: React.FormEvent) {
@@ -42,11 +46,11 @@ function MembersContent() {
     }
     setSubmitting(true);
     try {
-      await apiCompanyInvite(form.org_id, {
-        email: form.email.trim(),
-        role: form.role,
-        name: form.name.trim() || undefined,
-      });
+      await apiCompanyInvite(
+        form.org_id,
+        { email: form.email.trim(), role: form.role, name: form.name.trim() || undefined },
+        companyId,
+      );
       toast("Invitación enviada.", "success");
       setOpen(false);
       setForm({ org_id: "", email: "", name: "", role: "collaborator" });
@@ -211,7 +215,9 @@ function MembersContent() {
 export default function CompanyMembersPage() {
   return (
     <CompanyAdminGate>
-      <MembersContent />
+      <React.Suspense fallback={null}>
+        <MembersContent />
+      </React.Suspense>
     </CompanyAdminGate>
   );
 }

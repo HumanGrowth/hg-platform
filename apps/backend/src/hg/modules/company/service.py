@@ -130,8 +130,7 @@ def list_company_orgs(db: Session, company_id: UUID) -> list[CompanyOrgOut]:
     ).all()
     return [
         CompanyOrgOut(
-            id=o.id, name=o.name, slug=o.slug, tier=o.tier,
-            licenses_total=o.licenses_total, user_count=int(count),
+            id=o.id, name=o.name, slug=o.slug, country=o.country, user_count=int(count),
         )
         for o, count in rows
     ]
@@ -141,11 +140,10 @@ def create_org_in_company(
     db: Session, *, company_id: UUID, data: CreateCompanyOrgRequest
 ) -> CompanyOrgOut:
     """Crea una org DENTRO de la Empresa (a diferencia de /admin/orgs, que crea
-    una Company envoltura). El ``licenses_total`` es el cap opcional de la org."""
+    una Company envoltura). CE-06: la org no lleva tier ni cap de licencias."""
     _get_company(db, company_id)
     org = Organization(
-        name=data.name, slug=data.slug, tier=data.tier, country=data.country,
-        company_id=company_id, licenses_total=data.licenses_total,
+        name=data.name, slug=data.slug, country=data.country, company_id=company_id,
     )
     db.add(org)
     try:
@@ -155,8 +153,7 @@ def create_org_in_company(
             status_code=status.HTTP_409_CONFLICT, detail="organization slug already exists"
         ) from e
     return CompanyOrgOut(
-        id=org.id, name=org.name, slug=org.slug, tier=org.tier,
-        licenses_total=org.licenses_total, user_count=0,
+        id=org.id, name=org.name, slug=org.slug, country=org.country, user_count=0,
     )
 
 
@@ -255,12 +252,12 @@ def update_company_member(
         member.manager_id = manager.id
 
     if payload.is_active is not None and payload.is_active != member.is_active:
-        org = db.get(Organization, member.org_id)
-        if payload.is_active is True and org is not None:
-            identity_service.check_license_available(db, org)
-            org.licenses_used = (org.licenses_used or 0) + 1
-        elif org is not None and (org.licenses_used or 0) > 0:
-            org.licenses_used = (org.licenses_used or 0) - 1
+        # Reactivar consume del pool de la Empresa → validar antes (CE-06: sin
+        # contador por-org; el uso se computa por users activos).
+        if payload.is_active is True:
+            org = db.get(Organization, member.org_id)
+            if org is not None:
+                identity_service.check_license_available(db, org)
         member.is_active = payload.is_active
 
     db.flush()

@@ -92,14 +92,15 @@ def factory() -> Generator[SimpleNamespace, None, None]:
         created_company_ids.append(company.id)
         return company
 
-    def make_org(*, slug: str | None = None, name: str = "Test Org", licenses_total: int = 50,
-                 company: Company | None = None, **kw) -> Organization:
-        # Capa Empresa (CE-01): toda org vive bajo una Company. Si no se pasa una,
-        # se crea una envoltura 1:1 (mismo patrón que la migración).
-        company = company or make_company(name=name)
+    def make_org(*, slug: str | None = None, name: str = "Test Org",
+                 licenses_total: int | None = 50, company: Company | None = None,
+                 **kw) -> Organization:
+        # CE-06: la org no lleva licencias; el pool vive en la Company. Si no se
+        # pasa una Company, se crea una envoltura 1:1 con `licenses_total` de pool.
+        if company is None:
+            company = make_company(name=name, licenses_total=licenses_total or 1000)
         org = Organization(
-            name=name, slug=slug or f"t-{uuid4().hex[:10]}",
-            company_id=company.id, licenses_total=licenses_total, **kw
+            name=name, slug=slug or f"t-{uuid4().hex[:10]}", company_id=company.id, **kw
         )
         s.add(org)
         s.commit()
@@ -118,7 +119,7 @@ def factory() -> Generator[SimpleNamespace, None, None]:
             **kw,
         )
         s.add(user)
-        org.licenses_used = (org.licenses_used or 0) + 1
+        # CE-06: el uso del pool se computa por users activos, no hay contador.
         s.commit()
         return user
 

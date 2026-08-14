@@ -58,16 +58,16 @@ def test_admin_cannot_invite_to_other_org_403(client: TestClient, factory, auth_
 
 
 def test_invite_without_licenses_400(client: TestClient, factory, auth_headers) -> None:
-    # Org con 1 licencia, ya usada por el admin -> sin cupo.
-    org = factory.make_org(licenses_total=1)
-    admin = factory.make_user(org=org, role=UserRole.admin)  # licenses_used -> 1
+    # Empresa con pool=1, ya usado por el admin activo -> sin cupo (CE-06).
+    org = factory.make_org(licenses_total=1)  # → pool de la Company = 1
+    admin = factory.make_user(org=org, role=UserRole.admin)  # 1 user activo
     res = client.post(
         f"/api/v1/admin/orgs/{org.id}/invite",
         headers=auth_headers(admin),
         json={"email": "nope@hgtest.test", "role": "collaborator"},
     )
     assert res.status_code == 400
-    assert res.json()["detail"] == "organization license cap reached"
+    assert res.json()["detail"] == "company license pool exhausted"
 
 
 def test_accept_invite_creates_user_and_consumes_license(
@@ -91,10 +91,11 @@ def test_accept_invite_creates_user_and_consumes_license(
     assert body["user"]["email"] == "fresh@hgtest.test"
     assert body["user"]["role"] == "collaborator"
 
-    # Licencias consumidas: admin (1) + nuevo user (1) = 2.
+    # Pool consumido: admin (1) + nuevo user (1) = 2 users activos (CE-06: computado).
+    from hg.modules.identity.service import company_active_users
+
     factory.session.expire_all()
-    refreshed = factory.session.get(type(org), org.id)
-    assert refreshed.licenses_used == 2
+    assert company_active_users(factory.session, org.company_id) == 2
 
     # No reutilizable -> 410.
     again = client.post(

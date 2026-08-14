@@ -85,8 +85,7 @@ function AdminOrgsContent() {
             <tr className="font-sans text-micro uppercase tracking-meta text-fg-muted">
               <th className="px-5 py-3 font-semibold">Nombre</th>
               <th className="px-5 py-3 font-semibold">Slug</th>
-              <th className="px-5 py-3 font-semibold">Tier</th>
-              <th className="px-5 py-3 font-semibold">Licencias</th>
+              <th className="px-5 py-3 font-semibold">País</th>
               <th className="px-5 py-3 font-semibold">Estado</th>
             </tr>
           </thead>
@@ -99,13 +98,10 @@ function AdminOrgsContent() {
               >
                 <td className="px-5 py-3 font-sans text-sm font-semibold text-fg">{o.name}</td>
                 <td className="px-5 py-3 font-mono text-xs text-fg-muted">{o.slug}</td>
-                <td className="px-5 py-3">
-                  <Badge>{o.tier}</Badge>
+                <td className="px-5 py-3 text-sm text-fg-muted">{o.country ?? "—"}</td>
+                <td className="px-5 py-3 text-sm text-fg-muted">
+                  {o.is_active ? "Activa" : "Inactiva"}
                 </td>
-                <td className="px-5 py-3 font-mono text-sm text-fg">
-                  {o.licenses_used}/{o.licenses_total}
-                </td>
-                <td className="px-5 py-3 text-sm text-fg-muted">{o.billing_status}</td>
               </tr>
             ))}
           </tbody>

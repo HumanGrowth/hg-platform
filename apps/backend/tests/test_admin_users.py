@@ -12,8 +12,10 @@ from hg.modules.identity.models import Organization, User, UserRole
 
 
 def _org_used(factory, org_id) -> int:
+    """Uso del pool = users activos de la Empresa de la org (CE-06: computado)."""
     factory.session.expire_all()
-    return factory.session.get(Organization, org_id).licenses_used
+    org = factory.session.get(Organization, org_id)
+    return service.company_active_users(factory.session, org.company_id)
 
 
 # ─────────────────────────── list ───────────────────────────
@@ -94,20 +96,16 @@ def test_deactivate_user_frees_license(client: TestClient, factory, auth_headers
 
 
 def test_reactivate_without_license_400(client: TestClient, factory, auth_headers) -> None:
-    org = factory.make_org(licenses_total=1)
-    admin = factory.make_user(org=org, role=UserRole.admin)  # used = 1
-    # Colaborador inactivo que no consume licencia (org al tope con el admin).
+    org = factory.make_org(licenses_total=1)  # → pool de la Empresa = 1
+    admin = factory.make_user(org=org, role=UserRole.admin)  # 1 user activo → pool lleno
+    # Colaborador inactivo (no consume); reactivarlo excede el pool.
     collab = factory.make_user(org=org, is_active=False)
-    factory.session.execute(
-        update(Organization).where(Organization.id == org.id).values(licenses_used=1)
-    )
-    factory.session.commit()
 
     res = client.patch(
         f"/api/v1/admin/users/{collab.id}", headers=auth_headers(admin), json={"is_active": True}
     )
     assert res.status_code == 400
-    assert res.json()["detail"] == "organization license cap reached"
+    assert res.json()["detail"] == "company license pool exhausted"
 
 
 # ─────────────────────────── patch: cross-org / self / role ───────────────────────────

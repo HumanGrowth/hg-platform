@@ -89,20 +89,10 @@ class Organization(Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-    tier: Mapped[OrgTier] = mapped_column(
-        Enum(OrgTier, name="org_tier"), nullable=False, default=OrgTier.C
-    )
     country: Mapped[str | None] = mapped_column(String(2))  # ISO 3166-1 alpha-2
-    billing_status: Mapped[str] = mapped_column(String(50), nullable=False, default="trial")
-    billing_cycle: Mapped[str | None] = mapped_column(String(20))  # monthly | annual
-    contract_start: Mapped[date | None] = mapped_column(Date)
-    contract_end: Mapped[date | None] = mapped_column(Date)
-    # Cap opcional de la org sobre el pool de la Empresa. NULL = sin cap propio
-    # (consume del pool de la Company). El pool real vive en la Company.
-    licenses_total: Mapped[int | None] = mapped_column(Integer)
-    # Contador de uso de la org (se conserva). El pool de la Empresa se computa
-    # aparte (TASK 3). Default 0 para orgs nuevas.
-    licenses_used: Mapped[int | None] = mapped_column(Integer, default=0, server_default="0")
+    # NOTA (CE-06): billing/contrato/tier y el modelo de licencias por-org se
+    # movieron a Company (la entidad comercial). La Organization es solo la unidad
+    # operativa; el límite de licencias es el pool de la Empresa (computado).
     settings: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     logo_url: Mapped[str | None] = mapped_column(String(2048))
     primary_color: Mapped[str | None] = mapped_column(String(7))  # hex e.g. #3B82F6

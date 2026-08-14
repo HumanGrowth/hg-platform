@@ -42,15 +42,11 @@ export interface InviteInfo {
 }
 
 export interface Org {
+  // CE-06: billing/tier/licencias viven en Company; la org es solo operativa.
   id: string;
   name: string;
   slug: string;
-  tier: "A" | "B" | "C";
   country: string | null;
-  billing_status: string;
-  billing_cycle: string | null;
-  licenses_total: number;
-  licenses_used: number;
   is_active: boolean;
   created_at: string;
 }
@@ -905,11 +901,11 @@ export interface Company {
 }
 
 export interface CompanyOrg {
+  // CE-06: la org es la unidad operativa; tier/licencias viven en la Empresa.
   id: string;
   name: string;
   slug: string;
-  tier: string;
-  licenses_total: number | null; // cap opcional (NULL = sin cap, consume del pool)
+  country: string | null;
   user_count: number;
 }
 

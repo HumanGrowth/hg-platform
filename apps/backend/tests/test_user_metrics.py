@@ -54,9 +54,16 @@ def test_me_metrics_returns_canonical_states(client: TestClient, factory, auth_h
 def test_manager_sees_same_states_as_collaborator(client: TestClient, factory, auth_headers) -> None:
     """El manager (/team/[id]) y el colaborador (/me/results) ven los MISMOS
     estados del assessment para el mismo user (consistencia cross-role)."""
+    from hg.modules.consent.models import UserPrivacyConsent
+
     org = factory.make_org()
     manager = factory.make_user(org=org, role=UserRole.manager)
     report = factory.make_user(org=org, manager_id=manager.id)
+    # TASK 5 v2: el manager ve el estado solo con autorización del reporte al jefe.
+    factory.session.add(
+        UserPrivacyConsent(org_id=org.id, user_id=report.id, consent_manager=True, consent_hr=None)
+    )
+    factory.session.commit()
     now = datetime.now(UTC)
     _add_result(org.id, report.id, DimensionCode.P1, "L3", now - timedelta(days=2))
     _add_result(org.id, report.id, DimensionCode.P3, "N2", now - timedelta(days=1))

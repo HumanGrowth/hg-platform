@@ -116,13 +116,8 @@ class OrgOut(BaseModel):
     id: UUID
     name: str
     slug: str
-    tier: OrgTier
     country: str | None
-    billing_status: str
-    billing_cycle: str | None
-    # Cap opcional de la org (Capa Empresa · CE-01): NULL = sin cap propio.
-    licenses_total: int | None
-    licenses_used: int | None
+    # CE-06: billing/tier/licencias viven en Company; la org es solo operativa.
     is_active: bool
     created_at: datetime
 
