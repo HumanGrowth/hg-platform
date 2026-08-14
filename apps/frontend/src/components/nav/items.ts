@@ -1,4 +1,5 @@
 import {
+  Building2,
   Calendar,
   ClipboardList,
   Home,
@@ -26,6 +27,7 @@ export interface NavItem {
 
 const MANAGER_ROLES: UserRole[] = ["manager", "admin", "superadmin"];
 const ADMIN_ROLES: UserRole[] = ["admin", "superadmin"];
+const COMPANY_ADMIN_ROLES: UserRole[] = ["company_admin", "superadmin"];
 
 // Desktop (TASK polish-04, Opción B): se suma "Eventos" — en desktop no hay
 // drawer "Más", así que sin esto el acceso a eventos se perdía. En mobile,
@@ -38,6 +40,7 @@ export const SIDE_NAV_ITEMS: NavItem[] = [
   { href: "/eventos", label: "Eventos", icon: Calendar },
   { href: "/perfil", label: "Mi Perfil", icon: User },
   { href: "/team", label: "Mi equipo", icon: Users, roles: MANAGER_ROLES },
+  { href: "/admin/empresa/miembros", label: "Empresa", icon: Building2, roles: COMPANY_ADMIN_ROLES },
   { href: "/admin/org", label: "Modo admin", icon: ShieldCheck, roles: ADMIN_ROLES },
 ];
 

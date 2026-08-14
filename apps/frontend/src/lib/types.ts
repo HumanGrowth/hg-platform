@@ -1,4 +1,4 @@
-export type UserRole = "superadmin" | "admin" | "manager" | "collaborator";
+export type UserRole = "superadmin" | "company_admin" | "admin" | "manager" | "collaborator";
 export type CareerLevel = "L1" | "L2" | "L3" | "L4a" | "L4b";
 
 export interface User {
@@ -883,4 +883,76 @@ export interface PerspectiveInput {
   pdf_url?: string | null;
   abstract?: string | null;
   gated_email_required?: boolean | null;
+}
+
+// ─────────────────────────── Capa Empresa (TASK 2/3/4/8) ───────────────────────────
+
+export interface Company {
+  id: string;
+  name: string;
+  slug: string;
+  tier: string;
+  billing_status: string;
+  licenses_total: number; // pool
+  licenses_used: number;
+  org_count: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface CompanyOrg {
+  id: string;
+  name: string;
+  slug: string;
+  tier: string;
+  licenses_total: number | null; // cap opcional (NULL = sin cap, consume del pool)
+  user_count: number;
+}
+
+export interface MemberDimensionState {
+  state: string;
+  state_label: string;
+  source: string;
+}
+
+export interface CompanyMember {
+  id: string;
+  full_name: string;
+  email: string;
+  role: UserRole;
+  org_id: string;
+  org_name: string;
+  is_active: boolean;
+  last_active_at: string | null;
+  modules_completed: number;
+  modules_in_progress: number;
+  dimension_states: Record<string, MemberDimensionState>;
+}
+
+export interface Area {
+  code: string;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface CompanyAccess {
+  company_id: string;
+  area_codes: string[];
+}
+
+export interface BulkImportRow {
+  fila: number;
+  email: string;
+  estado: "creado" | "actualizado" | "error";
+  motivo: string | null;
+}
+
+export interface BulkImportResponse {
+  total: number;
+  creados: number;
+  actualizados: number;
+  errores: number;
+  filas: BulkImportRow[];
 }

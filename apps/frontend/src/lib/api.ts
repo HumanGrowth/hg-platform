@@ -9,6 +9,12 @@ import type {
   PerspectiveSummary,
   MyPath,
   SavedTip,
+  Area,
+  BulkImportResponse,
+  Company,
+  CompanyAccess,
+  CompanyMember,
+  CompanyOrg,
   AdminUser,
   AssessmentDimensionCode,
   AssessmentSession,
@@ -50,6 +56,7 @@ import type {
   TeamMemberDetail,
   TeamResponse,
   UserMetrics,
+  UserRole,
 } from "@/lib/types";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
@@ -676,5 +683,125 @@ export const apiGetConsent = async (): Promise<ConsentStatus> => {
 /** Acepta la versión vigente del consentimiento (idempotente). */
 export const apiAcceptConsent = async (): Promise<ConsentStatus> => {
   const res = await backend.post<ConsentStatus>("/api/v1/me/consent");
+  return res.data;
+};
+
+// ─────────────────────────── Capa Empresa · RRHH (company_admin + superadmin) ───────────────────────────
+
+export const apiCompanyOrgs = async (companyId?: string): Promise<CompanyOrg[]> => {
+  const res = await backend.get<CompanyOrg[]>("/api/v1/company/organizations", {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
+  return res.data;
+};
+
+export const apiCreateCompanyOrg = async (
+  body: { name: string; slug: string; tier?: string; country?: string | null; licenses_total?: number | null },
+  companyId?: string,
+): Promise<CompanyOrg> => {
+  const res = await backend.post<CompanyOrg>("/api/v1/company/organizations", body, {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
+  return res.data;
+};
+
+export const apiCompanyMembers = async (companyId?: string): Promise<CompanyMember[]> => {
+  const res = await backend.get<CompanyMember[]>("/api/v1/company/members", {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
+  return res.data;
+};
+
+export const apiCompanyInvite = async (
+  orgId: string,
+  body: { email: string; role?: string; name?: string },
+  companyId?: string,
+): Promise<{ invitation_id: string; email: string; role: UserRole; invite_url: string; expires_at: string }> => {
+  const res = await backend.post(`/api/v1/company/organizations/${orgId}/invite`, body, {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
+  return res.data;
+};
+
+export const apiUpdateCompanyMember = async (
+  userId: string,
+  body: { org_id?: string | null; manager_id?: string | null; is_active?: boolean | null },
+  companyId?: string,
+): Promise<Me> => {
+  const res = await backend.patch<Me>(`/api/v1/company/members/${userId}`, body, {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
+  return res.data;
+};
+
+/** Descarga la plantilla .xlsx de bulk import (blob). */
+export const apiBulkImportTemplate = async (): Promise<Blob> => {
+  const res = await backend.get("/api/v1/company/members/bulk-import/template", {
+    responseType: "blob",
+  });
+  return res.data as Blob;
+};
+
+export const apiBulkImport = async (file: File, companyId?: string): Promise<BulkImportResponse> => {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await backend.post<BulkImportResponse>("/api/v1/company/members/bulk-import", fd, {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
+  return res.data;
+};
+
+// ─────────────────────────── Capa Empresa · superadmin (companies + áreas) ───────────────────────────
+
+export const apiListCompanies = async (): Promise<Company[]> => {
+  const res = await backend.get<Company[]>("/api/v1/admin/companies");
+  return res.data;
+};
+
+export const apiCreateCompany = async (body: {
+  name: string;
+  slug: string;
+  tier?: string;
+  licenses_total?: number;
+  billing_status?: string;
+}): Promise<Company> => {
+  const res = await backend.post<Company>("/api/v1/admin/companies", body);
+  return res.data;
+};
+
+export const apiListAreas = async (): Promise<Area[]> => {
+  const res = await backend.get<Area[]>("/api/v1/admin/areas");
+  return res.data;
+};
+
+export const apiCreateArea = async (body: {
+  code: string;
+  name: string;
+  description?: string | null;
+}): Promise<Area> => {
+  const res = await backend.post<Area>("/api/v1/admin/areas", body);
+  return res.data;
+};
+
+export const apiUpdateArea = async (
+  code: string,
+  body: { name?: string; description?: string | null; is_active?: boolean },
+): Promise<Area> => {
+  const res = await backend.patch<Area>(`/api/v1/admin/areas/${code}`, body);
+  return res.data;
+};
+
+export const apiGetCompanyAccess = async (companyId: string): Promise<CompanyAccess> => {
+  const res = await backend.get<CompanyAccess>(`/api/v1/admin/companies/${companyId}/access`);
+  return res.data;
+};
+
+export const apiSetCompanyAccess = async (
+  companyId: string,
+  areaCodes: string[],
+): Promise<CompanyAccess> => {
+  const res = await backend.put<CompanyAccess>(`/api/v1/admin/companies/${companyId}/access`, {
+    area_codes: areaCodes,
+  });
   return res.data;
 };
