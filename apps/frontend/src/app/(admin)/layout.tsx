@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { ArrowLeft, Building2, Calendar, LineChart, Newspaper } from "lucide-react";
+import { ArrowLeft, Building2, Calendar, Layers, LineChart, Newspaper, Users2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -17,6 +17,8 @@ import { useAuthStore } from "@/lib/auth-store";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const isSuperadmin = user?.role === "superadmin";
+  const isOrgAdmin = user?.role === "admin" || isSuperadmin;
+  const isCompanyAdmin = user?.role === "company_admin" || isSuperadmin;
 
   return (
     // Shell de altura fija: el sidebar queda fijo y SOLO el <main> scrollea (igual
@@ -33,15 +35,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div>
               <Eyebrow className="mb-3">Panel HG</Eyebrow>
               <nav className="flex flex-col gap-1">
-                <Link
-                  href={"/admin/org" as Route}
-                  className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
-                >
-                  <LineChart size={16} strokeWidth={1.75} />
-                  Dashboard org
-                </Link>
+                {isOrgAdmin && (
+                  <Link
+                    href={"/admin/org" as Route}
+                    className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
+                  >
+                    <LineChart size={16} strokeWidth={1.75} />
+                    Dashboard org
+                  </Link>
+                )}
+                {isCompanyAdmin && (
+                  <Link
+                    href={"/admin/empresa/miembros" as Route}
+                    className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
+                  >
+                    <Users2 size={16} strokeWidth={1.75} />
+                    Miembros de empresa
+                  </Link>
+                )}
                 {isSuperadmin && (
                   <>
+                    <Link
+                      href={"/admin/companies" as Route}
+                      className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
+                    >
+                      <Building2 size={16} strokeWidth={1.75} />
+                      Empresas
+                    </Link>
+                    <Link
+                      href={"/admin/areas" as Route}
+                      className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
+                    >
+                      <Layers size={16} strokeWidth={1.75} />
+                      Áreas de contenido
+                    </Link>
                     <Link
                       href={"/admin/orgs" as Route}
                       className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
