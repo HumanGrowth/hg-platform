@@ -24,6 +24,7 @@ from sqlalchemy.orm import Session
 from hg.core.deps import get_current_user
 from hg.db import get_db
 from hg.modules.identity.models import User, UserRole
+from hg.modules.learning_units.area_access import enabled_area_codes, visible_units_predicate
 from hg.modules.learning_units.models import LearningUnit, ModuleAssignment
 
 admin_router = APIRouter()
@@ -128,7 +129,11 @@ def list_assignable_units(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="insufficient role")
     rows = db.scalars(
         select(LearningUnit)
-        .where(LearningUnit.published_at.isnot(None), LearningUnit.superseded_by_unit_id.is_(None))
+        .where(
+            LearningUnit.published_at.isnot(None),
+            LearningUnit.superseded_by_unit_id.is_(None),
+            visible_units_predicate(current_user),  # solo Áreas habilitadas (TASK 8)
+        )
         .order_by(
             LearningUnit.dimension_code.asc(),
             LearningUnit.level_code.asc(),
@@ -175,14 +180,28 @@ def assign_modules(
 ) -> list[ModuleAssignmentOut]:
     target = _authorize_manage_target(db, current_user, user_id)
 
-    valid_ids = set(
-        db.scalars(select(LearningUnit.id).where(LearningUnit.id.in_(body.unit_ids))).all()
+    units = list(
+        db.scalars(
+            select(LearningUnit).where(LearningUnit.id.in_(body.unit_ids))
+        ).all()
     )
+    valid_ids = {u.id for u in units}
     missing = set(body.unit_ids) - valid_ids
     if missing:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"learning units inexistentes: {sorted(str(m) for m in missing)}",
+        )
+    # Gating por Área (TASK 8): no se puede asignar contenido de un Área que la
+    # Empresa del colaborador no tiene habilitada (el general — area_code NULL — sí).
+    enabled = enabled_area_codes(db, target.company_id)
+    blocked = [
+        u.slug for u in units if u.area_code is not None and u.area_code not in enabled
+    ]
+    if blocked:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Área no habilitada para la empresa: {sorted(blocked)}",
         )
     # Dedup contra lo ya asignado (respeta el unique constraint sin romper).
     already = set(

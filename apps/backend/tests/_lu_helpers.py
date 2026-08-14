@@ -33,13 +33,17 @@ def make_unit(
     n_blocks: int = 1,
     published: bool = True,
     estimated_duration_seconds: int = 300,
+    area_code: str | None = None,
 ) -> LearningUnit:
-    """Crea una unit publicada con ``n_blocks`` bloques (templates text_context)."""
+    """Crea una unit publicada con ``n_blocks`` bloques (templates text_context).
+
+    ``area_code`` = Área de contenido (TASK 8); None = general."""
     unit = LearningUnit(
         slug=f"lu-{uuid4().hex[:12]}",
         title="Test Unit",
         dimension_code=dimension_code,
         level_code=level_code,
+        area_code=area_code,
         published_at=datetime.now(UTC) if published else None,
         estimated_duration_seconds=estimated_duration_seconds,
     )

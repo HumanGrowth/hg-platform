@@ -99,3 +99,45 @@ class CompanyInviteResponse(BaseModel):
     role: UserRole
     invite_url: str
     expires_at: datetime
+
+
+# ─────────────────────────── Superadmin: Áreas de contenido (TASK 8) ───────────────────────────
+
+_AREA_CODE_RE = r"^[A-Z]{2,3}$"
+
+
+class AreaOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    code: str
+    name: str
+    description: str | None
+    is_active: bool
+    created_at: datetime
+
+
+class CreateAreaRequest(BaseModel):
+    code: str = Field(pattern=_AREA_CODE_RE)  # MFG/IT/CC… (2-3 letras)
+    name: str = Field(min_length=1, max_length=120)
+    description: str | None = Field(default=None, max_length=2000)
+
+
+class UpdateAreaRequest(BaseModel):
+    """Todo opcional; el ``code`` es inmutable (es PK y FK del contenido)."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    description: str | None = Field(default=None, max_length=2000)
+    is_active: bool | None = None
+
+
+class CompanyAccessOut(BaseModel):
+    """Áreas habilitadas para una Empresa (los códigos con un row de acceso)."""
+
+    company_id: UUID
+    area_codes: list[str]
+
+
+class SetCompanyAccessRequest(BaseModel):
+    """Reemplaza el set completo de Áreas habilitadas de la Empresa (PUT)."""
+
+    area_codes: list[str] = Field(default_factory=list, max_length=50)

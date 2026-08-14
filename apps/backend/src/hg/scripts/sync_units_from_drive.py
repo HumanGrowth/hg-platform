@@ -86,7 +86,8 @@ _VALID_COMPETENCY_CODES = frozenset({"C1", "C2", "C3", "C4", "C5"})
 
 # Genérico `<DIM>-L<n>-P<n>-<seq>` (TASK 1) — ya NO hardcodea `CP-`; tolera un
 # sufijo después del seq (ej. `CP-L1-P1-001 - algo`).
-_FOLDER_NAME_RE = re.compile(r"^([A-Z]{2,3})-L(\d{1,2})-P(\d{1,2})-(\d{1,4})\b")
+# Prefijo de Área opcional (Capa Empresa · TASK 8): `[<AREA>-]<DIM>-L<n>-P<n>-<seq>`.
+_FOLDER_NAME_RE = re.compile(r"^(?:([A-Z]{2,3})-)?([A-Z]{2,3})-L(\d{1,2})-P(\d{1,2})-(\d{1,4})\b")
 _VID_NUM_RE = re.compile(r"VID(\d+)", re.IGNORECASE)
 
 
@@ -127,8 +128,12 @@ def parse_folder_name(folder_name: str) -> UnitCode | None:
     m = _FOLDER_NAME_RE.match(folder_name.strip().upper())
     if not m:
         return None
+    area = m.group(1)
+    if area == "GEN":  # centinela de contenido general → sin Área
+        area = None
     return UnitCode(
-        dimension=m.group(1), level=int(m.group(2)), pillar=int(m.group(3)), number=int(m.group(4))
+        area=area, dimension=m.group(2), level=int(m.group(3)),
+        pillar=int(m.group(4)), number=int(m.group(5)),
     )
 
 
@@ -593,6 +598,7 @@ def _process_folder(
     # legacy — es dato externo de Jorge y mete el pilar dentro de lo que debería
     # ser la dimensión; se descarta y se re-deriva del nombre de carpeta).
     unit_json["dimension_code"] = code.dimension
+    unit_json["area_code"] = code.area  # None = general (Capa Empresa · TASK 8)
     unit_json["pillar_number"] = code.pillar
     unit_json["unit_number"] = code.number
     unit_json["level_code"] = f"L{code.level}"
