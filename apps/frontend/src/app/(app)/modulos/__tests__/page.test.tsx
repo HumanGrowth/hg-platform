@@ -5,10 +5,20 @@ import type { LearningUnitFeed, LearningUnitFeedItem } from "@/lib/types";
 
 import ModulosPage from "../page";
 
-const { getModulosFeed, listModulosByDimension, getHomeDashboard, router, searchParams } = vi.hoisted(() => ({
+const {
+  getModulosFeed,
+  listModulosByDimension,
+  getHomeDashboard,
+  getMyPath,
+  getMyAssignments,
+  router,
+  searchParams,
+} = vi.hoisted(() => ({
   getModulosFeed: vi.fn(),
   listModulosByDimension: vi.fn(),
   getHomeDashboard: vi.fn(),
+  getMyPath: vi.fn(),
+  getMyAssignments: vi.fn(),
   router: { push: vi.fn(), replace: vi.fn() },
   searchParams: { pillar: null as string | null },
 }));
@@ -22,6 +32,8 @@ vi.mock("@/lib/api", () => ({
   apiGetModulosFeed: getModulosFeed,
   apiListModulosByDimension: listModulosByDimension,
   apiGetHomeDashboard: getHomeDashboard,
+  apiGetMyPath: getMyPath,
+  apiMyAssignments: getMyAssignments,
 }));
 
 const unit: LearningUnitFeedItem = {
@@ -42,6 +54,9 @@ beforeEach(() => {
   getModulosFeed.mockReset().mockResolvedValue(feed);
   listModulosByDimension.mockReset().mockResolvedValue([unit]);
   getHomeDashboard.mockReset().mockResolvedValue({ stats: { streak_days: 0 } });
+  // next_step null → el hero cae al hero del feed (TASK 7).
+  getMyPath.mockReset().mockResolvedValue({ next_step: null, upcoming: [] });
+  getMyAssignments.mockReset().mockResolvedValue([]);
   router.push.mockReset();
   searchParams.pillar = null;
 });

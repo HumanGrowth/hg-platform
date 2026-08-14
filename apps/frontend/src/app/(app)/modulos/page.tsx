@@ -15,7 +15,13 @@ import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { apiGetHomeDashboard, apiGetModulosFeed, apiListModulosByDimension, apiMyAssignments } from "@/lib/api";
+import {
+  apiGetHomeDashboard,
+  apiGetModulosFeed,
+  apiListModulosByDimension,
+  apiMyAssignments,
+  apiGetMyPath,
+} from "@/lib/api";
 import { dimensionShortName } from "@/lib/dimension-styles";
 import type { LearningUnitFeed, LearningUnitFeedItem } from "@/lib/types";
 
@@ -27,9 +33,11 @@ function ModulosPageContent() {
 
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [feed, setFeed] = React.useState<LearningUnitFeed | null>(null);
+  // Slug del "módulo de hoy" = next_step del motor de ruta (GET /me/path). El
+  // tab de Módulos ya no tiene su propia lógica de hero (TASK 7): usa la ruta.
+  const [nextStepSlug, setNextStepSlug] = React.useState<string | null>(null);
   const [filteredUnits, setFilteredUnits] = React.useState<LearningUnitFeedItem[] | null>(null);
   const [streakDays, setStreakDays] = React.useState<number | null>(null);
-  const [showAllNext, setShowAllNext] = React.useState(false);
   const [assignedIds, setAssignedIds] = React.useState<Set<string>>(new Set());
 
   React.useEffect(() => {
@@ -38,8 +46,6 @@ function ModulosPageContent() {
       .catch(() => setAssignedIds(new Set()));
   }, []);
 
-  const NEXT_PREVIEW = 3;
-
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
@@ -47,8 +53,11 @@ function ModulosPageContent() {
         const units = await apiListModulosByDimension(dimensionFilter, levelFilter ?? undefined, 20);
         setFilteredUnits(units);
       } else {
-        const data = await apiGetModulosFeed();
+        // "Tu módulo de hoy" sale del motor de ruta (next_step); el feed aporta
+        // el card completo (poster, blocks, attempt_status) del mismo módulo.
+        const [data, path] = await Promise.all([apiGetModulosFeed(), apiGetMyPath()]);
         setFeed(data);
+        setNextStepSlug(path.next_step?.slug ?? null);
       }
       setStatus("ok");
     } catch {
@@ -66,6 +75,17 @@ function ModulosPageContent() {
   React.useEffect(() => {
     void load();
   }, [load]);
+
+  // "Tu módulo de hoy" = el módulo del next_step de la ruta, con el card completo
+  // del feed. Si el next_step no está en el feed (edge), cae al hero del feed.
+  const heroUnit = React.useMemo(() => {
+    if (!feed) return null;
+    if (nextStepSlug) {
+      const match = [feed.hero, ...feed.next].find((u) => u && u.slug === nextStepSlug);
+      if (match) return match;
+    }
+    return feed.hero;
+  }, [feed, nextStepSlug]);
 
   const isEmpty =
     dimensionFilter
@@ -158,7 +178,7 @@ function ModulosPageContent() {
       {status === "ok" && !isEmpty && !dimensionFilter && feed && (
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
           <div className="flex min-w-0 flex-col gap-8">
-            {feed.hero && <UnitCardHero unit={feed.hero} />}
+            {heroUnit && <UnitCardHero unit={heroUnit} />}
 
             {streakDays !== null && streakDays > 0 && (
               <div className="flex items-center gap-2 self-start rounded-md bg-bg-sunken px-3 py-2">
@@ -169,25 +189,14 @@ function ModulosPageContent() {
               </div>
             )}
 
-            {feed.next.length > 0 && (
-              <section>
-                <Eyebrow className="mb-3">Próximos en tu ruta</Eyebrow>
-                <div className="flex flex-col gap-3">
-                  {(showAllNext ? feed.next : feed.next.slice(0, NEXT_PREVIEW)).map((unit) => (
-                    <UnitCardCompact key={unit.id} unit={unit} assigned={assignedIds.has(unit.id)} />
-                  ))}
-                </div>
-                {feed.next.length > NEXT_PREVIEW && (
-                  <button
-                    type="button"
-                    onClick={() => setShowAllNext((v) => !v)}
-                    className="mt-3 inline-flex items-center gap-1 font-sans text-sm font-semibold text-primary hover:underline"
-                  >
-                    {showAllNext ? "Ver menos" : `Ver todos (${feed.next.length})`}
-                  </button>
-                )}
-              </section>
-            )}
+            {/* "Próximos en tu ruta" se quitó (TASK 7): duplicaba el tab Mi Ruta,
+                que queda como único lugar de la secuencia completa. Link directo: */}
+            <Link
+              href={"/path" as Route}
+              className="self-start font-sans text-sm font-semibold text-primary hover:underline"
+            >
+              Ver mi ruta completa →
+            </Link>
 
             {/* Catálogo agrupado por Dimensión → Pilar (TASK 1) */}
             <section>
