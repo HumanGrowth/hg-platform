@@ -29,10 +29,17 @@ def test_me_results_only_own(client, factory, auth_headers) -> None:
 
 
 def test_manager_detail_shows_states_not_responses(client, factory, auth_headers) -> None:
+    from hg.modules.consent.models import UserPrivacyConsent
+
     org = factory.make_org()
     mgr = factory.make_user(org=org, role=UserRole.manager)
     report = factory.make_user(org=org, manager_id=mgr.id)
     run_session(client, auth_headers(report), "onboarding_short")
+    # TASK 5 v2: el manager ve el estado solo si el reporte autorizó a su jefe.
+    factory.session.add(
+        UserPrivacyConsent(org_id=org.id, user_id=report.id, consent_manager=True, consent_hr=None)
+    )
+    factory.session.commit()
     res = client.get(f"/api/v1/manager/users/{report.id}/detail", headers=auth_headers(mgr))
     assert res.status_code == 200, res.text
     body = res.json()

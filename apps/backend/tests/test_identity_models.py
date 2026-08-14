@@ -13,7 +13,6 @@ from hg.modules.identity.models import (
     CareerLevel,
     Company,
     Organization,
-    OrgTier,
     User,
     UserRole,
     UserSession,
@@ -27,7 +26,7 @@ def _make_org(db: Session, *, slug: str | None = None, name: str = "Acme") -> Or
     db.add(company)
     db.flush()
     org = Organization(
-        name=name, slug=slug or f"t-{uuid4().hex[:10]}", tier=OrgTier.B, company_id=company.id
+        name=name, slug=slug or f"t-{uuid4().hex[:10]}", company_id=company.id
     )
     db.add(org)
     db.flush()
@@ -85,12 +84,8 @@ def test_org_defaults(db: Session) -> None:
     db.add(org)
     db.flush()
     db.refresh(org)
-    assert org.tier is OrgTier.C  # default
-    assert org.billing_status == "trial"
-    # Capa Empresa (CE-01): licenses_total (cap) es nullable sin default → NULL
-    # (sin cap propio; consume del pool de la Company). licenses_used default 0.
-    assert org.licenses_total is None
-    assert org.licenses_used == 0
+    # CE-06: la org ya no tiene tier/billing/licencias (viven en la Company).
+    assert org.is_active is True
     assert org.settings == {}
     assert org.is_active is True
 

@@ -81,12 +81,15 @@ def _get_or_create_org(db: Session, *, slug: str, **kwargs) -> Organization:
     org = db.execute(select(Organization).where(Organization.slug == slug)).scalar_one_or_none()
     if org:
         return org
-    # Capa Empresa (CE-01): la org vive bajo una Company envoltura (demo 1:1).
+    # Capa Empresa: la org vive bajo una Company envoltura (demo 1:1). CE-06:
+    # tier/billing/licencias van a la Company; la org solo lleva sus campos.
     company = _get_or_create_company(
         db, slug=f"{slug}-co", name=kwargs.get("name", slug),
         licenses_total=kwargs.get("licenses_total", 0) or 0,
     )
-    org = Organization(slug=slug, company_id=company.id, **kwargs)
+    _org_fields = {"name", "country", "logo_url", "primary_color", "settings", "is_active"}
+    org_kwargs = {k: v for k, v in kwargs.items() if k in _org_fields}
+    org = Organization(slug=slug, company_id=company.id, **org_kwargs)
     db.add(org)
     db.flush()
     return org
@@ -121,8 +124,7 @@ def _upsert_user(
     )
     db.add(user)
     db.flush()
-    if org.licenses_total:
-        org.licenses_used = (org.licenses_used or 0) + 1
+    # CE-06: el uso del pool se computa por users activos, no hay contador.
     return user
 
 

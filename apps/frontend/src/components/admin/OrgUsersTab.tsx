@@ -54,8 +54,6 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
     return m;
   }, [data]);
 
-  const noLicenses = !!org && org.licenses_used >= org.licenses_total;
-
   const visibleItems = React.useMemo(() => {
     const items = data?.items ?? [];
     const q = query.trim().toLowerCase();
@@ -87,13 +85,6 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
 
   return (
     <div>
-      {noLicenses ? (
-        <div className="mb-4">
-          <Badge variant="warning">
-            Sin licencias disponibles · no puedes reactivar usuarios
-          </Badge>
-        </div>
-      ) : null}
 
       {/* Filtros */}
       <div className="mb-4 flex flex-wrap gap-3">
@@ -194,7 +185,6 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
                       >
                         <button
                           type="button"
-                          disabled={!u.is_active && noLicenses}
                           onClick={() =>
                             mutate(
                               u.id,

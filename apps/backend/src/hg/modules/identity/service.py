@@ -52,16 +52,9 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
-def _org_cap_reached(org: Organization) -> bool:
-    """True si la org tiene un cap propio y ya lo alcanzó. ``licenses_total`` NULL
-    = sin cap propio (consume del pool de la Empresa). Un cap NULL nunca bloquea;
-    el límite real es el pool de la Empresa (``check_license_available``)."""
-    return org.licenses_total is not None and (org.licenses_used or 0) >= org.licenses_total
-
-
 def company_active_users(db: Session, company_id: UUID) -> int:
     """Uso del pool de la Empresa = users activos de todas sus orgs (Capa Empresa
-    · TASK 3). Punto único de verdad — ``companies.licenses_used`` no se almacena."""
+    · TASK 3). Punto único de verdad — el uso no se almacena, se computa."""
     return int(
         db.scalar(
             select(func.count())
@@ -74,18 +67,13 @@ def company_active_users(db: Session, company_id: UUID) -> int:
 
 def check_license_available(db: Session, org: Organization) -> None:
     """Valida, antes de sumar un user activo a ``org``, el **pool de la Empresa**
-    y el **cap opcional de la org** (Capa Empresa · TASK 3). Mensajes distintos
-    para cada límite. Reemplaza el viejo chequeo por-org de licencias."""
+    (CE-06: el límite es solo el pool de la Empresa; el cap por-org se eliminó).
+    El uso se computa por users activos, no hay contador que mantener."""
     company = db.get(Company, org.company_id)
     if company is not None and company_active_users(db, company.id) >= company.licenses_total:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="company license pool exhausted",
-        )
-    if _org_cap_reached(org):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="organization license cap reached",
         )
 
 
@@ -277,7 +265,7 @@ def accept_invite(
             detail="ese usuario o correo ya existe en la organización",
         ) from e
 
-    org.licenses_used = (org.licenses_used or 0) + 1
+    # CE-06: el uso del pool se computa (users activos), no hay contador que sumar.
     invitation.accepted_at = _now()
     invitation.accepted_user_id = user.id
 
@@ -305,8 +293,8 @@ def create_org(db: Session, *, data: dict) -> Organization:
     # existente crea una Company envoltura 1:1 — el ``licenses_total`` pasado se
     # usa como pool de la Company y el cap de la org queda en NULL (consume del
     # pool). TASK 2 agregará crear una org bajo una Company existente.
-    data = dict(data)
-    pool = data.pop("licenses_total", 0) or 0
+    # El billing/contrato/tier y el pool van a la Company (CE-06); la Organization
+    # solo lleva sus campos operativos (name, slug, country).
     company = Company(
         name=data["name"],
         slug=f"c-{uuid4().hex[:10]}",
@@ -315,11 +303,18 @@ def create_org(db: Session, *, data: dict) -> Organization:
         billing_cycle=data.get("billing_cycle"),
         contract_start=data.get("contract_start"),
         contract_end=data.get("contract_end"),
-        licenses_total=pool,
+        licenses_total=data.get("licenses_total", 0) or 0,
     )
     db.add(company)
     db.flush()
-    org = Organization(company_id=company.id, **data)
+    org = Organization(
+        company_id=company.id,
+        name=data["name"],
+        slug=data["slug"],
+        country=data.get("country"),
+        logo_url=data.get("logo_url"),
+        primary_color=data.get("primary_color"),
+    )
     db.add(org)
     try:
         db.flush()
@@ -515,16 +510,13 @@ def update_user(db: Session, *, user_id: UUID, actor: User, payload: dict) -> Us
             )
         target.manager_id = new_manager
 
-    # Contabilidad de licencias en cambios de is_active.
+    # Reactivar consume del pool de la Empresa → validar antes (CE-06: sin contador
+    # por-org; el uso se computa por users activos).
     if new_active is not None and new_active != target.is_active:
-        org = db.get(Organization, target.org_id)
         if new_active is True:
+            org = db.get(Organization, target.org_id)
             if org is not None:
                 check_license_available(db, org)
-                org.licenses_used = (org.licenses_used or 0) + 1
-        else:
-            if org is not None and (org.licenses_used or 0) > 0:
-                org.licenses_used = (org.licenses_used or 0) - 1
         target.is_active = new_active
 
     if new_role is not None:

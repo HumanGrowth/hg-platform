@@ -117,11 +117,7 @@ function AdminOrgDetailContent() {
           <Display variant="display-3">{org?.name ?? "Cargando…"}</Display>
           {org ? (
             <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-fg-muted">
-              <Badge>{org.tier}</Badge>
               <span className="font-mono text-xs">{org.slug}</span>
-              <span>
-                · {org.licenses_used}/{org.licenses_total} licencias · {org.billing_status}
-              </span>
               {org.country ? <span className="text-xs">· {org.country}</span> : null}
               <span className="text-xs">
                 · Creada {new Date(org.created_at).toLocaleDateString("es")}

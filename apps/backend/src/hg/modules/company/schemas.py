@@ -36,21 +36,18 @@ class CompanyOut(BaseModel):
 
 
 class CompanyOrgOut(BaseModel):
+    # CE-06: la org es la unidad operativa; tier/licencias viven en la Empresa.
     id: UUID
     name: str
     slug: str
-    tier: OrgTier
-    licenses_total: int | None  # cap opcional de la org (NULL = sin cap propio)
+    country: str | None = None
     user_count: int
 
 
 class CreateCompanyOrgRequest(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     slug: str = Field(min_length=1, max_length=100)
-    tier: OrgTier = OrgTier.C
     country: str | None = Field(default=None, max_length=2)
-    # Cap opcional de la org sobre el pool (NULL = sin cap propio).
-    licenses_total: int | None = Field(default=None, ge=0)
 
 
 # ─────────────────────────── company_admin: members (roster) ───────────────────────────

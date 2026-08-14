@@ -123,10 +123,10 @@ def bulk_import(
     by_slug = {o.slug.strip().lower(): o for o in orgs}
     by_name = {o.name.strip().lower(): o for o in orgs}
 
-    # Proyección de licencias a lo largo del archivo (pool empresa + cap org).
+    # Proyección del pool de la Empresa a lo largo del archivo (CE-06: sin cap
+    # por-org). El uso se computa por users activos.
     pool_total = company.licenses_total
     pool_used = identity_service.company_active_users(db, company_id)
-    org_used: dict[UUID, int] = {o.id: (o.licenses_used or 0) for o in orgs}
 
     results: list[RowResult] = []
     seen: set[str] = set()
@@ -144,10 +144,10 @@ def bulk_import(
 
         try:
             with db.begin_nested():
-                estado, seat_org = _process_row(
+                estado, consumed = _process_row(
                     db, company_id=company_id, actor=actor, rec=rec, email=email,
                     by_slug=by_slug, by_name=by_name,
-                    pool_total=pool_total, pool_used=pool_used, org_used=org_used,
+                    pool_total=pool_total, pool_used=pool_used,
                 )
         except _RowError as exc:
             results.append(RowResult(fila, email, "error", str(exc)))
@@ -156,9 +156,8 @@ def bulk_import(
             results.append(RowResult(fila, email, "error", str(exc.detail)))
             continue
 
-        if seat_org is not None:  # consumió un asiento → actualizar la proyección
+        if consumed:  # consumió un asiento del pool → actualizar la proyección
             pool_used += 1
-            org_used[seat_org] = org_used.get(seat_org, 0) + 1
         results.append(RowResult(fila, email, estado))
 
     return results
@@ -167,11 +166,11 @@ def bulk_import(
 def _process_row(
     db: Session, *, company_id: UUID, actor: User, rec: dict[str, str], email: str,
     by_slug: dict[str, Organization], by_name: dict[str, Organization],
-    pool_total: int, pool_used: int, org_used: dict[UUID, int],
-) -> tuple[str, UUID | None]:
-    """Valida + aplica una fila. Devuelve ``(estado, org_que_consumió_asiento)``;
-    el segundo es ``None`` si la fila no consumió licencia (update sin reactivar o
-    invitación pendiente ya existente)."""
+    pool_total: int, pool_used: int,
+) -> tuple[str, bool]:
+    """Valida + aplica una fila. Devuelve ``(estado, consumió_asiento)``; el bool
+    es ``False`` si la fila no consumió licencia (update sin reactivar o invitación
+    pendiente ya existente)."""
     if not _EMAIL_RE.match(email):
         raise _RowError("email inválido")
 
@@ -184,11 +183,10 @@ def _process_row(
         manager = _resolve_manager(db, org.id, rec["manager_email"].strip().lower())
 
     def reserve() -> None:
-        """Chequea pool empresa + cap org contra la proyección; levanta si excede."""
+        """Chequea el pool de la Empresa contra la proyección; levanta si excede
+        (CE-06: sin cap por-org)."""
         if pool_used >= pool_total:
             raise _RowError("se excede el pool de licencias de la empresa")
-        if org.licenses_total is not None and org_used.get(org.id, 0) >= org.licenses_total:
-            raise _RowError("se excede el cupo de licencias de la organización")
 
     existing = db.scalar(
         select(User).where(User.company_id == company_id, func.lower(User.email) == email)
@@ -208,22 +206,22 @@ def _process_row(
         )
     )
     if pending is not None:
-        return "actualizado", None  # ya invitado → no se duplica
+        return "actualizado", False  # ya invitado → no se duplica, no consume
 
     reserve()
     identity_service.create_invitation(
         db, org_id=org.id, email=rec["email"].strip(), role=role, invited_by=actor,
         name=full_name or None,
     )
-    return "creado", org.id
+    return "creado", True
 
 
 def _update_existing(
     user: User, org: Organization, role: UserRole, full_name: str,
     manager: User | None, reserve: Callable[[], None],
-) -> tuple[str, UUID | None]:
+) -> tuple[str, bool]:
     """Aplica los cambios de la fila a un user existente. Reactiva si estaba
-    inactivo (consume asiento). Devuelve ``("actualizado", org_del_asiento|None)``."""
+    inactivo (consume asiento del pool). Devuelve ``("actualizado", consumió?)``."""
     if full_name:
         user.full_name = full_name
     if user.role != role:
@@ -236,13 +234,12 @@ def _update_existing(
         if manager.org_id != user.org_id:
             raise _RowError("el manager pertenece a otra organización")
         user.manager_id = manager.id
-    seat_org: UUID | None = None
+    consumed = False
     if not user.is_active:
         reserve()
         user.is_active = True
-        org.licenses_used = (org.licenses_used or 0) + 1
-        seat_org = org.id
-    return "actualizado", seat_org
+        consumed = True
+    return "actualizado", consumed
 
 
 def _resolve_org(

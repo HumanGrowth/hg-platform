@@ -1,6 +1,8 @@
 "use client";
 
-import { KeyRound, Plus } from "lucide-react";
+import { KeyRound, LogIn, Plus } from "lucide-react";
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { SuperadminGate } from "@/components/SuperadminGate";
@@ -23,6 +25,7 @@ import { toast } from "@/lib/toast-store";
 import type { Area, Company } from "@/lib/types";
 
 function CompaniesContent() {
+  const router = useRouter();
   const [companies, setCompanies] = React.useState<Company[] | null>(null);
   const [areas, setAreas] = React.useState<Area[]>([]);
   const [openCreate, setOpenCreate] = React.useState(false);
@@ -130,10 +133,20 @@ function CompaniesContent() {
                   {c.licenses_used}/{c.licenses_total}
                 </td>
                 <td className="px-5 py-3">
-                  <Button variant="secondary" size="sm" onClick={() => openAccess(c)}>
-                    <KeyRound size={14} strokeWidth={1.75} />
-                    Acceso
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => router.push(`/admin/empresa/miembros?company_id=${c.id}` as Route)}
+                    >
+                      <LogIn size={14} strokeWidth={1.75} />
+                      Entrar
+                    </Button>
+                    <Button variant="secondary" size="sm" onClick={() => openAccess(c)}>
+                      <KeyRound size={14} strokeWidth={1.75} />
+                      Acceso
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
