@@ -24,6 +24,12 @@ def test_parses_named_pillar_and_normalizes_ia() -> None:
     assert parse_unit_code("CP-L1-AI-015") == UnitCode("CP", 1, "AI", 15)
 
 
+def test_parses_state_pillar() -> None:
+    # Propósito/Relaciones: nivel constante (L1) y el pilar es el estado V0..V5.
+    assert parse_unit_code("PR-L1-V0-001") == UnitCode("PR", 1, "V0", 1)
+    assert parse_unit_code("RE-L1-V5-012") == UnitCode("RE", 1, "V5", 12)
+
+
 def test_strips_padding_from_numbers() -> None:
     assert parse_unit_code("CP-L1-P4-004").number == 4  # type: ignore[union-attr]
 

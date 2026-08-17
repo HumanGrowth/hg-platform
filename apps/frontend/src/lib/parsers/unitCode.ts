@@ -9,7 +9,8 @@
  * - `dimension`: 2-3 letras (CP, PR, …) — la dimensión del crecimiento.
  * - `level`: nivel L1..Ln (progresión).
  * - `pillar`: código de la sub-categoría dentro de la dimensión — numerado
- *   (`P1`..`Pn`) o nombrado (`AI`; `IA` se normaliza a `AI`) (CE-07).
+ *   (`P1`..`Pn`), nombrado (`AI`; `IA` se normaliza a `AI`) o por estado
+ *   (`V0`..`V5`, dims con nivel constante como Propósito/Relaciones) (CE-07).
  * - `number`: correlativo de la unidad (001..NNNN).
  *
  * Espejo de `apps/backend/src/hg/modules/learning_units/unit_code.py`.
@@ -23,7 +24,7 @@ export interface UnitCode {
   number: number;
 }
 
-const UNIT_CODE_RE = /^(?:([A-Z]{2,3})-)?([A-Z]{2,3})-L(\d{1,2})-(P\d{1,2}|[A-Z]{2,4})-(\d{1,4})$/;
+const UNIT_CODE_RE = /^(?:([A-Z]{2,3})-)?([A-Z]{2,3})-L(\d{1,2})-([A-Z]{1,4}\d{0,2})-(\d{1,4})$/;
 const GENERAL_SENTINEL = "GEN";
 // Alias de pilares nombrados → código canónico (IA y AI son el mismo pilar).
 const PILLAR_ALIASES: Record<string, string> = { IA: "AI" };
