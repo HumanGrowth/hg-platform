@@ -751,9 +751,17 @@ def _process_folder(
 def run(args: argparse.Namespace) -> SyncStats:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     if not args.dry_run and not r2_configured():
-        log.warning(
-            "R2 no configurado — los video_url van a ser URLs esperadas (dry-run de "
-            "upload); los MP4 no se suben de verdad. Configurá r2_* para subirlos."
+        # Sin R2, `_public_url` no tiene base absoluta y arma rutas relativas
+        # (`/learning-units/...`); `VideoBlockCreate` exige http(s):// → cada unit
+        # con video fallaría con un error opaco de validación. Cortamos temprano
+        # con un mensaje accionable en vez de crashear unit por unit.
+        raise SystemExit(
+            "R2 no está configurado: los video_url saldrían como rutas relativas "
+            "y VideoBlockCreate exige http(s):// — cada unidad con video fallaría.\n"
+            "Configurá las credenciales R2 de PROD en el entorno y reintentá:\n"
+            "  R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, "
+            "R2_BUCKET, R2_PUBLIC_BASE_URL\n"
+            "O usá --dry-run para validar el contenido sin escribir en R2 ni en la DB."
         )
     stats = SyncStats()
     try:
