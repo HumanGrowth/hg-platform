@@ -18,6 +18,37 @@ import { apiCompanyInvite, apiCompanyMembers, apiCompanyOrgs, ApiError } from "@
 import { toast } from "@/lib/toast-store";
 import type { CompanyMember, CompanyOrg } from "@/lib/types";
 
+/** Los 4 estados de consentimiento del roster (docx §6.2), en vez de "sin datos". */
+function ConsentStatusCell({
+  status,
+  dims,
+}: {
+  status: CompanyMember["consent_status"];
+  dims: number;
+}) {
+  if (status === "data_available") {
+    return (
+      <span className="flex items-center gap-2">
+        <Badge variant="success">Datos disponibles</Badge>
+        <span className="text-xs text-fg-muted">{dims} dimensiones</span>
+      </span>
+    );
+  }
+  if (status === "authorized_no_activity") {
+    return (
+      <span className="flex items-center gap-2">
+        <Badge variant="info">Autorizado</Badge>
+        <span className="text-xs text-fg-muted">sin actividad</span>
+      </span>
+    );
+  }
+  if (status === "declined") {
+    return <Badge>Sin autorización</Badge>;
+  }
+  // pending
+  return <Badge>Consentimiento pendiente</Badge>;
+}
+
 function MembersContent() {
   // Superadmin puede scopear a una empresa con ?company_id (vista de empresa
   // seleccionada, CE-06). El company_admin lo omite → su propia empresa.
@@ -97,7 +128,7 @@ function MembersContent() {
               <th className="px-5 py-3 font-semibold">Rol</th>
               <th className="px-5 py-3 font-semibold">Estado</th>
               <th className="px-5 py-3 font-semibold">Módulos</th>
-              <th className="px-5 py-3 font-semibold">Assessment</th>
+              <th className="px-5 py-3 font-semibold">Consentimiento</th>
             </tr>
           </thead>
           <tbody>
@@ -123,8 +154,8 @@ function MembersContent() {
                   <td className="px-5 py-3 font-mono text-sm text-fg">
                     {m.modules_completed} ✓ · {m.modules_in_progress} ⋯
                   </td>
-                  <td className="px-5 py-3 text-sm text-fg-muted">
-                    {dims > 0 ? `${dims} dimensiones` : "sin datos"}
+                  <td className="px-5 py-3">
+                    <ConsentStatusCell status={m.consent_status} dims={dims} />
                   </td>
                 </tr>
               );
@@ -142,8 +173,9 @@ function MembersContent() {
       </Card>
 
       <p className="mt-3 text-xs text-fg-muted">
-        El estado del assessment por dimensión solo se muestra si el colaborador aceptó el
-        consentimiento de privacidad; si no, aparece &ldquo;sin datos&rdquo;.
+        El estado del assessment solo se muestra cuando el colaborador autorizó a RRHH.
+        &ldquo;Consentimiento pendiente&rdquo; = aún no decidió (no es inactividad ni bajo
+        desempeño); &ldquo;Sin autorización&rdquo; = eligió no compartir.
       </p>
 
       <Dialog
