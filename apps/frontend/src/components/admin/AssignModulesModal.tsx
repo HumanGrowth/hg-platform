@@ -56,15 +56,15 @@ export function AssignModulesModal({
   const dimensions = Array.from(new Set(units.map((u) => u.dimension_code)));
   const levels = Array.from(new Set(units.map((u) => u.level_code))).sort();
   const pillars = Array.from(
-    new Set(units.filter((u) => !dimF || u.dimension_code === dimF).map((u) => u.pillar_number).filter((n): n is number => n != null)),
-  ).sort((a, b) => a - b);
+    new Set(units.filter((u) => !dimF || u.dimension_code === dimF).map((u) => u.pillar_code).filter((c): c is string => c != null)),
+  ).sort((a, b) => a.localeCompare(b));
 
   const filtered = units.filter(
     (u) =>
       u.title.toLowerCase().includes(q.toLowerCase()) &&
       (!dimF || u.dimension_code === dimF) &&
       (!levelF || u.level_code === levelF) &&
-      (!dimensionF || u.pillar_number === Number(dimensionF)),
+      (!dimensionF || u.pillar_code === dimensionF),
   );
 
   // "Seleccionar todos": agrega los filtrados que aún no están asignados.

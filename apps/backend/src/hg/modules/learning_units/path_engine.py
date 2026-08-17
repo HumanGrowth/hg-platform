@@ -43,7 +43,7 @@ class PathStep:
     dimension_code: str
     career_path_code: str
     level_code: str
-    pillar_number: int | None
+    pillar_code: str | None
     estimated_minutes: int | None
 
 
@@ -177,7 +177,7 @@ def build_path(db: Session, user_id: uuid.UUID, upcoming_n: int = 5) -> PathResu
         cp = career_path_for_dimension(u.dimension_code) or u.dimension_code
         by_cp.setdefault(cp, []).append(u)
     for lst in by_cp.values():
-        lst.sort(key=lambda u: (u.pillar_number or 0, u.unit_number or 0))
+        lst.sort(key=lambda u: (u.pillar_code or "", u.unit_number or 0))
     ordered_cps = sorted(
         by_cp.keys(),
         key=lambda cp: (score_by_cp.get(cp, 0.5), paths[cp].order_index if cp in paths else 99),
@@ -206,6 +206,6 @@ def _to_step(u: LearningUnit, career_path_code: str) -> PathStep:
         dimension_code=u.dimension_code,
         career_path_code=career_path_code,
         level_code=u.level_code,
-        pillar_number=u.pillar_number,
+        pillar_code=u.pillar_code,
         estimated_minutes=mins,
     )

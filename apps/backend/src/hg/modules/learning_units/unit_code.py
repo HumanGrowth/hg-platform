@@ -8,7 +8,7 @@ es el centinela ``GEN``, la unit es **general** (``area_code = None``, visible a
 todas las empresas). Ej.: ``CP-L1-P2-001`` y ``GEN-CP-L1-P2-001`` → area=None.
 
 Separa los 5 conceptos: ``area`` (MFG/IT/CC o None=general), ``dimension``
-(CP…), ``level``, ``pillar`` (sub-categoría P<n> = va a ``pillar_number``) y
+(CP…), ``level``, ``pillar`` (sub-categoría P<n>, se mapea a ``pillar_code``) y
 ``number``. Espejo de ``apps/frontend/src/lib/parsers/unitCode.ts``.
 """
 from __future__ import annotations

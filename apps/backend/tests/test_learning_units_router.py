@@ -506,7 +506,7 @@ def _make_minimal_unit(
     *,
     dimension_code: str,
     level_code: str,
-    pillar_number: int | None = None,
+    pillar_code: str | None = None,
     unit_number: int | None = None,
     superseded_by: uuid.UUID | None = None,
 ) -> uuid.UUID:
@@ -516,7 +516,7 @@ def _make_minimal_unit(
     try:
         unit = LearningUnit(
             slug=slug, title=slug, dimension_code=dimension_code, level_code=level_code,
-            pillar_number=pillar_number, unit_number=unit_number,
+            pillar_code=pillar_code, unit_number=unit_number,
             published_at=datetime.now(UTC), superseded_by_unit_id=superseded_by,
         )
         s.add(unit)
@@ -530,7 +530,7 @@ def test_by_dimension_filters_by_dimension_and_orders_by_level_dimension_unit(
     client: TestClient, factory, auth_headers
 ) -> None:
     """Agrupa por `dimension_code` (CP=Carrera → P1); ordena por la convención del
-    Drive `Dimensión-Nivel-Pilar-Número`: level → pillar_number → unit_number.
+    Drive `Dimensión-Nivel-Pilar-Número`: level → pillar_code → unit_number.
     Una unit de OTRA dimensión (PR) no aparece bajo P1."""
     _, headers = _auth(factory, auth_headers)
     slugs = [f"bp-test-{uuid.uuid4().hex[:8]}" for _ in range(4)]
@@ -538,10 +538,10 @@ def test_by_dimension_filters_by_dimension_and_orders_by_level_dimension_unit(
     try:
         # Todas Carrera (CP) salvo la última (PR=Propósito, otra dimensión).
         # Orden esperado dentro de CP: L1/p1/u1, L1/p2/u1, L2/p1/u1.
-        ids.append(_make_minimal_unit(slugs[0], dimension_code="CP", level_code="L2", pillar_number=1, unit_number=1))
-        ids.append(_make_minimal_unit(slugs[1], dimension_code="CP", level_code="L1", pillar_number=2, unit_number=1))
-        ids.append(_make_minimal_unit(slugs[2], dimension_code="CP", level_code="L1", pillar_number=1, unit_number=1))
-        ids.append(_make_minimal_unit(slugs[3], dimension_code="PR", level_code="L1", pillar_number=1, unit_number=1))
+        ids.append(_make_minimal_unit(slugs[0], dimension_code="CP", level_code="L2", pillar_code="P1", unit_number=1))
+        ids.append(_make_minimal_unit(slugs[1], dimension_code="CP", level_code="L1", pillar_code="P2", unit_number=1))
+        ids.append(_make_minimal_unit(slugs[2], dimension_code="CP", level_code="L1", pillar_code="P1", unit_number=1))
+        ids.append(_make_minimal_unit(slugs[3], dimension_code="PR", level_code="L1", pillar_code="P1", unit_number=1))
 
         res = client.get("/api/v1/modulos/by-dimension", headers=headers, params={"dimension_code": "P1"})
         assert res.status_code == 200, res.text
@@ -574,12 +574,12 @@ def test_by_dimension_level_filter_and_excludes_superseded(
     slug_other_level = f"bp-test-{uuid.uuid4().hex[:8]}"
     ids = []
     try:
-        new_id = _make_minimal_unit(slug_new, dimension_code="CP", level_code="L1", pillar_number=1, unit_number=1)
+        new_id = _make_minimal_unit(slug_new, dimension_code="CP", level_code="L1", pillar_code="P1", unit_number=1)
         old_id = _make_minimal_unit(
-            slug_old, dimension_code="CP", level_code="L1", pillar_number=1, unit_number=2, superseded_by=new_id
+            slug_old, dimension_code="CP", level_code="L1", pillar_code="P1", unit_number=2, superseded_by=new_id
         )
         other_level_id = _make_minimal_unit(
-            slug_other_level, dimension_code="CP", level_code="L3", pillar_number=1, unit_number=1
+            slug_other_level, dimension_code="CP", level_code="L3", pillar_code="P1", unit_number=1
         )
         ids = [new_id, old_id, other_level_id]
 

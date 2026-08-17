@@ -34,7 +34,7 @@ const unit: LearningUnitFeedItem = {
   slug: "cp-l1-p1-001",
   title: "Antes de seguir",
   dimension_code: "CP",
-  pillar_number: 1,
+  pillar_code: "P1",
   unit_number: 1,
   level_code: "L1",
   estimated_duration_seconds: 300,

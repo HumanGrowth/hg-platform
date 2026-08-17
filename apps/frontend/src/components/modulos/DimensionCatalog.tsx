@@ -11,16 +11,16 @@ import { subPillarName } from "@/lib/dimension-styles";
 import type { LearningUnitFeedItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-/** Agrupa units por `pillar_number` (P1, P2, …) preservando el orden de llegada. */
-function groupByDimension(units: LearningUnitFeedItem[]): Map<number, LearningUnitFeedItem[]> {
-  const groups = new Map<number, LearningUnitFeedItem[]>();
+/** Agrupa units por `pillar_code` ("P1", "P2", "AI"…) preservando el orden de llegada. */
+function groupByDimension(units: LearningUnitFeedItem[]): Map<string, LearningUnitFeedItem[]> {
+  const groups = new Map<string, LearningUnitFeedItem[]>();
   for (const u of units) {
-    const key = u.pillar_number ?? 0;
+    const key = u.pillar_code ?? "";
     const bucket = groups.get(key) ?? [];
     if (bucket.length === 0) groups.set(key, bucket);
     bucket.push(u);
   }
-  return new Map([...groups.entries()].sort(([a], [b]) => a - b));
+  return new Map([...groups.entries()].sort(([a], [b]) => a.localeCompare(b)));
 }
 
 /**
@@ -66,7 +66,7 @@ export function DimensionCatalog() {
 function DimensionSection({ dim, units }: { dim: DimensionMeta; units: LearningUnitFeedItem[] }) {
   const groups = React.useMemo(() => groupByDimension(units), [units]);
   const pillars = React.useMemo(() => [...groups.keys()], [groups]);
-  const [selected, setSelected] = React.useState<number>(pillars[0] ?? 0);
+  const [selected, setSelected] = React.useState<string>(pillars[0] ?? "");
   const current = groups.get(selected) ?? [];
 
   return (

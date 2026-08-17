@@ -68,7 +68,7 @@ class AssignableUnitOut(BaseModel):
     title: str
     dimension_code: str
     level_code: str
-    pillar_number: int | None
+    pillar_code: int | None
 
 
 # ─────────────────────────── Helpers ───────────────────────────
@@ -137,14 +137,14 @@ def list_assignable_units(
         .order_by(
             LearningUnit.dimension_code.asc(),
             LearningUnit.level_code.asc(),
-            LearningUnit.pillar_number.asc(),
+            LearningUnit.pillar_code.asc(),
             LearningUnit.unit_number.asc(),
         )
     ).all()
     return [
         AssignableUnitOut(
             id=u.id, slug=u.slug, title=u.title, dimension_code=u.dimension_code,
-            level_code=u.level_code, pillar_number=u.pillar_number,
+            level_code=u.level_code, pillar_code=u.pillar_code,
         )
         for u in rows
     ]

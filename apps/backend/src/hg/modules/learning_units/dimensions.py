@@ -3,7 +3,7 @@
 Convención de naming del Drive: ``Dimensión-Nivel-Pilar-Número`` (``CP-L1-P2-001``).
 - **Dimensión** (``dimension_code``: CP/PR/RE/SA/PI/ES) = el nivel superior — los
   6 pilares/dimensiones de la app (radar, `/path`, `/modulos`). ES lo que agrupa.
-- **Pilar** (``pillar_number``) = un sub-grupo DENTRO de la dimensión, no una
+- **Pilar** (``pillar_code``) = un sub-grupo DENTRO de la dimensión, no una
   dimensión propia. Solo se usa para ordenar dentro de una dimensión.
 
 La app usa códigos de career_path (``P1..P6``); este registro los puentea con las
@@ -14,7 +14,7 @@ quedan vacías hasta que Jorge las suba al Drive.
 from __future__ import annotations
 
 # Drive dimension code → career_path code (P1..P6) de la app. LA agrupación de
-# módulos es por acá (dimension_code), NO por pillar_number.
+# módulos es por acá (dimension_code), NO por pillar_code.
 DRIVE_TO_CAREER_PATH: dict[str, str] = {
     "CP": "P1",  # Carrera Profesional
     "PR": "P2",  # Propósito y Significado

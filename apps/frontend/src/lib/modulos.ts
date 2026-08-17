@@ -23,17 +23,18 @@ function pad3(n: number): string {
 
 type UnitLike = Pick<
   LearningUnitDetail | LearningUnitFeedItem,
-  "slug" | "dimension_code" | "level_code" | "pillar_number" | "unit_number"
+  "slug" | "dimension_code" | "level_code" | "pillar_code" | "unit_number"
 >;
 
 /**
- * Ruta canónica anidada de una unit: `/modulos/<DIM>/<Ln>/P<n>/<seq>`. Si a la
- * unit le falta algún componente del código (legacy sin backfill), cae al slug
- * — así los links nunca quedan rotos (backward-compat).
+ * Ruta canónica anidada de una unit: `/modulos/<DIM>/<Ln>/<pillar_code>/<seq>`
+ * (el `pillar_code` ya trae la letra: "P1", "AI"…). Si a la unit le falta algún
+ * componente del código (legacy sin backfill), cae al slug — así los links
+ * nunca quedan rotos (backward-compat).
  */
 export function unitCanonicalPath(unit: UnitLike): Route {
-  if (unit.pillar_number != null && unit.unit_number != null && unit.dimension_code && unit.level_code) {
-    return `/modulos/${unit.dimension_code}/${unit.level_code}/P${unit.pillar_number}/${pad3(
+  if (unit.pillar_code != null && unit.unit_number != null && unit.dimension_code && unit.level_code) {
+    return `/modulos/${unit.dimension_code}/${unit.level_code}/${unit.pillar_code}/${pad3(
       unit.unit_number,
     )}` as Route;
   }

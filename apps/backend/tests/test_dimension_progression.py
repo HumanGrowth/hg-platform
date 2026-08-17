@@ -155,10 +155,10 @@ def test_pillar_subbadge_awarded_when_pillar_completed(factory) -> None:
     u1 = make_unit(s, dimension_code="CP", level_code="L1", n_blocks=1)
     u2 = make_unit(s, dimension_code="CP", level_code="L1", n_blocks=1)
     for u in (u1, u2):
-        u.pillar_number = 1
+        u.pillar_code = "P1"
     s.commit()
-    ensure_pillar_badge(s, "CP", 1)  # el sync pre-seedea el Badge de catálogo
-    code = pillar_badge_code("CP", 1)
+    ensure_pillar_badge(s, "CP", "P1")  # el sync pre-seedea el Badge de catálogo
+    code = pillar_badge_code("CP", "P1")
     try:
         # Solo 1 de 2 completa → todavía no.
         seed_attempt(s, org_id=org.id, user_id=user.id, unit=u1, when=datetime.now(UTC), completed=True)

@@ -189,7 +189,7 @@ class LearningUnitDetail(BaseModel):
     slug: str
     title: str
     dimension_code: str
-    pillar_number: int | None = None
+    pillar_code: str | None = None
     unit_number: int | None = None
     competency_code: str | None
     level_code: str
@@ -206,7 +206,7 @@ class LearningUnitFeedItem(BaseModel):
     slug: str
     title: str
     dimension_code: str
-    pillar_number: int | None = None
+    pillar_code: str | None = None
     unit_number: int | None = None
     level_code: str
     estimated_duration_seconds: int | None
@@ -329,7 +329,7 @@ class LearningUnitCreate(BaseModel):
     dimension_code: str
     # Área de contenido (Capa Empresa · TASK 8). None = general.
     area_code: str | None = None
-    pillar_number: int | None = None
+    pillar_code: str | None = None
     unit_number: int | None = None
     competency_code: str | None = None
     level_code: str = Field(pattern=_LEVEL_CODE_RE)
@@ -342,7 +342,7 @@ class LearningUnitCreate(BaseModel):
 class LearningUnitUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=200)
     dimension_code: str | None = None
-    pillar_number: int | None = None
+    pillar_code: str | None = None
     unit_number: int | None = None
     competency_code: str | None = None
     level_code: str | None = Field(default=None, pattern=_LEVEL_CODE_RE)
