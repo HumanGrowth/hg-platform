@@ -47,6 +47,7 @@ import type {
   OrgMetrics,
   OrgWidgets,
   PaginatedUsers,
+  DimensionProgression,
   DimensionResult,
   QuizSubmitPayload,
   QuizSubmitResponse,
@@ -809,5 +810,13 @@ export const apiSetCompanyAccess = async (
   const res = await backend.put<CompanyAccess>(`/api/v1/admin/companies/${companyId}/access`, {
     area_codes: areaCodes,
   });
+  return res.data;
+};
+
+// ─────────────────────────── Progresión por dimensión (TASK 6) ───────────────────────────
+
+/** Progreso por dimensión: nivel actual + completion 0-100 (aprendizaje+assessment). */
+export const apiGetProgression = async (): Promise<DimensionProgression[]> => {
+  const res = await backend.get<DimensionProgression[]>("/api/v1/me/progression");
   return res.data;
 };

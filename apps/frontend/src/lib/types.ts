@@ -956,3 +956,22 @@ export interface BulkImportResponse {
   errores: number;
   filas: BulkImportRow[];
 }
+
+// ─────────────────────────── Progresión por dimensión (TASK 6) ───────────────────────────
+
+export interface LevelProgress {
+  level_code: string;
+  name: string;
+  completion_pct: number;
+  unlock_threshold: number;
+  earned: boolean;
+}
+
+export interface DimensionProgression {
+  dimension_code: string;
+  current_level_code: string | null;
+  current_level_name: string | null;
+  current_completion_pct: number;
+  current_unlock_threshold: number;
+  levels: LevelProgress[];
+}

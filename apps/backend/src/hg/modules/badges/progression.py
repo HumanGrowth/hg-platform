@@ -172,3 +172,57 @@ def recompute_for_assessment_code(db: Session, user: User, assessment_code: str)
     dim = dimension_for_assessment_code(assessment_code)
     if dim is not None:
         recompute_dimension(db, user, dim)
+
+
+# ─────────────────────────── Lectura para el frontend (TASK 6 FE) ───────────────────────────
+
+
+def progression_summary(db: Session, user_id: UUID) -> list[dict]:
+    """Progreso por dimensión para el perfil: nivel actual + completion + niveles.
+
+    El **nivel actual** es el primero cuyo completion no llegó al umbral (o el
+    último si ya se ganaron todos). Devuelve dicts (los serializa el schema)."""
+    levels = list(
+        db.scalars(
+            select(DimensionLevel).order_by(
+                DimensionLevel.dimension_code, DimensionLevel.order_index
+            )
+        ).all()
+    )
+    progress = {
+        (p.dimension_code, p.level_code): p
+        for p in db.scalars(
+            select(DimensionLevelProgress).where(DimensionLevelProgress.user_id == user_id)
+        ).all()
+    }
+
+    by_dim: dict[str, list[DimensionLevel]] = {}
+    for lvl in levels:
+        by_dim.setdefault(lvl.dimension_code, []).append(lvl)
+
+    out: list[dict] = []
+    for dim, dim_levels in by_dim.items():
+        level_rows = []
+        current = None
+        for lvl in dim_levels:
+            row = progress.get((dim, lvl.level_code))
+            completion = round(row.completion_pct, 1) if row is not None else 0.0
+            earned = completion >= lvl.unlock_threshold
+            level_rows.append(
+                {"level_code": lvl.level_code, "name": lvl.name,
+                 "completion_pct": completion, "unlock_threshold": lvl.unlock_threshold,
+                 "earned": earned}
+            )
+            if current is None and not earned:
+                current = level_rows[-1]
+        # Todos ganados → el nivel actual es el último.
+        current = current or (level_rows[-1] if level_rows else None)
+        out.append({
+            "dimension_code": dim,
+            "current_level_code": current["level_code"] if current else None,
+            "current_level_name": current["name"] if current else None,
+            "current_completion_pct": current["completion_pct"] if current else 0.0,
+            "current_unlock_threshold": current["unlock_threshold"] if current else 100,
+            "levels": level_rows,
+        })
+    return out
