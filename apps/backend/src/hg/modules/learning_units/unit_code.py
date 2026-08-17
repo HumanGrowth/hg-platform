@@ -8,9 +8,10 @@ es el centinela ``GEN``, la unit es **general** (``area_code = None``, visible a
 todas las empresas). Ej.: ``CP-L1-P2-001`` y ``GEN-CP-L1-P2-001`` → area=None.
 
 El **``<PILAR>``** es el penúltimo grupo antes del número de unidad y va como
-**código string** (CE-07): numerado (``P1``…``P5``) o nombrado (``AI`` para
-Inteligencia Artificial; ``IA`` se normaliza a ``AI``). Se mapea a
-``pillar_code``.
+**código string** (CE-07): numerado (``P1``…``P5``), nombrado (``AI`` para
+Inteligencia Artificial; ``IA`` se normaliza a ``AI``) o por **estado**
+(``V0``…``V5``, en dimensiones como Propósito/Relaciones donde el nivel es
+constante y lo que varía es el estado). Se mapea a ``pillar_code``.
 
 Separa los 5 conceptos: ``area`` (MFG/IT/CC o None=general), ``dimension``
 (CP…), ``level``, ``pillar`` (código P<n>/AI…) y ``number``. Espejo de
@@ -21,10 +22,12 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-# Prefijo de Área opcional; pilar = `P<n>` o código de letras (AI, ETH…):
+# Prefijo de Área opcional; pilar = código con letra(s) y dígitos opcionales:
+# numerado (`P1`..`P5`), nombrado (`AI`, `ETH`) o por estado (`V0`..`V5`, para
+# dimensiones donde el nivel es constante y el pilar es el estado).
 # `(<AREA>-)?<DIM>-L<n>-<PILAR>-<seq>`.
 _UNIT_CODE_RE = re.compile(
-    r"^(?:([A-Z]{2,3})-)?([A-Z]{2,3})-L(\d{1,2})-(P\d{1,2}|[A-Z]{2,4})-(\d{1,4})$"
+    r"^(?:([A-Z]{2,3})-)?([A-Z]{2,3})-L(\d{1,2})-([A-Z]{1,4}\d{0,2})-(\d{1,4})$"
 )
 _GENERAL_SENTINEL = "GEN"
 # Alias de pilares nombrados → código canónico (IA y AI son el mismo pilar).

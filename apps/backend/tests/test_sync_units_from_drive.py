@@ -15,6 +15,7 @@ from hg.modules.learning_units.unit_code import UnitCode
 from hg.scripts.sync_units_from_drive import (
     assemble_unit_dict,
     build_video_blocks,
+    derive_unit_code,
     extract_json_from_doc_text,
     parse_folder_name,
     run,
@@ -47,6 +48,29 @@ def test_parse_folder_name_ok(name: str, expected: UnitCode) -> None:
 def test_parse_folder_name_rejects_bad(bad: str) -> None:
     # Fuera de convención → None (el sync lo reporta y saltea, no revienta).
     assert parse_folder_name(bad) is None
+
+
+# ─────────────────────────── derive_unit_code ───────────────────────────
+
+
+def test_derive_unit_code_from_folder_name() -> None:
+    # Carrera: el folder ya trae el código (el MP4 no importa).
+    assert derive_unit_code("CP-L1-P5-003", ["cualquier.mp4"]) == UnitCode("CP", 1, "P5", 3)
+
+
+def test_derive_unit_code_from_mp4_when_folder_lacks_code() -> None:
+    # Propósito/Relaciones: folder `V0-001` sin código; el MP4 sí lo trae.
+    assert derive_unit_code("V0-001", ["PR-L1-V0-001.mp4"]) == UnitCode("PR", 1, "V0", 1)
+
+
+def test_derive_unit_code_strips_vid_suffix_from_mp4() -> None:
+    # El MP4 suele traer sufijo ` - VID1`; se recorta antes de parsear.
+    assert derive_unit_code("V1-002", ["RE-L1-V1-002 - VID1.mp4"]) == UnitCode("RE", 1, "V1", 2)
+
+
+def test_derive_unit_code_none_when_no_source_parses() -> None:
+    assert derive_unit_code("V0-001", ["sin-codigo.mp4"]) is None
+    assert derive_unit_code("carpeta-rara", []) is None
 
 
 # ─────────────────────────── extract_json_from_doc_text ───────────────────────────

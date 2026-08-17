@@ -58,7 +58,11 @@ from hg.modules.learning_units.services import (
     try_publish,
     upsert_unit_from_dict,
 )
-from hg.modules.learning_units.unit_code import UnitCode, normalize_pillar
+from hg.modules.learning_units.unit_code import (
+    UnitCode,
+    normalize_pillar,
+    parse_unit_code,
+)
 
 log = logging.getLogger("hg.sync_units_from_drive")
 
@@ -88,8 +92,11 @@ _VALID_COMPETENCY_CODES = frozenset({"C1", "C2", "C3", "C4", "C5"})
 # sufijo después del seq (ej. `CP-L1-P1-001 - algo`).
 # Prefijo de Área opcional (Capa Empresa · TASK 8): `[<AREA>-]<DIM>-L<n>-P<n>-<seq>`.
 _FOLDER_NAME_RE = re.compile(
-    r"^(?:([A-Z]{2,3})-)?([A-Z]{2,3})-L(\d{1,2})-(P\d{1,2}|[A-Z]{2,4})-(\d{1,4})\b"
+    r"^(?:([A-Z]{2,3})-)?([A-Z]{2,3})-L(\d{1,2})-([A-Z]{1,4}\d{0,2})-(\d{1,4})\b"
 )
+# Sufijo que algunos MP4 agregan al código (`… - VID1`, `… VID 2`). Se recorta
+# antes de parsear el nombre del archivo como código de unidad.
+_MP4_CODE_SUFFIX_RE = re.compile(r"\s*[-·]?\s*VID\s*\d+\s*$", re.IGNORECASE)
 _VID_NUM_RE = re.compile(r"VID(\d+)", re.IGNORECASE)
 
 
@@ -139,6 +146,31 @@ def parse_folder_name(folder_name: str) -> UnitCode | None:
         area=area, dimension=m.group(2), level=int(m.group(3)),
         pillar=normalize_pillar(m.group(4)), number=int(m.group(5)),
     )
+
+
+def _code_from_mp4_name(mp4_name: str) -> UnitCode | None:
+    """Deriva el código de la unidad del nombre de un MP4: ``PR-L1-V0-001.mp4``
+    (o con sufijo ``… - VID1``) → ``UnitCode(dimension="PR", level=1,
+    pillar="V0", number=1)``. Para dimensiones cuyo folder de unidad NO trae el
+    código (``V0-001``), el nombre del video sí lo tiene."""
+    stem = mp4_name.rsplit(".", 1)[0]  # sin extensión
+    stem = _MP4_CODE_SUFFIX_RE.sub("", stem).strip()
+    return parse_unit_code(stem)
+
+
+def derive_unit_code(folder_name: str, mp4_names: list[str]) -> UnitCode | None:
+    """Código de la unidad desde el nombre de carpeta (Carrera: ``CP-L1-P5-003``)
+    y, si no respeta la convención, desde el nombre de un MP4 (Propósito/
+    Relaciones: folder ``V0-001`` + video ``PR-L1-V0-001.mp4``). ``None`` si
+    ninguna fuente parsea — el caller reporta y saltea."""
+    code = parse_folder_name(folder_name)
+    if code is not None:
+        return code
+    for name in mp4_names:
+        code = _code_from_mp4_name(name)
+        if code is not None:
+            return code
+    return None
 
 
 def extract_json_from_doc_text(doc_text: str) -> dict[str, Any]:
@@ -360,6 +392,7 @@ class FolderPayload:
     _doc_text_fn: Any  # () -> str
     _mp4_paths_fn: Any  # (tmp_dir: Path | None) -> list[Path]
     mp4_count: int = 0
+    mp4_names: list[str] = field(default_factory=list)  # para derivar el código
     extra: dict[str, Any] = field(default_factory=dict)
 
     def doc_text(self) -> str:
@@ -428,16 +461,32 @@ def _drive_download_media(service: Any, file_id: str, dest: Path) -> None:
             _, done = downloader.next_chunk()
 
 
+# Profundidad máxima de recursión al buscar folders de unidad. El árbol real
+# anida Dimensión → (Nivel/Estado) → [folder de unidad] → Doc+MP4, y algunas
+# dimensiones meten un nivel extra — 5 cubre con holgura.
+_MAX_TRAVERSAL_DEPTH = 5
+
+
 def _iter_unit_folder_entries(service: Any, folder_id: str, depth: int = 0) -> Iterator[dict[str, Any]]:
-    """Entradas de folder que matchean ``CP-Lx-Py-seq`` — recursando en las que
-    NO matchean (p.ej. las carpetas de nivel ``L1 - Junior`` que agrupan units)
-    hasta 2 niveles. Soporta tanto el layout plano viejo como el anidado nuevo."""
+    """Folders de **unidad** = los que contienen directamente un Google Doc (el
+    JSON de la unit) **y** al menos un MP4. Se recursa en los demás (dimensión/
+    nivel/estado, que agrupan) hasta ``_MAX_TRAVERSAL_DEPTH``.
+
+    Detectar por contenido (no por nombre de carpeta) soporta tanto Carrera
+    (folder ``CP-L1-P5-003`` con el código en el nombre) como Propósito/
+    Relaciones (folder ``V0-001`` con el código en el nombre del MP4). Exigir
+    Doc **+** MP4 evita marcar como unidad a los folders de estado (``V1 -
+    Latente``) que traen los **guiones** como Docs pero cuyos videos viven en las
+    subcarpetas — así se recursa en ellos y se llega a las unidades reales."""
     for entry in _drive_list_children(service, folder_id):
         if entry["mimeType"] != _FOLDER_MIME:
             continue
-        if _FOLDER_NAME_RE.match(entry["name"]):
+        children = _drive_list_children(service, entry["id"])
+        has_doc = any(c["mimeType"] == _DOC_MIME for c in children)
+        has_mp4 = any(c["mimeType"] == _VIDEO_MIME for c in children)
+        if has_doc and has_mp4:
             yield entry
-        elif depth < 2:
+        elif depth < _MAX_TRAVERSAL_DEPTH:
             yield from _iter_unit_folder_entries(service, entry["id"], depth + 1)
 
 
@@ -470,7 +519,7 @@ def _drive_folders(root_folder_id: str, only: str | None) -> Iterator[FolderPayl
             return out
 
         yield FolderPayload(name=name, _doc_text_fn=_doc_text, _mp4_paths_fn=_mp4_paths,
-                            mp4_count=len(mp4s))
+                            mp4_count=len(mp4s), mp4_names=[c["name"] for c in mp4s])
 
 
 # ---- Carpeta local (rclone / Drive ya sincronizado a disco) ----
@@ -497,7 +546,7 @@ def _local_folders(root: Path, only: str | None) -> Iterator[FolderPayload]:
             return list(files)  # ya están en disco
 
         yield FolderPayload(name=name, _doc_text_fn=_doc_text, _mp4_paths_fn=_mp4_paths,
-                            mp4_count=len(mp4s))
+                            mp4_count=len(mp4s), mp4_names=[p.name for p in mp4s])
 
 
 def _iter_folders(args: argparse.Namespace) -> Iterator[FolderPayload]:
@@ -575,13 +624,17 @@ def _drive_error_hint(exc: Exception) -> str | None:
 def _process_folder(
     folder: FolderPayload, args: argparse.Namespace, stats: SyncStats
 ) -> None:
-    # TASK 1: el NOMBRE DE CARPETA es la fuente de verdad de dimensión/pilar/
-    # unidad/nivel. Si no respeta la convención, se REPORTA y se saltea (nunca
+    # El CÓDIGO de la unidad es la fuente de verdad de dimensión/pilar/unidad/
+    # nivel: del nombre de carpeta (Carrera: `CP-L1-P5-003`) o, si la carpeta no
+    # lo trae (Propósito/Relaciones: `V0-001`), del nombre del MP4
+    # (`PR-L1-V0-001.mp4`). Si no se puede derivar, se REPORTA y se saltea (nunca
     # se importa mal en silencio).
-    code = parse_folder_name(folder.name)
+    code = derive_unit_code(folder.name, folder.mp4_names)
     if code is None:
         log.warning(
-            "  %s: nombre fuera de convención <DIM>-L<n>-P<n>-<seq> — se saltea", folder.name
+            "  %s: código fuera de convención <DIM>-L<n>-<PILAR>-<seq> "
+            "(ni en carpeta ni en MP4) — se saltea",
+            folder.name,
         )
         stats.failed += 1
         return

@@ -62,6 +62,17 @@ describe("parseUnitCode", () => {
     expect(parseUnitCode("CP-L1-AI-015")?.pillar).toBe("AI");
   });
 
+  it("parses a state pillar V0..V5 (Propósito/Relaciones, CE-07)", () => {
+    expect(parseUnitCode("PR-L1-V0-001")).toEqual({
+      area: null,
+      dimension: "PR",
+      level: 1,
+      pillar: "V0",
+      number: 1,
+    });
+    expect(parseUnitCode("RE-L1-V5-012")?.pillar).toBe("V5");
+  });
+
   it("is case-insensitive and trims", () => {
     expect(parseUnitCode("  cp-l1-p2-001 ")).toEqual({
       area: null,
