@@ -30,11 +30,13 @@ _FIXTURE = Path(__file__).parent / "fixtures" / "drive_doc_sample.txt"
 @pytest.mark.parametrize(
     "name,expected",
     [
-        ("CP-L1-P1-001", UnitCode("CP", 1, 1, 1)),
-        ("CP-L1-P4-004", UnitCode("CP", 1, 4, 4)),
-        ("CP-L2-P3-012 - descripción extra", UnitCode("CP", 2, 3, 12)),
+        ("CP-L1-P1-001", UnitCode("CP", 1, "P1", 1)),
+        ("CP-L1-P4-004", UnitCode("CP", 1, "P4", 4)),
+        ("CP-L2-P3-012 - descripción extra", UnitCode("CP", 2, "P3", 12)),
         # TASK 1: ya NO hardcodea CP — cualquier dimensión de 2-3 letras.
-        ("PR-L1-P2-003", UnitCode("PR", 1, 2, 3)),
+        ("PR-L1-P2-003", UnitCode("PR", 1, "P2", 3)),
+        # CE-07: pilar nombrado (Inteligencia Artificial); IA→AI.
+        ("CP-L1-IA-015", UnitCode("CP", 1, "AI", 15)),
     ],
 )
 def test_parse_folder_name_ok(name: str, expected: UnitCode) -> None:

@@ -15,7 +15,13 @@ from hg.modules.learning_units.unit_code import (
 
 
 def test_parses_canonical_code() -> None:
-    assert parse_unit_code("CP-L1-P2-001") == UnitCode("CP", 1, 2, 1)
+    assert parse_unit_code("CP-L1-P2-001") == UnitCode("CP", 1, "P2", 1)
+
+
+def test_parses_named_pillar_and_normalizes_ia() -> None:
+    # Pilar nombrado (Inteligencia Artificial); IA se normaliza a AI.
+    assert parse_unit_code("CP-L1-IA-015") == UnitCode("CP", 1, "AI", 15)
+    assert parse_unit_code("CP-L1-AI-015") == UnitCode("CP", 1, "AI", 15)
 
 
 def test_strips_padding_from_numbers() -> None:
@@ -23,11 +29,11 @@ def test_strips_padding_from_numbers() -> None:
 
 
 def test_accepts_three_char_dimension_and_two_digit_parts() -> None:
-    assert parse_unit_code("PRO-L10-P12-045") == UnitCode("PRO", 10, 12, 45)
+    assert parse_unit_code("PRO-L10-P12-045") == UnitCode("PRO", 10, "P12", 45)
 
 
 def test_case_insensitive_and_trims() -> None:
-    assert parse_unit_code("  cp-l1-p2-001 ") == UnitCode("CP", 1, 2, 1)
+    assert parse_unit_code("  cp-l1-p2-001 ") == UnitCode("CP", 1, "P2", 1)
 
 
 def test_handles_unit_number_over_999() -> None:
@@ -44,8 +50,12 @@ def test_returns_none_for_malformed(bad: str) -> None:
 
 
 def test_format_round_trips_and_pads() -> None:
-    assert format_unit_code(UnitCode("CP", 1, 2, 1)) == "CP-L1-P2-001"
+    assert format_unit_code(UnitCode("CP", 1, "P2", 1)) == "CP-L1-P2-001"
+
+
+def test_format_named_pillar() -> None:
+    assert format_unit_code(UnitCode("CP", 1, "AI", 15)) == "CP-L1-AI-015"
 
 
 def test_format_does_not_truncate_over_999() -> None:
-    assert format_unit_code(UnitCode("CP", 1, 1, 1000)) == "CP-L1-P1-1000"
+    assert format_unit_code(UnitCode("CP", 1, "P1", 1000)) == "CP-L1-P1-1000"
