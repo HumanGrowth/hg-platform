@@ -16,7 +16,7 @@ def _make_unit() -> uuid.UUID:
     try:
         u = LearningUnit(
             slug=f"asgn-{uuid.uuid4().hex[:8]}", title="t", dimension_code="CP",
-            level_code="L1", pillar_number=1, unit_number=1, published_at=datetime.now(UTC),
+            level_code="L1", pillar_code="P1", unit_number=1, published_at=datetime.now(UTC),
         )
         s.add(u)
         s.commit()

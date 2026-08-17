@@ -18,7 +18,7 @@ video opcionales)::
       "slug": "hg-p1-l1-001-antes-de-seguir",
       "title": "Antes de seguir",
       "dimension_code": "CP",            # dimensión Drive (TASK 1); antes dimension_code
-      "pillar_number": 1,                # opcional — el P<n> del código Drive
+      "pillar_code": "P1",             # opcional — el P<n> (o "AI"…) del código Drive
       "unit_number": 1,                  # opcional — el seq del código Drive
       "competency_code": "C1",           # opcional
       "level_code": "L1",
@@ -295,7 +295,7 @@ def upsert_unit_from_dict(
             title=unit_dict["title"],
             dimension_code=unit_dict["dimension_code"],
             area_code=unit_dict.get("area_code"),
-            pillar_number=unit_dict.get("pillar_number"),
+            pillar_code=unit_dict.get("pillar_code"),
             unit_number=unit_dict.get("unit_number"),
             competency_code=unit_dict.get("competency_code"),
             level_code=unit_dict["level_code"],

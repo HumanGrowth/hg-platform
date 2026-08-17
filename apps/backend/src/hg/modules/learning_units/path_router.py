@@ -22,7 +22,7 @@ class PathStepOut(BaseModel):
     dimension_code: str
     career_path_code: str
     level_code: str
-    pillar_number: int | None
+    pillar_code: str | None
     estimated_minutes: int | None
 
 

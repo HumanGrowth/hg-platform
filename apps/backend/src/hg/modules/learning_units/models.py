@@ -121,8 +121,10 @@ class LearningUnit(Base):
     area_code: Mapped[str | None] = mapped_column(
         String(10), ForeignKey("areas.code", ondelete="SET NULL"), index=True
     )
-    # Pilar (P<n>) y correlativo del código Drive `<DIM>-L<n>-P<n>-<seq>`.
-    pillar_number: Mapped[int | None] = mapped_column(nullable=True)
+    # Pilar como CÓDIGO (P1…P5, AI, ETH…) — se deriva de la jerarquía del Drive
+    # (segmento antes del número de unidad). Antes era un int (pillar_number);
+    # pasó a string para soportar pilares nombrados (CE-07).
+    pillar_code: Mapped[str | None] = mapped_column(String(12), nullable=True)
     unit_number: Mapped[int | None] = mapped_column(nullable=True)
     competency_code: Mapped[CompetencyCode | None] = mapped_column(
         Enum(CompetencyCode, name="competency_code", create_type=False), nullable=True

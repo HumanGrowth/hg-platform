@@ -5,7 +5,7 @@ import { UnitOpeningScreen } from "../UnitOpeningScreen";
 import type { LearningUnitDetail } from "@/lib/types";
 
 const unit: LearningUnitDetail = {
-  id: "u1", slug: "test-unit", title: "El que no habla no existe", dimension_code: "CP", pillar_number: null, unit_number: null,
+  id: "u1", slug: "test-unit", title: "El que no habla no existe", dimension_code: "CP", pillar_code: null, unit_number: null,
   competency_code: null, level_code: "L1", mentor_id: null, published_at: null,
   estimated_duration_seconds: 180, narrative_tone: "warm", keywords: null,
   blocks: [

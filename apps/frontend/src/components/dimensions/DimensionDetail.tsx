@@ -239,16 +239,16 @@ function LevelGroup({ level, units }: { level: string; units: LearningUnitFeedIt
   const hasContent = units.length > 0;
   const [open, setOpen] = React.useState(hasContent);
 
-  // Dentro del nivel, agrupar por dimensión_number (subcategoría).
+  // Dentro del nivel, agrupar por pillar_code (subcategoría).
   const byDimension = React.useMemo(() => {
-    const map = new Map<number, LearningUnitFeedItem[]>();
+    const map = new Map<string, LearningUnitFeedItem[]>();
     for (const u of units) {
-      const key = u.pillar_number ?? 0;
+      const key = u.pillar_code ?? "";
       const arr = map.get(key) ?? [];
       arr.push(u);
       map.set(key, arr);
     }
-    return [...map.entries()].sort(([a], [b]) => a - b);
+    return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));
   }, [units]);
 
   if (!hasContent) {
@@ -284,11 +284,11 @@ function LevelGroup({ level, units }: { level: string; units: LearningUnitFeedIt
       </button>
       {open && (
         <div className="flex flex-col gap-4 border-t border-border px-4 py-4">
-          {byDimension.map(([pillarNumber, dimensionUnits]) => (
-            <div key={pillarNumber} className="flex flex-col gap-2">
+          {byDimension.map(([pillarCode, dimensionUnits]) => (
+            <div key={pillarCode} className="flex flex-col gap-2">
               {byDimension.length > 1 && (
                 <p className="px-1 font-sans text-xs font-semibold uppercase tracking-meta text-fg-subtle">
-                  {subPillarName(dimensionUnits[0]?.dimension_code, Number(pillarNumber))}
+                  {subPillarName(dimensionUnits[0]?.dimension_code, pillarCode)}
                 </p>
               )}
               {dimensionUnits.map((u) => (

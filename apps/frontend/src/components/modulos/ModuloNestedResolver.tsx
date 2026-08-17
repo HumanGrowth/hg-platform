@@ -33,13 +33,13 @@ export function ModuloNestedResolver({
 
   React.useEffect(() => {
     let active = true;
-    const pillarNumber = Number.parseInt(pillar.replace(/^P/i, ""), 10);
+    const pillarCode = pillar.toUpperCase();
     const unitNumber = Number.parseInt(unit, 10);
     apiListModulosByDimension(driveToCareerPath(dimension), level, 50)
       .then((units) => {
         if (!active) return;
         const match = units.find(
-          (u) => u.pillar_number === pillarNumber && u.unit_number === unitNumber,
+          (u) => u.pillar_code?.toUpperCase() === pillarCode && u.unit_number === unitNumber,
         );
         if (match) {
           setSlug(match.slug);

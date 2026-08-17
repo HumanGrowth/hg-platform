@@ -145,7 +145,7 @@ def _build_video_specs(db: Session, content_dir: Path | None, slug: str, dimensi
 _EMBEDDED_UNIT_1: dict[str, Any] = {
     "slug": "hg-p1-l1-001-antes-de-seguir",
     "title": "Antes de seguir",
-    "dimension_code": "CP", "pillar_number": 1,
+    "dimension_code": "CP", "pillar_code": "P1",
     "competency_code": "C1",
     "level_code": "L1",
     "mentor_name": "Seba",
@@ -330,7 +330,7 @@ def _load_unit_1_spec() -> tuple[dict[str, Any], Path | None]:
 _UNIT_2_FEEDBACK_DIRECTO: dict[str, Any] = {
     "slug": "hg-p3-l1-001-feedback-directo",
     "title": f"{GENERATED_TAG} Feedback directo sin drama",
-    "dimension_code": "CP", "pillar_number": 3,
+    "dimension_code": "CP", "pillar_code": "P3",
     "competency_code": "C4",
     "level_code": "L1",
     "estimated_duration_seconds": 80,
@@ -399,7 +399,7 @@ _UNIT_2_FEEDBACK_DIRECTO: dict[str, Any] = {
 _UNIT_3_MICRO_DESCANSOS: dict[str, Any] = {
     "slug": "hg-p4-l1-001-micro-descansos",
     "title": f"{GENERATED_TAG} Micro-descansos que sí funcionan",
-    "dimension_code": "CP", "pillar_number": 4,
+    "dimension_code": "CP", "pillar_code": "P4",
     "competency_code": "C2",
     "level_code": "L1",
     "estimated_duration_seconds": 65,

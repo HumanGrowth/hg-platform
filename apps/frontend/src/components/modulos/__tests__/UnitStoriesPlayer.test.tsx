@@ -19,7 +19,7 @@ vi.mock("@/lib/api", () => ({
 // duration_seconds >= 30 para que el auto-advance quede OFF por default y no
 // interfiera con la navegación manual que dispara este test.
 const unit: LearningUnitDetail = {
-  id: "u1", slug: "test-unit", title: "Unit de prueba", dimension_code: "CP", pillar_number: null, unit_number: null,
+  id: "u1", slug: "test-unit", title: "Unit de prueba", dimension_code: "CP", pillar_code: null, unit_number: null,
   competency_code: null, level_code: "L1", mentor_id: null, published_at: null,
   estimated_duration_seconds: 60,
   narrative_tone: null,

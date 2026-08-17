@@ -133,20 +133,23 @@ export function dimensionIconSrc(code: string): string | null {
 
 /**
  * Nombres de los PILARES (sub-categorías) dentro de una dimensión (cierre-beta
- * TASK 2.3). El `pillar_number` (1..N) es un sub-grupo DENTRO de la dimensión,
- * no una dimensión propia — por eso el nombre depende del `dimension_code`. Hoy
- * solo está definida Carrera (CP); las otras 5 caen al fallback "Pilar N".
+ * TASK 2.3). El `pillar_code` ("P1".."P5", "AI"…) es un sub-grupo DENTRO de la
+ * dimensión, no una dimensión propia — por eso el nombre depende del
+ * `dimension_code`. Hoy solo está definida Carrera (CP); las otras caen al
+ * fallback "Pilar N".
  */
-export const SUB_PILLAR_NAMES: Record<string, Record<number, string>> = {
+export const SUB_PILLAR_NAMES: Record<string, Record<string, string>> = {
   CP: {
-    1: "Adaptabilidad de aprendizaje",
-    2: "Excelencia operativa y colaboración",
-    3: "Experticia y pensamiento estratégico",
-    4: "Comunicación e influencia",
-    5: "Inteligencia emocional y social",
+    P1: "Adaptabilidad de aprendizaje",
+    P2: "Excelencia operativa y colaboración",
+    P3: "Experticia y pensamiento estratégico",
+    P4: "Comunicación e influencia",
+    P5: "Inteligencia emocional y social",
   },
 };
 
-export function subPillarName(dimensionCode: string | undefined, pillarNumber: number): string {
-  return (dimensionCode ? SUB_PILLAR_NAMES[dimensionCode]?.[pillarNumber] : undefined) ?? `Pilar ${pillarNumber}`;
+export function subPillarName(dimensionCode: string | undefined, pillarCode: string): string {
+  const named = dimensionCode ? SUB_PILLAR_NAMES[dimensionCode]?.[pillarCode] : undefined;
+  // Fallback: "P3" → "Pilar 3"; códigos nombrados ("AI") → "Pilar AI".
+  return named ?? `Pilar ${pillarCode.replace(/^P(?=\d)/, "")}`;
 }

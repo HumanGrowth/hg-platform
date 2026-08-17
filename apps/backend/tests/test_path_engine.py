@@ -25,12 +25,12 @@ def _ensure_paths() -> None:
         s.close()
 
 
-def _make_unit(dimension_code: str, level_code: str, pillar_number: int, unit_number: int) -> uuid.UUID:
+def _make_unit(dimension_code: str, level_code: str, pillar_code: str, unit_number: int) -> uuid.UUID:
     s = SessionLocal()
     try:
         u = LearningUnit(
             slug=f"pe-{uuid.uuid4().hex[:8]}", title=f"{dimension_code}-{level_code}-{unit_number}",
-            dimension_code=dimension_code, level_code=level_code, pillar_number=pillar_number,
+            dimension_code=dimension_code, level_code=level_code, pillar_code=pillar_code,
             unit_number=unit_number, published_at=datetime.now(UTC),
         )
         s.add(u)
@@ -78,8 +78,8 @@ def test_no_assessment_default_drive_order(client, factory, auth_headers) -> Non
     _clear_all()
     _ensure_paths()
     user = factory.make_user(org=factory.make_org(), role=UserRole.collaborator)
-    u1 = _make_unit("CP", "L1", 1, 1)
-    _make_unit("CP", "L1", 1, 2)
+    u1 = _make_unit("CP", "L1", "P1", 1)
+    _make_unit("CP", "L1", "P1", 2)
     try:
         res = client.get("/api/v1/me/path", headers=auth_headers(user))
         assert res.status_code == 200, res.text
@@ -98,8 +98,8 @@ def test_prioritizes_lowest_scoring_dimension(client, factory, auth_headers) -> 
     _clear_all()
     _ensure_paths()
     user = factory.make_user(org=factory.make_org(), role=UserRole.collaborator)
-    _make_unit("CP", "L1", 1, 1)  # Carrera (P1)
-    pr = _make_unit("PR", "L1", 1, 1)  # Propósito (P2)
+    _make_unit("CP", "L1", "P1", 1)  # Carrera (P1)
+    pr = _make_unit("PR", "L1", "P1", 1)  # Propósito (P2)
     # P1 alto (L5), P2 bajo (L1) → next_step debe ser el de P2 (más bajo).
     _assessment(user, DimensionCode.P1, "L5")
     _assessment(user, DimensionCode.P2, "L1")
@@ -115,8 +115,8 @@ def test_advances_to_next_level_when_current_complete(client, factory, auth_head
     _clear_all()
     _ensure_paths()
     user = factory.make_user(org=factory.make_org(), role=UserRole.collaborator)
-    l1 = _make_unit("CP", "L1", 1, 1)
-    l2 = _make_unit("CP", "L2", 1, 1)
+    l1 = _make_unit("CP", "L1", "P1", 1)
+    l2 = _make_unit("CP", "L2", "P1", 1)
     _complete(user, l1)
     try:
         body = client.get("/api/v1/me/path", headers=auth_headers(user)).json()
@@ -130,7 +130,7 @@ def test_all_completed_no_next_step(client, factory, auth_headers) -> None:
     _clear_all()
     _ensure_paths()
     user = factory.make_user(org=factory.make_org(), role=UserRole.collaborator)
-    u1 = _make_unit("CP", "L1", 1, 1)
+    u1 = _make_unit("CP", "L1", "P1", 1)
     _complete(user, u1)
     try:
         body = client.get("/api/v1/me/path", headers=auth_headers(user)).json()

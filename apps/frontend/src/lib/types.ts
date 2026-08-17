@@ -557,7 +557,7 @@ export interface LearningUnitDetail {
   slug: string;
   title: string;
   dimension_code: string;
-  pillar_number: number | null;
+  pillar_code: string | null;
   unit_number: number | null;
   competency_code: string | null;
   level_code: string;
@@ -576,7 +576,7 @@ export interface LearningUnitFeedItem {
   slug: string;
   title: string;
   dimension_code: string;
-  pillar_number: number | null;
+  pillar_code: string | null;
   unit_number: number | null;
   level_code: string;
   estimated_duration_seconds: number | null;
@@ -770,7 +770,7 @@ export interface AssignableUnit {
   title: string;
   dimension_code: string;
   level_code: string;
-  pillar_number: number | null;
+  pillar_code: string | null;
 }
 
 export interface PathStep {
@@ -780,7 +780,7 @@ export interface PathStep {
   dimension_code: string;
   career_path_code: string;
   level_code: string;
-  pillar_number: number | null;
+  pillar_code: string | null;
   estimated_minutes: number | null;
 }
 

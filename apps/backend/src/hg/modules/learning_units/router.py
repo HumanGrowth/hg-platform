@@ -207,7 +207,7 @@ def _load_unit_detail(db: Session, unit: LearningUnit) -> LearningUnitDetail:
     blocks = sorted(unit.blocks, key=lambda b: b.position)
     return LearningUnitDetail(
         id=unit.id, slug=unit.slug, title=unit.title, dimension_code=unit.dimension_code,
-        pillar_number=unit.pillar_number, unit_number=unit.unit_number,
+        pillar_code=unit.pillar_code, unit_number=unit.unit_number,
         competency_code=unit.competency_code.value if unit.competency_code else None,
         level_code=unit.level_code, mentor_id=unit.mentor_id, published_at=unit.published_at,
         estimated_duration_seconds=unit.estimated_duration_seconds,
@@ -234,7 +234,7 @@ def _feed_item(db: Session, unit: LearningUnit, user: User) -> LearningUnitFeedI
         poster_url = video.poster_url if video else None
     return LearningUnitFeedItem(
         id=unit.id, slug=unit.slug, title=unit.title, dimension_code=unit.dimension_code,
-        pillar_number=unit.pillar_number, unit_number=unit.unit_number,
+        pillar_code=unit.pillar_code, unit_number=unit.unit_number,
         level_code=unit.level_code, estimated_duration_seconds=unit.estimated_duration_seconds,
         blocks_count=n_blocks, attempt_status=_attempt_status(attempt), poster_url=poster_url,
     )
@@ -327,7 +327,7 @@ def list_modulos_by_dimension(
     suba esas dimensiones al Drive.
 
     Orden por la convención del Drive `Dimensión-Nivel-Pilar-Número`: dentro de la
-    dimensión, `level_code` ASC → `pillar_number` ASC → `unit_number` ASC (no por
+    dimensión, `level_code` ASC → `pillar_code` ASC → `unit_number` ASC (no por
     orden de import). Excluye units reemplazadas (`superseded_by_unit_id`)."""
     dims = dimensions_for_career_paths([dimension_code])
     conds: list[ColumnElement[bool]] = [
@@ -344,7 +344,7 @@ def list_modulos_by_dimension(
         .where(*conds)
         .order_by(
             LearningUnit.level_code.asc(),
-            LearningUnit.pillar_number.asc(),
+            LearningUnit.pillar_code.asc(),
             LearningUnit.unit_number.asc(),
         )
         .limit(limit)

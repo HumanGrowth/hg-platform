@@ -599,10 +599,10 @@ def _process_folder(
     # ser la dimensión; se descarta y se re-deriva del nombre de carpeta).
     unit_json["dimension_code"] = code.dimension
     unit_json["area_code"] = code.area  # None = general (Capa Empresa · TASK 8)
-    unit_json["pillar_number"] = code.pillar
+    unit_json.pop("pillar_code", None)  # descartar el pillar_code legacy externo del Doc
+    unit_json["pillar_code"] = f"P{code.pillar}"  # CE-07 (Phase 2: derivar de jerarquía)
     unit_json["unit_number"] = code.number
     unit_json["level_code"] = f"L{code.level}"
-    unit_json.pop("pillar_code", None)
     slug = unit_json.get("slug", "<sin-slug>")
     log.info("→ %s · slug=%s · %d video(s)", folder.name, slug, folder.mp4_count)
     stats.folders += 1
@@ -656,7 +656,7 @@ def _process_folder(
         if code.pillar is not None:
             from hg.modules.badges.progression import ensure_pillar_badge
 
-            ensure_pillar_badge(db, code.dimension, code.pillar)
+            ensure_pillar_badge(db, code.dimension, f"P{code.pillar}")
         if args.no_publish:
             db.commit()
             log.info("  ✓ %s creada como borrador (--no-publish)", slug)
