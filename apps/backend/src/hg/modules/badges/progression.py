@@ -163,7 +163,79 @@ def recompute_dimension(db: Session, user: User, dimension_code: str) -> None:
         if completion >= level.unlock_threshold:
             _award_badge(db, user, f"level-{dimension_code}-{level.level_code}".lower())
 
+    _award_pillar_badges(db, user, dimension_code)
     db.flush()
+
+
+def pillar_badge_code(dimension_code: str, pillar_number: int) -> str:
+    return f"pillar-{dimension_code}-p{pillar_number}".lower()
+
+
+def ensure_pillar_badge(
+    db: Session, dimension_code: str, pillar_number: int, name: str | None = None
+) -> None:
+    """Get-or-create del Badge de catálogo de un pilar (idempotente). Lo llama el
+    sync de contenido (superadmin, con INSERT en ``badges``); el nombre del
+    sub-badge lo define el nombre del pilar (decisión Andy). hg_app no puede crear
+    acá — por eso el catálogo se pre-seedea desde el sync."""
+    dimension_code = dimension_code.upper()
+    code = pillar_badge_code(dimension_code, pillar_number)
+    if db.scalar(select(Badge).where(Badge.code == code)) is not None:
+        return
+    db.add(
+        Badge(
+            code=code,
+            name=name or f"{dimension_code} · Pilar {pillar_number}",
+            description=f"Completaste el pilar {pillar_number} de la dimensión {dimension_code}.",
+            icon_url="",
+            unlock_hint=f"Completá todas las unidades del pilar {pillar_number} de {dimension_code}.",
+        )
+    )
+    db.flush()
+
+
+def _award_pillar_badges(db: Session, user: User, dimension_code: str) -> None:
+    """Otorga el sub-badge de cada pilar de la dimensión que el user completó
+    (todas las units publicadas de ese ``(dimensión, pillar_number)``). El Badge
+    de catálogo lo pre-seedea el sync (``ensure_pillar_badge``); acá solo se hace
+    INSERT en user_badges (que hg_app sí puede)."""
+    pillars = db.scalars(
+        select(LearningUnit.pillar_number)
+        .where(
+            LearningUnit.dimension_code == dimension_code,
+            LearningUnit.pillar_number.isnot(None),
+            LearningUnit.published_at.isnot(None),
+            LearningUnit.superseded_by_unit_id.is_(None),
+        )
+        .distinct()
+    ).all()
+    for pillar in pillars:
+        if pillar is None:
+            continue
+        unit_ids = list(
+            db.scalars(
+                select(LearningUnit.id).where(
+                    LearningUnit.dimension_code == dimension_code,
+                    LearningUnit.pillar_number == pillar,
+                    LearningUnit.published_at.isnot(None),
+                    LearningUnit.superseded_by_unit_id.is_(None),
+                )
+            ).all()
+        )
+        if not unit_ids:
+            continue
+        completed = (
+            db.scalar(
+                select(func.count(func.distinct(LearningUnitAttempt.unit_id))).where(
+                    LearningUnitAttempt.user_id == user.id,
+                    LearningUnitAttempt.unit_id.in_(unit_ids),
+                    LearningUnitAttempt.completed_at.isnot(None),
+                )
+            )
+            or 0
+        )
+        if completed == len(unit_ids):  # pilar completo
+            _award_badge(db, user, pillar_badge_code(dimension_code, pillar))
 
 
 def recompute_for_assessment_code(db: Session, user: User, assessment_code: str) -> None:
