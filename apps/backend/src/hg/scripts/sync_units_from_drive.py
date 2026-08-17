@@ -650,6 +650,13 @@ def _process_folder(
                 return
         unit = upsert_unit_from_dict(db, unit_dict, publish=False)
         db.flush()
+        # Pre-seed del sub-badge de pilar (Capa Empresa · TASK 6.3): el sync corre
+        # con permisos para crear en `badges`; el unlock (hg_app) solo hace INSERT
+        # en user_badges. Idempotente.
+        if code.pillar is not None:
+            from hg.modules.badges.progression import ensure_pillar_badge
+
+            ensure_pillar_badge(db, code.dimension, code.pillar)
         if args.no_publish:
             db.commit()
             log.info("  ✓ %s creada como borrador (--no-publish)", slug)

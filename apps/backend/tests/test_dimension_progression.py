@@ -142,3 +142,46 @@ def test_progression_summary_current_level(factory) -> None:
         assert cp["levels"][0]["earned"] is False
     finally:
         cleanup_units(s, [unit.id])
+
+
+def test_pillar_subbadge_awarded_when_pillar_completed(factory) -> None:
+    """Completar todas las units de un (dimensión, pilar) otorga el sub-badge —
+    pre-seedeado por ensure_pillar_badge (como haría el sync)."""
+    from hg.modules.badges.progression import ensure_pillar_badge, pillar_badge_code
+
+    s = factory.session
+    org = factory.make_org()
+    user = factory.make_user(org=org)
+    u1 = make_unit(s, dimension_code="CP", level_code="L1", n_blocks=1)
+    u2 = make_unit(s, dimension_code="CP", level_code="L1", n_blocks=1)
+    for u in (u1, u2):
+        u.pillar_number = 1
+    s.commit()
+    ensure_pillar_badge(s, "CP", 1)  # el sync pre-seedea el Badge de catálogo
+    code = pillar_badge_code("CP", 1)
+    try:
+        # Solo 1 de 2 completa → todavía no.
+        seed_attempt(s, org_id=org.id, user_id=user.id, unit=u1, when=datetime.now(UTC), completed=True)
+        progression.recompute_dimension(s, user, "CP")
+        s.commit()
+        badge = s.scalar(select(Badge).where(Badge.code == code))
+        assert badge is not None
+        assert s.scalar(
+            select(func.count()).select_from(UserBadge).where(
+                UserBadge.user_id == user.id, UserBadge.badge_id == badge.id
+            )
+        ) == 0
+
+        # Completa la 2da → pilar completo → sub-badge.
+        seed_attempt(s, org_id=org.id, user_id=user.id, unit=u2, when=datetime.now(UTC), completed=True)
+        progression.recompute_dimension(s, user, "CP")
+        s.commit()
+        assert s.scalar(
+            select(func.count()).select_from(UserBadge).where(
+                UserBadge.user_id == user.id, UserBadge.badge_id == badge.id
+            )
+        ) == 1
+    finally:
+        s.query(UserBadge).filter(UserBadge.user_id == user.id).delete()
+        s.query(Badge).filter(Badge.code == code).delete()
+        cleanup_units(s, [u1.id, u2.id])
