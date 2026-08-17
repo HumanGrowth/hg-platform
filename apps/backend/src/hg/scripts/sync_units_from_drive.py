@@ -58,7 +58,7 @@ from hg.modules.learning_units.services import (
     try_publish,
     upsert_unit_from_dict,
 )
-from hg.modules.learning_units.unit_code import UnitCode
+from hg.modules.learning_units.unit_code import UnitCode, normalize_pillar
 
 log = logging.getLogger("hg.sync_units_from_drive")
 
@@ -87,7 +87,9 @@ _VALID_COMPETENCY_CODES = frozenset({"C1", "C2", "C3", "C4", "C5"})
 # Genérico `<DIM>-L<n>-P<n>-<seq>` (TASK 1) — ya NO hardcodea `CP-`; tolera un
 # sufijo después del seq (ej. `CP-L1-P1-001 - algo`).
 # Prefijo de Área opcional (Capa Empresa · TASK 8): `[<AREA>-]<DIM>-L<n>-P<n>-<seq>`.
-_FOLDER_NAME_RE = re.compile(r"^(?:([A-Z]{2,3})-)?([A-Z]{2,3})-L(\d{1,2})-P(\d{1,2})-(\d{1,4})\b")
+_FOLDER_NAME_RE = re.compile(
+    r"^(?:([A-Z]{2,3})-)?([A-Z]{2,3})-L(\d{1,2})-(P\d{1,2}|[A-Z]{2,4})-(\d{1,4})\b"
+)
 _VID_NUM_RE = re.compile(r"VID(\d+)", re.IGNORECASE)
 
 
@@ -119,11 +121,13 @@ _MARKDOWN_ESCAPES = {
 
 
 def parse_folder_name(folder_name: str) -> UnitCode | None:
-    """``CP-L1-P2-001`` → ``UnitCode(dimension="CP", level=1, pillar=2, number=1)``.
+    """``CP-L1-P2-001`` → ``UnitCode(dimension="CP", level=1, pillar="P2", number=1)``;
+    ``CP-L1-IA-015`` → ``pillar="AI"``.
 
-    Genérico (TASK 1): cualquier dimensión (2-3 letras), no solo ``CP``. Tolera
-    sufijos después del seq. Devuelve ``None`` si el nombre no respeta la
-    convención — el caller lo **reporta y saltea** (nunca importa mal en silencio).
+    Genérico (TASK 1): cualquier dimensión (2-3 letras), no solo ``CP``, y pilar
+    numerado (``P<n>``) o nombrado (``AI``/``IA``…). Tolera sufijos después del
+    seq. Devuelve ``None`` si el nombre no respeta la convención — el caller lo
+    **reporta y saltea** (nunca importa mal en silencio).
     """
     m = _FOLDER_NAME_RE.match(folder_name.strip().upper())
     if not m:
@@ -133,7 +137,7 @@ def parse_folder_name(folder_name: str) -> UnitCode | None:
         area = None
     return UnitCode(
         area=area, dimension=m.group(2), level=int(m.group(3)),
-        pillar=int(m.group(4)), number=int(m.group(5)),
+        pillar=normalize_pillar(m.group(4)), number=int(m.group(5)),
     )
 
 
@@ -392,6 +396,10 @@ def _drive_list_children(service: Any, folder_id: str) -> list[dict[str, Any]]:
                 fields="nextPageToken, files(id,name,mimeType)",
                 pageToken=page_token,
                 pageSize=200,
+                # Shared Drives ("5. Videos Final Version" vive en uno): sin estos
+                # flags la API devuelve 0 hijos.
+                supportsAllDrives=True,
+                includeItemsFromAllDrives=True,
             )
             .execute()
         )
@@ -412,7 +420,9 @@ def _drive_download_media(service: Any, file_id: str, dest: Path) -> None:
 
     dest.parent.mkdir(parents=True, exist_ok=True)
     with dest.open("wb") as fh:
-        downloader = MediaIoBaseDownload(fh, service.files().get_media(fileId=file_id))
+        downloader = MediaIoBaseDownload(
+            fh, service.files().get_media(fileId=file_id, supportsAllDrives=True)
+        )
         done = False
         while not done:
             _, done = downloader.next_chunk()
@@ -600,7 +610,7 @@ def _process_folder(
     unit_json["dimension_code"] = code.dimension
     unit_json["area_code"] = code.area  # None = general (Capa Empresa · TASK 8)
     unit_json.pop("pillar_code", None)  # descartar el pillar_code legacy externo del Doc
-    unit_json["pillar_code"] = f"P{code.pillar}"  # CE-07 (Phase 2: derivar de jerarquía)
+    unit_json["pillar_code"] = code.pillar  # CE-07: código string derivado del folder
     unit_json["unit_number"] = code.number
     unit_json["level_code"] = f"L{code.level}"
     slug = unit_json.get("slug", "<sin-slug>")
@@ -656,7 +666,7 @@ def _process_folder(
         if code.pillar is not None:
             from hg.modules.badges.progression import ensure_pillar_badge
 
-            ensure_pillar_badge(db, code.dimension, f"P{code.pillar}")
+            ensure_pillar_badge(db, code.dimension, code.pillar)
         if args.no_publish:
             db.commit()
             log.info("  ✓ %s creada como borrador (--no-publish)", slug)

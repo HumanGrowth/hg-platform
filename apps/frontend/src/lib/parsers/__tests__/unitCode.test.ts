@@ -8,7 +8,7 @@ describe("parseUnitCode", () => {
       area: null,
       dimension: "CP",
       level: 1,
-      pillar: 2,
+      pillar: "P2",
       number: 1,
     });
   });
@@ -18,7 +18,7 @@ describe("parseUnitCode", () => {
       area: "MFG",
       dimension: "CP",
       level: 1,
-      pillar: 2,
+      pillar: "P2",
       number: 1,
     });
   });
@@ -36,7 +36,7 @@ describe("parseUnitCode", () => {
       area: null,
       dimension: "PRO",
       level: 10,
-      pillar: 12,
+      pillar: "P12",
       number: 45,
     });
   });
@@ -46,9 +46,20 @@ describe("parseUnitCode", () => {
       area: "IT",
       dimension: "PRO",
       level: 2,
-      pillar: 3,
+      pillar: "P3",
       number: 10,
     });
+  });
+
+  it("parses a named pillar and normalizes IA → AI (CE-07)", () => {
+    expect(parseUnitCode("CP-L1-IA-015")).toEqual({
+      area: null,
+      dimension: "CP",
+      level: 1,
+      pillar: "AI",
+      number: 15,
+    });
+    expect(parseUnitCode("CP-L1-AI-015")?.pillar).toBe("AI");
   });
 
   it("is case-insensitive and trims", () => {
@@ -56,7 +67,7 @@ describe("parseUnitCode", () => {
       area: null,
       dimension: "CP",
       level: 1,
-      pillar: 2,
+      pillar: "P2",
       number: 1,
     });
   });
@@ -75,19 +86,19 @@ describe("parseUnitCode", () => {
 
 describe("formatUnitCode", () => {
   it("round-trips a general code and re-pads to 3 digits", () => {
-    expect(formatUnitCode({ area: null, dimension: "CP", level: 1, pillar: 2, number: 1 })).toBe(
+    expect(formatUnitCode({ area: null, dimension: "CP", level: 1, pillar: "P2", number: 1 })).toBe(
       "CP-L1-P2-001",
     );
   });
 
   it("prepends the area when present", () => {
-    expect(formatUnitCode({ area: "MFG", dimension: "CP", level: 1, pillar: 2, number: 1 })).toBe(
+    expect(formatUnitCode({ area: "MFG", dimension: "CP", level: 1, pillar: "P2", number: 1 })).toBe(
       "MFG-CP-L1-P2-001",
     );
   });
 
   it("does not truncate numbers over 999", () => {
-    expect(formatUnitCode({ area: null, dimension: "CP", level: 1, pillar: 1, number: 1000 })).toBe(
+    expect(formatUnitCode({ area: null, dimension: "CP", level: 1, pillar: "P1", number: 1000 })).toBe(
       "CP-L1-P1-1000",
     );
   });
