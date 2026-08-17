@@ -97,6 +97,12 @@ export default function PerfilPage() {
               Editar mi información
             </Button>
           </Link>
+          <Link
+            href={"/configuracion/privacidad" as Route}
+            className="font-sans text-xs font-medium text-fg-muted hover:text-fg hover:underline"
+          >
+            Privacidad y visibilidad de datos
+          </Link>
           <button
             type="button"
             onClick={() => void replayTour()}
