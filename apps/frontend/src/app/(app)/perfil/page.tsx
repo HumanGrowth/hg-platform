@@ -8,6 +8,7 @@ import * as React from "react";
 import { EmptyRing } from "@/components/EmptyRing";
 import { BadgesCarousel } from "@/components/perfil/BadgesCarousel";
 import { DimensionSummarySection } from "@/components/perfil/DimensionSummarySection";
+import { ProgressionSection } from "@/components/perfil/ProgressionSection";
 import { Radar } from "@/components/radar/Radar";
 import type { RadarValues } from "@/components/radar/radar-model";
 import { Avatar } from "@/components/ui/avatar";
@@ -178,6 +179,9 @@ export default function PerfilPage() {
           {results.length > 0 && (
             <DimensionSummarySection results={results} radar={radar} onChanged={load} />
           )}
+
+          {/* Nivel + completion por dimensión (TASK 6): aprendizaje + assessment. */}
+          <ProgressionSection />
 
           {/* Sección 4: Historial */}
           <section className="mt-12" id="historial">

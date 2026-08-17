@@ -121,3 +121,24 @@ def test_level_badge_unlocks_at_threshold_and_conserves_max(factory) -> None:
     finally:
         s.query(UserBadge).filter(UserBadge.user_id == user.id).delete()
         cleanup_units(s, [unit.id])
+
+
+def test_progression_summary_current_level(factory) -> None:
+    """El summary devuelve el nivel actual = primero sin llegar al umbral."""
+    s = factory.session
+    org = factory.make_org()
+    user = factory.make_user(org=org)
+    unit = make_unit(s, dimension_code="CP", level_code="L1", n_blocks=1)
+    seed_attempt(s, org_id=org.id, user_id=user.id, unit=unit, when=datetime.now(UTC), completed=True)
+    _seed_dim_result(factory, user, DimensionCode.P1, "L3")  # 50 → completion L1 = 85
+    try:
+        progression.recompute_dimension(s, user, "CP")
+        s.commit()
+        summary = {d["dimension_code"]: d for d in progression.progression_summary(s, user.id)}
+        cp = summary["CP"]
+        assert cp["current_level_code"] == "L1"  # 85 < 100, sigue en L1
+        assert cp["current_completion_pct"] == 85.0
+        assert len(cp["levels"]) == 3
+        assert cp["levels"][0]["earned"] is False
+    finally:
+        cleanup_units(s, [unit.id])
