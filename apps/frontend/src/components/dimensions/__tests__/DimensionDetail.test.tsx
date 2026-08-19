@@ -67,15 +67,15 @@ describe("DimensionDetail", () => {
   it("shows 'Contenido próximamente' and does not fetch units for a dimension without content", async () => {
     getMyResults.mockResolvedValue({ results: [] });
 
-    render(<DimensionDetail dimension={dimensionByCode("PR")!} />);
+    render(<DimensionDetail dimension={dimensionByCode("RE")!} />);
 
     await waitFor(() =>
       expect(screen.getByText("Contenido próximamente para esta dimensión")).toBeTruthy(),
     );
     expect(listModulosByDimension).not.toHaveBeenCalled();
-    // Sin evaluación previa → CTA "Evaluar" hacia P2.
+    // Sin evaluación previa → CTA "Evaluar" hacia el careerPath de RE (P3).
     const cta = screen.getByText("Evaluar").closest("a") as HTMLAnchorElement;
-    expect(cta.getAttribute("href")).toBe("/onboarding/detail/P2");
+    expect(cta.getAttribute("href")).toBe("/onboarding/detail/P3");
     expect(screen.getByText("Todavía no evaluaste esta dimensión")).toBeTruthy();
   });
 });

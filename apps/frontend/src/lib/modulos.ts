@@ -15,6 +15,7 @@ export interface DimensionMeta {
 
 export const DIMENSIONS: DimensionMeta[] = [
   { code: "CP", pillar: "P1", name: "Carrera e impacto" },
+  { code: "PR", pillar: "P2", name: "Propósito y significado" },
 ];
 
 function pad3(n: number): string {
