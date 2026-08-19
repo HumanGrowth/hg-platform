@@ -48,7 +48,7 @@ from hg.scripts.sync_units_from_drive import (
 
 log = logging.getLogger("hg.ingest_units_from_md")
 
-_HDR_RE = re.compile(r"^##\s+([A-Z0-9-]+)\s+—\s+`([^`]+)`", re.MULTILINE)
+_HDR_RE = re.compile(r"^#{2,3}\s+([A-Z][A-Z0-9-]+)", re.MULTILINE)
 _JSON_RE = re.compile(r"```json\s*(.*?)```", re.DOTALL)
 
 
