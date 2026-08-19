@@ -11,7 +11,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -526,3 +526,49 @@ def update_user(db: Session, *, user_id: UUID, actor: User, payload: dict) -> Us
 
     db.flush()
     return target
+
+
+def hard_delete_user(db: Session, *, user_id: UUID, actor: User) -> None:
+    """Borrado DEFINITIVO de un usuario (solo superadmin, cross-tenant).
+
+    Todas las FKs a ``users.id`` ya declaran ``ondelete`` (``CASCADE`` para los
+    datos propios del usuario — sesiones, attempts, progreso, assessment,
+    consent, badges, ai — y ``SET NULL`` para las referencias — ``manager_id``
+    self-ref, ``invited_by``, ``created_by``…). Por eso un ``DELETE`` de la fila
+    dispara la limpieza en cascada a nivel DB: no quedan filas huérfanas y no
+    hace falta migración. Se ejecuta con un DELETE de Core (no ORM) para
+    apoyarse en el ``ondelete`` de la base.
+
+    Reglas de seguridad: no auto-borrado; no borrar el último superadmin activo.
+    """
+    target = db.get(User, user_id)
+    if target is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+    if target.id == actor.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="cannot delete yourself"
+        )
+    if target.role is UserRole.superadmin:
+        others = db.execute(
+            select(func.count())
+            .select_from(User)
+            .where(
+                User.role == UserRole.superadmin,
+                User.is_active.is_(True),
+                User.id != target.id,
+            )
+        ).scalar_one()
+        if others == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="cannot delete the last superadmin",
+            )
+
+    # Audit: el borrado es irreversible y cross-tenant.
+    logger.warning(
+        "hard_delete_user actor=%s target=%s email=%s org=%s role=%s",
+        actor.id, target.id, target.email, target.org_id, target.role.value,
+    )
+    # DELETE de Core → dispara ondelete (CASCADE / SET NULL) de las 26 FKs.
+    db.execute(delete(User).where(User.id == user_id))
+    db.flush()

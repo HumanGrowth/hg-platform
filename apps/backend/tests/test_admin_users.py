@@ -162,3 +162,91 @@ def test_cannot_deactivate_last_superadmin(db: Session, factory) -> None:
     with pytest.raises(HTTPException) as exc:
         service.update_user(db, user_id=only_sa.id, actor=only_sa, payload={"is_active": False})
     assert exc.value.status_code == 400
+
+
+# ─────────────────────────── M2 · hard delete de usuario ───────────────────────────
+
+
+def test_superadmin_hard_deletes_user_cascades_and_set_null(
+    client: TestClient, factory, auth_headers
+) -> None:
+    from datetime import UTC, datetime, timedelta
+    from uuid import uuid4
+
+    from sqlalchemy import func, select
+
+    from hg.modules.identity.models import UserSession
+
+    db: Session = factory.session
+    sa = factory.make_user(org=factory.make_org(), role=UserRole.superadmin)
+    org = factory.make_org(licenses_total=10)
+    manager = factory.make_user(org=org, role=UserRole.manager)
+    report = factory.make_user(org=org, manager_id=manager.id)
+    manager_id, report_id = manager.id, report.id  # capturar antes del borrado
+    # Fila hija (CASCADE): una sesión del manager.
+    db.add(
+        UserSession(
+            user_id=manager.id, org_id=org.id, refresh_token_hash=f"h-{uuid4().hex}",
+            expires_at=datetime.now(UTC) + timedelta(days=1),
+        )
+    )
+    db.commit()
+
+    res = client.delete(f"/api/v1/admin/users/{manager_id}", headers=auth_headers(sa))
+    assert res.status_code == 204, res.text
+
+    db.expire_all()
+    # Queries frescas (evitan ObjectDeletedError del identity-map sobre filas
+    # borradas fuera de esta sesión).
+    assert db.scalar(select(User.id).where(User.id == manager_id)) is None  # borrado
+    # CASCADE: la sesión hija desapareció (sin filas huérfanas).
+    assert (
+        db.scalar(
+            select(func.count()).select_from(UserSession).where(UserSession.user_id == manager_id)
+        )
+        == 0
+    )
+    # SET NULL: el report sobrevive con manager_id nulo.
+    assert db.scalar(select(User.id).where(User.id == report_id)) == report_id
+    assert db.scalar(select(User.manager_id).where(User.id == report_id)) is None
+    # Idempotencia vía API: borrar de nuevo → 404.
+    again = client.delete(f"/api/v1/admin/users/{manager_id}", headers=auth_headers(sa))
+    assert again.status_code == 404
+
+
+def test_admin_cannot_hard_delete_403(client: TestClient, factory, auth_headers) -> None:
+    org = factory.make_org(licenses_total=10)
+    admin = factory.make_user(org=org, role=UserRole.admin)
+    target = factory.make_user(org=org)
+    res = client.delete(f"/api/v1/admin/users/{target.id}", headers=auth_headers(admin))
+    assert res.status_code == 403
+
+
+def test_cannot_delete_self_400(client: TestClient, factory, auth_headers) -> None:
+    sa = factory.make_user(org=factory.make_org(), role=UserRole.superadmin)
+    res = client.delete(f"/api/v1/admin/users/{sa.id}", headers=auth_headers(sa))
+    assert res.status_code == 400
+    assert "yourself" in res.json()["detail"]
+
+
+def test_cannot_delete_last_superadmin(factory) -> None:
+    # A nivel service: borrar al único superadmin activo (con un actor distinto)
+    # está bloqueado. Vía API esto lo tapa la regla de auto-borrado; el service
+    # es la última línea de defensa.
+    from sqlalchemy import update as sa_update
+
+    db: Session = factory.session
+    sa = factory.make_user(org=factory.make_org(), role=UserRole.superadmin)
+    actor = factory.make_user(org=factory.make_org(), role=UserRole.admin)
+    # Aislar: dejar a `sa` como el único superadmin ACTIVO (otros tests commitean
+    # superadmins que no se hacen rollback en el path superadmin).
+    db.execute(
+        sa_update(User)
+        .where(User.role == UserRole.superadmin, User.id != sa.id)
+        .values(is_active=False)
+    )
+    db.commit()
+    with pytest.raises(HTTPException) as exc:
+        service.hard_delete_user(db, user_id=sa.id, actor=actor)
+    assert exc.value.status_code == 400
+    assert "last superadmin" in exc.value.detail

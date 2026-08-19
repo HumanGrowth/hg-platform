@@ -138,3 +138,15 @@ def update_user(
         db, user_id=user_id, actor=actor, payload=payload.model_dump(exclude_unset=True)
     )
     return AdminUserOut.model_validate(user)
+
+
+@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+    user_id: UUID,
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role("superadmin")),
+) -> None:
+    """Borrado DEFINITIVO de un usuario — **solo superadmin** (cross-tenant).
+    Las reglas (no auto-borrado, no último superadmin) y la cascada viven en el
+    service. Irreversible."""
+    service.hard_delete_user(db, user_id=user_id, actor=actor)
