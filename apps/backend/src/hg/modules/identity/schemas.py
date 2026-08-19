@@ -80,7 +80,7 @@ class LogoutRequest(BaseModel):
 
 class AcceptInviteRequest(BaseModel):
     token: str
-    password: str = Field(min_length=10)
+    password: str = Field(min_length=6)
     # Release TASK 3.4: el form pide "usuario o correo" (único). `full_name` se
     # mantiene opcional para backward-compat con el frontend viejo.
     username_or_email: str | None = Field(default=None, min_length=1, max_length=254)
