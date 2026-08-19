@@ -221,6 +221,11 @@ export const apiUpdateUser = async (
   return res.data as AdminUser;
 };
 
+/** Borrado DEFINITIVO de un usuario — solo superadmin (M2). Irreversible. */
+export const apiDeleteUser = async (userId: string): Promise<void> => {
+  await backend.delete(`/api/v1/admin/users/${userId}`);
+};
+
 // ─────────────── Marketing (público, sin auth) ───────────────
 
 export interface ContactInquiryPayload {

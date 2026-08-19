@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Input, Label } from "@/components/ui/input";
-import { apiListOrgUsers, apiUpdateUser } from "@/lib/api";
+import { apiDeleteUser, apiListOrgUsers, apiUpdateUser } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
 import type { AdminUser, Org, UserRole } from "@/lib/types";
@@ -34,6 +34,9 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
   const [menuFor, setMenuFor] = React.useState<string | null>(null);
   const [roleModal, setRoleModal] = React.useState<AdminUser | null>(null);
   const [mgrModal, setMgrModal] = React.useState<AdminUser | null>(null);
+  const [deleteModal, setDeleteModal] = React.useState<AdminUser | null>(null);
+  const [confirmEmail, setConfirmEmail] = React.useState("");
+  const [deleting, setDeleting] = React.useState(false);
 
   const load = React.useCallback(() => {
     if (!orgId) return;
@@ -77,6 +80,26 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
         (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
         "No se pudo actualizar.";
       toast(detail, "danger");
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleteModal) return;
+    setDeleting(true);
+    try {
+      await apiDeleteUser(deleteModal.id);
+      toast("Usuario eliminado definitivamente.", "success");
+      setDeleteModal(null);
+      setConfirmEmail("");
+      load();
+      onMutated();
+    } catch (e) {
+      const detail =
+        (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
+        "No se pudo eliminar el usuario.";
+      toast(detail, "danger");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -223,6 +246,19 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
                         >
                           Reasignar manager
                         </button>
+                        {me?.role === "superadmin" ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMenuFor(null);
+                              setConfirmEmail("");
+                              setDeleteModal(u);
+                            }}
+                            className="mt-1 block w-full rounded-md border-t border-border px-3 py-2 text-left font-sans text-sm text-danger hover:bg-danger/10"
+                          >
+                            Eliminar usuario
+                          </button>
+                        ) : null}
                       </div>
                     </>
                   ) : null}
@@ -351,6 +387,57 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
             </Button>
           </div>
         </div>
+      </Dialog>
+
+      {/* Borrado DEFINITIVO — solo superadmin, con confirmación por email (M2). */}
+      <Dialog
+        open={deleteModal !== null}
+        onClose={() => {
+          setDeleteModal(null);
+          setConfirmEmail("");
+        }}
+        title="Eliminar usuario"
+        description="Acción irreversible: borra al usuario y TODOS sus datos (evaluaciones, progreso, badges, consentimientos…)."
+      >
+        {deleteModal ? (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-fg-muted">
+              Para confirmar, escribí el email{" "}
+              <span className="font-semibold text-fg">{deleteModal.email}</span>.
+            </p>
+            <Label htmlFor="confirm-email" className="sr-only">
+              Email de confirmación
+            </Label>
+            <Input
+              id="confirm-email"
+              value={confirmEmail}
+              onChange={(e) => setConfirmEmail(e.target.value)}
+              placeholder={deleteModal.email}
+              autoComplete="off"
+            />
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setDeleteModal(null);
+                  setConfirmEmail("");
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={
+                  deleting ||
+                  confirmEmail.trim().toLowerCase() !== deleteModal.email.toLowerCase()
+                }
+                onClick={handleDelete}
+              >
+                Eliminar definitivamente
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </Dialog>
     </div>
   );
