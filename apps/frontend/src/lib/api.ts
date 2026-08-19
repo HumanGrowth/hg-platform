@@ -132,6 +132,16 @@ backend.interceptors.response.use(
         }
       }
     }
+    // Observabilidad en dev: un 422 trae en `detail` qué campo/regla falló
+    // (FastAPI). Se loguea solo fuera de producción para diagnosticar payloads
+    // sin exponer nada al usuario final.
+    if (process.env.NODE_ENV !== "production" && error.response?.status === 422) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[api] 422 ${String(original?.method ?? "").toUpperCase()} ${original?.url ?? ""} —`,
+        error.response?.data?.detail,
+      );
+    }
     return Promise.reject(error);
   },
 );
