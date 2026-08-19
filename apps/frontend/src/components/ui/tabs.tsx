@@ -41,10 +41,33 @@ export function Tabs({ value, defaultValue, onValueChange, children, className }
   );
 }
 
-export function TabsList({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export function TabsList({ className, onKeyDown, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  // Navegación por teclado ←/→ entre tabs (activación automática, patrón WAI-ARIA).
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        const tabs = Array.from(
+          ref.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]:not([disabled])') ?? [],
+        );
+        const idx = tabs.indexOf(document.activeElement as HTMLButtonElement);
+        if (idx !== -1) {
+          e.preventDefault();
+          const dir = e.key === "ArrowRight" ? 1 : -1;
+          const next = tabs[(idx + dir + tabs.length) % tabs.length];
+          next?.focus();
+          next?.click();
+        }
+      }
+      onKeyDown?.(e);
+    },
+    [onKeyDown],
+  );
   return (
     <div
+      ref={ref}
       role="tablist"
+      onKeyDown={handleKeyDown}
       className={cn("flex gap-6 border-b border-border", className)}
       {...props}
     />

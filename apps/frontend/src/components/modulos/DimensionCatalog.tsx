@@ -5,6 +5,7 @@ import * as React from "react";
 import { UnitCardCompact } from "@/components/modulos/UnitCardCompact";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { HexIcon } from "@/components/ui/hex-icon";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiListModulosByDimension } from "@/lib/api";
 import { DIMENSIONS, type DimensionMeta } from "@/lib/modulos";
 import { subPillarName } from "@/lib/dimension-styles";
@@ -55,11 +56,21 @@ export function DimensionCatalog() {
   if (dimensionsWithUnits.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-10">
+    <Tabs defaultValue={dimensionsWithUnits[0].code}>
+      {/* Tabs horizontales — una dimensión por tab; scrollean en mobile. */}
+      <TabsList aria-label="Dimensiones" className="overflow-x-auto">
+        {dimensionsWithUnits.map((dim) => (
+          <TabsTrigger key={dim.code} value={dim.code} className="shrink-0 whitespace-nowrap">
+            {dim.name}
+          </TabsTrigger>
+        ))}
+      </TabsList>
       {dimensionsWithUnits.map((dim) => (
-        <DimensionSection key={dim.code} dim={dim} units={byDimension[dim.code]} />
+        <TabsContent key={dim.code} value={dim.code}>
+          <DimensionSection dim={dim} units={byDimension[dim.code]} />
+        </TabsContent>
       ))}
-    </div>
+    </Tabs>
   );
 }
 
