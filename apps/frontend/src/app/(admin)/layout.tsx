@@ -73,6 +73,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 )}
                 {isCompanyAdmin && (
                   <Link
+                    href={"/admin/empresa" as Route}
+                    className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
+                  >
+                    <Building2 size={16} strokeWidth={1.75} />
+                    Empresa
+                  </Link>
+                )}
+                {isCompanyAdmin && (
+                  <Link
                     href={"/admin/empresa/miembros" as Route}
                     className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
                   >

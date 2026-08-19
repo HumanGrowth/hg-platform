@@ -710,6 +710,14 @@ export const apiSetConsent = async (
 
 // ─────────────────────────── Capa Empresa · RRHH (company_admin + superadmin) ───────────────────────────
 
+/** Empresa del actor (billing/licencias). company_admin ve la suya. */
+export const apiGetMyCompany = async (companyId?: string): Promise<Company> => {
+  const res = await backend.get<Company>("/api/v1/company/info", {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
+  return res.data;
+};
+
 export const apiCompanyOrgs = async (companyId?: string): Promise<CompanyOrg[]> => {
   const res = await backend.get<CompanyOrg[]>("/api/v1/company/organizations", {
     params: companyId ? { company_id: companyId } : undefined,

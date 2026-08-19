@@ -98,6 +98,12 @@ def list_companies(db: Session) -> list[CompanyOut]:
     return [_company_out(db, c) for c in companies]
 
 
+def get_company_info(db: Session, company_id: UUID) -> CompanyOut:
+    """Info + pool de licencias de UNA empresa (para la pantalla Empresa del
+    company_admin). Reusa el cómputo de ``licenses_used`` (users activos)."""
+    return _company_out(db, _get_company(db, company_id))
+
+
 def create_company(db: Session, *, data: CreateCompanyRequest) -> CompanyOut:
     company = Company(
         name=data.name, slug=data.slug, tier=data.tier,
