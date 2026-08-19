@@ -164,3 +164,25 @@ def test_superadmin_creates_org_in_company(client: TestClient, factory, auth_hea
     )
     assert res.status_code == 201, res.text
     assert res.json()["user_count"] == 0
+
+
+# ─────────────────────────── GET /company (Empresa · billing/licencias) ───────────────────────────
+
+
+def test_company_admin_gets_own_company_with_licenses(
+    client: TestClient, factory, auth_headers
+) -> None:
+    co, _org1, _org2, ca = _company_with_two_orgs(factory, pool=50)
+    res = client.get("/api/v1/company/info", headers=auth_headers(ca))
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert body["id"] == str(co.id)
+    assert body["licenses_total"] == 50
+    assert body["org_count"] == 2
+    assert body["licenses_used"] >= 1  # el company_admin activo consume del pool
+
+
+def test_admin_role_cannot_get_company(client: TestClient, factory, auth_headers) -> None:
+    org = factory.make_org()
+    admin = factory.make_user(org=org, role=UserRole.admin)
+    assert client.get("/api/v1/company/info", headers=auth_headers(admin)).status_code == 403

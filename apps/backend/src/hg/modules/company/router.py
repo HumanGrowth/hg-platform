@@ -122,6 +122,17 @@ def set_company_access(
 # ─────────────────────────── company_admin: /company/* ───────────────────────────
 
 
+@company_router.get("/info", response_model=CompanyOut)
+def get_my_company(
+    company_id: UUID | None = Query(None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role("company_admin", "superadmin")),
+) -> CompanyOut:
+    """Empresa del actor (billing/licencias) — company_admin ve la suya;
+    superadmin puede pasar ``company_id``."""
+    return service.get_company_info(db, service.resolve_company_id(actor, company_id))
+
+
 @company_router.get("/organizations", response_model=list[CompanyOrgOut])
 def list_organizations(
     company_id: UUID | None = Query(None, description="solo superadmin"),
