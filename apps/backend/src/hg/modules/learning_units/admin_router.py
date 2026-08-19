@@ -188,18 +188,24 @@ def _validate_for_publish(db: Session, unit: LearningUnit) -> list[str]:
     if not has_valid_evidence:
         errors.append("falta al menos 1 bloque text_evidence con citation")
 
-    has_valid_solution = False
-    for b in blocks:
-        if b.block_type != UnitBlockType.text_solution:
-            continue
-        text = db.get(TextBlock, b.block_id)
-        if text is not None and text.requires_evidence_block_id in evidence_ids:
-            has_valid_solution = True
-    if not has_valid_solution:
-        errors.append(
-            "falta al menos 1 bloque text_solution con requires_evidence_block_id "
-            "apuntando a un text_evidence de la misma unit"
-        )
+    # `text_solution` es OPCIONAL: las dimensiones reflexivas (Propósito,
+    # Relaciones) no prescriben una "solución/técnica" y su pedagogía es
+    # contexto → evidencia → quiz/reflexión. PERO si la unit trae algún
+    # text_solution, al menos uno debe enlazar a un text_evidence de la misma
+    # unit (integridad del "la solución cita su evidencia").
+    solutions = [b for b in blocks if b.block_type == UnitBlockType.text_solution]
+    if solutions:
+        linked = False
+        for b in solutions:
+            text = db.get(TextBlock, b.block_id)
+            if text is not None and text.requires_evidence_block_id in evidence_ids:
+                linked = True
+                break
+        if not linked:
+            errors.append(
+                "la unit tiene text_solution pero ninguno apunta a un text_evidence "
+                "de la misma unit (requires_evidence_block_id)"
+            )
 
     has_required_retrieval = any(
         b.required and b.block_type in (UnitBlockType.quiz_recall, UnitBlockType.reflection_write)

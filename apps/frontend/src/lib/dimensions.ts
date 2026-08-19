@@ -48,7 +48,7 @@ export const DIMENSIONS: Dimension[] = [
     short: "Propósito",
     description:
       "El sentido que guía tus días. Qué te mueve, hacia dónde vas y cómo conectás tus acciones con algo más grande que vos.",
-    hasContent: false,
+    hasContent: true,
   },
   {
     code: "RE",

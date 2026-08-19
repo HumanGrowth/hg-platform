@@ -246,7 +246,8 @@ def test_publish_fails_without_video(client: TestClient, factory, auth_headers) 
         errors = r.json()["detail"]["errors"]
         assert any("video" in e for e in errors)
         assert any("text_evidence" in e for e in errors)
-        assert any("text_solution" in e for e in errors)
+        # text_solution es opcional (dimensiones reflexivas) → no debe estar en errores.
+        assert not any("text_solution" in e for e in errors)
         assert any("quiz_recall o reflection_write" in e for e in errors)
     finally:
         _cleanup(slug)
@@ -331,6 +332,43 @@ def test_publish_succeeds_with_all_requirements_met(client: TestClient, factory,
         detail = client.get(f"/api/v1/modulos/{slug}", headers=headers)
         assert detail.status_code == 200
         assert len(detail.json()["blocks"]) == 4
+    finally:
+        _cleanup(slug)
+
+
+def test_publish_succeeds_without_text_solution(client: TestClient, factory, auth_headers) -> None:
+    """Dimensiones reflexivas (Propósito/Relaciones): contexto → evidencia →
+    quiz/reflexión, SIN text_solution. Debe poder publicarse."""
+    headers = _superadmin_headers(factory, auth_headers)
+    slug = f"admin-test-{uuid.uuid4().hex[:8]}"
+    try:
+        unit = _create_unit(client, headers, slug)
+        uid = unit["id"]
+        client.post(
+            f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
+            json={"block_type": "video_intro", "position": 1, "video_url": "https://cdn.example.com/v.mp4", "duration_seconds": 10},
+        )
+        client.post(
+            f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
+            json={
+                "block_type": "text_evidence", "position": 2, "variant": "evidence", "eyebrow": "EVIDENCIA",
+                "body": "b" * 40,
+                "citation": {
+                    "text": "Ryff 1989", "source": "Ryff", "year": 1989,
+                    "doi_or_url": "https://doi.org/10.1037/0022-3514.57.6.1069", "tier": "observational",
+                },
+            },
+        )
+        client.post(
+            f"/api/v1/admin/learning-units/{uid}/blocks", headers=headers,
+            json={
+                "block_type": "reflection_write", "position": 3, "required": True,
+                "prompt": "p" * 20, "min_chars": 40, "max_chars": 500,
+            },
+        )
+        r = client.post(f"/api/v1/admin/learning-units/{uid}/publish", headers=headers)
+        assert r.status_code == 200, r.text
+        assert r.json()["published_at"] is not None
     finally:
         _cleanup(slug)
 

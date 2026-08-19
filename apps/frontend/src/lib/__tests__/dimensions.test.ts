@@ -9,8 +9,8 @@ describe("dimensions registry", () => {
     expect(DIMENSIONS.map((d) => d.careerPath)).toEqual(["P1", "P2", "P3", "P4", "P5", "P6"]);
   });
 
-  it("only CP has content today", () => {
-    expect(DIMENSIONS.filter((d) => d.hasContent).map((d) => d.code)).toEqual(["CP"]);
+  it("CP and PR have content today", () => {
+    expect(DIMENSIONS.filter((d) => d.hasContent).map((d) => d.code)).toEqual(["CP", "PR"]);
   });
 
   it("resolves by code case-insensitively", () => {
