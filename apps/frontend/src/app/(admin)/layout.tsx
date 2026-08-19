@@ -1,9 +1,21 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { ArrowLeft, Building2, Calendar, Layers, LineChart, Newspaper, Users2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  Calendar,
+  ChevronDown,
+  Layers,
+  LineChart,
+  Newspaper,
+  Upload,
+  Users2,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import * as React from "react";
 
 import { ActingAsBanner } from "@/components/admin/ActingAsBanner";
 import { BetaBanner } from "@/components/BetaBanner";
@@ -14,11 +26,23 @@ import { useAuthStore } from "@/lib/auth-store";
 
 // Panel interno de HG. SessionGate protege la sesión; el rol se valida por
 // página (OrgAdminGate en /admin/org, SuperadminGate en /admin/orgs) — FU-12.
+// Opciones exclusivas de superadmin — agrupadas en UN desplegable (M2·3), en
+// vez de sueltas en el nav general.
+const SUPERADMIN_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/admin/companies", label: "Empresas", icon: Building2 },
+  { href: "/admin/areas", label: "Áreas de contenido", icon: Layers },
+  { href: "/admin/orgs", label: "Organizaciones", icon: Building2 },
+  { href: "/admin/events", label: "Eventos", icon: Calendar },
+  { href: "/admin/perspectivas", label: "Perspectivas", icon: Newspaper },
+  { href: "/admin/empresa/importar", label: "Importar", icon: Upload },
+];
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const isSuperadmin = user?.role === "superadmin";
   const isOrgAdmin = user?.role === "admin" || isSuperadmin;
   const isCompanyAdmin = user?.role === "company_admin" || isSuperadmin;
+  const [superOpen, setSuperOpen] = React.useState(true);
 
   return (
     // Shell de altura fija: el sidebar queda fijo y SOLO el <main> scrollea (igual
@@ -35,13 +59,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div>
               <Eyebrow className="mb-3">Panel HG</Eyebrow>
               <nav className="flex flex-col gap-1">
+                {/* Orden (M2·2): Dashboard (datos de la empresa) → Organización
+                    (gestión de miembros). El route /admin/org es el panel de
+                    datos; /admin/empresa/miembros gestiona los miembros. */}
                 {isOrgAdmin && (
                   <Link
                     href={"/admin/org" as Route}
                     className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
                   >
                     <LineChart size={16} strokeWidth={1.75} />
-                    Dashboard org
+                    Dashboard
                   </Link>
                 )}
                 {isCompanyAdmin && (
@@ -50,47 +77,44 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
                   >
                     <Users2 size={16} strokeWidth={1.75} />
-                    Miembros de empresa
+                    Organización
                   </Link>
                 )}
+                {/* M2·3: TODAS las opciones exclusivas de superadmin en UN solo
+                    desplegable, en vez de sueltas en el nav. */}
                 {isSuperadmin && (
-                  <>
-                    <Link
-                      href={"/admin/companies" as Route}
-                      className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
+                  <div className="mt-1">
+                    <button
+                      type="button"
+                      onClick={() => setSuperOpen((v) => !v)}
+                      aria-expanded={superOpen}
+                      className="flex w-full items-center justify-between rounded-md px-3 py-2 font-sans text-xs font-semibold uppercase tracking-meta text-fg-muted hover:bg-bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
                     >
-                      <Building2 size={16} strokeWidth={1.75} />
-                      Empresas
-                    </Link>
-                    <Link
-                      href={"/admin/areas" as Route}
-                      className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
-                    >
-                      <Layers size={16} strokeWidth={1.75} />
-                      Áreas de contenido
-                    </Link>
-                    <Link
-                      href={"/admin/orgs" as Route}
-                      className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
-                    >
-                      <Building2 size={16} strokeWidth={1.75} />
-                      Organizaciones
-                    </Link>
-                    <Link
-                      href={"/admin/events" as Route}
-                      className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
-                    >
-                      <Calendar size={16} strokeWidth={1.75} />
-                      Eventos
-                    </Link>
-                    <Link
-                      href={"/admin/perspectivas" as Route}
-                      className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
-                    >
-                      <Newspaper size={16} strokeWidth={1.75} />
-                      Perspectivas
-                    </Link>
-                  </>
+                      Superadmin
+                      <ChevronDown
+                        size={14}
+                        strokeWidth={2}
+                        className={superOpen ? "rotate-180 transition-transform" : "transition-transform"}
+                      />
+                    </button>
+                    {superOpen && (
+                      <div className="mt-1 flex flex-col gap-1 border-l border-border pl-2">
+                        {SUPERADMIN_ITEMS.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <Link
+                              key={item.href}
+                              href={item.href as Route}
+                              className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
+                            >
+                              <Icon size={16} strokeWidth={1.75} />
+                              {item.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 )}
               </nav>
             </div>
