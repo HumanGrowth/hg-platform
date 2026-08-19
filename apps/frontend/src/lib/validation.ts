@@ -15,7 +15,7 @@ export const acceptInviteSchema = z.object({
       (v) => /^\S+@\S+\.\S+$/.test(v) || /^[a-zA-Z0-9._-]{3,30}$/.test(v),
       "Usá tu correo, o un usuario de 3-30 caracteres (letras, números, . _ -).",
     ),
-  password: z.string().min(10, "Mínimo 10 caracteres"),
+  password: z.string().min(6, "Mínimo 6 caracteres"),
 });
 export type AcceptInviteValues = z.infer<typeof acceptInviteSchema>;
 

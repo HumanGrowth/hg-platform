@@ -79,3 +79,24 @@ def test_backward_compat_full_name(client: TestClient, factory, auth_headers) ->
     )
     assert res.status_code == 200, res.text
     assert res.json()["user"]["full_name"] == "Legacy Name"
+
+
+def test_accept_allows_6_char_password(client: TestClient, factory, auth_headers) -> None:
+    # min_length de la contraseña de invitación bajó de 10 a 6 (M1).
+    org = factory.make_org(licenses_total=10)
+    token = _invite(client, factory, auth_headers, org, "sixchars@hgtest.test")
+    res = client.post(
+        "/api/v1/auth/accept-invite",
+        json={"token": token, "password": "abc123", "username_or_email": "six_user"},
+    )
+    assert res.status_code == 200, res.text
+
+
+def test_accept_rejects_5_char_password_422(client: TestClient, factory, auth_headers) -> None:
+    org = factory.make_org(licenses_total=10)
+    token = _invite(client, factory, auth_headers, org, "fivechars@hgtest.test")
+    res = client.post(
+        "/api/v1/auth/accept-invite",
+        json={"token": token, "password": "abc12", "username_or_email": "five_user"},
+    )
+    assert res.status_code == 422, res.text

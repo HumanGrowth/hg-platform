@@ -116,7 +116,7 @@ function AcceptInviteInner() {
             {errors.password ? (
               <p className="mt-1 text-xs text-danger">{errors.password.message}</p>
             ) : (
-              <p className="mt-1 text-xs text-fg-subtle">Mínimo 10 caracteres.</p>
+              <p className="mt-1 text-xs text-fg-subtle">Mínimo 6 caracteres.</p>
             )}
           </div>
 
