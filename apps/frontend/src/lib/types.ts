@@ -583,6 +583,7 @@ export interface LearningUnitFeedItem {
   blocks_count: number;
   attempt_status: LearningUnitAttemptStatus;
   poster_url: string | null;
+  video_url: string | null;
 }
 
 export interface LearningUnitFeed {

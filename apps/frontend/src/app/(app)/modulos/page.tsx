@@ -176,67 +176,32 @@ function ModulosPageContent() {
       )}
 
       {status === "ok" && !isEmpty && !dimensionFilter && feed && (
-        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
-          <div className="flex min-w-0 flex-col gap-8">
-            {heroUnit && <UnitCardHero unit={heroUnit} />}
+        <div className="mt-8 flex flex-col gap-8">
+          {heroUnit && <UnitCardHero unit={heroUnit} />}
 
-            {streakDays !== null && streakDays > 0 && (
-              <div className="flex items-center gap-2 self-start rounded-md bg-bg-sunken px-3 py-2">
-                <Flame size={18} strokeWidth={1.75} className="text-primary" aria-hidden />
-                <span className="font-sans text-sm font-semibold text-fg">
-                  {streakDays} {streakDays === 1 ? "día seguido" : "días seguidos"}
-                </span>
-              </div>
-            )}
+          {/* Racha: solo el chip (antes se duplicaba en una card del aside). */}
+          {streakDays !== null && streakDays > 0 && (
+            <div className="flex items-center gap-2 self-start rounded-md bg-bg-sunken px-3 py-2">
+              <Flame size={18} strokeWidth={1.75} className="text-primary" aria-hidden />
+              <span className="font-sans text-sm font-semibold text-fg">
+                {streakDays} {streakDays === 1 ? "día seguido" : "días seguidos"}
+              </span>
+            </div>
+          )}
 
-            {/* "Próximos en tu ruta" se quitó (TASK 7): duplicaba el tab Mi Ruta,
-                que queda como único lugar de la secuencia completa. Link directo: */}
-            <Link
-              href={"/path" as Route}
-              className="self-start font-sans text-sm font-semibold text-primary hover:underline"
-            >
-              Ver mi ruta completa →
-            </Link>
+          {/* La secuencia completa vive en el tab Mi Ruta. */}
+          <Link
+            href={"/path" as Route}
+            className="self-start font-sans text-sm font-semibold text-primary hover:underline"
+          >
+            Ver mi ruta completa →
+          </Link>
 
-            {/* Catálogo agrupado por Dimensión → Pilar (TASK 1) */}
-            <section>
-              <Eyebrow className="mb-3">Explorá por dimensión</Eyebrow>
-              <DimensionCatalog />
-            </section>
-
-            <Link
-              href={"/eventos" as Route}
-              className="self-start font-sans text-sm font-semibold text-primary lg:hidden"
-            >
-              Explorar catálogo de eventos →
-            </Link>
-          </div>
-
-          <aside className="hidden flex-col gap-6 lg:flex">
-            {streakDays !== null && streakDays > 0 && (
-              <Card className="flex items-center gap-3">
-                <Flame size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
-                <div>
-                  <p className="font-mono text-2xl font-semibold text-fg">{streakDays}</p>
-                  <p className="text-xs text-fg-muted">
-                    {streakDays === 1 ? "día seguido" : "días seguidos"}
-                  </p>
-                </div>
-              </Card>
-            )}
-            <Card>
-              <p className="font-sans text-sm font-semibold text-fg">¿Buscás algo puntual?</p>
-              <p className="mt-1 text-sm text-fg-muted">
-                Explorá el catálogo completo de eventos grabados.
-              </p>
-              <Link
-                href={"/eventos" as Route}
-                className="mt-3 inline-block font-sans text-sm font-semibold text-primary"
-              >
-                Explorar catálogo →
-              </Link>
-            </Card>
-          </aside>
+          {/* Catálogo agrupado por Dimensión → Pilar. */}
+          <section>
+            <Eyebrow className="mb-3">Explorá por dimensión</Eyebrow>
+            <DimensionCatalog />
+          </section>
         </div>
       )}
     </main>
