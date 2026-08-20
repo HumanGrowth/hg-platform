@@ -3,6 +3,7 @@
 
 import {
   ArrowLeft,
+  Boxes,
   Building2,
   Calendar,
   ChevronDown,
@@ -82,11 +83,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 )}
                 {isCompanyAdmin && (
                   <Link
+                    href={"/admin/empresa/organizaciones" as Route}
+                    className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
+                  >
+                    <Boxes size={16} strokeWidth={1.75} />
+                    Organización
+                  </Link>
+                )}
+                {isCompanyAdmin && (
+                  <Link
                     href={"/admin/empresa/miembros" as Route}
                     className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
                   >
                     <Users2 size={16} strokeWidth={1.75} />
-                    Organización
+                    Miembros
                   </Link>
                 )}
                 {/* M2·3: TODAS las opciones exclusivas de superadmin en UN solo
