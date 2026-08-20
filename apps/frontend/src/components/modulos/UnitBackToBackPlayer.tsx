@@ -146,7 +146,7 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
   }
 
   return (
-    <div className={cn(focusMode ? "fixed inset-0 z-50 flex flex-col bg-bg p-8" : "flex flex-col gap-4")}>
+    <div className={cn(focusMode ? "fixed inset-0 z-50 flex flex-col bg-bg p-8" : "flex h-full flex-col gap-4")}>
       {!focusMode && (
         <div className="flex gap-1">
           {unit.blocks.map((b, i) => {
@@ -165,19 +165,21 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
         </div>
       )}
 
-      <div className={cn("grid gap-6", focusMode ? "flex-1 grid-cols-1 place-items-center" : "grid-cols-[1fr_280px]")}>
+      <div className={cn("grid min-h-0 gap-6", focusMode ? "flex-1 grid-cols-1 place-items-center" : "flex-1 grid-cols-[1fr_280px]")}>
         <div
           className={cn(
-            "min-w-0",
+            "min-w-0 min-h-0",
             // Video 9:16 vertical (TASK 2 · full-bleed): panel portrait alto
             // (85vh, más inmersivo) y ancho derivado por el aspect; el
             // VideoBlockView (h-full) lo llena con object-cover. Sin borde ni
             // redondeo → edge-to-edge estilo Reels.
             isVideoBlock
-              ? // TASK 2 · full-bleed 9:16 edge-to-edge.
+              ? // TASK 2 · full-bleed 9:16 edge-to-edge. `max-h-full` lo capa a la
+                // altura disponible (100vh − nav) para que quepa sin scroll.
                 "mx-auto aspect-[9/16] h-[85vh] max-h-full self-start overflow-hidden bg-black"
-              : // TASK 3: sin card/borde — el BlockScreenLayout aporta el gradient del pilar.
-                "overflow-hidden rounded-lg",
+              : // TASK 3: sin card/borde — el BlockScreenLayout (h-full + overflow-y-auto)
+                // scrollea el texto largo adentro; el botón "Siguiente" no se mueve.
+                "h-full overflow-hidden rounded-lg",
             !isVideoBlock && focusMode && "w-full max-w-2xl",
           )}
         >
@@ -199,7 +201,7 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
         </div>
 
         {!focusMode && (
-          <nav aria-label="Índice de bloques" className="flex flex-col gap-1">
+          <nav aria-label="Índice de bloques" className="flex min-h-0 flex-col gap-1 overflow-y-auto">
             {unit.blocks.map((b, i) => {
               const completed = blockProgress.some((bp) => bp.unit_block_id === b.id && bp.status === "completed");
               const reachable = i <= maxReachableIndex;

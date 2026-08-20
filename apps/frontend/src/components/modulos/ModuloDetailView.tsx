@@ -92,7 +92,10 @@ export function ModuloDetailView({ slug }: { slug: string }) {
 
   if (isDesktop) {
     return (
-      <main className="mx-auto w-full max-w-app px-6 py-10">
+      // Altura completa del área disponible (100vh − banner/topbar): el módulo
+      // NO scrollea la página; el contenido del bloque scrollea adentro y el
+      // botón "Siguiente" queda siempre visible.
+      <main className="mx-auto flex h-full w-full max-w-app flex-col px-6 py-6">
         <UnitBackToBackPlayer
           unit={unit}
           attempt={attempt}

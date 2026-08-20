@@ -58,7 +58,7 @@ function LoginInner() {
         Human Growth
       </Eyebrow>
       <Display variant="display-3" className="mb-6">
-        Bienvenido/a
+        Te damos la bienvenida
       </Display>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>

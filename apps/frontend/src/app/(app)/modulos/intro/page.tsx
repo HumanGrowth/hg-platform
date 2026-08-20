@@ -16,7 +16,7 @@ export default function IntroModulePage() {
         <span className="h-9 w-9 rounded-full bg-primary" />
         <span className="-ml-3 h-9 w-9 rounded-full bg-hg-amber" />
       </div>
-      <h1 className="font-display text-4xl leading-tight text-fg">Bienvenida a HumanGrowth</h1>
+      <h1 className="font-display text-4xl leading-tight text-fg">Te damos la bienvenida a HumanGrowth</h1>
       <p className="max-w-md text-md text-fg-muted">
         Este espacio es tu punto de partida para explorar tus 6 dimensiones. Cuando quieras,
         arrancá con los módulos o volvé a tu inicio.
