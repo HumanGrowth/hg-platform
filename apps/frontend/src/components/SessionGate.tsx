@@ -23,11 +23,16 @@ export function SessionGate({
   const router = useRouter();
   const { accessToken, hydrating, setSession, clear, user } = useAuthStore();
   const [ready, setReady] = React.useState(Boolean(accessToken));
+  // El `user` del store puede estar desactualizado (p.ej. recién completó el
+  // assessment y el store aún tiene has_completed_onboarding=false). No decidimos
+  // el redirect de onboarding hasta que `/me` confirme el estado fresco — así se
+  // evita el loop "termino el assessment → me manda de vuelta al assessment".
+  const [meChecked, setMeChecked] = React.useState(false);
 
   // Gate del onboarding. Precedencia: consentimiento (paso 2, docx §3) antes del
   // assessment. `consent === null` = pendiente; `undefined` = /me aún no cargó.
   React.useEffect(() => {
-    if (!ready || !requireOnboarding || !user) return;
+    if (!ready || !requireOnboarding || !user || !meChecked) return;
     const consentPending =
       user.consent_manager === null && user.consent_hr === null;
     if (consentPending) {
@@ -35,7 +40,7 @@ export function SessionGate({
     } else if (user.has_completed_onboarding === false) {
       router.replace("/onboarding/welcome" as never);
     }
-  }, [ready, requireOnboarding, user, router]);
+  }, [ready, requireOnboarding, user, meChecked, router]);
 
   React.useEffect(() => {
     if (accessToken) {
@@ -69,14 +74,19 @@ export function SessionGate({
       .then((me) => {
         if (active) setSession(me, accessToken);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (active) setMeChecked(true);
+      });
     return () => {
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
 
-  if (!ready || hydrating) {
+  // En rutas gated por onboarding, esperar a que `/me` confirme el estado fresco
+  // antes de renderizar (evita el flash de la app + el redirect con dato viejo).
+  if (!ready || hydrating || (requireOnboarding && !meChecked)) {
     return (
       <div className="flex flex-1 items-center justify-center py-32">
         <EmptyRing label="Cargando tu espacio…" />
