@@ -29,15 +29,12 @@ export function SessionGate({
   // evita el loop "termino el assessment → me manda de vuelta al assessment".
   const [meChecked, setMeChecked] = React.useState(false);
 
-  // Gate del onboarding. Precedencia: consentimiento (paso 2, docx §3) antes del
-  // assessment. `consent === null` = pendiente; `undefined` = /me aún no cargó.
+  // Gate del onboarding. El paso de **consentimiento** está OCULTO por ahora
+  // (se saltea): se va directo al assessment inicial si falta completarlo.
+  // `has_completed_onboarding` se decide con dato fresco de /me (meChecked).
   React.useEffect(() => {
     if (!ready || !requireOnboarding || !user || !meChecked) return;
-    const consentPending =
-      user.consent_manager === null && user.consent_hr === null;
-    if (consentPending) {
-      router.replace("/consentimiento" as never);
-    } else if (user.has_completed_onboarding === false) {
+    if (user.has_completed_onboarding === false) {
       router.replace("/onboarding/welcome" as never);
     }
   }, [ready, requireOnboarding, user, meChecked, router]);

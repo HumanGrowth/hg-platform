@@ -251,7 +251,11 @@ function SolutionBody({
         >
           <Lightbulb size={18} strokeWidth={2} />
         </span>
-        {eyebrow}
+        {/* El círculo con glow ya es el ícono de esta sección → el eyebrow va sin
+            su ícono chico para no repetir el Lightbulb (títulos de sección). */}
+        <span className="font-sans text-micro font-semibold uppercase tracking-meta text-primary">
+          {block.eyebrow}
+        </span>
       </div>
       {introBody && <MarkdownBody>{introBody}</MarkdownBody>}
       {entries && <InteractiveChecklist items={entries} storageKey={block.id} dimensionCode={dimensionCode} />}

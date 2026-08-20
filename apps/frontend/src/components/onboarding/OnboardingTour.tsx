@@ -1,6 +1,16 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Calendar, Compass, Home, Sparkles, User, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Calendar,
+  ClipboardList,
+  Compass,
+  Home,
+  Sparkles,
+  User,
+  X,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import * as React from "react";
 
@@ -25,7 +35,8 @@ interface Spot {
   height: number;
   cardTop: number;
   cardLeft: number;
-  placeBelow: boolean;
+  /** Dónde se ancla la tarjeta respecto del elemento destacado. */
+  placement: "right" | "left" | "above" | "below";
 }
 
 /**
@@ -43,18 +54,21 @@ export function OnboardingTour({
   userName: string;
   onDone: (action: "finish" | "skip") => void;
 }) {
+  // Orden = orden del menú, uno por uno sin saltar:
+  // Inicio → Mi Ruta → Módulos → Plan de Acción → Eventos → Mi Perfil.
   const steps: Step[] = React.useMemo(
     () => [
       {
         icon: Sparkles,
-        title: userName ? `Bienvenida, ${userName}` : "Bienvenida",
+        title: userName ? `Te damos la bienvenida, ${userName}` : "Te damos la bienvenida",
         body: "Te mostramos cómo funciona HumanGrowth en 30 segundos.",
       },
       { icon: Home, title: "Inicio", body: "Tu resumen: las 6 dimensiones y tu progreso de un vistazo.", targetId: "nav-home" },
-      { icon: Sparkles, title: "Módulos", body: "Acá vas a encontrar todos los contenidos de aprendizaje.", targetId: "nav-modulos" },
       { icon: Compass, title: "Mi Ruta", body: "Tu próximo paso recomendado y tu recorrido, en el orden que más te sirve.", targetId: "nav-path" },
-      { icon: User, title: "Mi Perfil", body: "Tus badges, tu radar y tu historial de reevaluaciones.", targetId: "nav-perfil" },
+      { icon: Sparkles, title: "Módulos", body: "Acá vas a encontrar todos los contenidos de aprendizaje.", targetId: "nav-modulos" },
+      { icon: ClipboardList, title: "Plan de Acción", body: "Tus tips guardados y los próximos pasos que te propusiste.", targetId: "nav-plan-accion" },
       { icon: Calendar, title: "Eventos", body: "Webinars, sesiones en vivo y material extra para seguir creciendo.", targetId: "nav-eventos" },
+      { icon: User, title: "Mi Perfil", body: "Tus badges, tu radar y tu historial de reevaluaciones.", targetId: "nav-perfil" },
     ],
     [userName],
   );
@@ -83,10 +97,28 @@ export function OnboardingTour({
       const left = r.left - PAD;
       const width = r.width + PAD * 2;
       const height = r.height + PAD * 2;
-      const placeBelow = r.top + r.height / 2 < vh / 2;
-      const cardTop = placeBelow ? top + height + 12 : top - 12;
-      const cardLeft = Math.min(Math.max(r.left + r.width / 2 - CARD_W / 2, 12), vw - CARD_W - 12);
-      setSpot({ top, left, width, height, cardTop, cardLeft, placeBelow });
+      const GAP = 16;
+      const midY = r.top + r.height / 2;
+      let placement: Spot["placement"];
+      let cardTop: number;
+      let cardLeft: number;
+      if (r.right + GAP + CARD_W <= vw) {
+        // Al LADO (derecha) — caso desktop con el nav en el sidebar izquierdo.
+        placement = "right";
+        cardLeft = r.right + GAP;
+        cardTop = midY; // centrado vertical vía translateY(-50%)
+      } else if (r.left - GAP - CARD_W >= 0) {
+        // Al lado (izquierda) si no hay lugar a la derecha.
+        placement = "left";
+        cardLeft = r.left - GAP;
+        cardTop = midY;
+      } else {
+        // Fallback vertical (mobile: nav abajo → tarjeta arriba).
+        placement = midY < vh / 2 ? "below" : "above";
+        cardLeft = Math.min(Math.max(r.left + r.width / 2 - CARD_W / 2, 12), vw - CARD_W - 12);
+        cardTop = placement === "below" ? top + height + 12 : top - 12;
+      }
+      setSpot({ top, left, width, height, cardTop, cardLeft, placement });
     };
     measure();
     window.addEventListener("resize", measure);
@@ -208,7 +240,14 @@ export function OnboardingTour({
           style={{
             top: spot.cardTop,
             left: spot.cardLeft,
-            transform: spot.placeBelow ? undefined : "translateY(-100%)",
+            transform:
+              spot.placement === "right"
+                ? "translateY(-50%)"
+                : spot.placement === "left"
+                  ? "translate(-100%, -50%)"
+                  : spot.placement === "above"
+                    ? "translateY(-100%)"
+                    : undefined,
           }}
         >
           <div className="relative">{card}</div>

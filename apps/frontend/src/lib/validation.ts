@@ -10,7 +10,7 @@ export const acceptInviteSchema = z.object({
   // Release TASK 3.4: un solo campo "usuario o correo" (email invitado o username).
   usernameOrEmail: z
     .string()
-    .min(1, "Ingresá tu usuario o correo")
+    .min(1, "Ingresá tu usuario o nombre")
     .refine(
       (v) => /^\S+@\S+\.\S+$/.test(v) || /^[a-zA-Z0-9._-]{3,30}$/.test(v),
       "Usá tu correo, o un usuario de 3-30 caracteres (letras, números, . _ -).",
