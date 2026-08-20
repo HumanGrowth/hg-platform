@@ -213,6 +213,7 @@ class LearningUnitFeedItem(BaseModel):
     blocks_count: int
     attempt_status: Literal["not_started", "in_progress", "completed"]
     poster_url: str | None
+    video_url: str | None = None  # primer video → preview con su primer frame
 
 
 class LearningUnitFeed(BaseModel):

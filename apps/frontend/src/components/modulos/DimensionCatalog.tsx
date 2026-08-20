@@ -3,7 +3,6 @@
 import * as React from "react";
 
 import { UnitCardCompact } from "@/components/modulos/UnitCardCompact";
-import { Eyebrow } from "@/components/ui/eyebrow";
 import { HexIcon } from "@/components/ui/hex-icon";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiListModulosByDimension } from "@/lib/api";
@@ -12,7 +11,12 @@ import { subPillarName } from "@/lib/dimension-styles";
 import type { LearningUnitFeedItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-/** Agrupa units por `pillar_code` ("P1", "P2", "AI"…) preservando el orden de llegada. */
+/** El pilar AI (Foundation) siempre va último; el resto por orden natural. */
+function pillarRank(code: string): number {
+  return code === "AI" ? 1 : 0;
+}
+
+/** Agrupa units por `pillar_code` ("P1", "P2", "AI"…). AI se lista de último. */
 function groupByDimension(units: LearningUnitFeedItem[]): Map<string, LearningUnitFeedItem[]> {
   const groups = new Map<string, LearningUnitFeedItem[]>();
   for (const u of units) {
@@ -21,7 +25,11 @@ function groupByDimension(units: LearningUnitFeedItem[]): Map<string, LearningUn
     if (bucket.length === 0) groups.set(key, bucket);
     bucket.push(u);
   }
-  return new Map([...groups.entries()].sort(([a], [b]) => a.localeCompare(b)));
+  return new Map(
+    [...groups.entries()].sort(
+      ([a], [b]) => pillarRank(a) - pillarRank(b) || a.localeCompare(b),
+    ),
+  );
 }
 
 /**
@@ -58,23 +66,29 @@ export function DimensionCatalog() {
   return (
     <Tabs defaultValue={dimensionsWithUnits[0].code}>
       {/* Tabs horizontales — una dimensión por tab; scrollean en mobile. */}
-      <TabsList aria-label="Dimensiones" className="overflow-x-auto">
+      {/* Cada tab se ve como el título de una dimensión: badge (HexIcon) + nombre. */}
+      <TabsList aria-label="Dimensiones" className="gap-4 overflow-x-auto">
         {dimensionsWithUnits.map((dim) => (
-          <TabsTrigger key={dim.code} value={dim.code} className="shrink-0 whitespace-nowrap">
+          <TabsTrigger
+            key={dim.code}
+            value={dim.code}
+            className="flex shrink-0 items-center gap-2 whitespace-nowrap"
+          >
+            <HexIcon pillar={dim.pillar} size={22} />
             {dim.name}
           </TabsTrigger>
         ))}
       </TabsList>
       {dimensionsWithUnits.map((dim) => (
         <TabsContent key={dim.code} value={dim.code}>
-          <DimensionSection dim={dim} units={byDimension[dim.code]} />
+          <DimensionSection units={byDimension[dim.code]} />
         </TabsContent>
       ))}
     </Tabs>
   );
 }
 
-function DimensionSection({ dim, units }: { dim: DimensionMeta; units: LearningUnitFeedItem[] }) {
+function DimensionSection({ units }: { units: LearningUnitFeedItem[] }) {
   const groups = React.useMemo(() => groupByDimension(units), [units]);
   const pillars = React.useMemo(() => [...groups.keys()], [groups]);
   const [selected, setSelected] = React.useState<string>(pillars[0] ?? "");
@@ -82,14 +96,8 @@ function DimensionSection({ dim, units }: { dim: DimensionMeta; units: LearningU
 
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <HexIcon pillar={dim.pillar} size={36} />
-        <div>
-          <Eyebrow>Dimensión</Eyebrow>
-          <h2 className="font-heading text-lg font-semibold text-fg">{dim.name}</h2>
-        </div>
-      </div>
-
+      {/* Sin header de dimensión: el tab ya muestra su badge + nombre. Acá solo
+          los pilares + los módulos por pilar. */}
       <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
         {/* Pilares — fila scrollable en mobile, columna a la izq en desktop. */}
         <div

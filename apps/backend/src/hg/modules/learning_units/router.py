@@ -229,14 +229,17 @@ def _feed_item(db: Session, unit: LearningUnit, user: User) -> LearningUnitFeedI
         (b for b in sorted(unit.blocks, key=lambda b: b.position) if b.block_type in _VIDEO_TYPES), None
     )
     poster_url = None
+    video_url = None
     if first_video_block is not None:
         video = db.get(VideoBlock, first_video_block.block_id)
         poster_url = video.poster_url if video else None
+        video_url = video.video_url if video else None
     return LearningUnitFeedItem(
         id=unit.id, slug=unit.slug, title=unit.title, dimension_code=unit.dimension_code,
         pillar_code=unit.pillar_code, unit_number=unit.unit_number,
         level_code=unit.level_code, estimated_duration_seconds=unit.estimated_duration_seconds,
-        blocks_count=n_blocks, attempt_status=_attempt_status(attempt), poster_url=poster_url,
+        blocks_count=n_blocks, attempt_status=_attempt_status(attempt),
+        poster_url=poster_url, video_url=video_url,
     )
 
 
