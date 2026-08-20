@@ -8,7 +8,8 @@ import { EmptyRing } from "@/components/EmptyRing";
 import { Radar } from "@/components/radar/Radar";
 import type { RadarValues } from "@/components/radar/radar-model";
 import { apiGetMyResults } from "@/lib/api";
-import { DIMENSION_NAMES, radarValuesFromResults } from "@/lib/assessment-utils";
+import { radarValuesFromResults } from "@/lib/assessment-utils";
+import { DIMENSIONS } from "@/lib/dimensions";
 import type { DimensionResult } from "@/lib/types";
 
 export default function OnboardingResult() {
@@ -60,42 +61,39 @@ export default function OnboardingResult() {
             para confirmar tu estado.
           </p>
 
+          {/* Una tarjeta por cada una de las 6 dimensiones definidas (P6A/P6B se
+              colapsan en Estabilidad). Sin códigos "P#" crudos. */}
           <div className="mt-10 grid w-full grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
-            {results.map((r) => (
-              <div key={r.dimension_code} className="rounded-xl border border-border bg-surface-card p-5">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-fg-subtle">{r.dimension_code}</span>
+            {DIMENSIONS.map((d) => {
+              const r =
+                results.find((x) => x.dimension_code === d.assessmentDimension) ??
+                (d.code === "ES"
+                  ? results.find((x) => x.dimension_code.startsWith("P6"))
+                  : undefined);
+              if (!r) return null;
+              return (
+                <div key={d.code} className="rounded-xl border border-border bg-surface-card p-5">
                   {r.recaida_detected && (
-                    <span className="rounded-full bg-warning-bg px-2 py-0.5 text-xs font-semibold text-warning">
+                    <span className="float-right rounded-full bg-warning-bg px-2 py-0.5 text-xs font-semibold text-warning">
                       ⚠ Recaída
                     </span>
                   )}
+                  <h3 className="font-sans text-md font-semibold text-fg">{d.name}</h3>
+                  <p className="mt-1 font-sans text-sm font-semibold text-primary">{r.state_label}</p>
+                  {r.suggested_next_step && (
+                    <p className="mt-2 text-xs text-fg-muted">{r.suggested_next_step}</p>
+                  )}
                 </div>
-                <h3 className="mt-1 font-sans text-md font-semibold text-fg">
-                  {DIMENSION_NAMES[r.dimension_code]}
-                </h3>
-                <p className="mt-1 font-sans text-sm font-semibold text-primary">
-                  {r.state_label}
-                </p>
-                {r.suggested_next_step && (
-                  <p className="mt-2 text-xs text-fg-muted">{r.suggested_next_step}</p>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="mt-12 flex flex-col items-center gap-3">
             <Link
-              href={"/path" as Route}
+              href={"/home" as Route}
               className="rounded-md bg-primary px-8 py-4 font-sans text-base font-semibold text-white transition-colors hover:bg-primary-hover"
             >
-              Empezar mi ruta →
-            </Link>
-            <Link
-              href={"/home" as Route}
-              className="font-sans text-sm font-semibold text-primary"
-            >
-              Ir a mi inicio
+              Ir a mi inicio →
             </Link>
           </div>
         </>

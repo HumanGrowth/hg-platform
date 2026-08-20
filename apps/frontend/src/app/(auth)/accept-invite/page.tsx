@@ -97,12 +97,12 @@ function AcceptInviteInner() {
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
           <div>
-            <Label htmlFor="usernameOrEmail">Nombre de usuario o correo</Label>
+            <Label htmlFor="usernameOrEmail">Usuario o nombre</Label>
             <Input id="usernameOrEmail" autoComplete="username" {...register("usernameOrEmail")} />
             {errors.usernameOrEmail ? (
               <p className="mt-1 text-xs text-danger">{errors.usernameOrEmail.message}</p>
             ) : (
-              <p className="mt-1 text-xs text-fg-subtle">Tu correo invitado o un usuario único.</p>
+              <p className="mt-1 text-xs text-fg-subtle">Elegí un usuario o tu nombre para mostrar.</p>
             )}
           </div>
           <div>
