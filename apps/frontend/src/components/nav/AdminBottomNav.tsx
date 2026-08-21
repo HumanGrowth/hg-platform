@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowLeft, Building2, Calendar, LineChart, Newspaper } from "lucide-react";
+import { ArrowLeft, Building2, Calendar, LineChart, Newspaper, Upload, Users2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import type { UserRole } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 import { isActive } from "./items";
@@ -14,15 +15,32 @@ interface AdminNavItem {
   href: string;
   label: string;
   icon: LucideIcon;
-  superadminOnly?: boolean;
 }
 
-const ADMIN_ITEMS: AdminNavItem[] = [
-  { href: "/admin/org", label: "Panel", icon: LineChart },
-  { href: "/admin/orgs", label: "Orgs", icon: Building2, superadminOnly: true },
-  { href: "/admin/events", label: "Eventos", icon: Calendar, superadminOnly: true },
-  { href: "/admin/perspectivas", label: "Contenido", icon: Newspaper, superadminOnly: true },
-];
+/**
+ * Ítems del bottom nav admin por rol. Antes había un único set con "Panel" →
+ * /admin/org para todos, pero un company_admin es rebotado por OrgAdminGate en
+ * esa ruta: su panel es /admin/empresa. Ahora cada rol ve sus destinos válidos.
+ */
+function itemsForRole(role: UserRole | undefined): AdminNavItem[] {
+  if (role === "superadmin") {
+    return [
+      { href: "/admin/org", label: "Panel", icon: LineChart },
+      { href: "/admin/companies", label: "Empresas", icon: Building2 },
+      { href: "/admin/events", label: "Eventos", icon: Calendar },
+      { href: "/admin/perspectivas", label: "Contenido", icon: Newspaper },
+    ];
+  }
+  if (role === "company_admin") {
+    return [
+      { href: "/admin/empresa", label: "Empresa", icon: Building2 },
+      { href: "/admin/empresa/miembros", label: "Miembros", icon: Users2 },
+      { href: "/admin/empresa/importar", label: "Importar", icon: Upload },
+    ];
+  }
+  // admin (RRHH de su propia org)
+  return [{ href: "/admin/org", label: "Panel", icon: LineChart }];
+}
 
 /**
  * Nav mobile del panel admin (bottom bar, consistente con el BottomNav del
@@ -30,14 +48,14 @@ const ADMIN_ITEMS: AdminNavItem[] = [
  * `md:hidden` para que el admin NO se quede sin navegación en mobile.
  */
 export function AdminBottomNav({
-  isSuperadmin,
+  role,
   className,
 }: {
-  isSuperadmin: boolean;
+  role: UserRole | undefined;
   className?: string;
 }) {
   const pathname = usePathname();
-  const items = ADMIN_ITEMS.filter((i) => isSuperadmin || !i.superadminOnly);
+  const items = itemsForRole(role);
 
   return (
     <nav
