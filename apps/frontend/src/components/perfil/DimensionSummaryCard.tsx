@@ -82,12 +82,6 @@ export function DimensionSummaryCard({
         <Progress value={score} label={`Estado ${dimension.name}`} />
       </div>
 
-      {result?.recaida_detected && (
-        <span className="w-fit rounded-full bg-warning-bg px-2 py-0.5 text-xs font-semibold text-warning">
-          ⚠ Recaída detectada
-        </span>
-      )}
-
       {result?.requires_user_confirmation && onConfirm && (
         <button
           type="button"
