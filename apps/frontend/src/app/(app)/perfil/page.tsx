@@ -1,5 +1,6 @@
 "use client";
 
+import { Clock, Flame, Trophy } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,11 +16,16 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { apiGetMyRadar, apiGetMyResults, apiSetOnboardingSeen } from "@/lib/api";
+import {
+  apiGetHomeDashboard,
+  apiGetMyRadar,
+  apiGetMyResults,
+  apiSetOnboardingSeen,
+} from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
-import type { DimensionResult, RadarHistory } from "@/lib/types";
+import type { DimensionResult, HomeStats, RadarHistory } from "@/lib/types";
 
 const ROLE_LABEL: Record<string, string> = {
   collaborator: "Colaborador/a",
@@ -44,18 +50,21 @@ export default function PerfilPage() {
 
   const [results, setResults] = React.useState<DimensionResult[]>([]);
   const [radarHistory, setRadarHistory] = React.useState<RadarHistory | null>(null);
+  const [stats, setStats] = React.useState<HomeStats | null>(null);
   const [showPrevious, setShowPrevious] = React.useState(true);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const [res, radarHist] = await Promise.all([
+      const [res, radarHist, dash] = await Promise.all([
         apiGetMyResults(),
         apiGetMyRadar().catch(() => null),
+        apiGetHomeDashboard().catch(() => null),
       ]);
       setResults(res.results);
       setRadarHistory(radarHist);
+      setStats(dash?.stats ?? null);
       setStatus("ok");
     } catch {
       setStatus("error");
@@ -120,6 +129,39 @@ export default function PerfilPage() {
 
       {status === "ok" && (
         <>
+          {/* Resumen de aprendizaje — snapshot de tu recorrido. */}
+          {stats && (
+            <div className="mt-8 grid grid-cols-3 gap-3 sm:gap-4">
+              <Card className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
+                <Trophy size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
+                <div>
+                  <p className="font-mono text-2xl font-semibold text-fg">
+                    {stats.courses_completed}
+                  </p>
+                  <p className="text-xs text-fg-muted">mods completados</p>
+                </div>
+              </Card>
+              <Card className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
+                <Clock size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
+                <div>
+                  <p className="font-mono text-2xl font-semibold text-fg">
+                    {stats.month_watch_minutes}
+                  </p>
+                  <p className="text-xs text-fg-muted">min en plataforma</p>
+                </div>
+              </Card>
+              <Card className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
+                <Flame size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
+                <div>
+                  <p className="font-mono text-2xl font-semibold text-fg">{stats.streak_days}</p>
+                  <p className="text-xs text-fg-muted">
+                    {stats.streak_days === 1 ? "día seguido" : "días seguidos"}
+                  </p>
+                </div>
+              </Card>
+            </div>
+          )}
+
           {/* Sección 1: Radar */}
           <section className="mt-10" id="mi-radar">
             <Eyebrow>Mi radar</Eyebrow>
