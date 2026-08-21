@@ -23,7 +23,7 @@ import { useAuthStore } from "@/lib/auth-store";
 import { DIMENSIONS } from "@/lib/dimensions";
 import { dimensionBadgeVariant, dimensionShortName } from "@/lib/dimension-styles";
 import type { HomeDashboard, DimensionResult } from "@/lib/types";
-import { cn, formatRelativeTime, greetingName, isFixtureCourse } from "@/lib/utils";
+import { cn, greetingName, isFixtureCourse } from "@/lib/utils";
 
 const HomeActivitySection = React.lazy(
   () => import("@/components/widgets/sections/HomeActivitySection"),
@@ -48,7 +48,6 @@ export default function HomePage() {
   const setUser = useAuthStore((s) => s.setUser);
   const router = useRouter();
   const firstName = greetingName(user?.full_name ?? "");
-  const isAdminPlus = user?.role === "admin" || user?.role === "superadmin";
 
   // Tour de onboarding post-primer-login (Release TASK 6).
   const [showTour, setShowTour] = React.useState(false);
@@ -151,8 +150,16 @@ export default function HomePage() {
 
       {status === "ok" && data && (
         <>
-          {/* TASK 3 — Cards de dimensión (el hub por dimensión), arriba de todo. */}
-          <section className="mt-8">
+          {/* Placeholder AI (Sprint UI · TASK 11) — arriba de todo. */}
+          <AISoonBadge
+            variant="card"
+            label="Próximamente: tu recomendación diaria"
+            dimensionCode={data.next_step?.dimension_code}
+            className="mt-8"
+          />
+
+          {/* TASK 3 — Cards de dimensión (el hub por dimensión). */}
+          <section className="mt-4">
             <Eyebrow>Tus 6 dimensiones</Eyebrow>
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
               {DIMENSIONS.map((d) => (
@@ -161,9 +168,9 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Stats */}
-          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Card className="flex items-center gap-3 bg-bg-raised">
+          {/* Stats — las 3 siempre en una sola fila (col-4 c/u). */}
+          <div className="mt-8 grid grid-cols-3 gap-3 sm:gap-4">
+            <Card className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
               <Flame size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
               <div>
                 <p className="font-mono text-2xl font-semibold text-fg">{data.stats.streak_days}</p>
@@ -172,22 +179,22 @@ export default function HomePage() {
                 </p>
               </div>
             </Card>
-            <Card className="flex items-center gap-3 bg-bg-raised">
+            <Card className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
               <Clock size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
               <div>
                 <p className="font-mono text-2xl font-semibold text-fg">
                   {data.stats.month_watch_minutes}
                 </p>
-                <p className="text-xs text-fg-muted">bloques este mes</p>
+                <p className="text-xs text-fg-muted">min en plataforma</p>
               </div>
             </Card>
-            <Card className="flex items-center gap-3 bg-bg-raised">
+            <Card className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
               <Trophy size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
               <div>
                 <p className="font-mono text-2xl font-semibold text-fg">
                   {data.stats.courses_completed}
                 </p>
-                <p className="text-xs text-fg-muted">módulos completados</p>
+                <p className="text-xs text-fg-muted">mods completados</p>
               </div>
             </Card>
           </div>
@@ -243,14 +250,6 @@ export default function HomePage() {
             )}
           </Card>
 
-          {/* Placeholder AI (Sprint UI · TASK 11) — sin captura de nada. */}
-          <AISoonBadge
-            variant="card"
-            label="Próximamente: tu recomendación diaria"
-            dimensionCode={data.next_step?.dimension_code}
-            className="mt-4"
-          />
-
           {/* Mini radar */}
           <Card className="mt-4 flex items-center gap-5 bg-bg-raised">
             <MiniRadar values={radarValues} />
@@ -267,60 +266,17 @@ export default function HomePage() {
             </div>
           </Card>
 
-          {/* Tu actividad — widgets lazy-loaded (no agregan peso al critical path) */}
+          {/* Tu actividad — racha + actividad reciente (lazy-loaded). */}
           <React.Suspense fallback={<WidgetsSkeleton />}>
-            <HomeActivitySection
-              enrollments={data.active_enrollments}
-              dimensionCompletionRates={data.dimension_completion_rates}
-            />
+            <HomeActivitySection recentActivity={data.recent_activity} />
           </React.Suspense>
-
-          {/* Actividad reciente */}
-          <section className="mt-12">
-            <Eyebrow>Actividad reciente</Eyebrow>
-            {data.recent_activity.length === 0 ? (
-              <Card className="mt-4 flex items-center justify-center py-16">
-                <EmptyRing label="Sin actividad aún. Comenzá explorando una dimensión." />
-              </Card>
-            ) : (
-              <ul className="mt-4 flex flex-col gap-2">
-                {data.recent_activity.map((a) => (
-                  <li key={a.course_id}>
-                    <Link
-                      href={`/modulos/${a.course_slug}` as Route}
-                      className="flex items-center gap-3 rounded-lg border border-border bg-surface-card px-4 py-3 transition-colors hover:bg-bg-raised"
-                    >
-                      <Badge variant={dimensionBadge(a.dimension_code)}>{dimensionShortName(a.dimension_code)}</Badge>
-                      <span className="min-w-0 flex-1 truncate font-sans text-sm font-medium text-fg">
-                        {a.course_title}
-                      </span>
-                      {a.is_completed && (
-                        <span className="shrink-0 text-xs font-semibold text-success">
-                          Completado
-                        </span>
-                      )}
-                      <span className="shrink-0 text-xs text-fg-muted">
-                        {formatRelativeTime(a.last_played_at)}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
         </>
       )}
 
       <p className="mt-10 text-xs text-fg-subtle">
-        {isAdminPlus ? (
-          <Link href={"/admin/org" as Route} className="underline underline-offset-2">
-            Ir al panel de tu organización →
-          </Link>
-        ) : (
-          <Link href={"/perfil" as Route} className="underline underline-offset-2">
-            Ver tu perfil y radar completo →
-          </Link>
-        )}
+        <Link href={"/perfil" as Route} className="underline underline-offset-2">
+          Ver tu perfil y radar completo →
+        </Link>
       </p>
     </main>
   );

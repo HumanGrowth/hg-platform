@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, ChevronDown, FileText, RefreshCw } from "lucide-react";
+import { ArrowRight, ChevronDown, FileText, Lock, RefreshCw } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
@@ -12,6 +12,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { HexIcon } from "@/components/ui/hex-icon";
 import { Progress } from "@/components/ui/progress";
 import { apiGetMyResults, apiListModulosByDimension } from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
@@ -20,7 +21,10 @@ import { dimensionStyle, subPillarName } from "@/lib/dimension-styles";
 import type { LearningUnitFeedItem, DimensionResult } from "@/lib/types";
 import { cn, formatRelativeTime } from "@/lib/utils";
 
-const LEVELS = ["L1", "L2", "L3", "L4"] as const;
+/** El pilar AI (Foundation) siempre va último; el resto por orden natural. */
+function pillarRank(code: string): number {
+  return code === "AI" ? 1 : 0;
+}
 
 /** Count-up de 0 al valor final (respeta reduced-motion → salta al final). */
 function useCountUp(target: number, durationMs = 900): number {
@@ -142,7 +146,7 @@ export function DimensionDetail({ dimension }: { dimension: Dimension }) {
           />
 
           {dimension.hasContent ? (
-            <LevelsSection units={units} />
+            <AreasSection dimension={dimension} units={units} />
           ) : (
             <Card className="mt-8 flex flex-col items-center gap-2 py-12 text-center">
               <p className="font-sans text-md font-semibold text-fg">
@@ -210,37 +214,18 @@ function ProgressHero({
   );
 }
 
-// ─────────────────────────── Niveles + units ───────────────────────────
+// ─────────────────────── Áreas de Crecimiento (por pilar) ───────────────────────
 
-function LevelsSection({ units }: { units: LearningUnitFeedItem[] }) {
-  const byLevel = React.useMemo(() => {
-    const map = new Map<string, LearningUnitFeedItem[]>();
-    for (const u of units) {
-      const arr = map.get(u.level_code) ?? [];
-      arr.push(u);
-      map.set(u.level_code, arr);
-    }
-    return map;
-  }, [units]);
-
-  return (
-    <section className="mt-10">
-      <Eyebrow>Unidades por nivel</Eyebrow>
-      <div className="mt-4 flex flex-col gap-3">
-        {LEVELS.map((level) => (
-          <LevelGroup key={level} level={level} units={byLevel.get(level) ?? []} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function LevelGroup({ level, units }: { level: string; units: LearningUnitFeedItem[] }) {
-  const hasContent = units.length > 0;
-  const [open, setOpen] = React.useState(hasContent);
-
-  // Dentro del nivel, agrupar por pillar_code (subcategoría).
-  const byDimension = React.useMemo(() => {
+function AreasSection({
+  dimension,
+  units,
+}: {
+  dimension: Dimension;
+  units: LearningUnitFeedItem[];
+}) {
+  // Agrupamos por pillar_code (el "área de crecimiento" dentro de la dimensión).
+  // El pilar AI (Foundation) siempre se lista último.
+  const areas = React.useMemo(() => {
     const map = new Map<string, LearningUnitFeedItem[]>();
     for (const u of units) {
       const key = u.pillar_code ?? "";
@@ -248,19 +233,44 @@ function LevelGroup({ level, units }: { level: string; units: LearningUnitFeedIt
       arr.push(u);
       map.set(key, arr);
     }
-    return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));
+    return [...map.entries()].sort(
+      ([a], [b]) => pillarRank(a) - pillarRank(b) || a.localeCompare(b),
+    );
   }, [units]);
 
-  if (!hasContent) {
-    return (
-      <div className="flex items-center justify-between rounded-lg border border-border bg-bg-raised px-5 py-4 opacity-50">
-        <span className="font-sans text-sm font-semibold text-fg">Nivel {level.slice(1)}</span>
-        <span className="rounded-full bg-bg-sunken px-3 py-1 text-xs font-semibold text-fg-muted">
-          Próximamente
-        </span>
+  return (
+    <section className="mt-10">
+      <Eyebrow>Áreas de Crecimiento</Eyebrow>
+      <div className="mt-4 flex flex-col gap-3">
+        {areas.map(([pillarCode, areaUnits], i) => (
+          <AreaGroup
+            key={pillarCode}
+            dimension={dimension}
+            pillarCode={pillarCode}
+            units={areaUnits}
+            defaultOpen={i === 0}
+          />
+        ))}
       </div>
-    );
-  }
+    </section>
+  );
+}
+
+function AreaGroup({
+  dimension,
+  pillarCode,
+  units,
+  defaultOpen,
+}: {
+  dimension: Dimension;
+  pillarCode: string;
+  units: LearningUnitFeedItem[];
+  defaultOpen: boolean;
+}) {
+  const [open, setOpen] = React.useState(defaultOpen);
+  const areaName = subPillarName(units[0]?.dimension_code, pillarCode);
+  // La insignia del área se desbloquea al completar todas sus unidades.
+  const unlocked = units.length > 0 && units.every((u) => u.attempt_status === "completed");
 
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-bg-raised">
@@ -268,10 +278,10 @@ function LevelGroup({ level, units }: { level: string; units: LearningUnitFeedIt
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
+        className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors hover:bg-bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
       >
-        <span className="font-sans text-sm font-semibold text-fg">
-          Nivel {level.slice(1)}
+        <span className="min-w-0 font-sans text-sm font-semibold text-fg">
+          {areaName}
           <span className="ml-2 font-normal text-fg-muted">
             {units.length} {units.length === 1 ? "unidad" : "unidades"}
           </span>
@@ -279,25 +289,58 @@ function LevelGroup({ level, units }: { level: string; units: LearningUnitFeedIt
         <ChevronDown
           size={18}
           strokeWidth={2}
-          className={cn("text-fg-muted transition-transform", open && "rotate-180")}
+          className={cn("shrink-0 text-fg-muted transition-transform", open && "rotate-180")}
         />
       </button>
       {open && (
         <div className="flex flex-col gap-4 border-t border-border px-4 py-4">
-          {byDimension.map(([pillarCode, dimensionUnits]) => (
-            <div key={pillarCode} className="flex flex-col gap-2">
-              {byDimension.length > 1 && (
-                <p className="px-1 font-sans text-xs font-semibold uppercase tracking-meta text-fg-subtle">
-                  {subPillarName(dimensionUnits[0]?.dimension_code, pillarCode)}
-                </p>
-              )}
-              {dimensionUnits.map((u) => (
-                <UnitCardCompact key={u.id} unit={u} />
-              ))}
-            </div>
-          ))}
+          <AreaBadge dimension={dimension} areaName={areaName} unlocked={unlocked} />
+          <div className="flex flex-col gap-2">
+            {units.map((u) => (
+              <UnitCardCompact key={u.id} unit={u} />
+            ))}
+          </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Insignia aspiracional del área: se desbloquea al completar todas sus unidades. */
+function AreaBadge({
+  dimension,
+  areaName,
+  unlocked,
+}: {
+  dimension: Dimension;
+  areaName: string;
+  unlocked: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-lg bg-bg-sunken px-4 py-3">
+      <div
+        className={cn(
+          "relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border bg-surface-card",
+          !unlocked && "opacity-45 grayscale",
+        )}
+      >
+        <HexIcon pillar={dimension.careerPath} size={32} />
+        {!unlocked && (
+          <Lock
+            size={14}
+            strokeWidth={2}
+            className="absolute -bottom-1 -right-1 rounded-full bg-bg-raised p-0.5 text-fg-muted"
+          />
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="font-sans text-sm font-semibold text-fg">Insignia · {areaName}</p>
+        <p className="text-xs text-fg-muted">
+          {unlocked
+            ? "¡Desbloqueada! Completaste todas las unidades de esta área."
+            : "Completá todas las unidades de esta área para desbloquearla."}
+        </p>
+      </div>
     </div>
   );
 }
@@ -306,7 +349,14 @@ function LevelGroup({ level, units }: { level: string; units: LearningUnitFeedIt
 
 function MaterialSection() {
   // Schema listo; el contenido lo sube Andy después. Vacío por defecto.
-  const material: { id: string; title: string; source: string; url: string }[] = [];
+  const material: {
+    id: string;
+    title: string;
+    subtitle?: string;
+    source: string;
+    url: string;
+    cover_image_url?: string;
+  }[] = [];
 
   return (
     <section className="mt-10">
@@ -316,19 +366,32 @@ function MaterialSection() {
           <p className="text-sm text-fg-muted">Todavía no hay material complementario.</p>
         </Card>
       ) : (
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        // Mismas tarjetas que el blog de Perspectivas: cover + chip + título + meta.
+        <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {material.map((m) => (
             <a
               key={m.id}
               href={m.url}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-3 rounded-lg border border-border bg-bg-raised p-4 transition-shadow hover:shadow-md"
+              className="group flex flex-col overflow-hidden rounded-xl border border-border bg-bg-raised transition-shadow hover:shadow-md"
             >
-              <FileText size={20} strokeWidth={1.75} className="shrink-0 text-primary" />
-              <div className="min-w-0">
-                <p className="line-clamp-1 font-sans text-sm font-semibold text-fg">{m.title}</p>
-                <p className="text-xs text-fg-muted">{m.source}</p>
+              <div className="flex aspect-video w-full items-center justify-center overflow-hidden bg-bg-sunken">
+                {m.cover_image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={m.cover_image_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <FileText size={28} strokeWidth={1.5} className="text-fg-subtle" aria-hidden />
+                )}
+              </div>
+              <div className="flex flex-1 flex-col p-5">
+                <span className="mb-2 self-start rounded-full bg-bg-sunken px-2.5 py-0.5 text-xs font-medium text-fg-muted">
+                  {m.source}
+                </span>
+                <h3 className="font-heading text-lg font-semibold leading-tight text-fg">
+                  {m.title}
+                </h3>
+                {m.subtitle && <p className="mt-2 line-clamp-2 text-sm text-fg-muted">{m.subtitle}</p>}
               </div>
             </a>
           ))}
