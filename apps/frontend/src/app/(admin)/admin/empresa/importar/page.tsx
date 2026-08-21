@@ -11,11 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { useScopedCompanyId } from "@/lib/acting-company";
 import { apiBulkImport, apiBulkImportTemplate, ApiError } from "@/lib/api";
 import { toast } from "@/lib/toast-store";
 import type { BulkImportResponse } from "@/lib/types";
 
 function ImportContent() {
+  const { companyId, ready } = useScopedCompanyId();
   const [file, setFile] = React.useState<File | null>(null);
   const [uploading, setUploading] = React.useState(false);
   const [report, setReport] = React.useState<BulkImportResponse | null>(null);
@@ -39,7 +41,7 @@ function ImportContent() {
     setUploading(true);
     setReport(null);
     try {
-      const res = await apiBulkImport(file);
+      const res = await apiBulkImport(file, companyId);
       setReport(res);
       toast(
         `Listo: ${res.creados} creados, ${res.actualizados} actualizados, ${res.errores} errores.`,
@@ -54,6 +56,8 @@ function ImportContent() {
       setUploading(false);
     }
   }
+
+  if (!ready) return null; // superadmin sin empresa elegida → el hook redirige al selector.
 
   return (
     <main className="mx-auto w-full max-w-app px-5 py-10 sm:px-8">

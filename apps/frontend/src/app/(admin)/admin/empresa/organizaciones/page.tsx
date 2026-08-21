@@ -4,10 +4,9 @@
  * Organización — ABM de las organizaciones de la Empresa (unidad operativa,
  * CE-06). Separado de Miembros (/admin/empresa/miembros). Lista las orgs y
  * permite crear nuevas (apiCreateCompanyOrg). company_admin ve las suyas;
- * superadmin puede scopear con ?company_id.
+ * superadmin gestiona la empresa que eligió (contexto acting-company).
  */
 import { Plus } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import * as React from "react";
 
 import { CompanyAdminGate } from "@/components/CompanyAdminGate";
@@ -17,6 +16,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Input, Label } from "@/components/ui/input";
+import { useScopedCompanyId } from "@/lib/acting-company";
 import { apiCompanyOrgs, apiCreateCompanyOrg, ApiError } from "@/lib/api";
 import { toast } from "@/lib/toast-store";
 import type { CompanyOrg } from "@/lib/types";
@@ -31,7 +31,7 @@ function slugify(v: string): string {
 }
 
 function OrganizacionesContent() {
-  const companyId = useSearchParams().get("company_id") ?? undefined;
+  const { companyId, ready } = useScopedCompanyId();
   const [orgs, setOrgs] = React.useState<CompanyOrg[] | null>(null);
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState({ name: "", slug: "", country: "" });
@@ -39,10 +39,11 @@ function OrganizacionesContent() {
   const [submitting, setSubmitting] = React.useState(false);
 
   const load = React.useCallback(() => {
+    if (!ready) return;
     apiCompanyOrgs(companyId)
       .then(setOrgs)
       .catch(() => setOrgs([]));
-  }, [companyId]);
+  }, [companyId, ready]);
   React.useEffect(load, [load]);
 
   async function onCreate(e: React.FormEvent) {
@@ -70,6 +71,8 @@ function OrganizacionesContent() {
       setSubmitting(false);
     }
   }
+
+  if (!ready) return null; // superadmin sin empresa elegida → el hook redirige al selector.
 
   return (
     <main className="mx-auto w-full max-w-app px-5 py-10 sm:px-8">
