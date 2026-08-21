@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Progress } from "@/components/ui/progress";
+import { useScopedCompanyId } from "@/lib/acting-company";
 import { apiGetMyCompany } from "@/lib/api";
 import type { Company } from "@/lib/types";
 
@@ -29,15 +30,18 @@ function Stat({ value, label }: { value: number; label: string }) {
 }
 
 function EmpresaContent() {
+  const { companyId, ready } = useScopedCompanyId();
   const [company, setCompany] = React.useState<Company | null>(null);
   const [error, setError] = React.useState(false);
 
   React.useEffect(() => {
-    apiGetMyCompany()
+    if (!ready) return;
+    apiGetMyCompany(companyId)
       .then(setCompany)
       .catch(() => setError(true));
-  }, []);
+  }, [companyId, ready]);
 
+  if (!ready) return null; // superadmin sin empresa elegida → el hook redirige al selector.
   if (error) {
     return <p className="px-6 py-12 text-sm text-fg-muted">No se pudo cargar la empresa.</p>;
   }

@@ -21,6 +21,7 @@ import {
   apiSetCompanyAccess,
   ApiError,
 } from "@/lib/api";
+import { setActingCompany } from "@/lib/acting-company";
 import { toast } from "@/lib/toast-store";
 import type { Area, Company } from "@/lib/types";
 
@@ -137,10 +138,15 @@ function CompaniesContent() {
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => router.push(`/admin/empresa/miembros?company_id=${c.id}` as Route)}
+                      onClick={() => {
+                        // Setea el contexto acting-company (persistente) y entra al
+                        // panel de empresa; de ahí gestiona TODO reusando /admin/empresa/*.
+                        setActingCompany({ id: c.id, name: c.name });
+                        router.push("/admin/empresa" as Route);
+                      }}
                     >
                       <LogIn size={14} strokeWidth={1.75} />
-                      Entrar
+                      Gestionar
                     </Button>
                     <Button variant="secondary" size="sm" onClick={() => openAccess(c)}>
                       <KeyRound size={14} strokeWidth={1.75} />

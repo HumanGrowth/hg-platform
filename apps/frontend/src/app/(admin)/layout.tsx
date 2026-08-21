@@ -23,6 +23,7 @@ import { BetaBanner } from "@/components/BetaBanner";
 import { AdminBottomNav } from "@/components/nav/AdminBottomNav";
 import { SessionGate } from "@/components/SessionGate";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { useActingCompany } from "@/lib/acting-company";
 import { useAuthStore } from "@/lib/auth-store";
 
 // Panel interno de HG. SessionGate protege la sesión; el rol se valida por
@@ -40,9 +41,12 @@ const SUPERADMIN_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
+  const acting = useActingCompany();
   const isSuperadmin = user?.role === "superadmin";
   const isOrgAdmin = user?.role === "admin" || isSuperadmin;
-  const isCompanyAdmin = user?.role === "company_admin" || isSuperadmin;
+  // Los links de gestión de empresa se muestran al company_admin siempre; al
+  // superadmin solo cuando eligió una empresa (contexto acting-company).
+  const showCompanyLinks = user?.role === "company_admin" || (isSuperadmin && Boolean(acting));
   const [superOpen, setSuperOpen] = React.useState(true);
 
   return (
@@ -72,7 +76,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     Dashboard
                   </Link>
                 )}
-                {isCompanyAdmin && (
+                {/* Superadmin: rótulo de la empresa que está gestionando. */}
+                {isSuperadmin && acting && (
+                  <p className="px-3 pb-1 pt-2 font-sans text-xs text-fg-muted">
+                    Gestionando: <span className="font-semibold text-fg">{acting.name}</span>
+                  </p>
+                )}
+                {showCompanyLinks && (
                   <Link
                     href={"/admin/empresa" as Route}
                     className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
@@ -81,7 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     Empresa
                   </Link>
                 )}
-                {isCompanyAdmin && (
+                {showCompanyLinks && (
                   <Link
                     href={"/admin/empresa/organizaciones" as Route}
                     className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
@@ -90,7 +100,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     Organización
                   </Link>
                 )}
-                {isCompanyAdmin && (
+                {showCompanyLinks && (
                   <Link
                     href={"/admin/empresa/miembros" as Route}
                     className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"

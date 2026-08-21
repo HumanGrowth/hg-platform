@@ -3,7 +3,6 @@
 import { Plus, Upload } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import * as React from "react";
 
 import { CompanyAdminGate } from "@/components/CompanyAdminGate";
@@ -14,6 +13,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Input, Label } from "@/components/ui/input";
+import { useScopedCompanyId } from "@/lib/acting-company";
 import { apiCompanyInvite, apiCompanyMembers, apiCompanyOrgs, ApiError } from "@/lib/api";
 import { toast } from "@/lib/toast-store";
 import type { CompanyMember, CompanyOrg } from "@/lib/types";
@@ -50,9 +50,9 @@ function ConsentStatusCell({
 }
 
 function MembersContent() {
-  // Superadmin puede scopear a una empresa con ?company_id (vista de empresa
-  // seleccionada, CE-06). El company_admin lo omite → su propia empresa.
-  const companyId = useSearchParams().get("company_id") ?? undefined;
+  // Superadmin gestiona la empresa que eligió (contexto acting-company); el
+  // company_admin lo omite → su propia empresa. CE-06.
+  const { companyId, ready } = useScopedCompanyId();
   const [members, setMembers] = React.useState<CompanyMember[] | null>(null);
   const [orgs, setOrgs] = React.useState<CompanyOrg[]>([]);
   const [open, setOpen] = React.useState(false);
@@ -60,13 +60,14 @@ function MembersContent() {
   const [submitting, setSubmitting] = React.useState(false);
 
   const load = React.useCallback(() => {
+    if (!ready) return;
     apiCompanyMembers(companyId)
       .then(setMembers)
       .catch(() => setMembers([]));
     apiCompanyOrgs(companyId)
       .then(setOrgs)
       .catch(() => setOrgs([]));
-  }, [companyId]);
+  }, [companyId, ready]);
   React.useEffect(load, [load]);
 
   async function onInvite(e: React.FormEvent) {
@@ -95,6 +96,8 @@ function MembersContent() {
       setSubmitting(false);
     }
   }
+
+  if (!ready) return null; // superadmin sin empresa elegida → el hook redirige al selector.
 
   return (
     <main className="mx-auto w-full max-w-app px-5 py-10 sm:px-8">
