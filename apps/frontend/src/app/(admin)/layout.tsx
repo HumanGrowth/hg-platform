@@ -10,7 +10,6 @@ import {
   Layers,
   LineChart,
   Newspaper,
-  Upload,
   Users2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -27,16 +26,14 @@ import { useActingCompany } from "@/lib/acting-company";
 import { useAuthStore } from "@/lib/auth-store";
 
 // Panel interno de HG. SessionGate protege la sesión; el rol se valida por
-// página (OrgAdminGate en /admin/org, SuperadminGate en /admin/orgs) — FU-12.
+// página (OrgAdminGate en /admin/org, SuperadminGate en /admin/companies) — FU-12.
 // Opciones exclusivas de superadmin — agrupadas en UN desplegable (M2·3), en
 // vez de sueltas en el nav general.
 const SUPERADMIN_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin/companies", label: "Empresas", icon: Building2 },
   { href: "/admin/areas", label: "Áreas de contenido", icon: Layers },
-  { href: "/admin/orgs", label: "Organizaciones", icon: Building2 },
   { href: "/admin/events", label: "Eventos", icon: Calendar },
   { href: "/admin/perspectivas", label: "Perspectivas", icon: Newspaper },
-  { href: "/admin/empresa/importar", label: "Importar", icon: Upload },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

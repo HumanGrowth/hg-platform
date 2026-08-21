@@ -6,7 +6,9 @@
  * permite crear nuevas (apiCreateCompanyOrg). company_admin ve las suyas;
  * superadmin gestiona la empresa que eligió (contexto acting-company).
  */
-import { Plus } from "lucide-react";
+import { LineChart, Plus } from "lucide-react";
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { CompanyAdminGate } from "@/components/CompanyAdminGate";
@@ -16,8 +18,10 @@ import { Dialog } from "@/components/ui/dialog";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Input, Label } from "@/components/ui/input";
+import { setActingOrg } from "@/lib/acting-org";
 import { useScopedCompanyId } from "@/lib/acting-company";
 import { apiCompanyOrgs, apiCreateCompanyOrg, ApiError } from "@/lib/api";
+import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
 import type { CompanyOrg } from "@/lib/types";
 
@@ -32,6 +36,9 @@ function slugify(v: string): string {
 
 function OrganizacionesContent() {
   const { companyId, ready } = useScopedCompanyId();
+  const router = useRouter();
+  // Solo el superadmin puede abrir el dashboard RRHH de una org (OrgAdminGate).
+  const isSuperadmin = useAuthStore((s) => s.user?.role) === "superadmin";
   const [orgs, setOrgs] = React.useState<CompanyOrg[] | null>(null);
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState({ name: "", slug: "", country: "" });
@@ -96,6 +103,7 @@ function OrganizacionesContent() {
               <th className="px-5 py-3 font-semibold">Nombre</th>
               <th className="px-5 py-3 font-semibold">País</th>
               <th className="px-5 py-3 font-semibold">Miembros</th>
+              {isSuperadmin && <th className="px-5 py-3 font-semibold">Dashboard</th>}
             </tr>
           </thead>
           <tbody>
@@ -107,6 +115,22 @@ function OrganizacionesContent() {
                 </td>
                 <td className="px-5 py-3 text-sm text-fg-muted">{o.country ?? "—"}</td>
                 <td className="px-5 py-3 font-mono text-sm tabular-nums text-fg">{o.user_count}</td>
+                {isSuperadmin && (
+                  <td className="px-5 py-3">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        // Scopea el dashboard RRHH a esta org (acting-org) y lo abre.
+                        setActingOrg({ id: o.id, name: o.name });
+                        router.push("/admin/org" as Route);
+                      }}
+                    >
+                      <LineChart size={14} strokeWidth={1.75} />
+                      Ver dashboard
+                    </Button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
