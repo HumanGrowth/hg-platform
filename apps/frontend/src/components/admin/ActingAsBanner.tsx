@@ -46,7 +46,7 @@ export function ActingAsBanner() {
           type="button"
           onClick={() => {
             clearActingOrg();
-            router.push("/admin/orgs");
+            router.push("/admin/companies");
           }}
           className="rounded-md border border-warning/40 px-3 py-1 font-semibold hover:bg-warning/10"
         >
