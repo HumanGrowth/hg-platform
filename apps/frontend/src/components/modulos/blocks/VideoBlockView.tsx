@@ -4,10 +4,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronsLeft,
   ChevronsRight,
+  Gauge,
   List,
   Loader2,
-  Maximize,
-  Minimize,
   Play,
   RotateCcw,
   Volume2,
@@ -18,6 +17,7 @@ import * as React from "react";
 import { ChapterList } from "@/components/modulos/blocks/ChapterList";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { dimensionStyle } from "@/lib/dimension-styles";
+import { cn } from "@/lib/utils";
 import type { VideoBlock } from "@/lib/types";
 
 interface Props {
@@ -40,6 +40,8 @@ function formatTime(sec: number): string {
 const UI_HIDE_MS = 3000; // auto-hide de controles (Sprint UI T2)
 const DOUBLE_TAP_MS = 300;
 const SEEK_STEP = 10; // doble-tap ±10s (Sprint UI T1)
+const NEXT_ENABLE_SECONDS = 10; // a los 10s el bloque se completa → habilita "Siguiente"
+const HOLD_MS = 350; // press-and-hold sobre el video → 2x mientras se mantiene
 
 /**
  * Reproductor full-bleed estilo TikTok/Reels para video **9:16 vertical**
@@ -64,6 +66,12 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
   const uiTimerRef = React.useRef<number | null>(null);
   const lastTapRef = React.useRef<{ time: number; side: number }>({ time: 0, side: 0 });
   const scrubbingRef = React.useRef(false);
+  // Press-and-hold para 2x + supresión del tap que le sigue.
+  const holdTimerRef = React.useRef<number | null>(null);
+  const holdActiveRef = React.useRef(false);
+  const suppressClickRef = React.useRef(false);
+  // El bloque se completa una sola vez a los 10s (no en cada timeupdate).
+  const completedFiredRef = React.useRef(false);
 
   const [state, setState] = React.useState<PlayerState>("loading");
   // TASK 2: intentamos autoplay CON sonido; si el browser lo bloquea (autoplay
@@ -74,7 +82,8 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
   const [duration, setDuration] = React.useState(block.duration_seconds || 0);
   const [bufferedEnd, setBufferedEnd] = React.useState(0);
   const [uiVisible, setUiVisible] = React.useState(true);
-  const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const [speedBoost, setSpeedBoost] = React.useState(false); // 2x activo (hold)
+  const [scrubbing, setScrubbing] = React.useState(false); // engrosa barra + thumb al arrastrar
   const [showChapters, setShowChapters] = React.useState(false);
   const [seekFeedback, setSeekFeedback] = React.useState<{ dir: number; id: number } | null>(null);
 
@@ -133,15 +142,6 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
     return () => observer.disconnect();
   }, [shouldAnimate]);
 
-  // Sincroniza el estado de fullscreen con el documento.
-  React.useEffect(() => {
-    function onFsChange() {
-      setIsFullscreen(document.fullscreenElement === containerRef.current);
-    }
-    document.addEventListener("fullscreenchange", onFsChange);
-    return () => document.removeEventListener("fullscreenchange", onFsChange);
-  }, []);
-
   // Limpia el overlay de doble-tap tras un instante.
   React.useEffect(() => {
     if (!seekFeedback) return;
@@ -174,6 +174,11 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
   // Tap central = play/pause. Doble-tap en el tercio izq/der = ∓10s. Los dos
   // toggles del doble-tap se cancelan entre sí (net: sólo el seek).
   function handleTapZone(e: React.MouseEvent<HTMLButtonElement>) {
+    // El click que sigue a un press-and-hold (2x) no debe pausar/seek.
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
     // Si el video reproduce MUTADO (autoplay forzado por el browser), el primer
     // tap ACTIVA el sonido —el "inicio real" consciente del usuario— en vez de
     // pausar. A partir de ahí, el tap vuelve a ser play/pause normal.
@@ -211,11 +216,28 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
     });
   }
 
-  function toggleFullscreen() {
-    const el = containerRef.current;
-    if (!el) return;
-    if (document.fullscreenElement === el) void document.exitFullscreen?.();
-    else void el.requestFullscreen?.();
+  // ── Press-and-hold sobre el video → 2x mientras se mantiene ──
+  function startHold() {
+    if (holdTimerRef.current) window.clearTimeout(holdTimerRef.current);
+    holdTimerRef.current = window.setTimeout(() => {
+      const video = videoRef.current;
+      if (!video || video.paused) return;
+      holdActiveRef.current = true;
+      video.playbackRate = 2;
+      setSpeedBoost(true);
+    }, HOLD_MS);
+  }
+  function endHold() {
+    if (holdTimerRef.current) {
+      window.clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    if (holdActiveRef.current) {
+      holdActiveRef.current = false;
+      suppressClickRef.current = true; // el click que sigue NO debe pausar
+      if (videoRef.current) videoRef.current.playbackRate = 1;
+      setSpeedBoost(false);
+    }
   }
 
   async function handleEnded() {
@@ -241,6 +263,7 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
   function onScrubPointerDown(e: React.PointerEvent<HTMLDivElement>) {
     e.stopPropagation();
     scrubbingRef.current = true;
+    setScrubbing(true);
     e.currentTarget.setPointerCapture?.(e.pointerId);
     scrubToClientX(e.clientX);
     resetUiTimer();
@@ -250,6 +273,7 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
   }
   function onScrubPointerUp(e: React.PointerEvent<HTMLDivElement>) {
     scrubbingRef.current = false;
+    setScrubbing(false);
     e.currentTarget.releasePointerCapture?.(e.pointerId);
   }
 
@@ -320,7 +344,16 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
         // el overlay de play se oculte aunque el arranque haya sido mutado.
         onPlaying={() => setState("playing")}
         onPause={() => setState((s) => (s === "ended" ? s : "paused"))}
-        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+        onTimeUpdate={(e) => {
+          const t = e.currentTarget.currentTime;
+          setCurrentTime(t);
+          // A los 10s el bloque se marca completo → habilita "Siguiente" sin
+          // exigir ver todo el video. (Videos <10s completan en onEnded.)
+          if (!completedFiredRef.current && !isCompleted && t >= NEXT_ENABLE_SECONDS) {
+            completedFiredRef.current = true;
+            void onCompleteBlock();
+          }
+        }}
         onEnded={() => void handleEnded()}
         onError={() => setState("error")}
         onWaiting={() => setState((s) => (s === "playing" ? "loading" : s))}
@@ -349,11 +382,15 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
         <button
           type="button"
           onClick={handleTapZone}
+          onPointerDown={startHold}
+          onPointerUp={endHold}
+          onPointerLeave={endHold}
+          onPointerCancel={endHold}
           aria-label={
             state === "playing"
               ? muted
                 ? "Activar sonido"
-                : "Pausar video"
+                : "Pausar video (mantené presionado para 2x)"
               : "Reproducir video"
           }
           className="absolute inset-0 z-[1] h-full w-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/60"
@@ -375,6 +412,20 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
           >
             {seekFeedback.dir < 0 ? <ChevronsLeft size={32} /> : <ChevronsRight size={32} />}
             <span className="text-sm font-semibold">{seekFeedback.dir < 0 ? "−10s" : "+10s"}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Indicador de 2x mientras se mantiene presionado el video. */}
+      <AnimatePresence>
+        {speedBoost && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="pointer-events-none absolute left-1/2 top-3 z-[5] flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/70 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm"
+          >
+            <Gauge size={14} /> 2x
           </motion.div>
         )}
       </AnimatePresence>
@@ -476,18 +527,20 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
         )}
       </AnimatePresence>
 
-      {/* Progress bar scrubbable + buffered + marcadores + timer + fullscreen (bottom). */}
+      {/* Progress bar scrubbable + buffered + marcadores + timer (bottom).
+          Fondo transparente: los scrims arriba/abajo ya dan legibilidad. */}
       <AnimatePresence>
         {showBottomUi && uiVisible && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-x-0 bottom-0 z-[3] flex flex-col gap-1.5 bg-gradient-to-t from-black/60 to-transparent px-3 pb-2 pt-6"
+            className="absolute inset-x-0 bottom-0 z-[3] flex flex-col gap-1 px-3 pb-2 pt-6"
           >
             {currentChapter && (
-              <span className="truncate text-[11px] font-semibold text-white/90">{currentChapter.label}</span>
+              <span className="truncate text-[11px] font-semibold text-white/90 drop-shadow">{currentChapter.label}</span>
             )}
+            {/* Hit-area alta (py-3) para que sea fácil de agarrar con el dedo. */}
             <div
               ref={progressBarRef}
               role="slider"
@@ -499,9 +552,14 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
               onPointerDown={onScrubPointerDown}
               onPointerMove={onScrubPointerMove}
               onPointerUp={onScrubPointerUp}
-              className="relative h-2 w-full cursor-pointer touch-none py-[3px]"
+              className="group/scrub relative -mx-1 h-9 w-full cursor-pointer touch-none px-1"
             >
-              <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 overflow-hidden rounded-full bg-white/25">
+              <div
+                className={cn(
+                  "absolute inset-x-1 top-1/2 -translate-y-1/2 overflow-hidden rounded-full bg-white/25 transition-[height]",
+                  scrubbing ? "h-2" : "h-1.5",
+                )}
+              >
                 {/* buffered */}
                 <div className="absolute inset-y-0 left-0 bg-white/30" style={{ width: `${bufferedPct}%` }} />
                 {/* progreso (color del pilar) */}
@@ -515,42 +573,38 @@ export function VideoBlockView({ block, isCompleted, onCompleteBlock, dimensionC
                     key={`${c.start_sec}-${i}`}
                     aria-hidden
                     className="absolute top-1/2 h-2 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/70"
-                    style={{ left: `${left}%` }}
+                    style={{ left: `calc(0.25rem + ${left}% * (100% - 0.5rem) / 100%)` }}
                   />
                 );
               })}
+              {/* Thumb/knob arrastrable — crece al hacer scrub. */}
+              <span
+                aria-hidden
+                className={cn(
+                  "absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-md ring-2 ring-black/20 transition-transform",
+                  scrubbing ? "h-4 w-4" : "h-3.5 w-3.5",
+                )}
+                style={{ left: `calc(0.25rem + ${pct}% * (100% - 0.5rem) / 100%)` }}
+              />
             </div>
-            <div className="flex items-center justify-between text-[11px] font-medium text-white/90">
+            <div className="flex items-center justify-between text-[11px] font-medium text-white/90 drop-shadow">
               <span className="tabular-nums">
                 {formatTime(currentTime)} / {formatTime(duration)}
                 {isCompleted && <span className="ml-2 font-semibold text-primary">✓ Completado</span>}
               </span>
-              <div className="flex items-center gap-1">
-                {chapters && chapters.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowChapters((s) => !s);
-                    }}
-                    aria-label="Capítulos"
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-white/80 hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-                  >
-                    <List size={16} />
-                  </button>
-                )}
+              {chapters && chapters.length > 0 && (
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toggleFullscreen();
+                    setShowChapters((s) => !s);
                   }}
-                  aria-label={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                  aria-label="Capítulos"
                   className="flex h-9 w-9 items-center justify-center rounded-full text-white/80 hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
                 >
-                  {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+                  <List size={16} />
                 </button>
-              </div>
+              )}
             </div>
           </motion.div>
         )}

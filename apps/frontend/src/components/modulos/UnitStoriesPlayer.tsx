@@ -7,7 +7,6 @@ import * as React from "react";
 import { BlockRenderer } from "@/components/modulos/BlockRenderer";
 import { BlockTransition } from "@/components/modulos/BlockTransition";
 import { UnitCompletionCard } from "@/components/modulos/UnitCompletionCard";
-import { Chip } from "@/components/ui/chip";
 import { Dialog } from "@/components/ui/dialog";
 import { apiCompleteBlock, apiSubmitQuiz, apiSubmitReflection } from "@/lib/api";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
@@ -16,13 +15,10 @@ import type {
   LearningUnitAttempt,
   LearningUnitDetail,
   QuizSubmitPayload,
-  VideoBlock,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const CLOSE_SWIPE_THRESHOLD = 120;
-const LONG_PRESS_MS = 400;
-const SHORT_VIDEO_SECONDS = 30;
 
 export interface UnitStoriesPlayerProps {
   unit: LearningUnitDetail;
@@ -34,7 +30,7 @@ export interface UnitStoriesPlayerProps {
 /**
  * Player mobile fullscreen "stories" (TASK B-04) — navegación por tap
  * izq/der, progreso segmentado, swipe-down para cerrar (con confirmación si
- * hay progreso), auto-advance opcional en video con long-press para pausar.
+ * hay progreso).
  */
 export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitStoriesPlayerProps) {
   const shouldAnimate = useShouldAnimate();
@@ -43,10 +39,7 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
   const [showCompletion, setShowCompletion] = React.useState(false);
   const [showExitConfirm, setShowExitConfirm] = React.useState(false);
   const [showHint, setShowHint] = React.useState(true);
-  const [autoAdvanceOverride, setAutoAdvanceOverride] = React.useState<boolean | null>(null);
   const [quizStats, setQuizStats] = React.useState({ correct: 0, total: 0 });
-  const autoAdvanceTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentBlock = unit.blocks[currentIndex];
   const currentProgress = blockProgress.find((bp) => bp.unit_block_id === currentBlock.id);
@@ -111,32 +104,10 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
     });
   }
 
-  // ─── Auto-advance en bloques de video (con long-press para pausar) ───
-
   const isVideoBlock =
     currentBlock.block_type === "video_intro" ||
     currentBlock.block_type === "video_teaching" ||
     currentBlock.block_type === "video_closing";
-
-  const videoDurationSeconds = isVideoBlock ? (currentBlock as VideoBlock).duration_seconds : null;
-  const defaultAutoAdvance = videoDurationSeconds !== null && videoDurationSeconds < SHORT_VIDEO_SECONDS;
-  const autoAdvanceActive = autoAdvanceOverride ?? defaultAutoAdvance;
-
-  React.useEffect(() => {
-    if (!shouldAnimate || !isVideoBlock || !autoAdvanceActive || videoDurationSeconds === null) return;
-    autoAdvanceTimer.current = setTimeout(() => goNext(), videoDurationSeconds * 1000);
-    return () => {
-      if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex, shouldAnimate, isVideoBlock, autoAdvanceActive, videoDurationSeconds]);
-
-  function cancelAutoAdvance() {
-    if (autoAdvanceTimer.current) {
-      clearTimeout(autoAdvanceTimer.current);
-      autoAdvanceTimer.current = null;
-    }
-  }
 
   /** A11y (TASK B-10): el player es fullscreen y sin esto quedaba inalcanzable
    * por teclado — Esc cierra, ←/→ navegan igual que los tap zones. */
@@ -152,13 +123,6 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
     return () => window.removeEventListener("keydown", onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, canAdvance, isLastBlock, hasProgress]);
-
-  function onVideoPressStart() {
-    longPressTimer.current = setTimeout(cancelAutoAdvance, LONG_PRESS_MS);
-  }
-  function onVideoPressEnd() {
-    if (longPressTimer.current) clearTimeout(longPressTimer.current);
-  }
 
   if (showCompletion) {
     return (
@@ -242,10 +206,6 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
               ? "relative z-0 flex h-full w-full items-center justify-center"
               : "relative z-0 h-full w-full self-stretch overflow-hidden"
           }
-          onTouchStart={isVideoBlock ? onVideoPressStart : undefined}
-          onTouchEnd={isVideoBlock ? onVideoPressEnd : undefined}
-          onMouseDown={isVideoBlock ? onVideoPressStart : undefined}
-          onMouseUp={isVideoBlock ? onVideoPressEnd : undefined}
         >
           <BlockTransition
             blockKey={currentBlock.id}
@@ -265,19 +225,10 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
         </div>
       </div>
 
-      {/* Footer: hint primera vez + toggle de auto-advance en videos */}
+      {/* Footer: hint la primera vez (tap zones). */}
       <div className="flex h-10 items-center justify-center gap-3">
         {showHint && !isVideoBlock && (
           <p className="font-sans text-xs text-fg-subtle">Tocá los costados para avanzar</p>
-        )}
-        {isVideoBlock && (
-          <Chip
-            active={autoAdvanceActive}
-            onClick={() => setAutoAdvanceOverride(!autoAdvanceActive)}
-            className="text-[10px]"
-          >
-            Auto-avance {autoAdvanceActive ? "on" : "off"}
-          </Chip>
         )}
       </div>
     </div>
