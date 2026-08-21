@@ -14,7 +14,8 @@ describe("DimensionCard", () => {
   });
 
   it("marks dimensions without content as 'Próximamente'", () => {
-    render(<DimensionCard dimension={dimensionByCode("PR")!} score={0} />);
+    // RE (Relaciones) no tiene contenido aún; PR pasó a hasContent:true.
+    render(<DimensionCard dimension={dimensionByCode("RE")!} score={0} />);
     expect(screen.getByText("Próximamente")).toBeTruthy();
   });
 

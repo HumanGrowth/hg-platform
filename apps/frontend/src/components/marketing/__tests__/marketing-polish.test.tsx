@@ -66,9 +66,11 @@ describe("Hero (web-v2)", () => {
 });
 
 describe("Nav (web-v3)", () => {
-  it("renders the 4 tabs (Blog out, Método rename) and no 'Solicitar unirse'", () => {
+  it("renders the core tabs (Blog out, Método rename) and no 'Solicitar unirse'", () => {
     renderMk(<Nav />);
-    for (const tab of ["Plataforma", "Método", "Perspectivas", "Precios"]) {
+    // "Precios" quedó detrás del flag NEXT_PUBLIC_SHOW_PRICING (oculto por
+    // defecto, #55) → sólo estos 3 tabs son siempre visibles.
+    for (const tab of ["Plataforma", "Método", "Perspectivas"]) {
       expect(screen.getAllByText(tab).length).toBeGreaterThan(0);
     }
     expect(screen.queryByText("Blog")).toBeNull();
