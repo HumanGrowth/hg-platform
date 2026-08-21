@@ -151,7 +151,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 position:absolute queda contenido y clippeado por su scroll, y no
                 extiende <html> (evita que un sr-only rebelde rompa el sticky). */}
             <main className="relative flex-1 overflow-y-auto pb-20 md:pb-0">{children}</main>
-            <AdminBottomNav isSuperadmin={isSuperadmin} className="md:hidden" />
+            <AdminBottomNav role={user?.role} className="md:hidden" />
           </div>
         </div>
       </SessionGate>

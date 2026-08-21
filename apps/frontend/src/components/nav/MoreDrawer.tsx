@@ -7,11 +7,13 @@ import Link from "next/link";
 import { apiLogout } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 
-import { showTeam } from "./items";
+import { adminHomeHref, showTeam } from "./items";
 
 export function MoreDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const user = useAuthStore((s) => s.user);
-  const isAdminPlus = user?.role === "admin" || user?.role === "superadmin";
+  // "Modo admin" para todo rol con panel (admin/superadmin → dashboard;
+  // company_admin → panel de su empresa).
+  const adminHref = adminHomeHref(user?.role);
 
   async function logout() {
     try {
@@ -55,9 +57,9 @@ export function MoreDrawer({ open, onClose }: { open: boolean; onClose: () => vo
             <Users size={18} strokeWidth={1.75} /> Mi equipo
           </Link>
         )}
-        {isAdminPlus && (
+        {adminHref && (
           <Link
-            href={"/admin/org" as Route}
+            href={adminHref as Route}
             onClick={onClose}
             className="flex items-center gap-3 rounded-md px-3 py-3 text-fg hover:bg-bg-sunken"
           >
