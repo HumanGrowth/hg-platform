@@ -9,6 +9,11 @@ import * as React from "react";
 import { EmptyRing } from "@/components/EmptyRing";
 import { BadgesCarousel } from "@/components/perfil/BadgesCarousel";
 import { DimensionSummarySection } from "@/components/perfil/DimensionSummarySection";
+import {
+  GrowthArchetypeCard,
+  MilestonesTimeline,
+  WeeklyChallengeCard,
+} from "@/components/perfil/PerfilInsights";
 import { Radar } from "@/components/radar/Radar";
 import type { RadarValues } from "@/components/radar/radar-model";
 import { Avatar } from "@/components/ui/avatar";
@@ -18,14 +23,16 @@ import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import {
   apiGetHomeDashboard,
+  apiGetMyBadges,
   apiGetMyRadar,
   apiGetMyResults,
   apiSetOnboardingSeen,
 } from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
+import { growthArchetype, weeklyChallenge, weekOfYear } from "@/lib/perfil-insights";
 import { toast } from "@/lib/toast-store";
-import type { DimensionResult, HomeStats, RadarHistory } from "@/lib/types";
+import type { DimensionResult, HomeStats, MyBadge, RadarHistory } from "@/lib/types";
 
 const ROLE_LABEL: Record<string, string> = {
   collaborator: "Colaborador/a",
@@ -51,20 +58,23 @@ export default function PerfilPage() {
   const [results, setResults] = React.useState<DimensionResult[]>([]);
   const [radarHistory, setRadarHistory] = React.useState<RadarHistory | null>(null);
   const [stats, setStats] = React.useState<HomeStats | null>(null);
+  const [badges, setBadges] = React.useState<MyBadge[]>([]);
   const [showPrevious, setShowPrevious] = React.useState(true);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const [res, radarHist, dash] = await Promise.all([
+      const [res, radarHist, dash, myBadges] = await Promise.all([
         apiGetMyResults(),
         apiGetMyRadar().catch(() => null),
         apiGetHomeDashboard().catch(() => null),
+        apiGetMyBadges().catch(() => [] as MyBadge[]),
       ]);
       setResults(res.results);
       setRadarHistory(radarHist);
       setStats(dash?.stats ?? null);
+      setBadges(myBadges);
       setStatus("ok");
     } catch {
       setStatus("error");
@@ -80,6 +90,9 @@ export default function PerfilPage() {
     radarHistory?.previous && radarHistory.previous.length > 0
       ? (radarValuesFromResults(radarHistory.previous) as RadarValues)
       : undefined;
+  const archetype = results.length > 0 ? growthArchetype(radar) : null;
+  const challenge =
+    results.length > 0 ? weeklyChallenge(radar, weekOfYear(new Date())) : null;
 
   return (
     <main className="mx-auto w-full max-w-app px-6 py-10">
@@ -162,6 +175,9 @@ export default function PerfilPage() {
             </div>
           )}
 
+          {/* Arquetipo de crecimiento — headline derivado de la forma del radar. */}
+          {archetype && <GrowthArchetypeCard archetype={archetype} />}
+
           {/* Sección 1: Radar */}
           <section className="mt-10" id="mi-radar">
             <Eyebrow>Mi radar</Eyebrow>
@@ -212,10 +228,16 @@ export default function PerfilPage() {
             <BadgesCarousel />
           </section>
 
+          {/* Micro-reto semanal — acción concreta para tu dimensión en foco. */}
+          {challenge && <WeeklyChallengeCard challenge={challenge} />}
+
           {/* Progreso por dimensión — card unificada (progreso + estado + reevaluar). */}
           {results.length > 0 && (
             <DimensionSummarySection results={results} radar={radar} onChanged={load} />
           )}
+
+          {/* Tu historia — línea de tiempo de hitos (diagnósticos + insignias). */}
+          <MilestonesTimeline results={results} badges={badges} />
         </>
       )}
     </main>
