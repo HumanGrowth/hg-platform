@@ -8,7 +8,6 @@ import * as React from "react";
 import { EmptyRing } from "@/components/EmptyRing";
 import { BadgesCarousel } from "@/components/perfil/BadgesCarousel";
 import { DimensionSummarySection } from "@/components/perfil/DimensionSummarySection";
-import { ProgressionSection } from "@/components/perfil/ProgressionSection";
 import { Radar } from "@/components/radar/Radar";
 import type { RadarValues } from "@/components/radar/radar-model";
 import { Avatar } from "@/components/ui/avatar";
@@ -72,10 +71,6 @@ export default function PerfilPage() {
     radarHistory?.previous && radarHistory.previous.length > 0
       ? (radarValuesFromResults(radarHistory.previous) as RadarValues)
       : undefined;
-  const lastAssessment = results
-    .map((r) => r.derived_at)
-    .sort()
-    .at(-1);
 
   return (
     <main className="mx-auto w-full max-w-app px-6 py-10">
@@ -169,46 +164,16 @@ export default function PerfilPage() {
             )}
           </section>
 
-          {/* Progreso por dimensión — card unificada (progreso + estado + reevaluar)
-              que reemplaza las 3 secciones anteriores. */}
-          {results.length > 0 && (
-            <DimensionSummarySection results={results} radar={radar} onChanged={load} />
-          )}
-
-          {/* Nivel + completion por dimensión (TASK 6): aprendizaje + assessment. */}
-          <ProgressionSection />
-
-          {/* Sección 4: Historial */}
-          <section className="mt-12" id="historial">
-            <Eyebrow>Historial</Eyebrow>
-            {lastAssessment ? (
-              <Card className="mt-4 bg-bg-raised">
-                <p className="text-sm text-fg">
-                  Última evaluación:{" "}
-                  <span className="font-semibold">
-                    {new Date(lastAssessment).toLocaleDateString("es", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </span>
-                </p>
-                <p className="mt-1 text-xs text-fg-muted">
-                  Tu evolución por dimensión aparecerá acá a medida que vuelvas a evaluarte.
-                </p>
-              </Card>
-            ) : (
-              <Card className="mt-4 bg-bg-raised">
-                <p className="text-sm text-fg-muted">Sin evaluaciones todavía.</p>
-              </Card>
-            )}
-          </section>
-
-          {/* Sección 5: Logros — carrusel de badges (TASK 4). */}
-          <section className="mt-12 mb-4" id="logros">
+          {/* Logros — carrusel de badges, justo debajo del radar. */}
+          <section className="mt-12" id="logros">
             <Eyebrow>Logros</Eyebrow>
             <BadgesCarousel />
           </section>
+
+          {/* Progreso por dimensión — card unificada (progreso + estado + reevaluar). */}
+          {results.length > 0 && (
+            <DimensionSummarySection results={results} radar={radar} onChanged={load} />
+          )}
         </>
       )}
     </main>
