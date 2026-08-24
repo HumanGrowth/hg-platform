@@ -225,6 +225,16 @@ export interface TopPerformer {
   courses_completed: number;
 }
 
+export interface OrgBreakdown {
+  org_id: string;
+  org_name: string;
+  total_users: number;
+  active_users: number;
+  adoption_rate: number;
+  completion_rate: number;
+  inactive_users: number;
+}
+
 export interface OrgMetrics {
   total_licenses: number;
   active_licenses: number;
@@ -236,6 +246,8 @@ export interface OrgMetrics {
   by_career_level: Record<string, number>;
   top_performers: TopPerformer[];
   inactive_users_count: number;
+  inactivity: InactivityBuckets;
+  by_org: OrgBreakdown[];
 }
 
 // ─────────────── Home colaborador (B3-04) ───────────────
@@ -303,11 +315,10 @@ export interface TeamActivityCell {
 }
 
 export interface InactivityBuckets {
-  active: number;
-  inactive_1_7d: number;
-  inactive_8_14d: number;
-  inactive_15_30d: number;
-  inactive_gt_30d: number;
+  active_7d: number;
+  d8_21: number;
+  d22_30: number;
+  gt_30: number;
   never_active: number;
 }
 

@@ -46,6 +46,7 @@ from hg.modules.people.schemas import (
     MonthlyWatchPoint,
     NextStepOut,
     OnboardingFunnel,
+    OrgBreakdownOut,
     OrgMetricsOut,
     OrgWidgetsOut,
     RecentActivityItem,
@@ -425,6 +426,47 @@ def org_metrics(
         if aggs[u.id].courses_completed > 0
     ]
 
+    inactivity = InactivityBuckets(**service.inactivity_buckets(db, uids, now_utc()))
+
+    # Comparativa por organización (solo si el scope abarca varias orgs = empresa).
+    by_org: list[OrgBreakdownOut] = []
+    present_org_ids = {u.org_id for u in users}
+    if len(present_org_ids) > 1:
+        org_names: dict[UUID, str] = {
+            r[0]: r[1]
+            for r in db.execute(
+                select(Organization.id, Organization.name).where(
+                    Organization.id.in_(present_org_ids)
+                )
+            ).all()
+        }
+        per_org: dict[UUID, list[User]] = {}
+        for u in users:
+            per_org.setdefault(u.org_id, []).append(u)
+        for oid, ousers in per_org.items():
+            o_total = len(ousers)
+            o_active = sum(
+                1
+                for u in ousers
+                if (la := aggs[u.id].last_active_at) is not None and la >= cutoff30
+            )
+            o_completed = sum(aggs[u.id].courses_completed for u in ousers)
+            o_started = sum(
+                aggs[u.id].courses_in_progress + aggs[u.id].courses_completed for u in ousers
+            )
+            by_org.append(
+                OrgBreakdownOut(
+                    org_id=oid,
+                    org_name=org_names.get(oid, "—"),
+                    total_users=o_total,
+                    active_users=o_active,
+                    adoption_rate=round(o_active / o_total, 4) if o_total else 0.0,
+                    completion_rate=round(o_completed / o_started, 4) if o_started else 0.0,
+                    inactive_users=sum(1 for u in ousers if aggs[u.id].is_inactive),
+                )
+            )
+        by_org.sort(key=lambda b: b.org_name)
+
     return OrgMetricsOut(
         total_licenses=total,
         active_licenses=active,
@@ -436,6 +478,8 @@ def org_metrics(
         by_career_level=dict(by_level),
         top_performers=top_performers,
         inactive_users_count=inactive,
+        inactivity=inactivity,
+        by_org=by_org,
     )
 
 

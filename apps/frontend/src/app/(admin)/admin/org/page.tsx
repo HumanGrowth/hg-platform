@@ -4,6 +4,8 @@ import { Download } from "lucide-react";
 import * as React from "react";
 
 import { OrgAdminGate } from "@/components/OrgAdminGate";
+import { OrgComparison } from "@/components/admin/OrgComparison";
+import { InactivityFunnel } from "@/components/widgets/InactivityFunnel";
 import { Card } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 
@@ -84,7 +86,7 @@ function OrgDashboardContent() {
       <Display variant="display-2" className="mt-2">
         Adopción y progreso
       </Display>
-      <p className="mt-3 text-md text-fg-muted">Métricas en vivo de toda la organización.</p>
+      <p className="mt-3 text-md text-fg-muted">Métricas en vivo de adopción y progreso.</p>
 
       {status === "loading" && (
         <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -115,6 +117,35 @@ function OrgDashboardContent() {
             <Kpi value={String(m.active_licenses)} label="Activos" sub="últimos 30 días" />
             <Kpi value={String(m.inactive_users_count)} label="Inactivos" sub=">21 días sin actividad" />
           </div>
+
+          {/* Inactividad por buckets + seguimiento (alineado a 21d). */}
+          <section className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <Eyebrow className="mb-3">Distribución de actividad</Eyebrow>
+              <div className="rounded-lg border border-border bg-bg-raised p-5">
+                <InactivityFunnel buckets={m.inactivity} total={m.total_licenses} />
+              </div>
+            </div>
+            <div>
+              <Eyebrow className="mb-3">Necesitan seguimiento</Eyebrow>
+              <div className="flex h-[calc(100%-2rem)] flex-col justify-center rounded-lg border border-border bg-bg-raised p-5 text-center">
+                <span className="font-mono text-4xl font-semibold text-danger">
+                  {m.inactivity.d22_30 + m.inactivity.gt_30 + m.inactivity.never_active}
+                </span>
+                <p className="mt-1 text-sm text-fg-muted">
+                  personas inactivas +21 días o que nunca entraron
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Comparativa por organización (solo empresas con varias orgs). */}
+          {m.by_org.length > 0 && (
+            <section className="mt-10">
+              <Eyebrow className="mb-3">Comparativa por organización</Eyebrow>
+              <OrgComparison orgs={m.by_org} />
+            </section>
+          )}
 
           {/* Tendencias — widgets lazy-loaded */}
           <React.Suspense fallback={<OrgWidgetsSkeleton />}>

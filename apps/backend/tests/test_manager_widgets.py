@@ -31,17 +31,17 @@ def manager_buckets(factory):
             )
         return u
 
-    r_active = report("R Active", 0)
-    r_1_7 = report("R 1-7", 5)
-    r_8_14 = report("R 8-14", 10)
-    r_15_30 = report("R 15-30", 20)
+    # Un usuario por bucket (alineado a 21d): active_7d / d8_21 / d22_30 / gt_30 / never.
+    r_active = report("R Active", 3)
+    r_8_21 = report("R 8-21", 14)
+    r_22_30 = report("R 22-30", 25)
     r_gt30 = report("R gt30", 40)
     r_never = report("R Never", None)
 
     from types import SimpleNamespace
     yield SimpleNamespace(
         org=org, mgr=mgr,
-        ids={r_active.id, r_1_7.id, r_8_14.id, r_15_30.id, r_gt30.id, r_never.id},
+        ids={r_active.id, r_8_21.id, r_22_30.id, r_gt30.id, r_never.id},
     )
     cleanup_units(s, unit_ids)
 
@@ -60,11 +60,10 @@ def test_manager_widgets_inactivity_buckets_classification(client, manager_bucke
         "/api/v1/manager/me/widgets", headers=auth_headers(manager_buckets.mgr)
     ).json()
     b = body["inactivity_buckets"]
-    assert b["active"] == 1
-    assert b["inactive_1_7d"] == 1
-    assert b["inactive_8_14d"] == 1
-    assert b["inactive_15_30d"] == 1
-    assert b["inactive_gt_30d"] == 1
+    assert b["active_7d"] == 1
+    assert b["d8_21"] == 1
+    assert b["d22_30"] == 1
+    assert b["gt_30"] == 1
     assert b["never_active"] == 1
 
 
