@@ -194,9 +194,21 @@ class InactivityBuckets(BaseModel):
 OrgMetricsOut.model_rebuild()
 
 
+class TeamOrgComparison(BaseModel):
+    """Comparativa del equipo del manager vs el promedio de su organización."""
+
+    team_size: int
+    org_size: int
+    team_adoption: float  # activos 30d / total
+    org_adoption: float
+    team_avg_completed: float  # promedio de módulos completados por persona
+    org_avg_completed: float
+
+
 class ManagerWidgetsOut(BaseModel):
     team_activity: list[TeamActivityCell]  # 30 días x N reportes (solo cells >0)
     inactivity_buckets: InactivityBuckets
+    comparison: TeamOrgComparison | None = None
 
 
 class AdoptionMonthPoint(BaseModel):
