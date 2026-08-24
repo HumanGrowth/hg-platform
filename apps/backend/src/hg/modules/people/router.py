@@ -54,6 +54,7 @@ from hg.modules.people.schemas import (
     TeamActivityCell,
     TeamMemberDetailOut,
     TeamMemberOut,
+    TeamOrgComparison,
     TeamResponse,
     TopPerformerOut,
     UserMetricsOut,
@@ -677,7 +678,36 @@ def get_manager_widgets(
         for uid, d, m in service.team_activity_cells(db, member_ids, today)
     ]
     buckets = InactivityBuckets(**service.inactivity_buckets(db, member_ids, now_utc()))
-    return ManagerWidgetsOut(team_activity=cells, inactivity_buckets=buckets)
+
+    # Comparativa equipo vs promedio de la organización.
+    comparison: TeamOrgComparison | None = None
+    if member_ids:
+        org_uids = list(
+            db.scalars(select(User.id).where(User.org_id == current_user.org_id)).all()
+        )
+        cutoff = now_utc() - timedelta(days=ACTIVE_WINDOW_DAYS)
+
+        def _stats(uids: list[UUID]) -> tuple[float, float, int]:
+            if not uids:
+                return 0.0, 0.0, 0
+            aggs = activity_by_users(db, uids)
+            active = sum(
+                1 for u in uids if (la := aggs[u].last_active_at) is not None and la >= cutoff
+            )
+            completed = sum(aggs[u].courses_completed for u in uids)
+            n = len(uids)
+            return round(active / n, 4), round(completed / n, 2), n
+
+        t_adopt, t_avg, t_n = _stats(member_ids)
+        o_adopt, o_avg, o_n = _stats(org_uids)
+        comparison = TeamOrgComparison(
+            team_size=t_n, org_size=o_n,
+            team_adoption=t_adopt, org_adoption=o_adopt,
+            team_avg_completed=t_avg, org_avg_completed=o_avg,
+        )
+    return ManagerWidgetsOut(
+        team_activity=cells, inactivity_buckets=buckets, comparison=comparison
+    )
 
 
 @admin_router.get("/org/widgets", response_model=OrgWidgetsOut)

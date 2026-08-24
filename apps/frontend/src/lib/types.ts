@@ -322,9 +322,19 @@ export interface InactivityBuckets {
   never_active: number;
 }
 
+export interface TeamOrgComparison {
+  team_size: number;
+  org_size: number;
+  team_adoption: number;
+  org_adoption: number;
+  team_avg_completed: number;
+  org_avg_completed: number;
+}
+
 export interface ManagerWidgets {
   team_activity: TeamActivityCell[];
   inactivity_buckets: InactivityBuckets;
+  comparison: TeamOrgComparison | null;
 }
 
 export interface AdoptionMonthPoint {
