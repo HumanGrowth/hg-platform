@@ -1,37 +1,55 @@
-# Seed demo — credenciales (AOD-05)
+# Seed demo — credenciales
 
-Emails/nombres realistas para la demo JxCR. Todos los dominios usan `.test`
+Emails/nombres realistas para la demo. Todos los dominios usan `.test`
 (RFC 2606, reservado — no rebotan). **Son credenciales de demo, no secretos**:
 se pueden commitear.
 
-Regenerar: `make seed` (o `python -m hg.scripts.seed`). Idempotente — no duplica
-usuarios y renombra en sitio los emails viejos (`admin@acme.test`,
-`prospect0-…@acme.test`, etc.) a los realistas.
+Estructura (ago-2026): **Company → Organizations**. Cada empresa tiene un `admin`
+que gestiona toda la empresa (todas sus orgs + dashboard) y varias orgs, cada una
+con un `manager` y 2-8 colaboradores. Se siembra además **actividad realista**
+(attempts + bloques completados con recencia variada) para los dashboards.
+
+Regenerar:
+
+```bash
+python -m hg.scripts.seed_learning_units   # units + bloques (necesario para actividad)
+python -m hg.scripts.seed                   # empresas, orgs, rosters, actividad
+```
+
+Idempotente — no duplica filas; purga el demo viejo (orgs únicas `acme`/`globex`)
+para un refresh limpio.
+
+## Empresas y orgs
+
+| Empresa | Orgs | Admin (gestiona toda la empresa) |
+|---------|------|----------------------------------|
+| Acme Corp | IT · Finanzas · Manufactura | `maria.fernandez@acme.test` |
+| Globex Ltd | Ventas · Soporte | `patricia.alvarez@globex.test` |
+
+Cada org tiene un manager; los colaboradores reportan a su manager y los managers
+al admin de la empresa.
 
 ## Logins
 
-| Org | Email | Password | Rol |
-|-----|-------|----------|-----|
+| Empresa | Email | Password | Rol |
+|---------|-------|----------|-----|
 | HG (interna) | `superadmin@humangrowth.io` | `HGsuper#2026` | superadmin |
-| Acme Corp | `maria.fernandez@acme.test` | `AcmeDemo#2026` | admin (cuenta demo panel RRHH) |
-| Acme Corp | `carlos.rodriguez@acme.test` | `AcmeDemo#2026` | collaborator (reporta a María) |
-| Acme Corp | `ana.mendez@acme.test` | `AcmeDemo#2026` | collaborator |
-| Acme Corp | `diego.hernandez@acme.test` | `AcmeDemo#2026` | collaborator |
-| Acme Corp | `sofia.castro@acme.test` | `AcmeDemo#2026` | collaborator |
-| Globex Ltd | `roberto.soto@globex.test` | `GlobexDemo#2026` | admin |
-| Globex Ltd | `lucia.vargas@globex.test` | `GlobexDemo#2026` | manager (reporta a Roberto) |
-| Globex Ltd | `javier.morales@globex.test` | `GlobexDemo#2026` | collaborator (reporta a Lucía) |
-| Globex Ltd | `camila.jimenez@globex.test` | `GlobexDemo#2026` | collaborator (reporta a Lucía) |
+| Acme Corp | `maria.fernandez@acme.test` | `AcmeDemo#2026` | admin (gestiona toda Acme) |
+| Acme · IT | `carlos.rodriguez@acme.test` | `AcmeDemo#2026` | manager |
+| Acme · Finanzas | `roberto.jimenez@acme.test` | `AcmeDemo#2026` | manager |
+| Acme · Manufactura | `fernando.picado@acme.test` | `AcmeDemo#2026` | manager |
+| Globex Ltd | `patricia.alvarez@globex.test` | `GlobexDemo#2026` | admin (gestiona toda Globex) |
+| Globex · Ventas | `ricardo.fonseca@globex.test` | `GlobexDemo#2026` | manager |
+| Globex · Soporte | `marcela.brenes@globex.test` | `GlobexDemo#2026` | manager |
 
-Todas las cuentas de una org comparten el password de esa org para simplificar
-la demo.
+Todas las cuentas de una empresa comparten el password de esa empresa para
+simplificar la demo. Los colaboradores siguen el patrón `nombre.apellido@<dominio>`
+(ver `realistic_names.py`).
 
-## Invitaciones Acme (tab Invitaciones)
+## Invitaciones Acme (org IT)
 
 | Email | Estado |
 |-------|--------|
-| `andres.vega@acme.test` | accepted |
-| `valeria.quiros@acme.test` | expired |
-| `fernando.picado@acme.test` | expired |
-| `mariana.salas@acme.test` | pending |
-| `newhire@acme.test` | accepted (preexistente, ya limpio) |
+| `ignacio.blanco@acme.test` | accepted |
+| `renata.campos@acme.test` | expired |
+| `emiliano.duran@acme.test` | pending |

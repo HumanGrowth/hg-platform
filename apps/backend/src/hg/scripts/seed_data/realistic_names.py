@@ -1,54 +1,126 @@
 """Nombres hispanohablantes realistas para los seeds de demo (AOD-05).
 
-Para la demo a Jóvenes por Costa Rica (JxCR): reemplaza emails feos generados
-por seed (``admin@acme.test``, ``prospect0-e11af@acme.test``) por identidades
-regionales realistas (mezcla Costa Rica / Argentina / México).
+Estructura Company → Organizations → roster (ago-2026). Cada empresa tiene un
+``admin`` que gestiona toda la empresa (todas sus orgs + dashboard), y cada org
+tiene un ``manager`` con 2-8 colaboradores. El grafo de reporte:
+- managers reportan al admin de la empresa,
+- colaboradores reportan al manager de su org.
 
-Cada entrada de usuario es ``(first_name, last_name, role, manager_email)``.
-``manager_email`` es el email (ya normalizado) del manager, o ``None``.
-El grafo de reporte se preserva por email para que ``manager_id`` quede
-consistente tras el remapeo.
+Cada entrada de roster es ``(first, last, role, manager_localpart | None)``.
+``manager_localpart`` es el local-part del email del manager (ej. "carlos.rodriguez")
+o ``None`` (managers → reportan al admin de la empresa).
 """
 from __future__ import annotations
 
 import unicodedata
 
-# ── Rosters de las orgs demo ────────────────────────────────────────────────
-
-# Acme Corp: 1 admin + 4 collaborators. maria.fernandez es la cuenta para
-# demostrar el panel RRHH; carlos.rodriguez reporta a ella.
-ACME_USERS: list[tuple[str, str, str, str | None]] = [
-    ("María", "Fernández", "admin", None),
-    ("Carlos", "Rodríguez", "collaborator", "maria.fernandez@acme.test"),
-    ("Ana", "Méndez", "collaborator", None),
-    ("Diego", "Hernández", "collaborator", None),
-    ("Sofía", "Castro", "collaborator", None),
-]
-
-# Globex Ltd: 1 admin + 1 manager + 2 collaborators (los collab reportan a la
-# manager, y la manager al admin).
-GLOBEX_USERS: list[tuple[str, str, str, str | None]] = [
-    ("Roberto", "Soto", "admin", None),
-    ("Lucía", "Vargas", "manager", "roberto.soto@globex.test"),
-    ("Javier", "Morales", "collaborator", "lucia.vargas@globex.test"),
-    ("Camila", "Jiménez", "collaborator", "lucia.vargas@globex.test"),
-]
-
-# Prospects para invitaciones de Acme: (first, last, status).
-# status ∈ {"accepted", "expired", "pending"} — se traduce a fechas en el seed.
-ACME_PROSPECTS: list[tuple[str, str, str]] = [
-    ("Andrés", "Vega", "accepted"),
-    ("Valeria", "Quirós", "expired"),
-    ("Fernando", "Picado", "expired"),
-    ("Mariana", "Salas", "pending"),
-]
-
 
 def email_from(first: str, last: str, domain: str) -> str:
-    """``María``, ``Fernández`` → ``maria.fernandez``. Sin tildes ni ñ, minúsculas."""
+    """``María``, ``Fernández`` → ``maria.fernandez@domain``. Sin tildes ni ñ."""
 
     def _strip(s: str) -> str:
         nfd = unicodedata.normalize("NFD", s)
         return "".join(c for c in nfd if unicodedata.category(c) != "Mn").lower()
 
     return f"{_strip(first)}.{_strip(last)}@{domain}"
+
+
+def local_part(first: str, last: str) -> str:
+    return email_from(first, last, "x").split("@")[0]
+
+
+# ── Empresas demo (Company → Orgs) ──────────────────────────────────────────
+
+# Cada empresa: slug, nombre, dominio de email, password demo, pool de licencias,
+# admin (gestiona toda la empresa) y sus orgs (cada una con manager + colabs).
+DEMO_COMPANIES: list[dict] = [
+    {
+        "slug": "acme",
+        "name": "Acme Corp",
+        "domain": "acme.test",
+        "password": "AcmeDemo#2026",
+        "licenses_total": 60,
+        # El admin de la empresa (rol unificado): gestiona todas las orgs.
+        "admin": ("María", "Fernández"),
+        "orgs": [
+            {
+                "slug": "acme-it",
+                "name": "IT",
+                "licenses": 25,
+                "roster": [
+                    ("Carlos", "Rodríguez", "manager", None),
+                    ("Ana", "Méndez", "collaborator", "carlos.rodriguez"),
+                    ("Diego", "Hernández", "collaborator", "carlos.rodriguez"),
+                    ("Sofía", "Castro", "collaborator", "carlos.rodriguez"),
+                    ("Andrés", "Vega", "collaborator", "carlos.rodriguez"),
+                    ("Valeria", "Quirós", "collaborator", "carlos.rodriguez"),
+                ],
+            },
+            {
+                "slug": "acme-finanzas",
+                "name": "Finanzas",
+                "licenses": 15,
+                "roster": [
+                    ("Roberto", "Jiménez", "manager", None),
+                    ("Lucía", "Vargas", "collaborator", "roberto.jimenez"),
+                    ("Javier", "Morales", "collaborator", "roberto.jimenez"),
+                    ("Camila", "Solís", "collaborator", "roberto.jimenez"),
+                ],
+            },
+            {
+                "slug": "acme-manufactura",
+                "name": "Manufactura",
+                "licenses": 20,
+                "roster": [
+                    ("Fernando", "Picado", "manager", None),
+                    ("Mariana", "Salas", "collaborator", "fernando.picado"),
+                    ("Gabriel", "Rojas", "collaborator", "fernando.picado"),
+                    ("Daniela", "Ramírez", "collaborator", "fernando.picado"),
+                    ("Pablo", "Guzmán", "collaborator", "fernando.picado"),
+                    ("Natalia", "Herrera", "collaborator", "fernando.picado"),
+                    ("Sebastián", "Núñez", "collaborator", "fernando.picado"),
+                ],
+            },
+        ],
+    },
+    {
+        "slug": "globex",
+        "name": "Globex Ltd",
+        "domain": "globex.test",
+        "password": "GlobexDemo#2026",
+        "licenses_total": 30,
+        "admin": ("Patricia", "Álvarez"),
+        "orgs": [
+            {
+                "slug": "globex-ventas",
+                "name": "Ventas",
+                "licenses": 12,
+                "roster": [
+                    ("Ricardo", "Fonseca", "manager", None),
+                    ("Verónica", "Cordero", "collaborator", "ricardo.fonseca"),
+                    ("Esteban", "Mora", "collaborator", "ricardo.fonseca"),
+                    ("Adriana", "Soto", "collaborator", "ricardo.fonseca"),
+                ],
+            },
+            {
+                "slug": "globex-soporte",
+                "name": "Soporte",
+                "licenses": 8,
+                "roster": [
+                    ("Marcela", "Brenes", "manager", None),
+                    ("Tomás", "Aguilar", "collaborator", "marcela.brenes"),
+                    ("Isabel", "Chaves", "collaborator", "marcela.brenes"),
+                ],
+            },
+        ],
+    },
+]
+
+# Prospects para invitaciones de Acme: (first, last, status). status ∈
+# {"accepted", "expired", "pending"} — se traduce a fechas en el seed. Van a la
+# org IT de Acme (acme-it).
+ACME_PROSPECTS: list[tuple[str, str, str]] = [
+    ("Ignacio", "Blanco", "accepted"),
+    ("Renata", "Campos", "expired"),
+    ("Emiliano", "Durán", "pending"),
+]
