@@ -8,7 +8,7 @@
  */
 import * as React from "react";
 
-import { CompanyAdminGate } from "@/components/CompanyAdminGate";
+import { SuperadminGate } from "@/components/SuperadminGate";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
@@ -93,8 +93,8 @@ function EmpresaContent() {
 
 export default function EmpresaPage() {
   return (
-    <CompanyAdminGate>
+    <SuperadminGate>
       <EmpresaContent />
-    </CompanyAdminGate>
+    </SuperadminGate>
   );
 }

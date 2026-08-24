@@ -13,19 +13,25 @@ import type { WidgetState } from "@/components/widgets/WidgetCard";
 import { apiGetOrgWidgets } from "@/lib/api";
 import type { OrgWidgets } from "@/lib/types";
 
-export default function OrgWidgetsSection({ orgId }: { orgId?: string }) {
+export default function OrgWidgetsSection({
+  orgId,
+  companyId,
+}: {
+  orgId?: string;
+  companyId?: string;
+}) {
   const [state, setState] = React.useState<WidgetState>("loading");
   const [data, setData] = React.useState<OrgWidgets | null>(null);
 
   const load = React.useCallback(async () => {
     setState("loading");
     try {
-      setData(await apiGetOrgWidgets(orgId));
+      setData(await apiGetOrgWidgets(orgId, companyId));
       setState("ok");
     } catch {
       setState("error");
     }
-  }, [orgId]);
+  }, [orgId, companyId]);
 
   React.useEffect(() => {
     void load();

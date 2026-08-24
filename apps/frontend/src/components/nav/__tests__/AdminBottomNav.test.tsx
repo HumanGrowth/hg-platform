@@ -13,21 +13,22 @@ describe("AdminBottomNav", () => {
     }
   });
 
-  it("admin de org: solo Panel + Salir", () => {
+  it("admin (rol unificado): Dashboard + Miembros + Orgs + Salir", () => {
     render(<AdminBottomNav role="admin" />);
-    expect(screen.getByText("Panel")).toBeTruthy();
-    expect(screen.getByText("Salir")).toBeTruthy();
+    for (const label of ["Dashboard", "Miembros", "Orgs", "Salir"]) {
+      expect(screen.getByText(label)).toBeTruthy();
+    }
+    // Cosas de superadmin no aparecen.
     expect(screen.queryByText("Empresas")).toBeNull();
-    expect(screen.queryByText("Eventos")).toBeNull();
     expect(screen.queryByText("Contenido")).toBeNull();
   });
 
-  it("company_admin: Empresa + Miembros + Importar + Salir (sin Panel roto)", () => {
+  it("company_admin (legado): Miembros + Orgs + Importar + Salir (sin Dashboard)", () => {
     render(<AdminBottomNav role="company_admin" />);
-    for (const label of ["Empresa", "Miembros", "Importar", "Salir"]) {
+    for (const label of ["Miembros", "Orgs", "Importar", "Salir"]) {
       expect(screen.getByText(label)).toBeTruthy();
     }
-    // "Panel" (/admin/org) rebota al company_admin → no debe aparecer.
-    expect(screen.queryByText("Panel")).toBeNull();
+    // Dashboard (/admin/org) lo restringe OrgAdminGate → no debe aparecer.
+    expect(screen.queryByText("Dashboard")).toBeNull();
   });
 });

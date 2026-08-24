@@ -6,8 +6,8 @@ import * as React from "react";
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
 
-/** RRHH de la Empresa (company_admin) + superadmin HG. Cualquier otro rol:
- * toast + redirect a /home. */
+/** Gestión de la Empresa (rol unificado admin + legado company_admin +
+ * superadmin HG). Cualquier otro rol: toast + redirect a /home. */
 export function CompanyAdminGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
@@ -15,7 +15,7 @@ export function CompanyAdminGate({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     if (!user) return;
-    if (user.role === "company_admin" || user.role === "superadmin") {
+    if (user.role === "admin" || user.role === "company_admin" || user.role === "superadmin") {
       setAllowed(true);
     } else {
       toast("No tenés acceso al panel de empresa.", "danger");

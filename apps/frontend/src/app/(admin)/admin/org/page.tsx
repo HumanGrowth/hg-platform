@@ -23,6 +23,7 @@ function OrgWidgetsSkeleton() {
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { useActingOrg } from "@/lib/acting-org";
+import { useActingCompany } from "@/lib/acting-company";
 import { apiExportOrgUsersCsv, apiGetOrgMetrics } from "@/lib/api";
 import { DIMENSIONS_META, dimensionShortName } from "@/lib/dimension-styles";
 import { toast } from "@/lib/toast-store";
@@ -39,8 +40,13 @@ function pct(v: number): string {
 const Kpi = StatCard;
 
 function OrgDashboardContent() {
-  const acting = useActingOrg();
-  const orgId = acting?.id;
+  // Drill-down a una org (acting-org) tiene prioridad; si no, el superadmin
+  // scopea a la empresa que gestiona (acting-company). El admin no setea ninguno
+  // → el backend agrega toda su empresa por defecto.
+  const actingOrg = useActingOrg();
+  const actingCompany = useActingCompany();
+  const orgId = actingOrg?.id;
+  const companyId = actingCompany?.id;
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [m, setM] = React.useState<OrgMetrics | null>(null);
   const [downloading, setDownloading] = React.useState(false);
@@ -48,12 +54,12 @@ function OrgDashboardContent() {
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      setM(await apiGetOrgMetrics(orgId));
+      setM(await apiGetOrgMetrics(orgId, companyId));
       setStatus("ok");
     } catch {
       setStatus("error");
     }
-  }, [orgId]);
+  }, [orgId, companyId]);
 
   React.useEffect(() => {
     void load();
@@ -62,7 +68,7 @@ function OrgDashboardContent() {
   async function downloadCsv() {
     setDownloading(true);
     try {
-      await apiExportOrgUsersCsv(orgId);
+      await apiExportOrgUsersCsv(orgId, companyId);
     } catch {
       toast("No se pudo descargar el CSV", "danger");
     } finally {
@@ -107,12 +113,12 @@ function OrgDashboardContent() {
             <Kpi value={pct(m.adoption_rate)} label="Adopción" sub={`${m.active_licenses}/${m.total_licenses} activos`} />
             <Kpi value={pct(m.completion_rate_global)} label="Completion" sub={`${m.total_courses_completed} completados`} />
             <Kpi value={String(m.active_licenses)} label="Activos" sub="últimos 30 días" />
-            <Kpi value={String(m.inactive_users_count)} label="Inactivos" sub=">7 días sin actividad" />
+            <Kpi value={String(m.inactive_users_count)} label="Inactivos" sub=">21 días sin actividad" />
           </div>
 
           {/* Tendencias — widgets lazy-loaded */}
           <React.Suspense fallback={<OrgWidgetsSkeleton />}>
-            <OrgWidgetsSection orgId={orgId} />
+            <OrgWidgetsSection orgId={orgId} companyId={companyId} />
           </React.Suspense>
 
           <section className="mt-10">

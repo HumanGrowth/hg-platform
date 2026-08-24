@@ -324,9 +324,12 @@ export const apiGetManagerWidgets = async (): Promise<ManagerWidgets> => {
   return res.data;
 };
 
-export const apiGetOrgWidgets = async (orgId?: string): Promise<OrgWidgets> => {
+export const apiGetOrgWidgets = async (
+  orgId?: string,
+  companyId?: string,
+): Promise<OrgWidgets> => {
   const res = await backend.get<OrgWidgets>("/api/v1/admin/org/widgets", {
-    params: orgId ? { org_id: orgId } : undefined,
+    params: { ...(orgId ? { org_id: orgId } : {}), ...(companyId ? { company_id: companyId } : {}) },
   });
   return res.data;
 };
@@ -352,9 +355,12 @@ export const apiUnassignPath = async (userId: string, pathCode: string): Promise
   await backend.delete(`/api/v1/manager/users/${userId}/enroll/${pathCode}`);
 };
 
-export const apiGetOrgMetrics = async (orgId?: string): Promise<OrgMetrics> => {
+export const apiGetOrgMetrics = async (
+  orgId?: string,
+  companyId?: string,
+): Promise<OrgMetrics> => {
   const res = await backend.get<OrgMetrics>("/api/v1/admin/org/metrics", {
-    params: orgId ? { org_id: orgId } : undefined,
+    params: { ...(orgId ? { org_id: orgId } : {}), ...(companyId ? { company_id: companyId } : {}) },
   });
   return res.data;
 };
@@ -363,9 +369,15 @@ export const apiGetOrgMetrics = async (orgId?: string): Promise<OrgMetrics> => {
  * Descarga el CSV de usuarios de la org. El endpoint requiere auth Bearer, así
  * que usamos fetch + blob (no <a download> directo) y disparamos el download.
  */
-export const apiExportOrgUsersCsv = async (orgId?: string): Promise<void> => {
+export const apiExportOrgUsersCsv = async (
+  orgId?: string,
+  companyId?: string,
+): Promise<void> => {
   const token = useAuthStore.getState().accessToken;
-  const url = `${BACKEND}/api/v1/admin/org/users/export.csv${orgId ? `?org_id=${orgId}` : ""}`;
+  const qs = new URLSearchParams();
+  if (orgId) qs.set("org_id", orgId);
+  if (companyId) qs.set("company_id", companyId);
+  const url = `${BACKEND}/api/v1/admin/org/users/export.csv${qs.toString() ? `?${qs}` : ""}`;
   const res = await fetch(url, {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
