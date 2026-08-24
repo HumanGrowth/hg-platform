@@ -1,7 +1,7 @@
 # Human Growth — comandos comunes
 .PHONY: help up down logs ps build rebuild backend-shell frontend-shell db-shell \
-        migrate makemigration test-backend test-frontend lint-backend lint-frontend \
-        seed clean
+        migrate migrate-local seed-demo makemigration test-backend test-frontend \
+        lint-backend lint-frontend seed clean
 
 help: ## Mostrar esta ayuda
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -35,6 +35,12 @@ db-shell: ## psql en postgres
 
 migrate: ## Aplicar migraciones
 	docker compose exec backend uv run alembic upgrade head
+
+migrate-local: ## Migraciones vía venv del host (localhost:5432, sin docker/uv)
+	cd apps/backend && DATABASE_URL="$${DATABASE_URL:-postgresql+psycopg://hg:hg@localhost:5432/hg_dev}" .venv/bin/alembic upgrade head
+
+seed-demo: ## Migración + seeds de demo vía venv del host (self-contained)
+	apps/backend/scripts/seed_demo.sh
 
 makemigration: ## Crear migración (uso: make makemigration m="add users table")
 	docker compose exec backend uv run alembic revision --autogenerate -m "$(m)"
