@@ -80,6 +80,18 @@ class TopPerformerOut(BaseModel):
     courses_completed: int
 
 
+class OrgBreakdownOut(BaseModel):
+    """Fila de la comparativa por organización (cuando el scope es una empresa)."""
+
+    org_id: UUID
+    org_name: str
+    total_users: int
+    active_users: int  # last_active en últimos 30d
+    adoption_rate: float
+    completion_rate: float
+    inactive_users: int  # > umbral de inactividad (21d)
+
+
 class OrgMetricsOut(BaseModel):
     # Adopción
     total_licenses: int
@@ -95,6 +107,10 @@ class OrgMetricsOut(BaseModel):
     # Top + inactivos
     top_performers: list[TopPerformerOut]
     inactive_users_count: int
+    # Distribución de inactividad por buckets (alineada a 21d).
+    inactivity: InactivityBuckets
+    # Comparativa por organización (solo cuando el scope abarca varias orgs).
+    by_org: list[OrgBreakdownOut]
 
 
 # ─────────────── Home colaborador (B3-04) ───────────────
@@ -166,12 +182,16 @@ class TeamActivityCell(BaseModel):
 
 
 class InactivityBuckets(BaseModel):
-    active: int  # last_active >= now - 1d
-    inactive_1_7d: int
-    inactive_8_14d: int
-    inactive_15_30d: int
-    inactive_gt_30d: int
-    never_active: int  # last_active IS NULL
+    # Alineado al umbral de inactividad de 21 dias (ago-2026).
+    active_7d: int  # 0-7 dias
+    d8_21: int  # 8-21 dias (aun activo bajo el umbral)
+    d22_30: int  # 22-30 dias
+    gt_30: int  # mas de 30 dias
+    never_active: int  # nunca activo
+
+
+# OrgMetricsOut referencia InactivityBuckets (definido acá abajo) por forward ref.
+OrgMetricsOut.model_rebuild()
 
 
 class ManagerWidgetsOut(BaseModel):

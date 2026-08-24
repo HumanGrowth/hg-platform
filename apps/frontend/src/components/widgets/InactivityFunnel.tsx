@@ -8,13 +8,12 @@ import { usePrefersReducedMotion } from "@/lib/widget-utils";
 
 import { WidgetSrTable } from "./WidgetSrTable";
 
-// success → warning → danger según gravedad de la inactividad.
+// success → warning → danger según gravedad de la inactividad (umbral 21d).
 const STAGES: { key: keyof InactivityBuckets; label: string; fill: string }[] = [
-  { key: "active", label: "Activos (24h)", fill: "#4A7A54" },
-  { key: "inactive_1_7d", label: "1-7 días", fill: "#A8C4A0" },
-  { key: "inactive_8_14d", label: "8-14 días", fill: "#E8A030" },
-  { key: "inactive_15_30d", label: "15-30 días", fill: "#D9702A" },
-  { key: "inactive_gt_30d", label: "+30 días", fill: "#B83A1A" },
+  { key: "active_7d", label: "Activos (≤7d)", fill: "#4A7A54" },
+  { key: "d8_21", label: "8-21 días", fill: "#A8C4A0" },
+  { key: "d22_30", label: "22-30 días", fill: "#E8A030" },
+  { key: "gt_30", label: "+30 días", fill: "#B83A1A" },
   { key: "never_active", label: "Nunca", fill: "#6B7061" },
 ];
 

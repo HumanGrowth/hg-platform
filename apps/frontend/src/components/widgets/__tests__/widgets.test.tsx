@@ -58,19 +58,18 @@ describe("WeeklyMinutesBar", () => {
 });
 
 describe("InactivityFunnel", () => {
-  it("renders all 6 buckets with total in the table", () => {
+  it("renders all 5 buckets with total in the table", () => {
     const buckets: InactivityBuckets = {
-      active: 3,
-      inactive_1_7d: 2,
-      inactive_8_14d: 1,
-      inactive_15_30d: 1,
-      inactive_gt_30d: 0,
+      active_7d: 3,
+      d8_21: 2,
+      d22_30: 1,
+      gt_30: 0,
       never_active: 1,
     };
-    const { container } = render(<InactivityFunnel buckets={buckets} total={8} />);
+    const { container } = render(<InactivityFunnel buckets={buckets} total={7} />);
     const rows = container.querySelectorAll("tbody tr");
-    expect(rows.length).toBe(6);
-    expect(within(container.querySelector("table")!).getByText("Activos (24h)")).toBeTruthy();
+    expect(rows.length).toBe(5);
+    expect(within(container.querySelector("table")!).getByText("Activos (≤7d)")).toBeTruthy();
   });
 });
 

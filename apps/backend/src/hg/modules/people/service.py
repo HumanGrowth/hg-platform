@@ -337,11 +337,10 @@ def inactivity_buckets(
 ) -> dict[str, int]:
     """Clasifica cada usuario por gap desde su última actividad."""
     buckets = {
-        "active": 0,
-        "inactive_1_7d": 0,
-        "inactive_8_14d": 0,
-        "inactive_15_30d": 0,
-        "inactive_gt_30d": 0,
+        "active_7d": 0,
+        "d8_21": 0,
+        "d22_30": 0,
+        "gt_30": 0,
         "never_active": 0,
     }
     if not user_ids:
@@ -353,16 +352,14 @@ def inactivity_buckets(
             buckets["never_active"] += 1
             continue
         gap = (now - la).total_seconds() / 86400
-        if gap <= 1:
-            buckets["active"] += 1
-        elif gap <= 7:
-            buckets["inactive_1_7d"] += 1
-        elif gap <= 14:
-            buckets["inactive_8_14d"] += 1
+        if gap <= 7:
+            buckets["active_7d"] += 1
+        elif gap <= 21:
+            buckets["d8_21"] += 1
         elif gap <= 30:
-            buckets["inactive_15_30d"] += 1
+            buckets["d22_30"] += 1
         else:
-            buckets["inactive_gt_30d"] += 1
+            buckets["gt_30"] += 1
     return buckets
 
 
