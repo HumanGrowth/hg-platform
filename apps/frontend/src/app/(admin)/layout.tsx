@@ -41,9 +41,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const acting = useActingCompany();
   const isSuperadmin = user?.role === "superadmin";
   const isOrgAdmin = user?.role === "admin" || isSuperadmin;
-  // Los links de gestión de empresa se muestran al company_admin siempre; al
+  // Gestión de orgs/miembros: admin (rol unificado) y company_admin siempre; el
   // superadmin solo cuando eligió una empresa (contexto acting-company).
-  const showCompanyLinks = user?.role === "company_admin" || (isSuperadmin && Boolean(acting));
+  const showOrgMgmt =
+    user?.role === "admin" ||
+    user?.role === "company_admin" ||
+    (isSuperadmin && Boolean(acting));
+  // La entidad Empresa (tier/billing/licencias) es superadmin-only, sobre la
+  // empresa que está gestionando.
+  const showEmpresaEntity = isSuperadmin && Boolean(acting);
   const [superOpen, setSuperOpen] = React.useState(true);
 
   return (
@@ -79,7 +85,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     Gestionando: <span className="font-semibold text-fg">{acting.name}</span>
                   </p>
                 )}
-                {showCompanyLinks && (
+                {showEmpresaEntity && (
                   <Link
                     href={"/admin/empresa" as Route}
                     className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
@@ -88,7 +94,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     Empresa
                   </Link>
                 )}
-                {showCompanyLinks && (
+                {showOrgMgmt && (
                   <Link
                     href={"/admin/empresa/organizaciones" as Route}
                     className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
@@ -97,7 +103,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     Organización
                   </Link>
                 )}
-                {showCompanyLinks && (
+                {showOrgMgmt && (
                   <Link
                     href={"/admin/empresa/miembros" as Route}
                     className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"

@@ -31,14 +31,22 @@ function itemsForRole(role: UserRole | undefined): AdminNavItem[] {
       { href: "/admin/perspectivas", label: "Contenido", icon: Newspaper },
     ];
   }
-  if (role === "company_admin") {
+  if (role === "admin") {
+    // Rol unificado: gestiona toda su empresa + dashboard company-scope.
     return [
-      { href: "/admin/empresa", label: "Empresa", icon: Building2 },
+      { href: "/admin/org", label: "Dashboard", icon: LineChart },
       { href: "/admin/empresa/miembros", label: "Miembros", icon: Users2 },
+      { href: "/admin/empresa/organizaciones", label: "Orgs", icon: Building2 },
+    ];
+  }
+  if (role === "company_admin") {
+    // Legado (sin dashboard: OrgAdminGate lo restringe a admin/superadmin).
+    return [
+      { href: "/admin/empresa/miembros", label: "Miembros", icon: Users2 },
+      { href: "/admin/empresa/organizaciones", label: "Orgs", icon: Building2 },
       { href: "/admin/empresa/importar", label: "Importar", icon: Upload },
     ];
   }
-  // admin (RRHH de su propia org)
   return [{ href: "/admin/org", label: "Panel", icon: LineChart }];
 }
 
