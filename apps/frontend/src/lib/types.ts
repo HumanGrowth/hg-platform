@@ -923,12 +923,14 @@ export interface Company {
 }
 
 export interface CompanyOrg {
-  // CE-06: la org es la unidad operativa; tier/licencias viven en la Empresa.
+  // CE-06: la org es la unidad operativa; el pool vive en la Empresa.
+  // CE-07: cada org tiene un cupo (license_quota) del pool.
   id: string;
   name: string;
   slug: string;
   country: string | null;
   user_count: number;
+  license_quota: number;
 }
 
 export interface MemberDimensionState {

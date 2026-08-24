@@ -738,12 +738,31 @@ export const apiCompanyOrgs = async (companyId?: string): Promise<CompanyOrg[]> 
 };
 
 export const apiCreateCompanyOrg = async (
-  body: { name: string; slug: string; tier?: string; country?: string | null; licenses_total?: number | null },
+  body: {
+    name: string;
+    slug: string;
+    country?: string | null;
+    license_quota?: number;
+  },
   companyId?: string,
 ): Promise<CompanyOrg> => {
   const res = await backend.post<CompanyOrg>("/api/v1/company/organizations", body, {
     params: companyId ? { company_id: companyId } : undefined,
   });
+  return res.data;
+};
+
+/** Asigna el cupo de licencias de una org (valida suma ≤ pool de la empresa). */
+export const apiSetOrgQuota = async (
+  orgId: string,
+  licenseQuota: number,
+  companyId?: string,
+): Promise<CompanyOrg> => {
+  const res = await backend.patch<CompanyOrg>(
+    `/api/v1/company/organizations/${orgId}/quota`,
+    { license_quota: licenseQuota },
+    { params: companyId ? { company_id: companyId } : undefined },
+  );
   return res.data;
 };
 

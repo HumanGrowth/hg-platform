@@ -36,18 +36,25 @@ class CompanyOut(BaseModel):
 
 
 class CompanyOrgOut(BaseModel):
-    # CE-06: la org es la unidad operativa; tier/licencias viven en la Empresa.
+    # CE-06: la org es la unidad operativa; el pool de licencias vive en la
+    # Empresa. CE-07: cada org tiene un cupo (license_quota) del pool.
     id: UUID
     name: str
     slug: str
     country: str | None = None
     user_count: int
+    license_quota: int = 0
 
 
 class CreateCompanyOrgRequest(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     slug: str = Field(min_length=1, max_length=100)
     country: str | None = Field(default=None, max_length=2)
+    license_quota: int = Field(default=0, ge=0)
+
+
+class UpdateOrgQuotaRequest(BaseModel):
+    license_quota: int = Field(ge=0)
 
 
 # ─────────────────────────── company_admin: members (roster) ───────────────────────────

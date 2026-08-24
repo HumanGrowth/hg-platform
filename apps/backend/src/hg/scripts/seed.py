@@ -107,14 +107,17 @@ def _goc_company(
     return company
 
 
-def _goc_org(db: Session, *, company: Company, slug: str, name: str) -> Organization:
-    # La org es solo la unidad operativa (CE-06): sin tier/billing/licencias.
+def _goc_org(
+    db: Session, *, company: Company, slug: str, name: str, license_quota: int = 0
+) -> Organization:
+    # La org es la unidad operativa (CE-06); CE-07: cupo de licencias del pool.
     org = db.execute(select(Organization).where(Organization.slug == slug)).scalar_one_or_none()
     if org:
         org.name = name
         org.company_id = company.id
+        org.license_quota = license_quota
         return org
-    org = Organization(slug=slug, name=name, company_id=company.id)
+    org = Organization(slug=slug, name=name, company_id=company.id, license_quota=license_quota)
     db.add(org)
     db.flush()
     return org
@@ -160,7 +163,10 @@ def _seed_company(db: Session, spec: dict) -> tuple[Organization, User, list[Use
     domain = spec["domain"]
     orgs: dict[str, Organization] = {}
     for o in spec["orgs"]:
-        orgs[o["slug"]] = _goc_org(db, company=company, slug=o["slug"], name=o["name"])
+        orgs[o["slug"]] = _goc_org(
+            db, company=company, slug=o["slug"], name=o["name"],
+            license_quota=o.get("licenses", 0),
+        )
     db.flush()
 
     # Admin de la empresa (rol unificado) → vive en la primera org, gestiona todo.

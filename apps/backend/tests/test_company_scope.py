@@ -188,3 +188,26 @@ def test_admin_role_can_get_company(client: TestClient, factory, auth_headers) -
     org = factory.make_org()
     admin = factory.make_user(org=org, role=UserRole.admin)
     assert client.get("/api/v1/company/info", headers=auth_headers(admin)).status_code == 200
+
+
+def test_org_quota_respects_company_pool(client: TestClient, factory, auth_headers) -> None:
+    """CE-07: la suma de cupos por org no puede exceder el pool de la Empresa."""
+    _, org1, org2, ca = _company_with_two_orgs(factory, pool=10)
+    h = auth_headers(ca)
+
+    # Cupo válido para org1 (7 <= 10).
+    r = client.patch(f"/api/v1/company/organizations/{org1.id}/quota", headers=h,
+                     json={"license_quota": 7})
+    assert r.status_code == 200, r.text
+    assert r.json()["license_quota"] == 7
+
+    # Cupo de org2 que excede el pool (7 + 5 > 10) → 400.
+    r = client.patch(f"/api/v1/company/organizations/{org2.id}/quota", headers=h,
+                     json={"license_quota": 5})
+    assert r.status_code == 400, r.text
+
+    # Cupo de org2 que sí cabe (7 + 3 = 10) → ok.
+    r = client.patch(f"/api/v1/company/organizations/{org2.id}/quota", headers=h,
+                     json={"license_quota": 3})
+    assert r.status_code == 200, r.text
+    assert r.json()["license_quota"] == 3

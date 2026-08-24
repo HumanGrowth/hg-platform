@@ -136,20 +136,48 @@ def list_company_orgs(db: Session, company_id: UUID) -> list[CompanyOrgOut]:
     ).all()
     return [
         CompanyOrgOut(
-            id=o.id, name=o.name, slug=o.slug, country=o.country, user_count=int(count),
+            id=o.id, name=o.name, slug=o.slug, country=o.country,
+            user_count=int(count), license_quota=o.license_quota,
         )
         for o, count in rows
     ]
 
 
+def _quota_assigned(db: Session, company_id: UUID, *, exclude_org_id: UUID | None = None) -> int:
+    """Suma de cupos ya asignados a las orgs de la empresa (opcionalmente excluye una)."""
+    q = select(func.coalesce(func.sum(Organization.license_quota), 0)).where(
+        Organization.company_id == company_id
+    )
+    if exclude_org_id is not None:
+        q = q.where(Organization.id != exclude_org_id)
+    return int(db.scalar(q) or 0)
+
+
+def _assert_quota_fits(
+    db: Session, company: Company, new_quota: int, *, exclude_org_id: UUID | None = None
+) -> None:
+    assigned = _quota_assigned(db, company.id, exclude_org_id=exclude_org_id)
+    if assigned + new_quota > company.licenses_total:
+        available = max(company.licenses_total - assigned, 0)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"El cupo excede el pool de la empresa. Disponible: {available} "
+                f"de {company.licenses_total} licencias."
+            ),
+        )
+
+
 def create_org_in_company(
     db: Session, *, company_id: UUID, data: CreateCompanyOrgRequest
 ) -> CompanyOrgOut:
-    """Crea una org DENTRO de la Empresa (a diferencia de /admin/orgs, que crea
-    una Company envoltura). CE-06: la org no lleva tier ni cap de licencias."""
-    _get_company(db, company_id)
+    """Crea una org DENTRO de la Empresa. CE-07: puede llevar un cupo de licencias
+    del pool de la Empresa (la suma de cupos no puede exceder el pool)."""
+    company = _get_company(db, company_id)
+    _assert_quota_fits(db, company, data.license_quota)
     org = Organization(
         name=data.name, slug=data.slug, country=data.country, company_id=company_id,
+        license_quota=data.license_quota,
     )
     db.add(org)
     try:
@@ -159,7 +187,31 @@ def create_org_in_company(
             status_code=status.HTTP_409_CONFLICT, detail="organization slug already exists"
         ) from e
     return CompanyOrgOut(
-        id=org.id, name=org.name, slug=org.slug, country=org.country, user_count=0,
+        id=org.id, name=org.name, slug=org.slug, country=org.country,
+        user_count=0, license_quota=org.license_quota,
+    )
+
+
+def set_org_license_quota(
+    db: Session, *, company_id: UUID, org_id: UUID, license_quota: int
+) -> CompanyOrgOut:
+    """Asigna el cupo de licencias de una org (valida suma <= pool de la Empresa)."""
+    company = _get_company(db, company_id)
+    org = _require_company_org(db, company_id, org_id)
+    _assert_quota_fits(db, company, license_quota, exclude_org_id=org_id)
+    org.license_quota = license_quota
+    db.flush()
+    user_count = int(
+        db.scalar(
+            select(func.count(User.id)).where(
+                User.org_id == org.id, User.is_active.is_(True)
+            )
+        )
+        or 0
+    )
+    return CompanyOrgOut(
+        id=org.id, name=org.name, slug=org.slug, country=org.country,
+        user_count=user_count, license_quota=org.license_quota,
     )
 
 
