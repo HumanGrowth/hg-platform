@@ -49,44 +49,62 @@ export function clearActingCompany(): void {
   window.dispatchEvent(new Event(EVENT));
 }
 
-/** Hook reactivo al acting company (se sincroniza entre componentes vía evento). */
-export function useActingCompany(): ActingCompany | null {
-  const [company, setCompany] = React.useState<ActingCompany | null>(null);
+interface ActingCompanyState {
+  company: ActingCompany | null;
+  /** false hasta leer localStorage post-mount; evita decidir con datos a medio cargar. */
+  hydrated: boolean;
+}
+
+/**
+ * Fuente única: lee el acting-company de localStorage post-mount y marca
+ * `hydrated`. Arranca en `{null, false}` para no romper la hidratación SSR
+ * (localStorage no existe en el server); recién tras montar refleja el valor real.
+ */
+function useActingCompanyState(): ActingCompanyState {
+  const [state, setState] = React.useState<ActingCompanyState>({ company: null, hydrated: false });
   React.useEffect(() => {
-    setCompany(getActingCompany());
-    const onChange = () => setCompany(getActingCompany());
-    window.addEventListener(EVENT, onChange);
-    window.addEventListener("storage", onChange);
+    const sync = () => setState({ company: getActingCompany(), hydrated: true });
+    sync();
+    window.addEventListener(EVENT, sync);
+    window.addEventListener("storage", sync);
     return () => {
-      window.removeEventListener(EVENT, onChange);
-      window.removeEventListener("storage", onChange);
+      window.removeEventListener(EVENT, sync);
+      window.removeEventListener("storage", sync);
     };
   }, []);
-  return company;
+  return state;
+}
+
+/** Hook reactivo al acting company (se sincroniza entre componentes vía evento). */
+export function useActingCompany(): ActingCompany | null {
+  return useActingCompanyState().company;
 }
 
 /**
  * Resuelve el `company_id` efectivo para las páginas /admin/empresa/*:
  * - company_admin → `undefined` (el backend usa su propia empresa).
  * - superadmin con empresa elegida → su id.
- * - superadmin SIN empresa elegida → redirige al selector (/admin/companies)
- *   y devuelve `ready: false` para que la página no dispare llamadas sin scope.
+ * - superadmin SIN empresa elegida → redirige al selector (/admin/companies).
+ *
+ * IMPORTANTE: el redirect solo ocurre DESPUÉS de hidratar el acting-company de
+ * localStorage. Sin este guard, cada montaje de página rebota a /admin/companies
+ * antes de leer la empresa ya seleccionada (bug del menú "Gestionando…").
  */
 export function useScopedCompanyId(): { companyId: string | undefined; ready: boolean } {
   const user = useAuthStore((s) => s.user);
-  const acting = useActingCompany();
+  const { company: acting, hydrated } = useActingCompanyState();
   const router = useRouter();
   const isSuper = user?.role === "superadmin";
 
   React.useEffect(() => {
-    if (isSuper && !acting) {
+    if (hydrated && isSuper && !acting) {
       toast("Elegí una empresa para gestionar.");
       router.replace("/admin/companies");
     }
-  }, [isSuper, acting, router]);
+  }, [hydrated, isSuper, acting, router]);
 
   if (isSuper) {
-    return { companyId: acting?.id, ready: Boolean(acting) };
+    return { companyId: acting?.id, ready: hydrated && Boolean(acting) };
   }
   return { companyId: undefined, ready: true };
 }
