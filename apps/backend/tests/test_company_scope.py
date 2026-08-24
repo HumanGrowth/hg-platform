@@ -68,13 +68,14 @@ def test_company_admin_cannot_update_member_of_other_company(
 # ─────────────────────────── autorización por rol ───────────────────────────
 
 
-def test_admin_role_has_no_access_to_company_routes(
+def test_admin_role_can_access_company_routes(
     client: TestClient, factory, auth_headers
 ) -> None:
+    # Rol unificado (ago-2026): el admin gestiona toda su empresa (orgs+miembros).
     org = factory.make_org()
     admin = factory.make_user(org=org, role=UserRole.admin)
-    assert client.get("/api/v1/company/organizations", headers=auth_headers(admin)).status_code == 403
-    assert client.get("/api/v1/company/members", headers=auth_headers(admin)).status_code == 403
+    assert client.get("/api/v1/company/organizations", headers=auth_headers(admin)).status_code == 200
+    assert client.get("/api/v1/company/members", headers=auth_headers(admin)).status_code == 200
 
 
 def test_admin_role_cannot_create_company(client: TestClient, factory, auth_headers) -> None:
@@ -182,7 +183,8 @@ def test_company_admin_gets_own_company_with_licenses(
     assert body["licenses_used"] >= 1  # el company_admin activo consume del pool
 
 
-def test_admin_role_cannot_get_company(client: TestClient, factory, auth_headers) -> None:
+def test_admin_role_can_get_company(client: TestClient, factory, auth_headers) -> None:
+    # El admin puede LEER la info de su empresa (gestiona toda la empresa).
     org = factory.make_org()
     admin = factory.make_user(org=org, role=UserRole.admin)
-    assert client.get("/api/v1/company/info", headers=auth_headers(admin)).status_code == 403
+    assert client.get("/api/v1/company/info", headers=auth_headers(admin)).status_code == 200

@@ -34,7 +34,9 @@ from hg.modules.learning_units.models import (
     LearningUnitAttempt,
 )
 
-INACTIVE_DAYS = 7
+# Umbral de inactividad ampliado a 21 días (ago-2026): 7 era muy agresivo para
+# dar seguimiento a colaboradores (marcaba inactivo a la semana).
+INACTIVE_DAYS = 21
 ACTIVE_WINDOW_DAYS = 30
 
 
@@ -393,8 +395,8 @@ def monthly_watch(db: Session, user_ids: list[UUID], today: date) -> list[tuple[
     return [(k, per_month.get(k, 0)) for k in keys]
 
 
-def onboarding_funnel(db: Session, org_id: UUID, user_ids: list[UUID]) -> dict[str, int]:
-    """Snapshot histórico del funnel de onboarding de la org.
+def onboarding_funnel(db: Session, org_ids: list[UUID], user_ids: list[UUID]) -> dict[str, int]:
+    """Snapshot histórico del funnel de onboarding de una o varias orgs (empresa).
 
     ``first_course`` = users con >=1 attempt (empezaron un módulo);
     ``first_completion`` = users con >=1 módulo completado.
@@ -402,18 +404,20 @@ def onboarding_funnel(db: Session, org_id: UUID, user_ids: list[UUID]) -> dict[s
     from hg.modules.identity.invitations import Invitation
     from hg.modules.identity.models import User
 
+    if not org_ids:
+        return {"invited": 0, "accepted": 0, "first_login": 0, "first_course": 0, "first_completion": 0}
     invited = db.scalar(
-        select(func.count()).select_from(Invitation).where(Invitation.org_id == org_id)
+        select(func.count()).select_from(Invitation).where(Invitation.org_id.in_(org_ids))
     ) or 0
     accepted = db.scalar(
         select(func.count())
         .select_from(Invitation)
-        .where(Invitation.org_id == org_id, Invitation.accepted_at.is_not(None))
+        .where(Invitation.org_id.in_(org_ids), Invitation.accepted_at.is_not(None))
     ) or 0
     first_login = db.scalar(
         select(func.count())
         .select_from(User)
-        .where(User.org_id == org_id, User.last_login_at.is_not(None))
+        .where(User.org_id.in_(org_ids), User.last_login_at.is_not(None))
     ) or 0
     if user_ids:
         first_course = db.scalar(

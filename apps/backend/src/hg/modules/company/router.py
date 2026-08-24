@@ -126,7 +126,7 @@ def set_company_access(
 def get_my_company(
     company_id: UUID | None = Query(None, description="solo superadmin"),
     db: Session = Depends(get_db_as_superadmin),
-    actor: User = Depends(require_role("company_admin", "superadmin")),
+    actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
 ) -> CompanyOut:
     """Empresa del actor (billing/licencias) — company_admin ve la suya;
     superadmin puede pasar ``company_id``."""
@@ -137,7 +137,7 @@ def get_my_company(
 def list_organizations(
     company_id: UUID | None = Query(None, description="solo superadmin"),
     db: Session = Depends(get_db_as_superadmin),
-    actor: User = Depends(require_role("company_admin", "superadmin")),
+    actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
 ) -> list[CompanyOrgOut]:
     return service.list_company_orgs(db, service.resolve_company_id(actor, company_id))
 
@@ -149,7 +149,7 @@ def create_organization(
     body: CreateCompanyOrgRequest,
     company_id: UUID | None = Query(None, description="solo superadmin"),
     db: Session = Depends(get_db_as_superadmin),
-    actor: User = Depends(require_role("company_admin", "superadmin")),
+    actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
 ) -> CompanyOrgOut:
     return service.create_org_in_company(
         db, company_id=service.resolve_company_id(actor, company_id), data=body
@@ -160,7 +160,7 @@ def create_organization(
 def list_members(
     company_id: UUID | None = Query(None, description="solo superadmin"),
     db: Session = Depends(get_db_as_superadmin),
-    actor: User = Depends(require_role("company_admin", "superadmin")),
+    actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
 ) -> list[CompanyMemberOut]:
     return service.list_company_members(
         db, service.resolve_company_id(actor, company_id), actor
@@ -177,7 +177,7 @@ def invite_member(
     body: CompanyInviteRequest,
     company_id: UUID | None = Query(None, description="solo superadmin"),
     db: Session = Depends(get_db_as_superadmin),
-    actor: User = Depends(require_role("company_admin", "superadmin")),
+    actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
 ) -> CompanyInviteResponse:
     invitation, plain = service.invite_to_company_org(
         db,
@@ -197,7 +197,7 @@ def update_member(
     body: UpdateMemberRequest,
     company_id: UUID | None = Query(None, description="solo superadmin"),
     db: Session = Depends(get_db_as_superadmin),
-    actor: User = Depends(require_role("company_admin", "superadmin")),
+    actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
 ) -> UserOut:
     member = service.update_company_member(
         db, company_id=service.resolve_company_id(actor, company_id),
@@ -211,7 +211,7 @@ def update_member(
 
 @company_router.get("/members/bulk-import/template")
 def bulk_import_template(
-    _: User = Depends(require_role("company_admin", "superadmin")),
+    _: User = Depends(require_role("admin", "company_admin", "superadmin")),
 ) -> Response:
     """Descarga el `.xlsx` de plantilla (headers + fila de ejemplo)."""
     content = bulk_service.build_template_xlsx()
@@ -227,7 +227,7 @@ async def bulk_import_members(
     file: UploadFile = File(...),
     company_id: UUID | None = Query(None, description="solo superadmin"),
     db: Session = Depends(get_db_as_superadmin),
-    actor: User = Depends(require_role("company_admin", "superadmin")),
+    actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
 ) -> BulkImportResponse:
     """Alta/actualización masiva de miembros desde un `.xlsx`. Idempotente por
     email; devuelve un reporte fila por fila (nunca falla todo por una fila mala)."""

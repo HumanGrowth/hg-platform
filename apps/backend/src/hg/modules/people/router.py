@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from hg.core.deps import get_current_user, get_db_as_superadmin, require_role
 from hg.db import get_db
-from hg.modules.identity.models import User, UserRole
+from hg.modules.identity.models import Organization, User, UserRole
 from hg.modules.learning import enrollments_service
 from hg.modules.learning.enrollments_service import InvalidPathCodeError
 from hg.modules.learning.models import (
@@ -339,20 +339,57 @@ _CSV_HEADERS = [
 ]
 
 
-def _resolve_org(current_user: User, org_id: UUID | None) -> UUID:
-    if current_user.role == UserRole.superadmin and org_id is not None:
-        return org_id
-    return current_user.org_id
+def _resolve_scope(
+    db: Session, current_user: User, org_id: UUID | None, company_id: UUID | None
+) -> tuple[list[User], list[UUID]]:
+    """Usuarios + org_ids del alcance del dashboard.
+
+    - superadmin/admin con ``org_id`` → esa org (drill-down; el admin solo dentro
+      de SU empresa).
+    - superadmin con ``company_id`` → toda esa empresa.
+    - admin (rol unificado) → toda su empresa por defecto.
+    - superadmin sin scope → su propia org (HG).
+    """
+    # Drill-down explícito a una org.
+    if org_id is not None:
+        allowed = False
+        if current_user.role == UserRole.superadmin:
+            allowed = True
+        elif current_user.role == UserRole.admin:
+            # El admin solo puede bajar a una org de SU empresa; un org_id ajeno
+            # se ignora y cae al scope de su empresa (no filtra otra empresa).
+            org = db.get(Organization, org_id)
+            allowed = org is not None and org.company_id == current_user.company_id
+        if allowed:
+            users = list(db.scalars(select(User).where(User.org_id == org_id)).all())
+            return users, [org_id]
+
+    # Empresa completa.
+    target_company: UUID | None = None
+    if current_user.role == UserRole.superadmin and company_id is not None:
+        target_company = company_id
+    elif current_user.role == UserRole.admin:
+        target_company = current_user.company_id
+    if target_company is not None:
+        users = list(db.scalars(select(User).where(User.company_id == target_company)).all())
+        org_ids = list(
+            db.scalars(select(Organization.id).where(Organization.company_id == target_company)).all()
+        )
+        return users, org_ids
+
+    # Fallback: superadmin sin scope → su propia org.
+    users = list(db.scalars(select(User).where(User.org_id == current_user.org_id)).all())
+    return users, [current_user.org_id]
 
 
 @admin_router.get("/org/metrics", response_model=OrgMetricsOut)
 def org_metrics(
-    org_id: UUID | None = Query(None, description="solo superadmin"),
+    org_id: UUID | None = Query(None, description="drill-down a una org"),
+    company_id: UUID | None = Query(None, description="solo superadmin: toda la empresa"),
     db: Session = Depends(get_db_as_superadmin),
     current_user: User = Depends(require_role("admin", "superadmin")),
 ) -> OrgMetricsOut:
-    target_org = _resolve_org(current_user, org_id)
-    users = list(db.scalars(select(User).where(User.org_id == target_org)).all())
+    users, _org_ids = _resolve_scope(db, current_user, org_id, company_id)
     uids = [u.id for u in users]
     aggs = activity_by_users(db, uids)
     total = len(users)
@@ -404,12 +441,12 @@ def org_metrics(
 
 @admin_router.get("/org/users/export.csv")
 def export_users_csv(
-    org_id: UUID | None = Query(None, description="solo superadmin"),
+    org_id: UUID | None = Query(None, description="drill-down a una org"),
+    company_id: UUID | None = Query(None, description="solo superadmin: toda la empresa"),
     db: Session = Depends(get_db_as_superadmin),
     current_user: User = Depends(require_role("admin", "superadmin")),
 ) -> Response:
-    target_org = _resolve_org(current_user, org_id)
-    users = list(db.scalars(select(User).where(User.org_id == target_org)).all())
+    users, _org_ids = _resolve_scope(db, current_user, org_id, company_id)
     aggs = activity_by_users(db, [u.id for u in users])
     by_id = {u.id: u for u in users}
 
@@ -602,19 +639,20 @@ def get_manager_widgets(
 @admin_router.get("/org/widgets", response_model=OrgWidgetsOut)
 def get_org_widgets(
     response: Response,
-    org_id: UUID | None = Query(None, description="solo superadmin"),
+    org_id: UUID | None = Query(None, description="drill-down a una org"),
+    company_id: UUID | None = Query(None, description="solo superadmin: toda la empresa"),
     db: Session = Depends(get_db_as_superadmin),
     current_user: User = Depends(require_role("admin", "superadmin")),
 ) -> OrgWidgetsOut:
     response.headers["Cache-Control"] = _WIDGET_CACHE
-    target_org = _resolve_org(current_user, org_id)
-    user_ids = list(db.scalars(select(User.id).where(User.org_id == target_org)).all())
+    users, org_ids = _resolve_scope(db, current_user, org_id, company_id)
+    user_ids = [u.id for u in users]
     today = now_utc().date()
     adoption = [
         AdoptionMonthPoint(month=m, active_users=c)
         for m, c in service.adoption_curve(db, user_ids, today)
     ]
-    funnel = OnboardingFunnel(**service.onboarding_funnel(db, target_org, user_ids))
+    funnel = OnboardingFunnel(**service.onboarding_funnel(db, org_ids, user_ids))
     watch = [
         MonthlyWatchPoint(month=m, minutes=mins)
         for m, mins in service.monthly_watch(db, user_ids, today)
