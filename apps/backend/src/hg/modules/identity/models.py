@@ -90,9 +90,11 @@ class Organization(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     country: Mapped[str | None] = mapped_column(String(2))  # ISO 3166-1 alpha-2
-    # NOTA (CE-06): billing/contrato/tier y el modelo de licencias por-org se
-    # movieron a Company (la entidad comercial). La Organization es solo la unidad
-    # operativa; el límite de licencias es el pool de la Empresa (computado).
+    # NOTA (CE-06): billing/contrato/tier viven en Company (entidad comercial).
+    # CE-07 (ago-2026): se reintroduce un cupo de licencias POR ORG — el admin
+    # reparte el pool de la Empresa entre sus orgs. La suma de cupos ≤ pool; el
+    # límite total sigue siendo el pool de la Empresa.
+    license_quota: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     settings: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     logo_url: Mapped[str | None] = mapped_column(String(2048))
     primary_color: Mapped[str | None] = mapped_column(String(7))  # hex e.g. #3B82F6
