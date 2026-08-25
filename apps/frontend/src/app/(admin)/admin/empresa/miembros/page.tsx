@@ -1,11 +1,12 @@
 "use client";
 
-import { FileEdit, Plus, Trash2, Upload } from "lucide-react";
+import { ChevronDown, FileEdit, ListFilter, Plus, Trash2, Upload } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 
 import { CompanyAdminGate } from "@/components/CompanyAdminGate";
+import { SelectPopover } from "@/components/admin/SelectPopover";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
@@ -24,15 +25,89 @@ import {
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
 import type { CompanyMember, CompanyOrg } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const ROLE_OPTIONS = [
   { value: "collaborator", label: "Colaborador" },
   { value: "manager", label: "Manager" },
   { value: "admin", label: "Admin" },
 ];
+const ESTADO_OPTIONS = [
+  { value: "active", label: "Activo" },
+  { value: "inactive", label: "Inactivo" },
+];
+const ROLE_CHIP: Record<string, string> = {
+  collaborator: "bg-bg-sunken text-fg-muted",
+  manager: "bg-warning-bg text-warning",
+  admin: "bg-hg-green-100 text-primary",
+};
 
-const CELL_SELECT =
-  "h-8 w-full min-w-[7rem] rounded-md border border-border bg-bg-raised px-2 font-sans text-sm text-fg focus:border-primary focus:outline-none focus:ring-2 focus:ring-hg-amber/40 disabled:opacity-50";
+/** Chip con la opción actual (rol/estado); la flecha aparece si es editable. */
+function ValueChip({
+  label,
+  tone,
+  open,
+  editable,
+}: {
+  label: string;
+  tone: string;
+  open: boolean;
+  editable: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold",
+        tone,
+      )}
+    >
+      {label}
+      {editable && (
+        <ChevronDown
+          size={13}
+          strokeWidth={2}
+          className={cn("transition-transform", open && "rotate-180")}
+        />
+      )}
+    </span>
+  );
+}
+
+/** Texto plano (organización/manager) con flecha de "editable" al costado. */
+function ValueText({
+  label,
+  open,
+  editable,
+  muted,
+}: {
+  label: string;
+  open: boolean;
+  editable: boolean;
+  muted?: boolean;
+}) {
+  return (
+    <span className={cn("inline-flex min-w-0 items-center gap-1 text-sm", muted ? "text-fg-muted" : "text-fg")}>
+      <span className="truncate">{label}</span>
+      {editable && (
+        <ChevronDown
+          size={14}
+          strokeWidth={1.75}
+          className={cn("shrink-0 text-fg-subtle transition-transform", open && "rotate-180")}
+        />
+      )}
+    </span>
+  );
+}
+
+/** Header que abre un filtro de columna; se resalta cuando el filtro está activo. */
+function HeaderFilterLabel({ label, active }: { label: string; active: boolean }) {
+  return (
+    <span className={cn("inline-flex items-center gap-1", active ? "text-primary" : "text-fg-muted")}>
+      {label}
+      <ListFilter size={12} strokeWidth={2} className={active ? "text-primary" : "text-fg-subtle"} />
+    </span>
+  );
+}
 
 function MembersContent() {
   // Superadmin gestiona la empresa que eligió (contexto acting-company); el
@@ -172,44 +247,8 @@ function MembersContent() {
         </div>
       </div>
 
-      {/* Filtros + búsqueda */}
-      <div className="mt-6 flex flex-wrap gap-3">
-        <select
-          aria-label="Estado"
-          value={statusF}
-          onChange={(e) => setStatusF(e.target.value as "all" | "active" | "inactive")}
-          className="h-9 rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-primary focus:outline-none"
-        >
-          <option value="all">Todos los estados</option>
-          <option value="active">Activos</option>
-          <option value="inactive">Inactivos</option>
-        </select>
-        <select
-          aria-label="Rol"
-          value={roleF}
-          onChange={(e) => setRoleF(e.target.value)}
-          className="h-9 rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-primary focus:outline-none"
-        >
-          <option value="">Todos los roles</option>
-          {ROLE_OPTIONS.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Organización"
-          value={orgF}
-          onChange={(e) => setOrgF(e.target.value)}
-          className="h-9 rounded-md border border-border bg-bg-raised px-3 font-sans text-sm text-fg focus:border-primary focus:outline-none"
-        >
-          <option value="">Todas las organizaciones</option>
-          {orgs.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name}
-            </option>
-          ))}
-        </select>
+      {/* Solo búsqueda arriba; los filtros por columna viven en los headers. */}
+      <div className="mt-6">
         <Input
           type="search"
           placeholder="Buscar por nombre o email…"
@@ -224,10 +263,38 @@ function MembersContent() {
           <thead className="border-b border-border bg-bg-sunken">
             <tr className="font-sans text-micro uppercase tracking-meta text-fg-muted">
               <th className="px-4 py-3 font-semibold">Nombre</th>
-              <th className="px-4 py-3 font-semibold">Organización</th>
-              <th className="px-4 py-3 font-semibold">Rol</th>
+              <th className="px-4 py-3 font-semibold">
+                <SelectPopover
+                  value={orgF}
+                  menuLabel="Filtrar por organización"
+                  options={[{ value: "", label: "Todas las orgs" }, ...orgs.map((o) => ({ value: o.id, label: o.name }))]}
+                  onSelect={setOrgF}
+                  renderTrigger={() => <HeaderFilterLabel label="Organización" active={Boolean(orgF)} />}
+                />
+              </th>
+              <th className="px-4 py-3 font-semibold">
+                <SelectPopover
+                  value={roleF}
+                  menuLabel="Filtrar por rol"
+                  options={[{ value: "", label: "Todos los roles" }, ...ROLE_OPTIONS]}
+                  onSelect={setRoleF}
+                  renderTrigger={() => <HeaderFilterLabel label="Rol" active={Boolean(roleF)} />}
+                />
+              </th>
               <th className="px-4 py-3 font-semibold">Manager</th>
-              <th className="px-4 py-3 font-semibold">Estado</th>
+              <th className="px-4 py-3 font-semibold">
+                <SelectPopover
+                  value={statusF}
+                  menuLabel="Filtrar por estado"
+                  options={[
+                    { value: "all", label: "Todos" },
+                    { value: "active", label: "Activos" },
+                    { value: "inactive", label: "Inactivos" },
+                  ]}
+                  onSelect={(v) => setStatusF(v as "all" | "active" | "inactive")}
+                  renderTrigger={() => <HeaderFilterLabel label="Estado" active={statusF !== "all"} />}
+                />
+              </th>
               <th className="px-4 py-3 font-semibold">Módulos</th>
               <th className="px-4 py-3 text-right font-semibold">Acciones</th>
             </tr>
@@ -246,81 +313,78 @@ function MembersContent() {
                     <div className="font-sans text-sm font-semibold text-fg">{m.full_name}</div>
                     <div className="break-all font-mono text-xs text-fg-muted">{m.email}</div>
                   </td>
-                  <td className="px-4 py-3">
-                    <select
-                      aria-label={`Organización de ${m.full_name}`}
-                      className={CELL_SELECT}
+                  <td className="max-w-[12rem] px-4 py-3">
+                    <SelectPopover
                       value={m.org_id}
                       disabled={!editable || busy}
-                      onChange={(e) =>
-                        patchMember(m, { org_id: e.target.value }, "Organización actualizada.")
-                      }
-                    >
-                      {orgs.map((o) => (
-                        <option key={o.id} value={o.id}>
-                          {o.name}
-                        </option>
-                      ))}
-                    </select>
+                      menuLabel={`Organización de ${m.full_name}`}
+                      options={orgs.map((o) => ({ value: o.id, label: o.name }))}
+                      onSelect={(v) => patchMember(m, { org_id: v }, "Organización actualizada.")}
+                      renderTrigger={({ open, label }) => (
+                        <ValueText label={label} open={open} editable={editable} />
+                      )}
+                    />
                   </td>
                   <td className="px-4 py-3">
-                    <select
-                      aria-label={`Rol de ${m.full_name}`}
-                      className={CELL_SELECT}
+                    <SelectPopover
                       value={m.role}
                       disabled={!editable || busy}
-                      onChange={(e) => patchMember(m, { role: e.target.value }, "Rol actualizado.")}
-                    >
-                      {ROLE_OPTIONS.map((r) => (
-                        <option key={r.value} value={r.value}>
-                          {r.label}
-                        </option>
-                      ))}
-                      {/* Rol actual fuera del set editable (ej. company_admin legado). */}
-                      {!ROLE_OPTIONS.some((r) => r.value === m.role) && (
-                        <option value={m.role}>{m.role}</option>
+                      menuLabel={`Rol de ${m.full_name}`}
+                      options={
+                        ROLE_OPTIONS.some((r) => r.value === m.role)
+                          ? ROLE_OPTIONS
+                          : [...ROLE_OPTIONS, { value: m.role, label: m.role }]
+                      }
+                      onSelect={(v) => patchMember(m, { role: v }, "Rol actualizado.")}
+                      renderTrigger={({ open, label }) => (
+                        <ValueChip
+                          label={label}
+                          open={open}
+                          editable={editable}
+                          tone={ROLE_CHIP[m.role] ?? "bg-bg-sunken text-fg-muted"}
+                        />
                       )}
-                    </select>
+                    />
                   </td>
-                  <td className="px-4 py-3">
-                    <select
-                      aria-label={`Manager de ${m.full_name}`}
-                      className={CELL_SELECT}
+                  <td className="max-w-[12rem] px-4 py-3">
+                    <SelectPopover
                       value={m.manager_id ?? ""}
                       disabled={!editable || busy}
-                      onChange={(e) =>
-                        patchMember(
-                          m,
-                          { manager_id: e.target.value || null },
-                          "Manager actualizado.",
-                        )
+                      menuLabel={`Manager de ${m.full_name}`}
+                      options={[
+                        { value: "", label: "— sin manager —" },
+                        ...managerOptions.map((u) => ({ value: u.id, label: u.full_name })),
+                      ]}
+                      onSelect={(v) =>
+                        patchMember(m, { manager_id: v || null }, "Manager actualizado.")
                       }
-                    >
-                      <option value="">— sin manager —</option>
-                      {managerOptions.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.full_name}
-                        </option>
-                      ))}
-                    </select>
+                      renderTrigger={({ open, label }) => (
+                        <ValueText label={label} open={open} editable={editable} muted={!m.manager_id} />
+                      )}
+                    />
                   </td>
                   <td className="px-4 py-3">
-                    <select
-                      aria-label={`Estado de ${m.full_name}`}
-                      className={CELL_SELECT}
+                    <SelectPopover
                       value={m.is_active ? "active" : "inactive"}
                       disabled={!editable || busy}
-                      onChange={(e) =>
+                      menuLabel={`Estado de ${m.full_name}`}
+                      options={ESTADO_OPTIONS}
+                      onSelect={(v) =>
                         patchMember(
                           m,
-                          { is_active: e.target.value === "active" },
-                          e.target.value === "active" ? "Reactivado." : "Desactivado.",
+                          { is_active: v === "active" },
+                          v === "active" ? "Reactivado." : "Desactivado.",
                         )
                       }
-                    >
-                      <option value="active">Activo</option>
-                      <option value="inactive">Inactivo</option>
-                    </select>
+                      renderTrigger={({ open, label }) => (
+                        <ValueChip
+                          label={label}
+                          open={open}
+                          editable={editable}
+                          tone={m.is_active ? "bg-hg-green-100 text-primary" : "bg-bg-sunken text-fg-muted"}
+                        />
+                      )}
+                    />
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 font-mono text-sm text-fg">
                     {m.modules_completed} ✓ · {m.modules_in_progress} ⋯
