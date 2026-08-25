@@ -10,6 +10,7 @@ import { UnitCardCompact } from "@/components/modulos/UnitCardCompact";
 import { EmptyRing } from "@/components/EmptyRing";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Chip } from "@/components/ui/chip";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { HexIcon } from "@/components/ui/hex-icon";
@@ -216,6 +217,11 @@ function ProgressHero({
 
 // ─────────────────────── Áreas de Crecimiento (por pilar) ───────────────────────
 
+/** "L1" → "Nivel 1" (consistente con la página de Módulos). */
+function levelLabel(code: string): string {
+  return `Nivel ${code.replace(/^L/, "")}`;
+}
+
 function AreasSection({
   dimension,
   units,
@@ -223,11 +229,24 @@ function AreasSection({
   dimension: Dimension;
   units: LearningUnitFeedItem[];
 }) {
+  // Filtro por nivel data-driven: solo aparece si los units de ESTA dimensión
+  // abarcan más de un nivel (hoy solo Carrera lo hace; se auto-adapta al contenido).
+  const availableLevels = React.useMemo(
+    () => [...new Set(units.map((u) => u.level_code))].sort(),
+    [units],
+  );
+  const [level, setLevel] = React.useState<string | null>(null);
+  const shownUnits = React.useMemo(
+    () => (level ? units.filter((u) => u.level_code === level) : units),
+    [units, level],
+  );
+
   // Agrupamos por pillar_code (el "área de crecimiento" dentro de la dimensión).
-  // El pilar AI (Foundation) siempre se lista último.
+  // El pilar AI (Foundation) siempre se lista último. Un área sin units en el
+  // nivel filtrado desaparece sola (no entra al Map).
   const areas = React.useMemo(() => {
     const map = new Map<string, LearningUnitFeedItem[]>();
-    for (const u of units) {
+    for (const u of shownUnits) {
       const key = u.pillar_code ?? "";
       const arr = map.get(key) ?? [];
       arr.push(u);
@@ -236,11 +255,25 @@ function AreasSection({
     return [...map.entries()].sort(
       ([a], [b]) => pillarRank(a) - pillarRank(b) || a.localeCompare(b),
     );
-  }, [units]);
+  }, [shownUnits]);
 
   return (
     <section className="mt-10">
-      <Eyebrow>Áreas de Crecimiento</Eyebrow>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Eyebrow>Áreas de Crecimiento</Eyebrow>
+        {availableLevels.length > 1 && (
+          <div className="flex flex-wrap gap-2">
+            <Chip active={level === null} onClick={() => setLevel(null)}>
+              Todos
+            </Chip>
+            {availableLevels.map((l) => (
+              <Chip key={l} active={level === l} onClick={() => setLevel(l)}>
+                {levelLabel(l)}
+              </Chip>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="mt-4 flex flex-col gap-3">
         {areas.map(([pillarCode, areaUnits], i) => (
           <AreaGroup
