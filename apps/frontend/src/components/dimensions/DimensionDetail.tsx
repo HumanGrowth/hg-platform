@@ -19,6 +19,7 @@ import { apiGetMyResults, apiListModulosByDimension } from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import type { Dimension } from "@/lib/dimensions";
 import { dimensionStyle, subPillarName } from "@/lib/dimension-styles";
+import { isUnitLevelLocked } from "@/lib/modulos";
 import type { LearningUnitFeedItem, DimensionResult } from "@/lib/types";
 import { cn, formatRelativeTime } from "@/lib/utils";
 
@@ -147,7 +148,11 @@ export function DimensionDetail({ dimension }: { dimension: Dimension }) {
           />
 
           {dimension.hasContent ? (
-            <AreasSection dimension={dimension} units={units} />
+            <AreasSection
+              dimension={dimension}
+              units={units}
+              collaboratorLevel={result?.state_code ?? null}
+            />
           ) : (
             <Card className="mt-8 flex flex-col items-center gap-2 py-12 text-center">
               <p className="font-sans text-md font-semibold text-fg">
@@ -225,9 +230,12 @@ function levelLabel(code: string): string {
 function AreasSection({
   dimension,
   units,
+  collaboratorLevel,
 }: {
   dimension: Dimension;
   units: LearningUnitFeedItem[];
+  /** state_code del assessment (L1..L4 en Carrera) → bloqueo por nivel. null = no evaluado. */
+  collaboratorLevel: string | null;
 }) {
   // Filtro por nivel data-driven: solo aparece si los units de ESTA dimensión
   // abarcan más de un nivel (hoy solo Carrera lo hace; se auto-adapta al contenido).
@@ -282,6 +290,7 @@ function AreasSection({
             pillarCode={pillarCode}
             units={areaUnits}
             defaultOpen={i === 0}
+            collaboratorLevel={collaboratorLevel}
           />
         ))}
       </div>
@@ -294,11 +303,13 @@ function AreaGroup({
   pillarCode,
   units,
   defaultOpen,
+  collaboratorLevel,
 }: {
   dimension: Dimension;
   pillarCode: string;
   units: LearningUnitFeedItem[];
   defaultOpen: boolean;
+  collaboratorLevel: string | null;
 }) {
   const [open, setOpen] = React.useState(defaultOpen);
   const areaName = subPillarName(units[0]?.dimension_code, pillarCode);
@@ -330,7 +341,11 @@ function AreaGroup({
           <AreaBadge dimension={dimension} areaName={areaName} unlocked={unlocked} />
           <div className="flex flex-col gap-2">
             {units.map((u) => (
-              <UnitCardCompact key={u.id} unit={u} />
+              <UnitCardCompact
+                key={u.id}
+                unit={u}
+                locked={isUnitLevelLocked(u.level_code, collaboratorLevel)}
+              />
             ))}
           </div>
         </div>
