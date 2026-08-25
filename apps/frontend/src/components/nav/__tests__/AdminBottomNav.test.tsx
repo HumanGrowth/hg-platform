@@ -6,11 +6,13 @@ import { AdminBottomNav } from "../AdminBottomNav";
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/org" }));
 
 describe("AdminBottomNav", () => {
-  it("superadmin ve Panel + Empresas + Eventos + Contenido + Salir", () => {
+  it("superadmin (sin empresa elegida): Empresas + Eventos + Contenido + Salir", () => {
     render(<AdminBottomNav role="superadmin" />);
-    for (const label of ["Panel", "Empresas", "Eventos", "Contenido", "Salir"]) {
+    for (const label of ["Empresas", "Eventos", "Contenido", "Salir"]) {
       expect(screen.getByText(label)).toBeTruthy();
     }
+    // Sin empresa elegida, el dashboard (HG) no aplica.
+    expect(screen.queryByText("Dashboard")).toBeNull();
   });
 
   it("admin (rol unificado): Dashboard + Miembros + Orgs + Salir", () => {

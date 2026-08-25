@@ -418,9 +418,9 @@ function HistorySection({
       <Eyebrow>Historial de reevaluaciones</Eyebrow>
       {result ? (
         <ol className="mt-4 flex flex-col gap-2">
-          <li className="flex items-center gap-4 rounded-lg border border-border bg-bg-raised px-4 py-3">
-            <span className="h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden />
-            <span className="min-w-0 flex-1 truncate font-sans text-sm font-medium text-fg">
+          <li className="flex items-start gap-4 rounded-lg border border-border bg-bg-raised px-4 py-3">
+            <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden />
+            <span className="min-w-0 flex-1 font-sans text-sm font-medium text-fg">
               {result.state_label}
             </span>
             <span className="shrink-0 text-xs text-fg-muted">
