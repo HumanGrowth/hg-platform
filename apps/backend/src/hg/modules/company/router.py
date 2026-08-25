@@ -218,7 +218,7 @@ def update_member(
 ) -> UserOut:
     member = service.update_company_member(
         db, company_id=service.resolve_company_id(actor, company_id),
-        user_id=user_id, payload=body,
+        user_id=user_id, payload=body, actor=actor,
     )
     return UserOut.model_validate(member)
 

@@ -73,6 +73,8 @@ class CompanyMemberOut(BaseModel):
     role: UserRole
     org_id: UUID
     org_name: str
+    manager_id: UUID | None = None
+    manager_name: str | None = None
     is_active: bool
     last_active_at: datetime | None
     modules_completed: int
@@ -92,11 +94,12 @@ class CompanyInviteRequest(BaseModel):
 
 
 class UpdateMemberRequest(BaseModel):
-    """Mover de org, cambiar manager, activar/desactivar (todo opcional)."""
+    """Mover de org, cambiar manager, cambiar rol, activar/desactivar (opcional)."""
 
     org_id: UUID | None = None
     manager_id: UUID | None = None
     is_active: bool | None = None
+    role: UserRole | None = None
 
 
 class CompanyInviteResponse(BaseModel):

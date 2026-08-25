@@ -211,3 +211,34 @@ def test_org_quota_respects_company_pool(client: TestClient, factory, auth_heade
                      json={"license_quota": 3})
     assert r.status_code == 200, r.text
     assert r.json()["license_quota"] == 3
+
+
+def test_company_member_role_change_and_guards(client: TestClient, factory, auth_headers) -> None:
+    """El admin de empresa cambia el rol desde el roster; guards: no auto-rol, roles válidos."""
+    _, org1, _org2, ca = _company_with_two_orgs(factory)
+    collab = factory.make_user(org=org1, role=UserRole.collaborator, full_name="Colab")
+    h = auth_headers(ca)
+
+    # collaborator → manager
+    r = client.patch(f"/api/v1/company/members/{collab.id}", headers=h, json={"role": "manager"})
+    assert r.status_code == 200, r.text
+    assert r.json()["role"] == "manager"
+
+    # no puede cambiar su propio rol
+    r = client.patch(f"/api/v1/company/members/{ca.id}", headers=h, json={"role": "collaborator"})
+    assert r.status_code == 400, r.text
+
+    # rol inválido (superadmin) → 400
+    r = client.patch(f"/api/v1/company/members/{collab.id}", headers=h, json={"role": "superadmin"})
+    assert r.status_code == 400, r.text
+
+
+def test_company_members_expose_manager(client: TestClient, factory, auth_headers) -> None:
+    """El roster expone manager_id/manager_name (para el select inline)."""
+    _, org1, _org2, ca = _company_with_two_orgs(factory)
+    mgr = factory.make_user(org=org1, role=UserRole.manager, full_name="La Manager")
+    factory.make_user(org=org1, role=UserRole.collaborator, full_name="Reporta", manager_id=mgr.id)
+    rows = client.get("/api/v1/company/members", headers=auth_headers(ca)).json()
+    reporta = next(m for m in rows if m["full_name"] == "Reporta")
+    assert reporta["manager_id"] == str(mgr.id)
+    assert reporta["manager_name"] == "La Manager"
