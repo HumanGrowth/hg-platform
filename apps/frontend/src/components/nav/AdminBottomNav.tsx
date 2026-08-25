@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowLeft, Building2, Calendar, LineChart, Newspaper, Upload, Users2 } from "lucide-react";
+import { ArrowLeft, Building2, Calendar, Layers, LineChart, Newspaper, Upload, Users2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useActingCompany } from "@/lib/acting-company";
 import type { UserRole } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -18,14 +19,24 @@ interface AdminNavItem {
 }
 
 /**
- * Ítems del bottom nav admin por rol. Antes había un único set con "Panel" →
- * /admin/org para todos, pero un company_admin es rebotado por OrgAdminGate en
- * esa ruta: su panel es /admin/empresa. Ahora cada rol ve sus destinos válidos.
+ * Ítems del bottom nav admin por rol (y, para superadmin, según si está
+ * gestionando una empresa). Cada rol ve solo destinos válidos: un company_admin
+ * es rebotado por OrgAdminGate en /admin/org, y un superadmin sin empresa
+ * elegida no tiene dashboard con sentido (agrega su propia org HG).
  */
-function itemsForRole(role: UserRole | undefined): AdminNavItem[] {
+function itemsForRole(role: UserRole | undefined, managingCompany: boolean): AdminNavItem[] {
   if (role === "superadmin") {
+    // Gestionando una empresa → mismas acciones que el sidebar desktop.
+    if (managingCompany) {
+      return [
+        { href: "/admin/org", label: "Dashboard", icon: LineChart },
+        { href: "/admin/empresa", label: "Empresa", icon: Building2 },
+        { href: "/admin/empresa/miembros", label: "Miembros", icon: Users2 },
+        { href: "/admin/empresa/organizaciones", label: "Orgs", icon: Layers },
+      ];
+    }
+    // Global HG (sin empresa elegida): el selector de empresas + contenido.
     return [
-      { href: "/admin/org", label: "Panel", icon: LineChart },
       { href: "/admin/companies", label: "Empresas", icon: Building2 },
       { href: "/admin/events", label: "Eventos", icon: Calendar },
       { href: "/admin/perspectivas", label: "Contenido", icon: Newspaper },
@@ -36,14 +47,14 @@ function itemsForRole(role: UserRole | undefined): AdminNavItem[] {
     return [
       { href: "/admin/org", label: "Dashboard", icon: LineChart },
       { href: "/admin/empresa/miembros", label: "Miembros", icon: Users2 },
-      { href: "/admin/empresa/organizaciones", label: "Orgs", icon: Building2 },
+      { href: "/admin/empresa/organizaciones", label: "Orgs", icon: Layers },
     ];
   }
   if (role === "company_admin") {
     // Legado (sin dashboard: OrgAdminGate lo restringe a admin/superadmin).
     return [
       { href: "/admin/empresa/miembros", label: "Miembros", icon: Users2 },
-      { href: "/admin/empresa/organizaciones", label: "Orgs", icon: Building2 },
+      { href: "/admin/empresa/organizaciones", label: "Orgs", icon: Layers },
       { href: "/admin/empresa/importar", label: "Importar", icon: Upload },
     ];
   }
@@ -63,7 +74,8 @@ export function AdminBottomNav({
   className?: string;
 }) {
   const pathname = usePathname();
-  const items = itemsForRole(role);
+  const acting = useActingCompany();
+  const items = itemsForRole(role, Boolean(acting));
 
   return (
     <nav
