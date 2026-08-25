@@ -11,6 +11,7 @@ const {
   getHomeDashboard,
   getMyPath,
   getMyAssignments,
+  getMyResults,
   router,
   searchParams,
 } = vi.hoisted(() => ({
@@ -19,6 +20,7 @@ const {
   getHomeDashboard: vi.fn(),
   getMyPath: vi.fn(),
   getMyAssignments: vi.fn(),
+  getMyResults: vi.fn(),
   router: { push: vi.fn(), replace: vi.fn() },
   searchParams: { pillar: null as string | null },
 }));
@@ -34,6 +36,7 @@ vi.mock("@/lib/api", () => ({
   apiGetHomeDashboard: getHomeDashboard,
   apiGetMyPath: getMyPath,
   apiMyAssignments: getMyAssignments,
+  apiGetMyResults: getMyResults,
 }));
 
 const unit: LearningUnitFeedItem = {
@@ -57,6 +60,7 @@ beforeEach(() => {
   // next_step null → el hero cae al hero del feed (TASK 7).
   getMyPath.mockReset().mockResolvedValue({ next_step: null, upcoming: [] });
   getMyAssignments.mockReset().mockResolvedValue([]);
+  getMyResults.mockReset().mockResolvedValue({ results: [] });
   router.push.mockReset();
   searchParams.pillar = null;
 });
@@ -75,7 +79,7 @@ describe("ModulosPage", () => {
     searchParams.pillar = "P1";
     render(<ModulosPage />);
     await screen.findByText("Antes de seguir");
-    expect(listModulosByDimension).toHaveBeenCalledWith("P1", undefined, 20);
+    expect(listModulosByDimension).toHaveBeenCalledWith("P1", undefined, 50);
     expect(getModulosFeed).not.toHaveBeenCalled();
     expect(screen.getByText(/Filtrando:/)).toBeTruthy();
   });

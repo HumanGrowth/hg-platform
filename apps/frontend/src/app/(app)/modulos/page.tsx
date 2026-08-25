@@ -1,6 +1,6 @@
 "use client";
 
-import { Flame, X } from "lucide-react";
+import { Flame, Lock, X } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,18 +18,85 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import {
   apiGetHomeDashboard,
   apiGetModulosFeed,
+  apiGetMyResults,
   apiListModulosByDimension,
   apiMyAssignments,
   apiGetMyPath,
 } from "@/lib/api";
 import { dimensionShortName } from "@/lib/dimension-styles";
+import { isUnitLevelLocked, levelNum } from "@/lib/modulos";
 import type { LearningUnitFeed, LearningUnitFeedItem } from "@/lib/types";
+
+/** Módulos de una dimensión agrupados por nivel; bloquea (grayed) los que están
+ *  por encima del nivel del colaborador. Si la dimensión tiene un solo nivel, no
+ *  agrupa ni bloquea (lista plana, como antes). */
+function ModulosByLevel({
+  units,
+  assignedIds,
+  collaboratorLevel,
+}: {
+  units: LearningUnitFeedItem[];
+  assignedIds: Set<string>;
+  collaboratorLevel: string | null;
+}) {
+  const byAssigned = (a: LearningUnitFeedItem, b: LearningUnitFeedItem) =>
+    Number(assignedIds.has(b.id)) - Number(assignedIds.has(a.id));
+
+  const levels = React.useMemo(
+    () => [...new Set(units.map((u) => u.level_code))].sort(),
+    [units],
+  );
+
+  // Un solo nivel → lista plana sin bloqueo (dimensiones sin progresión por nivel).
+  if (levels.length <= 1) {
+    return (
+      <div className="mt-8 flex flex-col gap-3">
+        {[...units].sort(byAssigned).map((u) => (
+          <UnitCardCompact key={u.id} unit={u} assigned={assignedIds.has(u.id)} />
+        ))}
+      </div>
+    );
+  }
+
+  const noLevel = levelNum(collaboratorLevel) == null; // no evaluado → todo bloqueado
+
+  return (
+    <div className="mt-8 flex flex-col gap-8">
+      {noLevel && (
+        <Card className="flex items-center gap-3 bg-bg-raised">
+          <Lock size={18} strokeWidth={1.75} className="shrink-0 text-fg-muted" aria-hidden />
+          <p className="text-sm text-fg-muted">
+            Evaluá tu nivel en esta dimensión para desbloquear tus módulos según tu punto de partida.
+          </p>
+        </Card>
+      )}
+      {levels.map((lvl) => {
+        const group = units.filter((u) => u.level_code === lvl).sort(byAssigned);
+        if (group.length === 0) return null;
+        return (
+          <section key={lvl}>
+            <Eyebrow className="mb-3">Nivel {lvl.replace(/^L/i, "")}</Eyebrow>
+            <div className="flex flex-col gap-3">
+              {group.map((u) => (
+                <UnitCardCompact
+                  key={u.id}
+                  unit={u}
+                  assigned={assignedIds.has(u.id)}
+                  locked={isUnitLevelLocked(u.level_code, collaboratorLevel)}
+                />
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
 
 function ModulosPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dimensionFilter = searchParams.get("pillar");
-  const levelFilter = searchParams.get("level"); // "L1".."L4" o null (Todos)
 
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [feed, setFeed] = React.useState<LearningUnitFeed | null>(null);
@@ -37,6 +104,9 @@ function ModulosPageContent() {
   // tab de Módulos ya no tiene su propia lógica de hero (TASK 7): usa la ruta.
   const [nextStepSlug, setNextStepSlug] = React.useState<string | null>(null);
   const [filteredUnits, setFilteredUnits] = React.useState<LearningUnitFeedItem[] | null>(null);
+  // Nivel del colaborador en la dimensión filtrada (state_code del assessment,
+  // L1..L4 en Carrera) → bloqueo por nivel. null = no evaluado (todo bloqueado).
+  const [dimLevel, setDimLevel] = React.useState<string | null>(null);
   const [streakDays, setStreakDays] = React.useState<number | null>(null);
   const [assignedIds, setAssignedIds] = React.useState<Set<string>>(new Set());
 
@@ -50,8 +120,15 @@ function ModulosPageContent() {
     setStatus("loading");
     try {
       if (dimensionFilter) {
-        const units = await apiListModulosByDimension(dimensionFilter, levelFilter ?? undefined, 20);
+        // Todos los units de la dimensión (agrupamos por nivel en el cliente); +
+        // el nivel del colaborador para el bloqueo por nivel.
+        const [units, res] = await Promise.all([
+          apiListModulosByDimension(dimensionFilter, undefined, 50),
+          apiGetMyResults().catch(() => ({ results: [] })),
+        ]);
         setFilteredUnits(units);
+        const r = res.results.find((x) => x.dimension_code === dimensionFilter);
+        setDimLevel(r?.state_code ?? null);
       } else {
         // "Tu módulo de hoy" sale del motor de ruta (next_step); el feed aporta
         // el card completo (poster, blocks, attempt_status) del mismo módulo.
@@ -70,7 +147,7 @@ function ModulosPageContent() {
     } catch {
       setStreakDays(null);
     }
-  }, [dimensionFilter, levelFilter]);
+  }, [dimensionFilter]);
 
   React.useEffect(() => {
     void load();
@@ -103,35 +180,11 @@ function ModulosPageContent() {
       </p>
 
       {dimensionFilter && (
-        <div className="mt-4 flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <Chip active onClick={() => router.push("/modulos" as Route)} className="pr-2">
-              Filtrando: {dimensionShortName(dimensionFilter)}
-              <X size={14} strokeWidth={2} />
-            </Chip>
-          </div>
-          {/* Filtro por nivel — persistente en la URL (?level=L2). */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: "Todos", code: null },
-              { label: "Nivel 1", code: "L1" },
-              { label: "Nivel 2", code: "L2" },
-              { label: "Nivel 3", code: "L3" },
-              { label: "Nivel 4", code: "L4" },
-            ].map(({ label, code }) => {
-              const params = new URLSearchParams({ pillar: dimensionFilter });
-              if (code) params.set("level", code);
-              return (
-                <Chip
-                  key={label}
-                  active={levelFilter === code || (!levelFilter && code === null)}
-                  onClick={() => router.push(`/modulos?${params.toString()}` as Route)}
-                >
-                  {label}
-                </Chip>
-              );
-            })}
-          </div>
+        <div className="mt-4 flex items-center gap-2">
+          <Chip active onClick={() => router.push("/modulos" as Route)} className="pr-2">
+            Filtrando: {dimensionShortName(dimensionFilter)}
+            <X size={14} strokeWidth={2} />
+          </Chip>
         </div>
       )}
 
@@ -153,11 +206,9 @@ function ModulosPageContent() {
       {status === "ok" && isEmpty && (
         <Card className="mt-8 flex flex-col items-center gap-2 py-16 text-center">
           <p className="font-sans text-md font-semibold text-fg">
-            {levelFilter
-              ? `Nivel ${levelFilter.replace("L", "")} · próximamente`
-              : dimensionFilter
-                ? "Todavía no hay módulos publicados para esta dimensión."
-                : "Todavía no hay módulos para vos."}
+            {dimensionFilter
+              ? "Todavía no hay módulos publicados para esta dimensión."
+              : "Todavía no hay módulos para vos."}
           </p>
           <p className="max-w-prose text-sm text-fg-muted">
             Volvé más tarde — tu coach está preparando nuevo contenido.
@@ -166,13 +217,11 @@ function ModulosPageContent() {
       )}
 
       {status === "ok" && !isEmpty && dimensionFilter && filteredUnits && (
-        <div className="mt-8 flex flex-col gap-3">
-          {[...filteredUnits]
-            .sort((a, b) => Number(assignedIds.has(b.id)) - Number(assignedIds.has(a.id)))
-            .map((unit) => (
-              <UnitCardCompact key={unit.id} unit={unit} assigned={assignedIds.has(unit.id)} />
-            ))}
-        </div>
+        <ModulosByLevel
+          units={filteredUnits}
+          assignedIds={assignedIds}
+          collaboratorLevel={dimLevel}
+        />
       )}
 
       {status === "ok" && !isEmpty && !dimensionFilter && feed && (

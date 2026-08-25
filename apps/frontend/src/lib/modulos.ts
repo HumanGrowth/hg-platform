@@ -18,6 +18,30 @@ export const DIMENSIONS: DimensionMeta[] = [
   { code: "PR", pillar: "P2", name: "Propósito y significado" },
 ];
 
+/** "L2" → 2; null o código no-L (ej. "Integrado", "N1") → null. */
+export function levelNum(code: string | null | undefined): number | null {
+  if (!code) return null;
+  const m = /^L(\d+)$/i.exec(code);
+  return m ? Number(m[1]) : null;
+}
+
+/**
+ * ¿La unit está bloqueada para el colaborador por progresión de nivel? Solo
+ * aplica a dimensiones con niveles L (hoy Carrera). Regla (acordada): accesible
+ * = nivel de la unit ≤ nivel del colaborador (su nivel y anteriores); superiores
+ * bloqueados. Sin nivel del colaborador (no hizo el assessment) → todo bloqueado.
+ */
+export function isUnitLevelLocked(
+  unitLevelCode: string,
+  collaboratorLevelCode: string | null | undefined,
+): boolean {
+  const unitLvl = levelNum(unitLevelCode);
+  if (unitLvl == null) return false; // contenido sin nivel L parseable → no bloquear
+  const userLvl = levelNum(collaboratorLevelCode);
+  if (userLvl == null) return true; // sin evaluación → bloqueado
+  return unitLvl > userLvl;
+}
+
 function pad3(n: number): string {
   return String(n).padStart(3, "0");
 }
