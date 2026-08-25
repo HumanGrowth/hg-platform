@@ -242,6 +242,7 @@ def list_company_members(db: Session, company_id: UUID, actor: User) -> list[Com
         .order_by(Organization.name, User.full_name)
     ).all()
     users = [u for u, _ in rows]
+    name_by_id = {u.id: u.full_name for u in users}
     aggs = activity_by_users(db, [u.id for u in users])
     consents = consent_service.privacy_consents_by_user(db, [u.id for u in users])
     consent_service.log_access(db, actor=actor, resource=consent_service.RESOURCE_ROSTER)
@@ -263,7 +264,10 @@ def list_company_members(db: Session, company_id: UUID, actor: User) -> list[Com
         out.append(
             CompanyMemberOut(
                 id=user.id, full_name=user.full_name, email=user.email, role=user.role,
-                org_id=user.org_id, org_name=org_name, is_active=user.is_active,
+                org_id=user.org_id, org_name=org_name,
+                manager_id=user.manager_id,
+                manager_name=name_by_id.get(user.manager_id) if user.manager_id else None,
+                is_active=user.is_active,
                 last_active_at=agg.last_active_at,
                 modules_completed=agg.courses_completed,
                 modules_in_progress=agg.courses_in_progress,
@@ -288,11 +292,28 @@ def invite_to_company_org(
     )
 
 
+# Roles que un admin de empresa puede asignar desde el roster (no superadmin/company_admin).
+_ASSIGNABLE_ROLES = {UserRole.collaborator, UserRole.manager, UserRole.admin}
+
+
 def update_company_member(
-    db: Session, *, company_id: UUID, user_id: UUID, payload: UpdateMemberRequest
+    db: Session, *, company_id: UUID, user_id: UUID, payload: UpdateMemberRequest, actor: User
 ) -> User:
-    """Mover de org (dentro de la Empresa), cambiar manager o activar/desactivar."""
+    """Mover de org, cambiar manager, cambiar rol o activar/desactivar (dentro de la Empresa)."""
     member = _require_company_member(db, company_id, user_id)
+
+    if payload.role is not None and payload.role != member.role:
+        if member.id == actor.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No podés cambiar tu propio rol.",
+            )
+        if payload.role not in _ASSIGNABLE_ROLES:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Rol inválido (solo colaborador, manager o admin).",
+            )
+        member.role = payload.role
 
     if payload.org_id is not None and payload.org_id != member.org_id:
         target_org = _require_company_org(db, company_id, payload.org_id)

@@ -786,7 +786,12 @@ export const apiCompanyInvite = async (
 
 export const apiUpdateCompanyMember = async (
   userId: string,
-  body: { org_id?: string | null; manager_id?: string | null; is_active?: boolean | null },
+  body: {
+    org_id?: string | null;
+    manager_id?: string | null;
+    is_active?: boolean | null;
+    role?: string;
+  },
   companyId?: string,
 ): Promise<Me> => {
   const res = await backend.patch<Me>(`/api/v1/company/members/${userId}`, body, {

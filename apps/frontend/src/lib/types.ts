@@ -946,6 +946,8 @@ export interface CompanyMember {
   role: UserRole;
   org_id: string;
   org_name: string;
+  manager_id: string | null;
+  manager_name: string | null;
   is_active: boolean;
   last_active_at: string | null;
   modules_completed: number;
