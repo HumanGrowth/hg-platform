@@ -3,10 +3,10 @@
 Arma una secuencia recomendada de learning units para el usuario:
 - `current_level`: nivel más bajo con units pendientes (arranca L1, avanza al
   completar todas las de ese nivel).
-- `next_step` + `upcoming`: units pendientes del nivel actual, ordenadas por
-  dimensión (priorizando la de menor score en el último assessment) y alternando
-  dimensiones para no cansar; dentro de una dimensión, por pilar y número (orden
-  del Drive).
+- `next_step` + `upcoming`: units pendientes del nivel actual. Se prioriza CP
+  (Carrera) alternando 1:1 con el resto de dimensiones, tomando el resto en orden
+  de menor score (la que más necesita trabajo) primero; dentro de una dimensión,
+  por pilar y número (orden del Drive).
 - `dimensions_progress`: completed/total por cada uno de los 6 pilares.
 
 Nota: hoy solo la dimensión CP (Carrera) tiene contenido, así que la priorización
@@ -170,20 +170,26 @@ def build_path(db: Session, user_id: uuid.UUID, upcoming_n: int = 5) -> PathResu
 
     level_pending = [u for u in level_units if u.id not in completed_ids]
 
-    # Agrupar pendientes por career_path, ordenar dentro por (pilar, número),
-    # ordenar los grupos por score asc (menor = primero) y alternar.
+    # Agrupar pendientes por career_path, ordenar dentro por (pilar, número).
     by_cp: dict[str, list[LearningUnit]] = {}
     for u in level_pending:
         cp = career_path_for_dimension(u.dimension_code) or u.dimension_code
         by_cp.setdefault(cp, []).append(u)
     for lst in by_cp.values():
         lst.sort(key=lambda u: (u.pillar_code or "", u.unit_number or 0))
-    ordered_cps = sorted(
-        by_cp.keys(),
+
+    # Prioridad a CP (Carrera): se alterna 1:1 un curso de CP con uno del resto,
+    # tomando el resto en orden de menor score primero (la dimensión que más
+    # necesita trabajo), y así sucesivamente. Con solo CP publicado, la secuencia
+    # es toda CP; sin CP, es el resto por menor score.
+    cp_code = career_path_for_dimension("CP") or "P1"
+    rest_cps = sorted(
+        (cp for cp in by_cp if cp != cp_code),
         key=lambda cp: (score_by_cp.get(cp, 0.5), paths[cp].order_index if cp in paths else 99),
     )
-    groups = [[_to_step(u, cp) for u in by_cp[cp]] for cp in ordered_cps]
-    sequence = _interleave(groups)
+    track_cp = [_to_step(u, cp_code) for u in by_cp.get(cp_code, [])]
+    track_rest = [_to_step(u, cp) for cp in rest_cps for u in by_cp[cp]]
+    sequence = _interleave([track_cp, track_rest])
 
     next_step = sequence[0] if sequence else None
     upcoming = sequence[1 : 1 + upcoming_n]

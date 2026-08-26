@@ -94,19 +94,23 @@ def test_no_assessment_default_drive_order(client, factory, auth_headers) -> Non
         _clear_all()
 
 
-def test_prioritizes_lowest_scoring_dimension(client, factory, auth_headers) -> None:
+def test_prioritizes_cp_then_lowest_scoring(client, factory, auth_headers) -> None:
     _clear_all()
     _ensure_paths()
     user = factory.make_user(org=factory.make_org(), role=UserRole.collaborator)
-    _make_unit("CP", "L1", "P1", 1)  # Carrera (P1)
+    cp = _make_unit("CP", "L1", "P1", 1)  # Carrera (P1)
     pr = _make_unit("PR", "L1", "P1", 1)  # Propósito (P2)
-    # P1 alto (L5), P2 bajo (L1) → next_step debe ser el de P2 (más bajo).
+    # CP alto (L5), PR bajo (L1). Aun así CP es prioridad → next_step = CP; el
+    # resto se alterna tomando la de menor score (PR) primero.
     _assessment(user, DimensionCode.P1, "L5")
     _assessment(user, DimensionCode.P2, "L1")
     try:
         body = client.get("/api/v1/me/path", headers=auth_headers(user)).json()
-        assert body["next_step"]["unit_id"] == str(pr)
-        assert body["next_step"]["career_path_code"] == "P2"
+        assert body["next_step"]["unit_id"] == str(cp)  # CP prioritario
+        assert body["next_step"]["career_path_code"] == "P1"
+        # El siguiente alterna al resto (la dimensión de menor score = PR/P2).
+        assert body["upcoming"][0]["unit_id"] == str(pr)
+        assert body["upcoming"][0]["career_path_code"] == "P2"
     finally:
         _clear_all()
 
