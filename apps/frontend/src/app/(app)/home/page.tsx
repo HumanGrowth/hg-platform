@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
+import { FactOfTheDay } from "@/components/home/FactOfTheDay";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { MiniRadar } from "@/components/radar/MiniRadar";
 import { AISoonBadge } from "@/components/shared/AISoonBadge";
@@ -132,6 +133,9 @@ export default function HomePage() {
           <ArrowRight size={18} strokeWidth={1.75} />
         </Link>
       </div>
+
+      {/* Fact del día — independiente del dashboard (fetch propio), arriba de todo. */}
+      <FactOfTheDay />
 
       {status === "loading" && (
         <Card className="mt-8 flex items-center justify-center py-16">

@@ -233,12 +233,24 @@ const config: Config = {
           "20%, 60%": { transform: "translateX(-6px)" },
           "40%, 80%": { transform: "translateX(6px)" },
         },
+        // Orbes decorativos flotando (Fact of the Day).
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-12px)" },
+        },
+        // Barrido de brillo diagonal (Fact of the Day).
+        shimmer: {
+          "0%": { transform: "translateX(-140%) skewX(-12deg)" },
+          "100%": { transform: "translateX(140%) skewX(-12deg)" },
+        },
       },
       animation: {
         "ring-spin": "ring-spin 2.4s linear infinite",
         "fade-up": "fade-up 220ms cubic-bezier(0.22, 1, 0.36, 1)",
         "star-glow": "star-glow 1.2s ease-in-out infinite",
         shake: "shake 300ms cubic-bezier(0.36, 0.07, 0.19, 0.97)",
+        float: "float 6s ease-in-out infinite",
+        shimmer: "shimmer 4.5s ease-in-out infinite",
       },
     },
   },

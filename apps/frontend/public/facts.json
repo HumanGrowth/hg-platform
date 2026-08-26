@@ -1,0 +1,37 @@
+{
+  "_comment": "Dummy 'Fact of the Day'. Reemplazar por los facts generados por HG. Shape: { facts: [{ text, source }] }.",
+  "facts": [
+    {
+      "text": "Nombrar una emoción reduce su intensidad: el solo acto de ponerle palabras a lo que sentís baja la activación de la amígdala.",
+      "source": "UCLA · affect labeling"
+    },
+    {
+      "text": "Las habilidades se consolidan mientras dormís. Practicar algo y descansar bien esa noche mejora el desempeño más que practicar el doble sin dormir.",
+      "source": "Neurociencia del sueño"
+    },
+    {
+      "text": "Pedir feedback específico ('¿qué haría distinto la próxima vez?') genera mejoras 3x más accionables que preguntar '¿cómo lo hice?'.",
+      "source": "Investigación en desarrollo profesional"
+    },
+    {
+      "text": "El 'efecto de mera exposición': dedicarle apenas 10 minutos diarios a una habilidad nueva la vuelve familiar en semanas, no en meses.",
+      "source": "Psicología del aprendizaje"
+    },
+    {
+      "text": "Escribir tus 3 logros del día activa el sesgo de progreso: percibir avance es uno de los mayores motores de la motivación intrínseca.",
+      "source": "Teresa Amabile · The Progress Principle"
+    },
+    {
+      "text": "La escucha activa no es callarse: es reflejar lo que el otro dijo. Parafrasear aumenta la confianza percibida y reduce los malentendidos a la mitad.",
+      "source": "Comunicación efectiva"
+    },
+    {
+      "text": "Los equipos psicológicamente seguros —donde está bien equivocarse— aprenden y rinden más. La seguridad, no el talento, predice el alto desempeño.",
+      "source": "Google · Project Aristotle"
+    },
+    {
+      "text": "Reencuadrar 'estoy nervioso' como 'estoy entusiasmado' mejora el desempeño en tareas de alta presión: misma activación, distinta interpretación.",
+      "source": "Alison Wood Brooks · Harvard"
+    }
+  ]
+}
