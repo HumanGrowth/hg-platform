@@ -1,15 +1,14 @@
 "use client";
 
-import { ArrowRight, Check, Clock } from "lucide-react";
+import { Check } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 
-import { buttonVariants } from "@/components/ui/button";
-import { HexIcon } from "@/components/ui/hex-icon";
-import { apiGetMyPath } from "@/lib/api";
+import { UnitCardHero } from "@/components/modulos/UnitCardHero";
+import { apiGetModulosFeed, apiGetMyPath } from "@/lib/api";
 import { DIMENSIONS_META } from "@/lib/dimension-styles";
-import type { MyPath, PathStep } from "@/lib/types";
+import type { LearningUnitFeed, LearningUnitFeedItem, MyPath, PathStep } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const DOT: Record<string, string> = Object.fromEntries(DIMENSIONS_META.map((p) => [p.id, p.dot]));
@@ -29,11 +28,18 @@ function minutesLabel(s: PathStep): string | null {
 export function PathJourney() {
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [data, setData] = React.useState<MyPath | null>(null);
+  // El feed aporta la tarjeta completa (thumbnail/poster) del next_step para el header.
+  const [feed, setFeed] = React.useState<LearningUnitFeed | null>(null);
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      setData(await apiGetMyPath());
+      const [path, modulosFeed] = await Promise.all([
+        apiGetMyPath(),
+        apiGetModulosFeed().catch(() => null),
+      ]);
+      setData(path);
+      setFeed(modulosFeed);
       setStatus("ok");
     } catch {
       setStatus("error");
@@ -66,40 +72,19 @@ export function PathJourney() {
   const { next_step, upcoming, completed_this_level, total_this_level, current_level } = data;
   const pct = total_this_level > 0 ? Math.round((completed_this_level / total_this_level) * 100) : 0;
 
+  // "Tu módulo de hoy" = el siguiente en la ruta (next_step), con la tarjeta
+  // completa (thumbnail/poster) que aporta el feed. Cae al hero del feed si no matchea.
+  const heroUnit: LearningUnitFeedItem | null = feed
+    ? ([feed.hero, ...feed.next].find((u) => u != null && u.slug === next_step?.slug) ?? feed.hero)
+    : null;
+
   return (
     <div className="mt-8 flex flex-col gap-8">
-      {/* Próximo paso */}
-      {next_step ? (
-        <section className="motion-safe:animate-fade-in overflow-hidden rounded-2xl border border-border bg-bg-raised">
-          <div className={cn("h-1.5 w-full", DOT[next_step.career_path_code] ?? "bg-primary")} aria-hidden />
-          <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0 flex-1">
-              <p className="font-sans text-micro uppercase tracking-meta text-fg-muted">Tu próximo paso</p>
-              <h2 className="mt-2 line-clamp-2 font-display text-2xl leading-tight text-fg sm:text-3xl">
-                {next_step.title}
-              </h2>
-              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg-muted">
-                <span className="font-medium text-fg">{dimensionName(next_step.career_path_code)}</span>
-                <span>· {next_step.level_code}</span>
-                {minutesLabel(next_step) && (
-                  <span className="inline-flex items-center gap-1">
-                    · <Clock size={14} strokeWidth={1.75} /> {minutesLabel(next_step)}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-4">
-              <HexIcon pillar={next_step.career_path_code} size={56} className="hidden sm:block" />
-              <Link
-                href={stepHref(next_step)}
-                className={cn(buttonVariants({ size: "lg" }), "shrink-0")}
-              >
-                Continuar tu ruta
-                <ArrowRight size={18} strokeWidth={1.75} />
-              </Link>
-            </div>
-          </div>
-        </section>
+      {/* Tu módulo de hoy = siguiente de la ruta (header de Mi Ruta). */}
+      {heroUnit ? (
+        <div className="motion-safe:animate-fade-in">
+          <UnitCardHero unit={heroUnit} />
+        </div>
       ) : (
         <section className="rounded-2xl border border-dashed border-border bg-bg-raised p-8 text-center">
           <p className="font-sans text-md font-semibold text-fg">¡Completaste todo lo disponible!</p>

@@ -9,7 +9,6 @@ import * as React from "react";
 import { EmptyRing } from "@/components/EmptyRing";
 import { DimensionCatalog } from "@/components/modulos/DimensionCatalog";
 import { UnitCardCompact } from "@/components/modulos/UnitCardCompact";
-import { UnitCardHero } from "@/components/modulos/UnitCardHero";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
@@ -21,7 +20,6 @@ import {
   apiGetMyResults,
   apiListModulosByDimension,
   apiMyAssignments,
-  apiGetMyPath,
 } from "@/lib/api";
 import { dimensionShortName } from "@/lib/dimension-styles";
 import { isUnitLevelLocked, levelNum } from "@/lib/modulos";
@@ -100,9 +98,6 @@ function ModulosPageContent() {
 
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [feed, setFeed] = React.useState<LearningUnitFeed | null>(null);
-  // Slug del "módulo de hoy" = next_step del motor de ruta (GET /me/path). El
-  // tab de Módulos ya no tiene su propia lógica de hero (TASK 7): usa la ruta.
-  const [nextStepSlug, setNextStepSlug] = React.useState<string | null>(null);
   const [filteredUnits, setFilteredUnits] = React.useState<LearningUnitFeedItem[] | null>(null);
   // Nivel del colaborador en la dimensión filtrada (state_code del assessment,
   // L1..L4 en Carrera) → bloqueo por nivel. null = no evaluado (todo bloqueado).
@@ -130,11 +125,7 @@ function ModulosPageContent() {
         const r = res.results.find((x) => x.dimension_code === dimensionFilter);
         setDimLevel(r?.state_code ?? null);
       } else {
-        // "Tu módulo de hoy" sale del motor de ruta (next_step); el feed aporta
-        // el card completo (poster, blocks, attempt_status) del mismo módulo.
-        const [data, path] = await Promise.all([apiGetModulosFeed(), apiGetMyPath()]);
-        setFeed(data);
-        setNextStepSlug(path.next_step?.slug ?? null);
+        setFeed(await apiGetModulosFeed());
       }
       setStatus("ok");
     } catch {
@@ -152,17 +143,6 @@ function ModulosPageContent() {
   React.useEffect(() => {
     void load();
   }, [load]);
-
-  // "Tu módulo de hoy" = el módulo del next_step de la ruta, con el card completo
-  // del feed. Si el next_step no está en el feed (edge), cae al hero del feed.
-  const heroUnit = React.useMemo(() => {
-    if (!feed) return null;
-    if (nextStepSlug) {
-      const match = [feed.hero, ...feed.next].find((u) => u && u.slug === nextStepSlug);
-      if (match) return match;
-    }
-    return feed.hero;
-  }, [feed, nextStepSlug]);
 
   const isEmpty =
     dimensionFilter
@@ -226,8 +206,6 @@ function ModulosPageContent() {
 
       {status === "ok" && !isEmpty && !dimensionFilter && feed && (
         <div className="mt-8 flex flex-col gap-8">
-          {heroUnit && <UnitCardHero unit={heroUnit} />}
-
           {/* Racha: solo el chip (antes se duplicaba en una card del aside). */}
           {streakDays !== null && streakDays > 0 && (
             <div className="flex items-center gap-2 self-start rounded-md bg-bg-sunken px-3 py-2">

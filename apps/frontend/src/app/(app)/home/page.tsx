@@ -199,57 +199,6 @@ export default function HomePage() {
             </Card>
           </div>
 
-          {/* Próximo paso */}
-          <Card className="mt-4 flex flex-col items-start gap-4 bg-bg-raised sm:flex-row sm:items-center sm:justify-between">
-            {data.next_step ? (
-              <>
-                <div className="min-w-0">
-                  <Eyebrow>Tu próximo paso</Eyebrow>
-                  <div className="mt-1 flex items-center gap-2">
-                    <Badge variant={dimensionBadge(data.next_step.dimension_code)}>
-                      {dimensionShortName(data.next_step.dimension_code)}
-                    </Badge>
-                    <h2 className="truncate font-sans text-xl font-semibold text-fg">
-                      {data.next_step.course_title}
-                    </h2>
-                  </div>
-                  <div className="mt-3 max-w-xs">
-                    <Progress
-                      value={Math.round(data.next_step.watch_pct)}
-                      label={`Progreso ${data.next_step.course_title}`}
-                    />
-                  </div>
-                </div>
-                <Link
-                  href={`/modulos/${data.next_step.course_slug}` as Route}
-                  className={cn(buttonVariants({ size: "lg" }), "shrink-0")}
-                >
-                  Continuar
-                  <ArrowRight size={18} strokeWidth={1.75} />
-                </Link>
-              </>
-            ) : (
-              <>
-                <div>
-                  <Eyebrow>Tu próximo paso</Eyebrow>
-                  <h2 className="mt-1 font-sans text-xl font-semibold text-fg">
-                    Explorá los módulos
-                  </h2>
-                  <p className="mt-1 text-sm text-fg-muted">
-                    Todavía no empezaste ningún módulo. Elegí una dimensión y arrancá.
-                  </p>
-                </div>
-                <Link
-                  href={"/modulos" as Route}
-                  className={cn(buttonVariants({ size: "lg" }), "shrink-0")}
-                >
-                  Ver módulos
-                  <ArrowRight size={18} strokeWidth={1.75} />
-                </Link>
-              </>
-            )}
-          </Card>
-
           {/* Mini radar */}
           <Card className="mt-4 flex items-center gap-5 bg-bg-raised">
             <MiniRadar values={radarValues} />
