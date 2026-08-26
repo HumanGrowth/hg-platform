@@ -369,6 +369,24 @@ export const apiGetOrgMetrics = async (
  * Descarga el CSV de usuarios de la org. El endpoint requiere auth Bearer, así
  * que usamos fetch + blob (no <a download> directo) y disparamos el download.
  */
+/** Descarga el CSV con las métricas del equipo del manager (sus reportes). */
+export const apiExportMyTeamCsv = async (): Promise<void> => {
+  const token = useAuthStore.getState().accessToken;
+  const res = await fetch(`${BACKEND}/api/v1/manager/me/team/export.csv`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+  if (!res.ok) throw new ApiError("export failed", res.status);
+  const blob = await res.blob();
+  const href = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = "mi-equipo.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(href);
+};
+
 export const apiExportOrgUsersCsv = async (
   orgId?: string,
   companyId?: string,

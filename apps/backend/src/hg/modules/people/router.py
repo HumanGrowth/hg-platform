@@ -171,6 +171,58 @@ def list_my_team(
     return TeamResponse(items=paged, total=total, inactive_count=inactive_count)
 
 
+_TEAM_CSV_HEADERS = [
+    "full_name", "email", "role", "career_level", "status",
+    "last_active_at", "active_enrollments", "courses_in_progress",
+    "courses_completed", "total_watch_minutes",
+]
+
+
+def _member_status(last_active: datetime | None) -> str:
+    """Semáforo consistente con /team (umbral 21d): activo/en_riesgo/inactivo/nunca."""
+    if last_active is None:
+        return "nunca"
+    days = (now_utc() - last_active).days
+    if days <= 7:
+        return "activo"
+    if days <= 21:
+        return "en_riesgo"
+    return "inactivo"
+
+
+@manager_router.get("/me/team/export.csv")
+def export_my_team_csv(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Response:
+    """CSV con las métricas del equipo del manager (sus reportes directos; para
+    admin/superadmin, toda la org). Se audita el acceso al roster (TASK 5)."""
+    members = _team_members(db, current_user)
+    from hg.modules.consent import service as consent_service
+
+    consent_service.log_access(db, actor=current_user, resource=consent_service.RESOURCE_ROSTER)
+    aggs = activity_by_users(db, [m.id for m in members])
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(_TEAM_CSV_HEADERS)
+    for m in sorted(members, key=lambda u: u.full_name.lower()):
+        a = aggs[m.id]
+        writer.writerow([
+            m.full_name, m.email, m.role.value,
+            m.career_level.value if m.career_level else "",
+            _member_status(a.last_active_at),
+            a.last_active_at.isoformat() if a.last_active_at else "",
+            a.active_enrollments, a.courses_in_progress, a.courses_completed,
+            a.total_watch_minutes,
+        ])
+    return Response(
+        content=buf.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=mi-equipo.csv"},
+    )
+
+
 def _completed_blocks_by_attempt(db: Session, attempt_ids: list[UUID]) -> dict[UUID, int]:
     if not attempt_ids:
         return {}

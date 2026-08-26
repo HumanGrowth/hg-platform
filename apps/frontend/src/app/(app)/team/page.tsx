@@ -1,14 +1,16 @@
 "use client";
 
-import { Users } from "lucide-react";
+import { Download, Users } from "lucide-react";
 import * as React from "react";
 
 import { TeamMemberCard } from "@/components/team/TeamMemberCard";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { apiGetMyTeam } from "@/lib/api";
+import { apiExportMyTeamCsv, apiGetMyTeam } from "@/lib/api";
+import { toast } from "@/lib/toast-store";
 import type { TeamResponse, TeamSort } from "@/lib/types";
 
 const TeamWidgetsSection = React.lazy(
@@ -60,22 +62,44 @@ export default function TeamPage() {
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
 
+  const [exporting, setExporting] = React.useState(false);
+  async function exportCsv() {
+    setExporting(true);
+    try {
+      await apiExportMyTeamCsv();
+    } catch {
+      toast("No se pudo exportar el CSV.", "danger");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   return (
     <main className="mx-auto w-full max-w-app px-6 py-10">
-      <Eyebrow accent>Mi equipo</Eyebrow>
-      <Display variant="display-2" className="mt-2">
-        {data ? `${data.total} ${data.total === 1 ? "persona" : "personas"} a tu cargo` : "Mi equipo"}
-      </Display>
-      {data && (
-        <p className="mt-3 text-md text-fg-muted">
-          {data.inactive_count > 0 ? (
-            <span className="font-semibold text-warning">{data.inactive_count} inactivas</span>
-          ) : (
-            "Todo el equipo con actividad reciente"
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <Eyebrow accent>Mi equipo</Eyebrow>
+          <Display variant="display-2" className="mt-2">
+            {data ? `${data.total} ${data.total === 1 ? "persona" : "personas"} a tu cargo` : "Mi equipo"}
+          </Display>
+          {data && (
+            <p className="mt-3 text-md text-fg-muted">
+              {data.inactive_count > 0 ? (
+                <span className="font-semibold text-warning">{data.inactive_count} inactivas</span>
+              ) : (
+                "Todo el equipo con actividad reciente"
+              )}
+              {data.inactive_count > 0 && " · revisá quién necesita un empujón"}
+            </p>
           )}
-          {data.inactive_count > 0 && " · revisá quién necesita un empujón"}
-        </p>
-      )}
+        </div>
+        {data && data.total > 0 && (
+          <Button variant="secondary" onClick={() => void exportCsv()} disabled={exporting}>
+            <Download size={18} strokeWidth={1.75} />
+            {exporting ? "Exportando…" : "Exportar CSV"}
+          </Button>
+        )}
+      </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <Chip active={!inactiveOnly} onClick={() => { setInactiveOnly(false); setPage(1); }}>

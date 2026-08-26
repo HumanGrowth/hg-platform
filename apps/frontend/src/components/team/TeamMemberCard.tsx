@@ -1,11 +1,13 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
-import type { Route } from "next";
+import { Check, CircleDashed, Route } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import type { Route as NextRoute } from "next";
 import Link from "next/link";
 
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import type { TeamMember } from "@/lib/types";
 import { formatRelativeTime } from "@/lib/utils";
 
@@ -18,36 +20,65 @@ function memberStatus(lastActive: string | null): { label: string; dot: string; 
   return { label: "Inactivo", dot: "bg-danger", text: "text-danger" };
 }
 
+function Stat({ icon: Icon, value, label, tone }: { icon: LucideIcon; value: number; label: string; tone: string }) {
+  return (
+    <div className="flex flex-col items-center gap-0.5 rounded-lg bg-bg-sunken px-2 py-2 text-center">
+      <Icon size={16} strokeWidth={2} className={tone} aria-hidden />
+      <span className="font-mono text-sm font-semibold text-fg">{value}</span>
+      <span className="text-[10px] uppercase tracking-meta text-fg-subtle">{label}</span>
+    </div>
+  );
+}
+
 export function TeamMemberCard({ member: m }: { member: TeamMember }) {
   const st = memberStatus(m.last_active_at);
+  const started = m.courses_completed + m.courses_in_progress;
+  const pct = started > 0 ? Math.round((m.courses_completed / started) * 100) : 0;
+
   return (
     <Link
-      href={`/team/${m.id}` as Route}
-      className="flex items-start gap-4 rounded-lg border border-border bg-bg-raised p-5 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
+      href={`/team/${m.id}` as NextRoute}
+      className="group block rounded-xl border border-border bg-bg-raised p-5 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
     >
-      <Avatar name={m.full_name} size="md" />
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-sans text-sm font-semibold text-fg">{m.full_name}</span>
-          {m.career_level && <Badge>{m.career_level}</Badge>}
-          <span className="inline-flex items-center gap-1.5">
-            <span className={`h-2 w-2 rounded-full ${st.dot}`} aria-hidden />
-            <span className={`text-xs font-semibold ${st.text}`}>{st.label}</span>
+      <div className="flex items-start gap-4">
+        <Avatar name={m.full_name} size="md" />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-sans text-sm font-semibold text-fg">{m.full_name}</span>
+            {m.career_level && <Badge>{m.career_level}</Badge>}
+          </div>
+          <p className="mt-0.5 truncate text-xs text-fg-muted">
+            {m.email}
+            {m.job_title ? ` · ${m.job_title}` : ""}
+          </p>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-bg-sunken px-2.5 py-1">
+          <span className={`h-2 w-2 rounded-full ${st.dot}`} aria-hidden />
+          <span className={`text-xs font-semibold ${st.text}`}>{st.label}</span>
+        </span>
+      </div>
+
+      {/* Progreso de módulos (completados / iniciados). */}
+      <div className="mt-4">
+        <div className="mb-1 flex items-center justify-between text-xs text-fg-muted">
+          <span>Progreso de módulos</span>
+          <span className="font-mono tabular-nums">
+            {m.courses_completed}/{started}
           </span>
         </div>
-        <p className="mt-0.5 truncate text-xs text-fg-muted">
-          {m.email}
-          {m.job_title ? ` · ${m.job_title}` : ""}
-        </p>
-        <p className="mt-1 text-xs text-fg-muted">
-          Última actividad: {formatRelativeTime(m.last_active_at)}
-        </p>
-        <p className="mt-1 text-xs text-fg-subtle">
-          {m.courses_in_progress} en progreso · {m.courses_completed} completados ·{" "}
-          {m.active_enrollments} {m.active_enrollments === 1 ? "ruta" : "rutas"}
-        </p>
+        <Progress value={pct} label={`Progreso de ${m.full_name}`} />
       </div>
-      <ArrowRight size={18} strokeWidth={1.75} className="mt-1 shrink-0 text-fg-subtle" />
+
+      {/* Stat strip. */}
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        <Stat icon={Check} value={m.courses_completed} label="completados" tone="text-success" />
+        <Stat icon={CircleDashed} value={m.courses_in_progress} label="en progreso" tone="text-warning" />
+        <Stat icon={Route} value={m.active_enrollments} label="rutas" tone="text-primary" />
+      </div>
+
+      <p className="mt-3 text-xs text-fg-subtle">
+        Última actividad: {formatRelativeTime(m.last_active_at)}
+      </p>
     </Link>
   );
 }
