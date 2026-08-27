@@ -25,17 +25,21 @@ import { dimensionShortName } from "@/lib/dimension-styles";
 import { isUnitLevelLocked, levelNum } from "@/lib/modulos";
 import type { LearningUnitFeed, LearningUnitFeedItem } from "@/lib/types";
 
-/** Módulos de una dimensión agrupados por nivel; bloquea (grayed) los que están
- *  por encima del nivel del colaborador. Si la dimensión tiene un solo nivel, no
- *  agrupa ni bloquea (lista plana, como antes). */
+/** Módulos de una dimensión agrupados por nivel (con divisor), chips de nivel
+ *  persistidos en la URL (`?nivel=`), y bloqueo (grayed) de los que superan el
+ *  nivel del colaborador. Un solo nivel → lista plana sin bloqueo. */
 function ModulosByLevel({
   units,
   assignedIds,
   collaboratorLevel,
+  activeLevel,
+  onSelectLevel,
 }: {
   units: LearningUnitFeedItem[];
   assignedIds: Set<string>;
   collaboratorLevel: string | null;
+  activeLevel: string | null;
+  onSelectLevel: (lvl: string | null) => void;
 }) {
   const byAssigned = (a: LearningUnitFeedItem, b: LearningUnitFeedItem) =>
     Number(assignedIds.has(b.id)) - Number(assignedIds.has(a.id));
@@ -57,9 +61,23 @@ function ModulosByLevel({
   }
 
   const noLevel = levelNum(collaboratorLevel) == null; // no evaluado → todo bloqueado
+  // `?nivel` filtra a un nivel puntual; sin él, se muestran todos (con divisor).
+  const shownLevels = activeLevel && levels.includes(activeLevel) ? [activeLevel] : levels;
 
   return (
-    <div className="mt-8 flex flex-col gap-8">
+    <div className="mt-8 flex flex-col gap-6">
+      {/* Filtro por nivel — persiste en la URL (?nivel=L2). */}
+      <div className="flex flex-wrap gap-2">
+        <Chip active={!activeLevel} onClick={() => onSelectLevel(null)}>
+          Todos
+        </Chip>
+        {levels.map((lvl) => (
+          <Chip key={lvl} active={activeLevel === lvl} onClick={() => onSelectLevel(lvl)}>
+            Nivel {lvl.replace(/^L/i, "")}
+          </Chip>
+        ))}
+      </div>
+
       {noLevel && (
         <Card className="flex items-center gap-3 bg-bg-raised">
           <Lock size={18} strokeWidth={1.75} className="shrink-0 text-fg-muted" aria-hidden />
@@ -68,12 +86,22 @@ function ModulosByLevel({
           </p>
         </Card>
       )}
-      {levels.map((lvl) => {
+
+      {shownLevels.map((lvl, i) => {
         const group = units.filter((u) => u.level_code === lvl).sort(byAssigned);
         if (group.length === 0) return null;
         return (
-          <section key={lvl}>
-            <Eyebrow className="mb-3">Nivel {lvl.replace(/^L/i, "")}</Eyebrow>
+          <section
+            key={lvl}
+            className={i > 0 ? "border-t border-border pt-6" : undefined}
+          >
+            <div className="mb-3 flex items-center gap-3">
+              <Eyebrow>Nivel {lvl.replace(/^L/i, "")}</Eyebrow>
+              <span className="rounded-full bg-bg-sunken px-2 py-0.5 font-mono text-xs text-fg-muted">
+                {group.length}
+              </span>
+              <span className="h-px flex-1 bg-border" aria-hidden />
+            </div>
             <div className="flex flex-col gap-3">
               {group.map((u) => (
                 <UnitCardCompact
@@ -95,6 +123,17 @@ function ModulosPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dimensionFilter = searchParams.get("pillar");
+  const levelParam = searchParams.get("nivel"); // "L1".."L4" o null (Todos) — persiste en la URL
+
+  const selectLevel = React.useCallback(
+    (lvl: string | null) => {
+      if (!dimensionFilter) return;
+      const p = new URLSearchParams({ pillar: dimensionFilter });
+      if (lvl) p.set("nivel", lvl);
+      router.push(`/modulos?${p.toString()}` as Route);
+    },
+    [dimensionFilter, router],
+  );
 
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [feed, setFeed] = React.useState<LearningUnitFeed | null>(null);
@@ -201,6 +240,8 @@ function ModulosPageContent() {
           units={filteredUnits}
           assignedIds={assignedIds}
           collaboratorLevel={dimLevel}
+          activeLevel={levelParam}
+          onSelectLevel={selectLevel}
         />
       )}
 
