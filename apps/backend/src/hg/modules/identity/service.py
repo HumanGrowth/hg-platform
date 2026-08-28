@@ -373,11 +373,11 @@ def create_invitation(
     db.flush()
 
     invite_url = f"{settings.app_base_url}/accept-invite?token={plain}"
-    # Email real de invitación (template oficial Invitacion Beta). Nunca rompe el
+    # Email real de invitación (template oficial formal, sin beta). Nunca rompe el
     # flujo: email_service.send loguea y devuelve status, no levanta.
     email_service.send(
         to=email,
-        subject="Tu acceso beta a HumanGrowth",
+        subject="Tu acceso a HumanGrowth ya está listo",
         template="invitation",
         context={
             "nombre": (name or "").strip() or _display_name_from_email(email),
