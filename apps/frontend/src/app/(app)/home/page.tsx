@@ -10,19 +10,15 @@ import { EmptyRing } from "@/components/EmptyRing";
 import { FactOfTheDay } from "@/components/home/FactOfTheDay";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { MiniRadar } from "@/components/radar/MiniRadar";
-import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { DimensionCard } from "@/components/shared/DimensionCard";
-import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { Progress } from "@/components/ui/progress";
 import { apiGetHomeDashboard, apiGetMyResults, apiSetOnboardingSeen } from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { DIMENSIONS } from "@/lib/dimensions";
-import { dimensionBadgeVariant, dimensionShortName } from "@/lib/dimension-styles";
 import type { HomeDashboard, DimensionResult } from "@/lib/types";
 import { cn, greetingName, isFixtureCourse } from "@/lib/utils";
 
@@ -42,7 +38,6 @@ function WidgetsSkeleton() {
 }
 
 const pct = (rate: number) => Math.round(rate * 100);
-const dimensionBadge = dimensionBadgeVariant;
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
@@ -128,8 +123,10 @@ export default function HomePage() {
       </p>
       {/* TASK 3 — copy/tone del hero: placeholder hasta el texto exacto de Andy. */}
       <div className="mt-5">
+        {/* Módulos ya no es un catálogo: abre tu siguiente módulo, así que el
+            CTA nombra la acción y no la sección. */}
         <Link href={"/modulos" as Route} className={cn(buttonVariants({ size: "lg" }))}>
-          Explorar Módulos
+          Seguir aprendiendo
           <ArrowRight size={18} strokeWidth={1.75} />
         </Link>
       </div>
@@ -154,16 +151,8 @@ export default function HomePage() {
 
       {status === "ok" && data && (
         <>
-          {/* Placeholder AI (Sprint UI · TASK 11) — arriba de todo. */}
-          <AISoonBadge
-            variant="card"
-            label="Próximamente: tu recomendación diaria"
-            dimensionCode={data.next_step?.dimension_code}
-            className="mt-8"
-          />
-
           {/* TASK 3 — Cards de dimensión (el hub por dimensión). */}
-          <section className="mt-4">
+          <section className="mt-8">
             <Eyebrow>Tus 6 dimensiones</Eyebrow>
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
               {DIMENSIONS.map((d) => (

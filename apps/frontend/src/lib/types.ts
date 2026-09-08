@@ -772,6 +772,18 @@ export interface MyBadge {
   unlocked_at: string | null;
 }
 
+/** Evento de "Tu historia" (GET /me/timeline). */
+export interface TimelineEvent {
+  kind: "diagnostic" | "dimension_started" | "unit_completed" | "badge";
+  key: string;
+  at: string;
+  title: string;
+  subtitle: string | null;
+  dimension_code: string | null;
+  career_path_code: string | null;
+  icon_url: string | null;
+}
+
 export interface ModuleAssignment {
   id: string;
   user_id: string;
@@ -813,6 +825,25 @@ export interface PathDimensionProgress {
   total: number;
 }
 
+/** Hito de la ruta: dónde se cierra un área o un nivel, y qué insignia da. */
+export interface PathMilestone {
+  kind: "area" | "level";
+  /** Unit de `next_step`/`upcoming` tras la cual se intercala el hito. */
+  after_unit_id: string;
+  title: string;
+  dimension_code: string;
+  career_path_code: string;
+  pillar_code: string | null;
+  level_code: string | null;
+  badge_code: string;
+  badge_name: string;
+  badge_icon_url: string;
+  /** Cuántas unidades faltan para llegar. */
+  units_remaining: number;
+  /** Los badges de nivel también dependen de la evaluación, no solo del contenido. */
+  requires_assessment: boolean;
+}
+
 export interface MyPath {
   current_level: string | null;
   next_step: PathStep | null;
@@ -820,6 +851,7 @@ export interface MyPath {
   completed_this_level: number;
   total_this_level: number;
   dimensions_progress: PathDimensionProgress[];
+  milestones: PathMilestone[];
 }
 
 export interface SavedTip {

@@ -150,6 +150,13 @@ export const SUB_PILLAR_NAMES: Record<string, Record<string, string>> = {
 
 export function subPillarName(dimensionCode: string | undefined, pillarCode: string): string {
   const named = dimensionCode ? SUB_PILLAR_NAMES[dimensionCode]?.[pillarCode] : undefined;
-  // Fallback: "P3" → "Pilar 3"; códigos nombrados ("AI") → "Pilar AI".
-  return named ?? `Pilar ${pillarCode.replace(/^P(?=\d)/, "")}`;
+  if (named) return named;
+  // Fallbacks por convención de código (espejo de `pillar_display_name` del
+  // backend, en `hg/modules/learning_units/pillars.py`):
+  //   "P3" → "Pilar 3" · "V1" → "Etapa V1" (dims por estado) · "AI" → nombrado.
+  const code = pillarCode.toUpperCase();
+  if (/^P\d+$/.test(code)) return `Pilar ${code.slice(1)}`;
+  if (/^V\d+$/.test(code)) return `Etapa ${code}`;
+  if (code === "AI") return "Inteligencia artificial";
+  return code || "Área";
 }

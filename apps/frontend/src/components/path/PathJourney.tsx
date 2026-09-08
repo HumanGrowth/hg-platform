@@ -5,10 +5,18 @@ import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 
+import { DimensionCatalog } from "@/components/modulos/DimensionCatalog";
 import { UnitCardHero } from "@/components/modulos/UnitCardHero";
+import { BadgeIcon } from "@/components/ui/badge-icon";
 import { apiGetModulosFeed, apiGetMyPath } from "@/lib/api";
 import { DIMENSIONS_META } from "@/lib/dimension-styles";
-import type { LearningUnitFeed, LearningUnitFeedItem, MyPath, PathStep } from "@/lib/types";
+import type {
+  LearningUnitFeed,
+  LearningUnitFeedItem,
+  MyPath,
+  PathMilestone,
+  PathStep,
+} from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const DOT: Record<string, string> = Object.fromEntries(DIMENSIONS_META.map((p) => [p.id, p.dot]));
@@ -23,6 +31,54 @@ function stepHref(s: PathStep): Route {
 
 function minutesLabel(s: PathStep): string | null {
   return s.estimated_minutes ? `${s.estimated_minutes} min` : null;
+}
+
+/** Hitos indexados por la unit tras la cual se intercalan. */
+function groupMilestones(milestones: PathMilestone[]): Map<string, PathMilestone[]> {
+  const map = new Map<string, PathMilestone[]>();
+  for (const m of milestones) {
+    const bucket = map.get(m.after_unit_id) ?? [];
+    bucket.push(m);
+    map.set(m.after_unit_id, bucket);
+  }
+  return map;
+}
+
+/**
+ * Un hito en la línea de la ruta: la insignia que ganás al llegar a ese punto.
+ * Se distingue de un paso — es una meta, no algo que se abre.
+ */
+function MilestoneRow({ milestone, last }: { milestone: PathMilestone; last: boolean }) {
+  const unitsLabel =
+    milestone.units_remaining === 1
+      ? "1 módulo más"
+      : `${milestone.units_remaining} módulos más`;
+  return (
+    <li className="motion-safe:animate-fade-in flex gap-4">
+      <div className="flex flex-col items-center">
+        <span className="mt-1.5 h-3 w-3 shrink-0 rotate-45 rounded-sm border-2 border-primary bg-bg" />
+        {!last && <span className="my-1 w-px flex-1 bg-border" aria-hidden />}
+      </div>
+      <div className="mb-3 flex min-w-0 flex-1 items-center gap-4 rounded-lg border border-dashed border-primary/40 bg-primary/[0.04] px-4 py-3">
+        <BadgeIcon
+          iconUrl={milestone.badge_icon_url}
+          name={milestone.badge_name}
+          unlocked={false}
+          size={30}
+        />
+        <div className="min-w-0">
+          <p className="font-sans text-sm font-semibold text-fg">{milestone.title}</p>
+          <p className="mt-0.5 text-xs text-fg-muted">
+            A {unitsLabel} desbloqueás la insignia{" "}
+            <span className="font-semibold text-fg">{milestone.badge_name}</span>
+            {milestone.requires_assessment
+              ? ". Esta insignia también toma en cuenta tu evaluación de la dimensión."
+              : "."}
+          </p>
+        </div>
+      </div>
+    </li>
+  );
 }
 
 export function PathJourney() {
@@ -71,6 +127,7 @@ export function PathJourney() {
 
   const { next_step, upcoming, completed_this_level, total_this_level, current_level } = data;
   const pct = total_this_level > 0 ? Math.round((completed_this_level / total_this_level) * 100) : 0;
+  const milestonesAfter = groupMilestones(data.milestones ?? []);
 
   // "Tu módulo de hoy" = el siguiente en la ruta (next_step), con la tarjeta
   // completa (thumbnail/poster) que aporta el feed. Cae al hero del feed si no matchea.
@@ -112,61 +169,58 @@ export function PathJourney() {
         </section>
       )}
 
-      {/* Timeline de próximos pasos */}
+      {/* Timeline de próximos pasos, con los hitos intercalados donde caen. */}
       {upcoming.length > 0 && (
         <section>
           <p className="mb-3 font-sans text-micro uppercase tracking-meta text-fg-muted">Sigue en tu ruta</p>
           <ol className="flex flex-col">
-            {upcoming.map((s, i) => (
-              <li key={s.unit_id} className="motion-safe:animate-fade-in flex gap-4">
-                <div className="flex flex-col items-center">
-                  <span className={cn("mt-1.5 h-3 w-3 shrink-0 rounded-full", DOT[s.career_path_code] ?? "bg-fg-subtle")} />
-                  {i < upcoming.length - 1 && <span className="my-1 w-px flex-1 bg-border" aria-hidden />}
-                </div>
-                <Link
-                  href={stepHref(s)}
-                  className="mb-3 min-w-0 flex-1 rounded-lg border border-border bg-bg-raised px-4 py-3 transition-shadow hover:shadow-md"
-                >
-                  <p className="line-clamp-1 font-sans text-sm font-semibold text-fg">{s.title}</p>
-                  <p className="mt-0.5 text-xs text-fg-muted">
-                    {dimensionName(s.career_path_code)} · {s.level_code}
-                    {minutesLabel(s) ? ` · ${minutesLabel(s)}` : ""}
-                  </p>
-                </Link>
-              </li>
-            ))}
+            {upcoming.map((s, i) => {
+              const reached = milestonesAfter.get(s.unit_id) ?? [];
+              const last = i === upcoming.length - 1 && reached.length === 0;
+              return (
+                <React.Fragment key={s.unit_id}>
+                  <li className="motion-safe:animate-fade-in flex gap-4">
+                    <div className="flex flex-col items-center">
+                      <span className={cn("mt-1.5 h-3 w-3 shrink-0 rounded-full", DOT[s.career_path_code] ?? "bg-fg-subtle")} />
+                      {!last && <span className="my-1 w-px flex-1 bg-border" aria-hidden />}
+                    </div>
+                    <Link
+                      href={stepHref(s)}
+                      className="mb-3 min-w-0 flex-1 rounded-lg border border-border bg-bg-raised px-4 py-3 transition-shadow hover:shadow-md"
+                    >
+                      <p className="line-clamp-1 font-sans text-sm font-semibold text-fg">{s.title}</p>
+                      <p className="mt-0.5 text-xs text-fg-muted">
+                        {dimensionName(s.career_path_code)} · {s.level_code}
+                        {minutesLabel(s) ? ` · ${minutesLabel(s)}` : ""}
+                      </p>
+                    </Link>
+                  </li>
+                  {reached.map((m, j) => (
+                    <MilestoneRow
+                      key={m.badge_code}
+                      milestone={m}
+                      last={i === upcoming.length - 1 && j === reached.length - 1}
+                    />
+                  ))}
+                </React.Fragment>
+              );
+            })}
           </ol>
         </section>
       )}
 
-      {/* Progreso por dimensión */}
-      {data.dimensions_progress.length > 0 && (
-        <section>
-          <p className="mb-3 font-sans text-micro uppercase tracking-meta text-fg-muted">Tus 6 dimensiones</p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {data.dimensions_progress.map((d) => {
-              const dpct = d.total > 0 ? Math.round((d.completed / d.total) * 100) : 0;
-              return (
-                <div key={d.career_path_code} className="rounded-lg border border-border bg-bg-raised p-4">
-                  <div className="flex items-center gap-2">
-                    <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", DOT[d.career_path_code] ?? "bg-fg-subtle")} />
-                    <span className="line-clamp-1 font-sans text-sm font-semibold text-fg">{d.name}</span>
-                    {d.total > 0 && d.completed === d.total && (
-                      <Check size={14} strokeWidth={2} className="ml-auto text-success" />
-                    )}
-                  </div>
-                  <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-bg-sunken">
-                    <div className="h-full rounded-full bg-primary" style={{ width: `${dpct}%` }} />
-                  </div>
-                  <p className="mt-2 text-xs text-fg-muted">
-                    {d.total === 0 ? "Próximamente" : `${d.completed} / ${d.total} completadas`}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {/* Explorá por dimensión — el catálogo completo (vivía en Módulos, que
+          ahora arranca directo tu siguiente módulo). Es también la puerta para
+          repasar un módulo ya visto. */}
+      <section>
+        <p className="mb-1 font-sans text-micro uppercase tracking-meta text-fg-muted">
+          Explorá por dimensión
+        </p>
+        <p className="mb-3 text-sm text-fg-muted">
+          Todo el contenido, dimensión por dimensión. Entrá a cualquier módulo para verlo o repasarlo.
+        </p>
+        <DimensionCatalog progressByCareerPath={data.dimensions_progress} />
+      </section>
     </div>
   );
 }

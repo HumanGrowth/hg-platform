@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { LearningUnitFeed, LearningUnitFeedItem } from "@/lib/types";
@@ -7,20 +7,18 @@ import ModulosPage from "../page";
 
 const {
   getModulosFeed,
-  listModulosByDimension,
-  getHomeDashboard,
   getMyPath,
-  getMyAssignments,
-  getMyResults,
+  getModulo,
+  getAttempt,
+  startAttempt,
   router,
   searchParams,
 } = vi.hoisted(() => ({
   getModulosFeed: vi.fn(),
-  listModulosByDimension: vi.fn(),
-  getHomeDashboard: vi.fn(),
   getMyPath: vi.fn(),
-  getMyAssignments: vi.fn(),
-  getMyResults: vi.fn(),
+  getModulo: vi.fn(),
+  getAttempt: vi.fn(),
+  startAttempt: vi.fn(),
   router: { push: vi.fn(), replace: vi.fn() },
   searchParams: { pillar: null as string | null },
 }));
@@ -32,11 +30,10 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/api", () => ({
   apiGetModulosFeed: getModulosFeed,
-  apiListModulosByDimension: listModulosByDimension,
-  apiGetHomeDashboard: getHomeDashboard,
   apiGetMyPath: getMyPath,
-  apiMyAssignments: getMyAssignments,
-  apiGetMyResults: getMyResults,
+  apiGetModulo: getModulo,
+  apiGetAttempt: getAttempt,
+  apiStartAttempt: startAttempt,
 }));
 
 const unit: LearningUnitFeedItem = {
@@ -53,49 +50,83 @@ const unit: LearningUnitFeedItem = {
 
 const feed: LearningUnitFeed = { hero: unit, next: [] };
 
+/** Detalle mínimo que consume ModuloDetailView / UnitOpeningScreen. */
+const detail = {
+  id: "u1",
+  slug: unit.slug,
+  title: unit.title,
+  dimension_code: "CP",
+  level_code: "L1",
+  estimated_duration_seconds: 300,
+  narrative_tone: null,
+  blocks: [],
+};
+
 beforeEach(() => {
   getModulosFeed.mockReset().mockResolvedValue(feed);
-  listModulosByDimension.mockReset().mockResolvedValue([unit]);
-  getHomeDashboard.mockReset().mockResolvedValue({ stats: { streak_days: 0 } });
-  // next_step null → el hero cae al hero del feed (TASK 7).
-  getMyPath.mockReset().mockResolvedValue({ next_step: null, upcoming: [] });
-  getMyAssignments.mockReset().mockResolvedValue([]);
-  getMyResults.mockReset().mockResolvedValue({ results: [] });
+  getMyPath.mockReset().mockResolvedValue({ next_step: null, upcoming: [], milestones: [] });
+  getModulo.mockReset().mockResolvedValue(detail);
+  // 404 = todavía no hay attempt (leer nunca lo crea).
+  getAttempt.mockReset().mockRejectedValue(new Error("404"));
+  startAttempt.mockReset();
   router.push.mockReset();
+  router.replace.mockReset();
   searchParams.pillar = null;
 });
 
-describe("ModulosPage", () => {
-  it("without ?pillar renders the normal hero+next feed via apiGetModulosFeed", async () => {
+describe("ModulosPage (launcher)", () => {
+  it("abre el módulo en curso: el hero in_progress gana sobre el next_step de la ruta", async () => {
+    getModulosFeed.mockResolvedValue({
+      hero: { ...unit, attempt_status: "in_progress" },
+      next: [],
+    });
+    getMyPath.mockResolvedValue({
+      next_step: { slug: "otro-modulo" },
+      upcoming: [],
+      milestones: [],
+    });
+
     render(<ModulosPage />);
-    await screen.findByText("Antes de seguir");
-    expect(getModulosFeed).toHaveBeenCalled();
-    // Sin filtro NO se muestra el chip "Filtrando"; el catálogo agrupado
-    // (DimensionCatalog) sí carga units por dimensión vía apiListModulosByDimension.
-    expect(screen.queryByText(/Filtrando:/)).toBeNull();
+
+    await waitFor(() => expect(getModulo).toHaveBeenCalledWith(unit.slug));
   });
 
-  it("with ?pillar=P1 calls apiListModulosByDimension and shows the 'Filtrando' chip", async () => {
+  it("sin módulo en curso abre el next_step de la ruta", async () => {
+    getModulosFeed.mockResolvedValue({ hero: unit, next: [] });
+    getMyPath.mockResolvedValue({
+      next_step: { slug: "siguiente-de-la-ruta" },
+      upcoming: [],
+      milestones: [],
+    });
+
+    render(<ModulosPage />);
+
+    await waitFor(() => expect(getModulo).toHaveBeenCalledWith("siguiente-de-la-ruta"));
+  });
+
+  it("NO crea ni resetea el attempt hasta que el usuario toca el CTA", async () => {
+    render(<ModulosPage />);
+
+    // La apertura del módulo llega sola; el attempt no se toca.
+    await screen.findByText("Comenzar");
+    expect(getAttempt).toHaveBeenCalledWith(unit.slug);
+    expect(startAttempt).not.toHaveBeenCalled();
+  });
+
+  it("sin nada pendiente muestra el estado 'Estás al día'", async () => {
+    getModulosFeed.mockResolvedValue({ hero: null, next: [] });
+    getMyPath.mockResolvedValue({ next_step: null, upcoming: [], milestones: [] });
+
+    render(<ModulosPage />);
+
+    await screen.findByText("Estás al día");
+    expect(getModulo).not.toHaveBeenCalled();
+  });
+
+  it("?pillar= redirige a la página de esa dimensión (el catálogo se mudó)", async () => {
     searchParams.pillar = "P1";
     render(<ModulosPage />);
-    await screen.findByText("Antes de seguir");
-    expect(listModulosByDimension).toHaveBeenCalledWith("P1", undefined, 50);
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/dimensiones/CP"));
     expect(getModulosFeed).not.toHaveBeenCalled();
-    expect(screen.getByText(/Filtrando:/)).toBeTruthy();
-  });
-
-  it("clicking the filter chip's X navigates back to /modulos", async () => {
-    searchParams.pillar = "P3";
-    render(<ModulosPage />);
-    await screen.findByText(/Filtrando:/);
-    fireEvent.click(screen.getByText(/Filtrando:/));
-    expect(router.push).toHaveBeenCalledWith("/modulos");
-  });
-
-  it("shows the pillar-specific empty state when the filtered list is empty", async () => {
-    searchParams.pillar = "P5";
-    listModulosByDimension.mockResolvedValue([]);
-    render(<ModulosPage />);
-    await screen.findByText("Todavía no hay módulos publicados para esta dimensión.");
   });
 });

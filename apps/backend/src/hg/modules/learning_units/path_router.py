@@ -1,6 +1,7 @@
 """Endpoint de "Mi Ruta" (cierre-beta TASK 1): GET /me/path."""
 from __future__ import annotations
 
+from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
@@ -26,6 +27,24 @@ class PathStepOut(BaseModel):
     estimated_minutes: int | None
 
 
+class PathMilestoneOut(BaseModel):
+    """Hito de la ruta: dónde se cierra un área o un nivel y qué insignia da.
+    ``after_unit_id`` es la unit de `next_step`/`upcoming` tras la cual va."""
+
+    kind: Literal["area", "level"]
+    after_unit_id: UUID
+    title: str
+    dimension_code: str
+    career_path_code: str
+    pillar_code: str | None
+    level_code: str | None
+    badge_code: str
+    badge_name: str
+    badge_icon_url: str
+    units_remaining: int
+    requires_assessment: bool
+
+
 class DimensionProgressOut(BaseModel):
     career_path_code: str
     name: str
@@ -40,6 +59,7 @@ class PathOut(BaseModel):
     completed_this_level: int
     total_this_level: int
     dimensions_progress: list[DimensionProgressOut]
+    milestones: list[PathMilestoneOut]
 
 
 @router.get("/path", response_model=PathOut)
@@ -55,4 +75,5 @@ def get_my_path(
         completed_this_level=r.completed_this_level,
         total_this_level=r.total_this_level,
         dimensions_progress=[DimensionProgressOut(**vars(d)) for d in r.dimensions_progress],
+        milestones=[PathMilestoneOut(**vars(m)) for m in r.milestones],
     )

@@ -16,12 +16,44 @@ function fmtDuration(sec: number | null): string | null {
   return `~${min} min`;
 }
 
+/** Qué está por pasar cuando se toca el CTA. */
+export type OpeningMode = "start" | "resume" | "review";
+
+const CTA_LABEL: Record<OpeningMode, string> = {
+  start: "Comenzar",
+  resume: "Continuar",
+  review: "Repasar",
+};
+
+const EYEBROW_NOTE: Record<OpeningMode, string | null> = {
+  start: null,
+  resume: "Seguí donde lo dejaste",
+  review: "Ya lo completaste — repasarlo vuelve a empezarlo",
+};
+
 /**
  * Pantalla de apertura de una unit (Sprint UI · TASK 10). Presenta la metáfora
  * del pilar (line-art con el hue del pilar), el nombre de la dimensión y el
  * título en display, antes de entrar al player. Reduced-motion → sin animación.
+ *
+ * Es también el punto donde el usuario decide crear o resetear su attempt: el
+ * `onStart` del caller es quien llama al backend, nunca el montaje.
  */
-export function UnitOpeningScreen({ unit, onStart }: { unit: LearningUnitDetail; onStart: () => void }) {
+export function UnitOpeningScreen({
+  unit,
+  onStart,
+  mode = "start",
+  busy = false,
+  progress,
+}: {
+  unit: LearningUnitDetail;
+  onStart: () => void;
+  mode?: OpeningMode;
+  /** CTA deshabilitado mientras se crea el attempt. */
+  busy?: boolean;
+  /** Bloques completados / totales — solo tiene sentido en "resume". */
+  progress?: { completed: number; total: number };
+}) {
   const shouldAnimate = useShouldAnimate();
   const { transition } = useNarrativeTone(unit.narrative_tone);
   const style = dimensionStyle(unit.dimension_code);
@@ -62,13 +94,18 @@ export function UnitOpeningScreen({ unit, onStart }: { unit: LearningUnitDetail;
           )}
           <h1 className="max-w-md font-display text-4xl leading-tight text-fg">{unit.title}</h1>
           <p className="font-sans text-sm text-fg-muted">
-            {steps} {steps === 1 ? "paso" : "pasos"}
+            {progress
+              ? `${progress.completed} de ${progress.total} pasos`
+              : `${steps} ${steps === 1 ? "paso" : "pasos"}`}
             {duration ? ` · ${duration}` : ""}
           </p>
+          {EYEBROW_NOTE[mode] && (
+            <p className="font-sans text-xs text-fg-subtle">{EYEBROW_NOTE[mode]}</p>
+          )}
         </div>
 
-        <Button size="lg" onClick={onStart} className="mt-2">
-          Comenzar
+        <Button size="lg" onClick={onStart} disabled={busy} className="mt-2">
+          {busy ? "Abriendo…" : CTA_LABEL[mode]}
         </Button>
       </Wrapper>
     </div>

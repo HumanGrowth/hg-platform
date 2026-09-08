@@ -10,10 +10,10 @@
   (``UserBadge``). Idempotente y **conserva el máximo** (un badge ganado no se
   pierde si el completion baja tras una reevaluación).
 
-Los **sub-badges por pilar** (6.3) quedan para un follow-up: requieren crear filas
-de catálogo ``badges`` dinámicas y ``hg_app`` solo tiene SELECT sobre ``badges``
-(las de nivel se pre-seedean en CE-04); además hoy solo la dimensión CP tiene
-contenido de aprendizaje.
+Los **sub-badges por pilar** (el "área de crecimiento" dentro de la dimensión) se
+otorgan al completar todas las units publicadas de ese ``(dimensión, pilar)``.
+Su fila de catálogo la pre-seedea el sync de contenido (``ensure_pillar_badge``),
+porque ``hg_app`` solo tiene SELECT sobre ``badges``.
 """
 from __future__ import annotations
 
@@ -36,6 +36,12 @@ from hg.modules.badges.models import (
 )
 from hg.modules.identity.models import User
 from hg.modules.learning_units.models import LearningUnit, LearningUnitAttempt
+from hg.modules.learning_units.pillars import pillar_display_name
+
+# Ícono neutro para los badges cuyo arte definitivo todavía no existe. Vive en
+# `apps/frontend/public/icons` — cuando llegue el arte real solo cambia el
+# `icon_url` de la fila, no la UI (ver `components/ui/BadgeIcon.tsx`).
+BADGE_PLACEHOLDER_ICON = "/icons/badge-placeholder.svg"
 
 # Reverso del mapeo dimensión→assessment (P1→CP, P6A/P6B→ES) para saber qué
 # dimensión de producto recalcular cuando se deriva un DimensionResult.
@@ -174,23 +180,37 @@ def pillar_badge_code(dimension_code: str, pillar_code: str) -> str:
 def ensure_pillar_badge(
     db: Session, dimension_code: str, pillar_code: str, name: str | None = None
 ) -> None:
-    """Get-or-create del Badge de catálogo de un pilar (idempotente). Lo llama el
-    sync de contenido (superadmin, con INSERT en ``badges``); el nombre del
-    sub-badge lo define el nombre del pilar (decisión Andy). hg_app no puede crear
-    acá — por eso el catálogo se pre-seedea desde el sync."""
+    """Upsert del Badge de catálogo de un pilar (idempotente). Lo llama el sync de
+    contenido (superadmin, con INSERT en ``badges``); hg_app no puede crear acá —
+    por eso el catálogo se pre-seedea desde el sync.
+
+    El nombre visible sale de ``pillar_display_name`` (el área tal como se llama
+    en la app, no ``CP · Pilar P1``). Se re-aplica en cada corrida para que el
+    sync arrastre las correcciones del registro de nombres, pero **nunca pisa un
+    ``icon_url`` ya cargado**: el arte definitivo se sube después y gana."""
     dimension_code = dimension_code.upper()
     code = pillar_badge_code(dimension_code, pillar_code)
-    if db.scalar(select(Badge).where(Badge.code == code)) is not None:
-        return
-    db.add(
-        Badge(
-            code=code,
-            name=name or f"{dimension_code} · Pilar {pillar_code}",
-            description=f"Completaste el pilar {pillar_code} de la dimensión {dimension_code}.",
-            icon_url="",
-            unlock_hint=f"Completá todas las unidades del pilar {pillar_code} de {dimension_code}.",
+    area_name = name or pillar_display_name(dimension_code, pillar_code)
+    description = f"Completaste todas las unidades del área {area_name}."
+    unlock_hint = f"Completá todas las unidades del área {area_name}."
+
+    badge = db.scalar(select(Badge).where(Badge.code == code))
+    if badge is None:
+        db.add(
+            Badge(
+                code=code,
+                name=area_name,
+                description=description,
+                icon_url=BADGE_PLACEHOLDER_ICON,
+                unlock_hint=unlock_hint,
+            )
         )
-    )
+    else:
+        badge.name = area_name
+        badge.description = description
+        badge.unlock_hint = unlock_hint
+        if not badge.icon_url:
+            badge.icon_url = BADGE_PLACEHOLDER_ICON
     db.flush()
 
 

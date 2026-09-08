@@ -7,6 +7,7 @@ from hg.modules.admin.router import router as admin_router
 from hg.modules.admin.upload_router import router as admin_upload_router
 from hg.modules.assessment.router import router as assessment_router
 from hg.modules.badges.router import me_router as badges_me_router
+from hg.modules.badges.timeline_router import router as timeline_me_router
 from hg.modules.community_events.router import admin_router as community_events_admin_router
 from hg.modules.community_events.router import public_router as community_events_public_router
 from hg.modules.company.router import admin_router as company_admin_router
@@ -75,5 +76,7 @@ router.include_router(people_admin_router, prefix="/admin", tags=["admin"])
 # Home colaborador: /me/home dashboard agregado (B3-04)
 router.include_router(me_router, prefix="/me", tags=["home"])
 router.include_router(badges_me_router, prefix="/me", tags=["badges"])
+# "Tu historia" del perfil: /me/timeline (rediseño colaborador · Parte 6)
+router.include_router(timeline_me_router, prefix="/me", tags=["badges"])
 # Motor de assessment: /assessment/sessions, /me/results, ... (B2-02/B2-03)
 router.include_router(assessment_router, prefix="/assessment", tags=["assessment"])

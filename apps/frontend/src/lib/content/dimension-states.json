@@ -1,0 +1,364 @@
+{
+  "$comment": "Capa de contenido de los estados del assessment. Se lee SOLO desde lib/dimension-insights.ts (nunca importar este JSON directo desde un componente): cuando el texto pase a generarse con IA, se reemplaza la implementación del provider y las pantallas no cambian. Claves = state_code que devuelve cada scorer del backend (hg.modules.assessment.scorers). `label` es el nombre corto del estado (el `state_label` del backend no sirve de titular: en P2/P6A/P6B guarda una frase entera). `score_insight` admite el placeholder {score}.",
+  "states": {
+    "P1": {
+      "L1": {
+        "label": "Foundation",
+        "meaning": "Estás construyendo la base de tu oficio. Ejecutás con apoyo y estás aprendiendo las reglas del juego de tu rol: cómo se hace bien el trabajo, a quién se le pregunta, qué se espera de vos.",
+        "score_insight": "Un {score} sobre 100 en Carrera marca el arranque de la escalera, no un techo. Tu nivel general lo define tu competencia más débil, así que el número sube más rápido nivelando tu punto flojo que perfeccionando lo que ya te sale.",
+        "tips": [
+          "Pedí feedback concreto sobre una entrega reciente: qué harías distinto la próxima vez.",
+          "Elegí una tarea de tu semana y hacela sin ayuda de punta a punta, aunque tardes más.",
+          "Anotá las tres preguntas que más repetís y buscá la respuesta de fondo, no la del caso."
+        ]
+      },
+      "L2": {
+        "label": "Developing",
+        "meaning": "Ya trabajás con autonomía en lo conocido. Resolvés tus tareas sin que te las expliquen dos veces, y empezás a anticipar problemas en vez de solo reaccionar a ellos.",
+        "score_insight": "Con {score} sobre 100 estás en la mitad de abajo de la escalera, que es donde más se acelera. El salto siguiente no es hacer más: es empezar a hacerte cargo de resultados, no solo de tareas.",
+        "tips": [
+          "Ofrecete para una entrega de punta a punta, con vos como responsable visible.",
+          "Antes de escalar un problema, llevá también una propuesta de solución.",
+          "Documentá algo que solo sepas vos: es el primer paso para dejar de ser cuello de botella."
+        ]
+      },
+      "L3": {
+        "label": "Applying",
+        "meaning": "Aplicás tu criterio en contextos nuevos. Ya no dependés de que el problema se parezca a uno anterior: sabés adaptar lo que sabés a situaciones que no viste antes.",
+        "score_insight": "Un {score} sobre 100 te pone en el punto donde la carrera deja de avanzar sola. De acá en adelante crece quien empieza a habilitar a otros, no quien solo mejora su propia ejecución.",
+        "tips": [
+          "Acompañá a alguien más nuevo en una tarea que vos ya dominás.",
+          "Elegí una decisión que hoy tomás por costumbre y explicitá el criterio detrás.",
+          "Buscá un problema que nadie está agarrando y proponé cómo abordarlo."
+        ]
+      },
+      "L4": {
+        "label": "Enabling",
+        "meaning": "Habilitás a otros. Tu impacto ya no se mide por lo que entregás vos, sino por lo que el equipo puede hacer gracias a cómo organizás, explicás y desbloqueás el trabajo.",
+        "score_insight": "Con {score} sobre 100 estás en la mitad de arriba. El límite acá casi nunca es técnico: es de comunicación e influencia — hacer que tu criterio llegue a quien decide.",
+        "tips": [
+          "Convertí una decisión de tu equipo en un documento corto que otros puedan seguir sin vos.",
+          "Practicá presentar un tema técnico a alguien que no comparte tu contexto.",
+          "Identificá quién toma la decisión que te afecta y construí esa relación antes de necesitarla."
+        ]
+      },
+      "L5": {
+        "label": "Advising",
+        "meaning": "Asesorás. Otros te buscan para pensar, no solo para ejecutar, y tu criterio cambia el rumbo de decisiones que no son tuyas.",
+        "score_insight": "Un {score} sobre 100 es un perfil sólido y parejo. El crecimiento acá viene de ampliar el radio: más allá de tu equipo, hacia decisiones de área u organización.",
+        "tips": [
+          "Ofrecé tu lectura en una discusión donde no te la pidieron, con datos y sin imponerla.",
+          "Elegí a una persona y hacé de su desarrollo un objetivo explícito tuyo.",
+          "Escribí tu punto de vista sobre un tema de tu especialidad y compartilo puertas afuera del equipo."
+        ]
+      },
+      "L6": {
+        "label": "Directing",
+        "meaning": "Dirigís. Marcás rumbo, no solo lo seguís: definís qué problemas vale la pena resolver y creás el contexto para que otros los resuelvan.",
+        "score_insight": "Con {score} sobre 100 llegaste a la cima de esta escala. Sostener el nivel pide algo distinto de lo que te trajo hasta acá: formar sucesores y soltar la ejecución.",
+        "tips": [
+          "Delegá completa una responsabilidad que hoy sea tuya, con autoridad real incluida.",
+          "Dedicá un bloque de la semana a pensar a doce meses, sin agenda operativa.",
+          "Preguntá a tu equipo qué decisión tuya no entienden: ahí está tu punto ciego."
+        ]
+      }
+    },
+    "P2": {
+      "Latente": {
+        "label": "Latente",
+        "meaning": "El propósito todavía no aparece en tu radar. No es una falla: es un punto de partida honesto, y muchas veces llega después de una etapa de mucho hacer y poco preguntarse para qué.",
+        "score_insight": "Un {score} sobre 100 dice que la pregunta del sentido está sin abrir, no que esté mal respondida. Lo que mueve este número no es pensar más, es probar cosas y notar cuáles te dejan distinto.",
+        "tips": [
+          "Anotá durante una semana los momentos en que perdiste la noción del tiempo.",
+          "Elegí una tarea de tu semana y hacela pensando en para quién sirve.",
+          "Conversá con alguien que admires sobre por qué hace lo que hace."
+        ]
+      },
+      "Explorador": {
+        "label": "Explorador",
+        "meaning": "Estás buscando activamente. Probás, descartás, volvés a probar. Es un estado sano e incómodo a la vez: la búsqueda ya arrancó, pero todavía no encontró dónde anclar.",
+        "score_insight": "Con {score} sobre 100 estás en plena exploración. El siguiente movimiento no es buscar más opciones sino profundizar una: el sentido aparece al comprometerse, no al comparar.",
+        "tips": [
+          "Elegí una de tus búsquedas y dale tres meses de compromiso real antes de evaluarla.",
+          "Escribí en una frase qué querés que cambie gracias a tu trabajo.",
+          "Identificá qué de lo que ya hacés te gustaría hacer más seguido."
+        ]
+      },
+      "Direccionado": {
+        "label": "Direccionado",
+        "meaning": "Tenés un norte claro. Sabés hacia dónde vas y por qué, aunque todavía no se traduzca del todo en acciones concretas o en algo que trascienda lo personal.",
+        "score_insight": "Un {score} sobre 100 refleja claridad de rumbo con la ejecución a media máquina. Lo que falta no es más certeza: es convertir la intención en un compromiso con consecuencias.",
+        "tips": [
+          "Traducí tu norte en una acción de esta semana que puedas marcar como hecha.",
+          "Contale a alguien tu propósito en voz alta: compromete y ordena.",
+          "Revisá tu agenda: si nada refleja tu norte, el norte todavía es una idea."
+        ]
+      },
+      "Integrado": {
+        "label": "Integrado",
+        "meaning": "Vivís tu propósito. No es un plan aparte de tu vida: se nota en cómo elegís, en qué decís que no y en el efecto que tiene lo que hacés más allá de vos.",
+        "score_insight": "Con {score} sobre 100 el propósito ya es una brújula funcionando. El riesgo de este estado no es perderlo sino congelarlo: los propósitos también se revisan.",
+        "tips": [
+          "Ayudá a otra persona a encontrar el suyo: enseñarlo lo afila.",
+          "Revisá una vez por trimestre si tu norte sigue siendo el mismo.",
+          "Identificá una decisión reciente que contradijo tu propósito y entendé por qué."
+        ]
+      }
+    },
+    "P3": {
+      "N1": {
+        "label": "Aislamiento",
+        "meaning": "Tus vínculos están en un momento de aislamiento. Puede ser por una etapa, por un cambio de contexto o por costumbre, pero hoy hay poca gente a quien recurrir cuando hace falta.",
+        "score_insight": "Un {score} sobre 100 en Relaciones no habla de tu capacidad de vincularte, sino de tu red hoy. Es la dimensión que más rápido se mueve: una conversación por semana ya cambia el número.",
+        "tips": [
+          "Escribile a una persona con la que perdiste contacto, sin motivo ni excusa.",
+          "Aceptá la próxima invitación aunque tu primer impulso sea decir que no.",
+          "Pedí ayuda concreta en algo chico: es la forma más simple de abrir un vínculo."
+        ]
+      },
+      "N2": {
+        "label": "Funcional",
+        "meaning": "Tus relaciones funcionan. Tenés con quién trabajar y con quién contar para lo práctico, pero la conversación rara vez pasa de lo que hay que resolver.",
+        "score_insight": "Con {score} sobre 100 tenés una red que sostiene lo cotidiano. Lo que la lleva al siguiente nivel no es sumar gente: es profundizar con la que ya está.",
+        "tips": [
+          "Agendá una conversación con alguien del equipo que no sea sobre trabajo.",
+          "Compartí algo que te esté costando: la vulnerabilidad calibrada abre puertas.",
+          "Agradecé de forma específica a alguien que te ayudó, diciendo exactamente qué hizo."
+        ]
+      },
+      "N3": {
+        "label": "Integrado",
+        "meaning": "Estás integrado. Tenés vínculos de confianza reales, gente que te busca y a la que buscás, y una sensación clara de pertenecer a algo.",
+        "score_insight": "Un {score} sobre 100 es una red sólida. El paso siguiente cambia de rol: pasar de tener buenos vínculos a generar vínculos entre otros.",
+        "tips": [
+          "Presentá a dos personas de tu red que se necesiten y no se conocen.",
+          "Ofrecé ayuda a alguien antes de que te la pida.",
+          "Sostené un espacio recurrente de conversación, aunque sea de treinta minutos."
+        ]
+      },
+      "N4": {
+        "label": "Generativo",
+        "meaning": "Sos un conector. Tu red no solo te sostiene a vos: hacés que otros se encuentren, y eso multiplica el impacto de todo lo demás que hacés.",
+        "score_insight": "Con {score} sobre 100 estás en el techo de esta escala. El desafío es de sostenibilidad: conectar a otros consume energía y hay que cuidarla.",
+        "tips": [
+          "Identificá a quién estás sosteniendo y chequeá que no te esté vaciando.",
+          "Formalizá algo de lo que ya hacés informalmente: una mentoría, un espacio, un ritual.",
+          "Dejá espacio en tu agenda para conversaciones sin agenda."
+        ]
+      }
+    },
+    "P4": {
+      "E1": {
+        "label": "Precontemplación",
+        "meaning": "Estás en precontemplación: el cuidado de tu salud todavía no es un tema abierto. No hay intención de cambiar nada, y muchas veces eso convive con señales que ya están apareciendo.",
+        "score_insight": "Un {score} sobre 100 en Salud refleja la etapa de cambio en la que estás, no cuán sano sos. En esta etapa lo que mueve la aguja es información, no disciplina.",
+        "tips": [
+          "Anotá durante tres días cómo dormís, qué comés y cuánto te movés, sin cambiar nada.",
+          "Preguntate qué te está costando hoy que hace un año no te costaba.",
+          "Hacete el chequeo médico que venís posponiendo."
+        ]
+      },
+      "E2": {
+        "label": "Contemplación",
+        "meaning": "Estás en contemplación: ya ves el tema y lo pensás, pero el cambio todavía no arranca. Es la etapa de la ambivalencia — querés y no querés al mismo tiempo, y las dos cosas son ciertas.",
+        "score_insight": "Con {score} sobre 100 estás a un paso del movimiento. Lo que desbloquea esta etapa no es más voluntad: es resolver la pregunta de qué ganás si cambiás.",
+        "tips": [
+          "Escribí qué ganás si cambiás y qué perdés si no: los dos lados, honestos.",
+          "Elegí un solo hábito. Uno. El que más te destrabaría el resto.",
+          "Poné fecha de inicio, aunque sea dentro de dos semanas."
+        ]
+      },
+      "E3": {
+        "label": "Preparación",
+        "meaning": "Estás en preparación: decidiste que sí y estás organizando el cómo. Es la etapa más frágil, porque la motivación es alta y el hábito todavía no existe.",
+        "score_insight": "Un {score} sobre 100 dice que estás listo para empezar. El error clásico de esta etapa es arrancar demasiado grande: el hábito se construye por tamaño chico y repetición, no por intensidad.",
+        "tips": [
+          "Achicá tu primer paso hasta que sea imposible fallarlo: cinco minutos, una cuadra, un vaso.",
+          "Anclalo a algo que ya hacés todos los días, a la misma hora.",
+          "Preparate el entorno hoy para que mañana no dependa de tus ganas."
+        ]
+      },
+      "E4": {
+        "label": "Acción",
+        "meaning": "Estás en acción: el cambio ya está pasando y se sostiene hace poco. Es real y todavía no es automático, así que depende de que sigas eligiéndolo.",
+        "score_insight": "Con {score} sobre 100 el hábito está vivo pero no consolidado. La estadística de esta etapa es dura: la mayoría de las recaídas pasan acá, casi siempre por interrupciones de rutina.",
+        "tips": [
+          "Definí de antemano tu plan para el día que se rompa la rutina: viaje, enfermedad, semana pico.",
+          "Llevá registro visible: la racha sostiene cuando la motivación baja.",
+          "Contale a alguien que lo estás haciendo y pedile que te pregunte."
+        ]
+      },
+      "E5": {
+        "label": "Mantenimiento",
+        "meaning": "Estás en mantenimiento: el hábito ya es parte de cómo vivís. No pensás si hacerlo, lo hacés, y cuesta más no hacerlo que hacerlo.",
+        "score_insight": "Un {score} sobre 100 es el techo de esta escala. Mantenerlo consume mucha menos energía que construirlo — esa energía libre es la que podés poner en otro dominio.",
+        "tips": [
+          "Elegí el próximo dominio: sueño, movimiento, alimentación o descanso mental.",
+          "Revisá que el hábito no se haya vuelto rígido: sostenible es flexible.",
+          "Compartí cómo lo lograste con alguien que esté en preparación."
+        ]
+      }
+    },
+    "P5": {
+      "N1": {
+        "label": "Reactivo",
+        "meaning": "Estás en modo reactivo. El ruido mental manda: las emociones llegan y te llevan puesto antes de que puedas elegir qué hacer con ellas.",
+        "score_insight": "Un {score} sobre 100 en Paz interior habla de la distancia entre lo que te pasa y cómo reaccionás. Es una distancia que se entrena, y los primeros minutos de práctica son los que más rinden.",
+        "tips": [
+          "Probá cinco minutos de respiración consciente antes de tu primera reunión.",
+          "Cuando algo te dispare, nombrá la emoción en voz baja antes de responder.",
+          "Escribí el pensamiento que más te vuelve: sacarlo de la cabeza le baja el volumen."
+        ]
+      },
+      "N2": {
+        "label": "Consciente",
+        "meaning": "Sos consciente. Ya notás lo que te pasa mientras te pasa, aunque todavía no siempre puedas hacer algo distinto con eso.",
+        "score_insight": "Con {score} sobre 100 tenés la parte difícil resuelta: darte cuenta. Lo que sigue es la pausa — el segundo entre notar y reaccionar, que es donde vive la elección.",
+        "tips": [
+          "Practicá la pausa: respirá una vez completa antes de contestar algo que te movió.",
+          "Identificá tus tres disparadores más frecuentes y anticipá qué vas a hacer.",
+          "Reservá veinte minutos sin pantallas para simplemente pensar."
+        ]
+      },
+      "N3": {
+        "label": "Regulado",
+        "meaning": "Estás regulado. Gestionás lo que sentís sin que te desborde y volvés al eje con relativa rapidez, incluso en semanas difíciles.",
+        "score_insight": "Un {score} sobre 100 es una base sólida. El siguiente nivel no es más control sino más flexibilidad: elegir la respuesta según el contexto, no aplicar siempre la misma.",
+        "tips": [
+          "Probá responder distinto a una situación que siempre manejás igual.",
+          "Chequeá que regular no se te haya vuelto suprimir: sentir también es parte.",
+          "Sostené una práctica regular, aunque sea corta, en las semanas buenas."
+        ]
+      },
+      "N4": {
+        "label": "Flexible",
+        "meaning": "Sos flexible. Elegís cómo responder según lo que la situación pide, sostenés la incomodidad sin taparla y volvés al eje sin esfuerzo visible.",
+        "score_insight": "Con {score} sobre 100 estás en el techo de esta escala. Lo que sostiene este estado es la práctica, no el logro: se mantiene mientras se ejercita.",
+        "tips": [
+          "Acompañá a alguien que esté en modo reactivo: enseñar consolida.",
+          "Buscá una situación que te incomode a propósito, en dosis chicas.",
+          "Protegé tu práctica en las semanas donde parece que no la necesitás."
+        ]
+      }
+    },
+    "P6A": {
+      "Baja": {
+        "label": "Baja",
+        "meaning": "Hoy te está costando recuperarte de los golpes. La adversidad deja marca por más tiempo y cuesta encontrar el punto de apoyo para volver.",
+        "score_insight": "Un {score} sobre 100 en resiliencia es una foto del momento, no un rasgo fijo. Es de las cosas que más responden al entorno: red de apoyo, descanso y sensación de control.",
+        "tips": [
+          "Identificá a una persona a la que puedas contarle cómo estás de verdad.",
+          "Bajá una exigencia esta semana: recuperar capacidad pide margen.",
+          "Anotá una situación difícil que ya superaste antes y cómo lo hiciste."
+        ]
+      },
+      "Media": {
+        "label": "Media",
+        "meaning": "Tu resiliencia es funcional. Te recuperás de lo que pasa, aunque la consistencia se cae cuando la presión se sostiene en el tiempo.",
+        "score_insight": "Con {score} sobre 100 aguantás bien los golpes puntuales. Lo que falta afinar es la presión larga: ahí lo que decide no es la fuerza sino la recuperación entre rounds.",
+        "tips": [
+          "Definí tu señal de alerta temprana y qué vas a hacer cuando aparezca.",
+          "Protegé un espacio de recuperación real en la semana, no negociable.",
+          "Después de algo difícil, escribí qué aprendiste antes de pasar a lo siguiente."
+        ]
+      },
+      "Alta": {
+        "label": "Alta",
+        "meaning": "Te adaptás, aprendés del fracaso y sostenés el foco bajo presión. La adversidad te mueve pero no te define.",
+        "score_insight": "Un {score} sobre 100 es un recurso poco común. El riesgo de este estado es usarlo de más: aguantar mucho puede volverse una razón para no cambiar lo que hace falta cambiar.",
+        "tips": [
+          "Revisá qué estás aguantando que en realidad habría que resolver.",
+          "Prestá tu resiliencia: acompañá a alguien que esté en un momento difícil.",
+          "Chequeá tu descanso: la alta resiliencia a veces tapa el cansancio."
+        ]
+      }
+    },
+    "P6B": {
+      "Frágil": {
+        "label": "Frágil",
+        "meaning": "Tu situación financiera no tiene colchón. Un imprevisto de tamaño mediano se convierte en un problema grande, y eso ocupa espacio mental todos los días.",
+        "score_insight": "Un {score} sobre 100 en bienestar financiero mide margen, no ingresos. El primer salto de este número casi nunca viene de ganar más: viene de tener visibilidad y un colchón mínimo.",
+        "tips": [
+          "Anotá todos tus gastos durante dos semanas, sin juzgarlos.",
+          "Definí un colchón chico y realista, y automatizá el primer aporte.",
+          "Revisá un gasto fijo y evaluá si todavía tiene sentido."
+        ]
+      },
+      "Vulnerable": {
+        "label": "Vulnerable",
+        "meaning": "Cubrís lo básico pero sin margen. Llegás, y al mismo tiempo cualquier desvío del plan te obliga a reacomodar todo.",
+        "score_insight": "Con {score} sobre 100 tenés el piso resuelto y el margen pendiente. Lo que cambia este estado es la constancia de un aporte chico, no un movimiento grande.",
+        "tips": [
+          "Llevá tu colchón a un mes de gastos, aunque tarde varios meses.",
+          "Automatizá el ahorro para el día que cobrás, no para el que sobra.",
+          "Identificá tu mayor riesgo financiero y qué haría falta para cubrirlo."
+        ]
+      },
+      "Estable": {
+        "label": "Estable",
+        "meaning": "Cubrís tus necesidades, tenés colchón y podés proyectar a futuro. Lo financiero dejó de ser una fuente de ruido cotidiano.",
+        "score_insight": "Un {score} sobre 100 es el techo de esta escala. De acá en adelante la conversación cambia: deja de ser cómo llego y pasa a ser para qué me sirve esto.",
+        "tips": [
+          "Definí un objetivo a tres años y qué aporte mensual lo hace posible.",
+          "Revisá tu cobertura ante los riesgos grandes, no solo los cotidianos.",
+          "Conectá tus decisiones financieras con tu propósito: para qué querés ese margen."
+        ]
+      }
+    }
+  },
+  "combined": {
+    "ES": {
+      "score_insight": "Tu {score} sobre 100 en Estabilidad es el promedio de tus dos frentes. Miralos por separado: casi siempre uno sostiene al otro, y el que va más atrás es el que define cómo te sentís cuando aparece un imprevisto."
+    }
+  },
+  "not_evaluated": {
+    "CP": {
+      "meaning": "Todavía no evaluaste Carrera e impacto. Tu nivel en esta dimensión se define por tu competencia más débil, así que la evaluación no busca un promedio: busca tu cuello de botella.",
+      "score_insight": "Sin evaluación no hay score que interpretar. La evaluación de Carrera toma unos minutos y devuelve tu nivel más la competencia puntual que te está frenando.",
+      "tips": [
+        "Hacé la evaluación de Carrera para ver tu nivel y tu cuello de botella.",
+        "Mientras tanto, anotá tus tres logros del último trimestre y qué aprendiste de cada uno."
+      ]
+    },
+    "PR": {
+      "meaning": "Todavía no evaluaste Propósito y significado. Esta dimensión no mide cuán motivado estás hoy, sino qué tan conectado está lo que hacés con algo que te importa.",
+      "score_insight": "Sin evaluación no hay score que interpretar. Son pocas preguntas y ubican en qué punto de la búsqueda estás: sin abrirla, explorando, con norte o viviéndola.",
+      "tips": [
+        "Hacé la evaluación de Propósito para ubicar tu punto de partida.",
+        "Mientras tanto, escribí en una frase qué querés que cambie gracias a tu trabajo."
+      ]
+    },
+    "RE": {
+      "meaning": "Todavía no evaluaste Relaciones y conexión. Esta dimensión mira la calidad de tus vínculos y qué tan sostenido te sentís por ellos.",
+      "score_insight": "Sin evaluación no hay score que interpretar. Es de las dimensiones que más rápido se mueven, así que conviene medirla para tener con qué comparar más adelante.",
+      "tips": [
+        "Hacé la evaluación de Relaciones para ver dónde estás parado.",
+        "Mientras tanto, escribile a una persona con la que perdiste contacto."
+      ]
+    },
+    "SA": {
+      "meaning": "Todavía no evaluaste Salud y bienestar. Esta dimensión no mide cuán sano sos: mide en qué etapa de cambio estás con tus hábitos.",
+      "score_insight": "Sin evaluación no hay score que interpretar. Saber tu etapa importa porque lo que funciona en una no funciona en otra: informarse, decidir, arrancar chico o sostener.",
+      "tips": [
+        "Hacé la evaluación de Salud para ubicar tu etapa de cambio.",
+        "Mientras tanto, registrá tres días de sueño, movimiento y comidas sin cambiar nada."
+      ]
+    },
+    "PI": {
+      "meaning": "Todavía no evaluaste Paz interior y claridad. Esta dimensión mira la distancia entre lo que te pasa y cómo reaccionás.",
+      "score_insight": "Sin evaluación no hay score que interpretar. Son pocas preguntas y ubican tu forma habitual de gestionar el ruido mental.",
+      "tips": [
+        "Hacé la evaluación de Paz interior para ver tu punto de partida.",
+        "Mientras tanto, probá cinco minutos de respiración consciente antes de tu primera reunión."
+      ]
+    },
+    "ES": {
+      "meaning": "Todavía no evaluaste Estabilidad emocional y material. Esta dimensión se compone de dos cosas distintas: tu resiliencia ante la adversidad y tu margen financiero.",
+      "score_insight": "Sin evaluación no hay score que interpretar. Se evalúan por separado porque suelen ir a distinta velocidad, y verlas juntas explica mejor tu sensación de base firme.",
+      "tips": [
+        "Hacé la evaluación de Estabilidad para ver tus dos frentes por separado.",
+        "Mientras tanto, anotá qué te dio seguridad esta semana frente a un imprevisto."
+      ]
+    }
+  }
+}

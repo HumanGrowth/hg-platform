@@ -43,6 +43,7 @@ import type {
   Me,
   MeWidgets,
   MyBadge,
+  TimelineEvent,
   Org,
   OrgMetrics,
   OrgWidgets,
@@ -462,6 +463,11 @@ export const apiConfirmResult = async (pillar: AssessmentDimensionCode): Promise
 };
 
 /** Catálogo de badges + estado de desbloqueo del usuario (Sprint Tarde · TASK 4). */
+export const apiGetMyTimeline = async (): Promise<TimelineEvent[]> => {
+  const res = await backend.get<TimelineEvent[]>("/api/v1/me/timeline");
+  return res.data;
+};
+
 export const apiGetMyBadges = async (): Promise<MyBadge[]> => {
   const res = await backend.get<MyBadge[]>("/api/v1/me/badges");
   return res.data;

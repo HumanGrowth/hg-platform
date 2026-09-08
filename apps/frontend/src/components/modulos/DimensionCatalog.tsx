@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiListModulosByDimension } from "@/lib/api";
 import { DIMENSIONS, type DimensionMeta } from "@/lib/modulos";
 import { subPillarName } from "@/lib/dimension-styles";
-import type { LearningUnitFeedItem } from "@/lib/types";
+import type { LearningUnitFeedItem, PathDimensionProgress } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 /** El pilar AI (Foundation) siempre va último; el resto por orden natural. */
@@ -36,9 +36,20 @@ function groupByDimension(units: LearningUnitFeedItem[]): Map<string, LearningUn
  * Catálogo por Dimensión → Pilar → Unidades (TASK 1 · pulido). Master-detail:
  * las dimensiones en una columna a la izquierda; al elegir uno, sus módulos se
  * muestran a la derecha (en mobile: pilares como fila arriba, módulos debajo).
- * Hoy solo existe la dimensión CP; es extensible vía el registro DIMENSIONS.
+ * Es extensible vía el registro DIMENSIONS.
+ *
+ * Vive en Mi Ruta ("Explorá por dimensión"): Módulos dejó de ser un catálogo y
+ * ahora arranca directo el siguiente módulo de tu ruta, así que esta es también
+ * la puerta para volver a un módulo ya visto.
+ *
+ * `progressByCareerPath` es opcional y viene de `GET /me/path`: reemplaza a las
+ * barras de "Tus 6 dimensiones" que este bloque sustituyó, para no perder ese dato.
  */
-export function DimensionCatalog() {
+export function DimensionCatalog({
+  progressByCareerPath,
+}: {
+  progressByCareerPath?: PathDimensionProgress[];
+} = {}) {
   const [byDimension, setByDimension] = React.useState<Record<string, LearningUnitFeedItem[]>>({});
   const [status, setStatus] = React.useState<"loading" | "ok">("loading");
 
@@ -63,6 +74,10 @@ export function DimensionCatalog() {
   const dimensionsWithUnits = DIMENSIONS.filter((d) => (byDimension[d.code]?.length ?? 0) > 0);
   if (dimensionsWithUnits.length === 0) return null;
 
+  const progressByPillar = new Map(
+    (progressByCareerPath ?? []).map((p) => [p.career_path_code, p]),
+  );
+
   return (
     <Tabs defaultValue={dimensionsWithUnits[0].code}>
       {/* Tabs horizontales — una dimensión por tab; scrollean en mobile. */}
@@ -81,21 +96,48 @@ export function DimensionCatalog() {
       </TabsList>
       {dimensionsWithUnits.map((dim) => (
         <TabsContent key={dim.code} value={dim.code}>
-          <DimensionSection units={byDimension[dim.code]} />
+          <DimensionSection
+            units={byDimension[dim.code]}
+            progress={progressByPillar.get(dim.pillar)}
+          />
         </TabsContent>
       ))}
     </Tabs>
   );
 }
 
-function DimensionSection({ units }: { units: LearningUnitFeedItem[] }) {
+function DimensionSection({
+  units,
+  progress,
+}: {
+  units: LearningUnitFeedItem[];
+  progress?: PathDimensionProgress;
+}) {
   const groups = React.useMemo(() => groupByDimension(units), [units]);
   const pillars = React.useMemo(() => [...groups.keys()], [groups]);
   const [selected, setSelected] = React.useState<string>(pillars[0] ?? "");
   const current = groups.get(selected) ?? [];
+  const pct =
+    progress && progress.total > 0
+      ? Math.round((progress.completed / progress.total) * 100)
+      : null;
 
   return (
     <section className="flex flex-col gap-4">
+      {/* Progreso de la dimensión — lo que antes mostraba "Tus 6 dimensiones". */}
+      {pct !== null && progress && (
+        <div>
+          <div className="mb-1.5 flex items-center justify-between text-xs">
+            <span className="font-sans font-semibold text-fg">Tu progreso</span>
+            <span className="text-fg-muted tabular-nums">
+              {progress.completed} / {progress.total} completadas
+            </span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-bg-sunken">
+            <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+      )}
       {/* Sin header de dimensión: el tab ya muestra su badge + nombre. Acá solo
           los pilares + los módulos por pilar. */}
       <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
