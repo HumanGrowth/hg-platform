@@ -5,14 +5,16 @@ import { DimensionDetail } from "../DimensionDetail";
 import { dimensionByCode } from "@/lib/dimensions";
 import type { LearningUnitFeedItem, DimensionResult } from "@/lib/types";
 
-const { getMyResults, listModulosByDimension } = vi.hoisted(() => ({
+const { getMyResults, listModulosByDimension, getMyBadges } = vi.hoisted(() => ({
   getMyResults: vi.fn(),
   listModulosByDimension: vi.fn(),
+  getMyBadges: vi.fn(),
 }));
 
 vi.mock("@/lib/api", () => ({
   apiGetMyResults: getMyResults,
   apiListModulosByDimension: listModulosByDimension,
+  apiGetMyBadges: getMyBadges,
 }));
 
 const result: DimensionResult = {
@@ -47,6 +49,8 @@ describe("DimensionDetail", () => {
   beforeEach(() => {
     getMyResults.mockReset();
     listModulosByDimension.mockReset();
+    getMyBadges.mockReset();
+    getMyBadges.mockResolvedValue([]);
   });
 
   it("renders header, score, state label and units for a dimension with content (CP)", async () => {
@@ -56,9 +60,17 @@ describe("DimensionDetail", () => {
     render(<DimensionDetail dimension={dimensionByCode("CP")!} />);
 
     expect(screen.getByText("Carrera e impacto")).toBeTruthy();
-    // Aparece 2 veces: en el hero de progreso y en el historial.
+    // Aparece 2 veces: en la tarjeta de estado y en el historial.
     await waitFor(() => expect(screen.getAllByText("En construcción").length).toBeGreaterThan(0));
-    expect(screen.getByText("Antes de seguir")).toBeTruthy();
+    // La tarjeta de estado explica qué significa el estado (registro de contenido,
+    // resuelto por el provider async `getDimensionInsight`).
+    expect(await screen.findByText("Qué significa")).toBeTruthy();
+    expect(screen.getByText("Tus próximos pasos")).toBeTruthy();
+    // El área se presenta como tarjeta con su nombre y sus temas.
+    expect(screen.getByText("Adaptabilidad de aprendizaje")).toBeTruthy();
+    const tema = screen.getByText("Antes de seguir");
+    // Los temas son informativos: no navegan al módulo.
+    expect(tema.closest("a")).toBeNull();
     // Reevaluar apunta al flujo de assessment por dimensión.
     const reeval = screen.getByText("Reevaluar").closest("a") as HTMLAnchorElement;
     expect(reeval.getAttribute("href")).toBe("/onboarding/detail/P1");
@@ -76,6 +88,6 @@ describe("DimensionDetail", () => {
     // Sin evaluación previa → CTA "Evaluar" hacia el careerPath de RE (P3).
     const cta = screen.getByText("Evaluar").closest("a") as HTMLAnchorElement;
     expect(cta.getAttribute("href")).toBe("/onboarding/detail/P3");
-    expect(screen.getByText("Todavía no evaluaste esta dimensión")).toBeTruthy();
+    expect(await screen.findByText("Todavía no evaluaste esta dimensión")).toBeTruthy();
   });
 });

@@ -4,9 +4,9 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 
 export const metadata = { title: "Mi Ruta — Human Growth" };
 
-// Mi Ruta (cierre-beta TASK 1): learning path guiado — un "próximo paso"
-// recomendado + timeline + progreso por nivel y dimensión, desde el motor
-// GET /me/path. Reemplaza los 6 carriles por dimensión (PathLanes).
+// Mi Ruta: learning path guiado — un "próximo paso" recomendado + timeline con
+// los hitos (insignias de área y de nivel) + el catálogo "Explorá por
+// dimensión", que se mudó acá desde Módulos. Todo sale de GET /me/path.
 export default function PathPage() {
   return (
     <div className="mx-auto max-w-app px-6 py-10">

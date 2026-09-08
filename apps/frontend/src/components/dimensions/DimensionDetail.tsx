@@ -1,77 +1,51 @@
 "use client";
 
-import { ArrowRight, ChevronDown, FileText, Lock, RefreshCw } from "lucide-react";
+import { ArrowRight, FileText } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 
+import { AreaCard, areaBadgeCode } from "@/components/dimensions/AreaCard";
+import { DimensionStateCard } from "@/components/dimensions/DimensionStateCard";
 import { DimensionMetaphor } from "@/components/modulos/DimensionMetaphor";
-import { UnitCardCompact } from "@/components/modulos/UnitCardCompact";
 import { EmptyRing } from "@/components/EmptyRing";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { HexIcon } from "@/components/ui/hex-icon";
-import { Progress } from "@/components/ui/progress";
-import { apiGetMyResults, apiListModulosByDimension } from "@/lib/api";
+import { apiGetMyBadges, apiGetMyResults, apiListModulosByDimension } from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import type { Dimension } from "@/lib/dimensions";
 import { dimensionStyle, subPillarName } from "@/lib/dimension-styles";
-import { isUnitLevelLocked } from "@/lib/modulos";
-import type { LearningUnitFeedItem, DimensionResult } from "@/lib/types";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import type { DimensionResult, LearningUnitFeedItem, MyBadge } from "@/lib/types";
+import { formatRelativeTime } from "@/lib/utils";
 
 /** El pilar AI (Foundation) siempre va último; el resto por orden natural. */
 function pillarRank(code: string): number {
   return code === "AI" ? 1 : 0;
 }
 
-/** Count-up de 0 al valor final (respeta reduced-motion → salta al final). */
-function useCountUp(target: number, durationMs = 900): number {
-  const [value, setValue] = React.useState(0);
-  React.useEffect(() => {
-    if (typeof window === "undefined") {
-      setValue(target);
-      return;
-    }
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      setValue(target);
-      return;
-    }
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / durationMs);
-      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
-      setValue(Math.round(target * eased));
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, durationMs]);
-  return value;
-}
-
 export function DimensionDetail({ dimension }: { dimension: Dimension }) {
   const style = dimensionStyle(dimension.careerPath);
   const [results, setResults] = React.useState<DimensionResult[] | null>(null);
   const [units, setUnits] = React.useState<LearningUnitFeedItem[]>([]);
+  const [badges, setBadges] = React.useState<MyBadge[]>([]);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const [res, unitList] = await Promise.all([
+      const [res, unitList, myBadges] = await Promise.all([
         apiGetMyResults().then((r) => r.results).catch(() => [] as DimensionResult[]),
         dimension.hasContent
           ? apiListModulosByDimension(dimension.careerPath, undefined, 50).catch(() => [])
           : Promise.resolve([] as LearningUnitFeedItem[]),
+        apiGetMyBadges().catch(() => [] as MyBadge[]),
       ]);
       setResults(res);
       setUnits(unitList);
+      setBadges(myBadges);
       setStatus("ok");
     } catch {
       setStatus("error");
@@ -89,7 +63,6 @@ export function DimensionDetail({ dimension }: { dimension: Dimension }) {
   const result =
     results?.find((r) => r.dimension_code === dimension.assessmentDimension) ??
     results?.find((r) => r.dimension_code.startsWith(dimension.careerPath));
-  const hasEvaluated = Boolean(result);
 
   return (
     <main className="mx-auto w-full max-w-app px-6 pb-16">
@@ -140,19 +113,15 @@ export function DimensionDetail({ dimension }: { dimension: Dimension }) {
 
       {status === "ok" && (
         <>
-          <ProgressHero
+          <DimensionStateCard
             dimension={dimension}
             score={score}
+            results={results ?? []}
             result={result}
-            hasEvaluated={hasEvaluated}
           />
 
           {dimension.hasContent ? (
-            <AreasSection
-              dimension={dimension}
-              units={units}
-              collaboratorLevel={result?.state_code ?? null}
-            />
+            <AreasSection dimension={dimension} units={units} badges={badges} />
           ) : (
             <Card className="mt-8 flex flex-col items-center gap-2 py-12 text-center">
               <p className="font-sans text-md font-semibold text-fg">
@@ -173,53 +142,6 @@ export function DimensionDetail({ dimension }: { dimension: Dimension }) {
   );
 }
 
-// ─────────────────────────── Progress hero ───────────────────────────
-
-function ProgressHero({
-  dimension,
-  score,
-  result,
-  hasEvaluated,
-}: {
-  dimension: Dimension;
-  score: number;
-  result: DimensionResult | undefined;
-  hasEvaluated: boolean;
-}) {
-  const animated = useCountUp(score);
-  return (
-    <Card className="mt-6 flex flex-col gap-5 bg-bg-raised">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <Eyebrow>Tu estado actual</Eyebrow>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span className="font-mono text-5xl font-semibold text-fg tabular-nums">{animated}</span>
-            <span className="text-lg text-fg-muted">/ 100</span>
-          </div>
-          {result ? (
-            <p className="mt-1 text-sm font-semibold text-primary">{result.state_label}</p>
-          ) : (
-            <p className="mt-1 text-sm text-fg-muted">Todavía no evaluaste esta dimensión</p>
-          )}
-        </div>
-        <Link
-          href={`/onboarding/detail/${dimension.assessmentDimension}` as Route}
-          className={cn(buttonVariants({ size: "lg" }), "shrink-0")}
-        >
-          <RefreshCw size={18} strokeWidth={1.75} />
-          {hasEvaluated ? "Reevaluar" : "Evaluar"}
-        </Link>
-      </div>
-      <Progress value={score} label={`Progreso ${dimension.name}`} />
-      {result && (
-        <p className="text-xs text-fg-muted">
-          Última evaluación · {formatRelativeTime(result.derived_at)}
-        </p>
-      )}
-    </Card>
-  );
-}
-
 // ─────────────────────── Áreas de Crecimiento (por pilar) ───────────────────────
 
 /** "L1" → "Nivel 1" (consistente con la página de Módulos). */
@@ -227,18 +149,25 @@ function levelLabel(code: string): string {
   return `Nivel ${code.replace(/^L/, "")}`;
 }
 
+/**
+ * Las áreas de crecimiento de la dimensión, una tarjeta por pilar.
+ *
+ * Las unidades se listan como TEMAS del área, sin link: el acceso al contenido
+ * vive en Módulos (arranca el siguiente de tu ruta) y en el catálogo de Mi Ruta
+ * (para repasar). Por eso acá tampoco hay bloqueo por nivel — no hay nada que
+ * bloquear, solo información.
+ */
 function AreasSection({
   dimension,
   units,
-  collaboratorLevel,
+  badges,
 }: {
   dimension: Dimension;
   units: LearningUnitFeedItem[];
-  /** state_code del assessment (L1..L4 en Carrera) → bloqueo por nivel. null = no evaluado. */
-  collaboratorLevel: string | null;
+  badges: MyBadge[];
 }) {
   // Filtro por nivel data-driven: solo aparece si los units de ESTA dimensión
-  // abarcan más de un nivel (hoy solo Carrera lo hace; se auto-adapta al contenido).
+  // abarcan más de un nivel (se auto-adapta al contenido publicado).
   const availableLevels = React.useMemo(
     () => [...new Set(units.map((u) => u.level_code))].sort(),
     [units],
@@ -265,10 +194,20 @@ function AreasSection({
     );
   }, [shownUnits]);
 
+  const badgeByCode = React.useMemo(
+    () => new Map(badges.map((b) => [b.code, b])),
+    [badges],
+  );
+
   return (
     <section className="mt-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Eyebrow>Áreas de Crecimiento</Eyebrow>
+        <div>
+          <Eyebrow>Áreas de Crecimiento</Eyebrow>
+          <p className="mt-1 text-sm text-fg-muted">
+            Cada área tiene su insignia. Se desbloquea al completar todos sus temas.
+          </p>
+        </div>
         {availableLevels.length > 1 && (
           <div className="flex flex-wrap gap-2">
             <Chip active={level === null} onClick={() => setLevel(null)}>
@@ -282,114 +221,28 @@ function AreasSection({
           </div>
         )}
       </div>
-      <div className="mt-4 flex flex-col gap-3">
-        {areas.map(([pillarCode, areaUnits], i) => (
-          <AreaGroup
-            key={pillarCode}
-            dimension={dimension}
-            pillarCode={pillarCode}
-            units={areaUnits}
-            defaultOpen={i === 0}
-            collaboratorLevel={collaboratorLevel}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
 
-function AreaGroup({
-  dimension,
-  pillarCode,
-  units,
-  defaultOpen,
-  collaboratorLevel,
-}: {
-  dimension: Dimension;
-  pillarCode: string;
-  units: LearningUnitFeedItem[];
-  defaultOpen: boolean;
-  collaboratorLevel: string | null;
-}) {
-  const [open, setOpen] = React.useState(defaultOpen);
-  const areaName = subPillarName(units[0]?.dimension_code, pillarCode);
-  // La insignia del área se desbloquea al completar todas sus unidades.
-  const unlocked = units.length > 0 && units.every((u) => u.attempt_status === "completed");
-
-  return (
-    <div className="overflow-hidden rounded-lg border border-border bg-bg-raised">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors hover:bg-bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
-      >
-        <span className="min-w-0 font-sans text-sm font-semibold text-fg">
-          {areaName}
-          <span className="ml-2 font-normal text-fg-muted">
-            {units.length} {units.length === 1 ? "unidad" : "unidades"}
-          </span>
-        </span>
-        <ChevronDown
-          size={18}
-          strokeWidth={2}
-          className={cn("shrink-0 text-fg-muted transition-transform", open && "rotate-180")}
-        />
-      </button>
-      {open && (
-        <div className="flex flex-col gap-4 border-t border-border px-4 py-4">
-          <AreaBadge dimension={dimension} areaName={areaName} unlocked={unlocked} />
-          <div className="flex flex-col gap-2">
-            {units.map((u) => (
-              <UnitCardCompact
-                key={u.id}
-                unit={u}
-                locked={isUnitLevelLocked(u.level_code, collaboratorLevel)}
-              />
-            ))}
-          </div>
+      {areas.length === 0 ? (
+        <Card className="mt-4 flex items-center justify-center py-10">
+          <p className="text-sm text-fg-muted">
+            Todavía no hay áreas publicadas para este nivel.
+          </p>
+        </Card>
+      ) : (
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {areas.map(([pillarCode, areaUnits]) => (
+            <AreaCard
+              key={pillarCode}
+              dimensionCode={dimension.code}
+              pillarCode={pillarCode}
+              areaName={subPillarName(areaUnits[0]?.dimension_code, pillarCode)}
+              units={areaUnits}
+              badge={badgeByCode.get(areaBadgeCode(dimension.code, pillarCode))}
+            />
+          ))}
         </div>
       )}
-    </div>
-  );
-}
-
-/** Insignia aspiracional del área: se desbloquea al completar todas sus unidades. */
-function AreaBadge({
-  dimension,
-  areaName,
-  unlocked,
-}: {
-  dimension: Dimension;
-  areaName: string;
-  unlocked: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-3 rounded-lg bg-bg-sunken px-4 py-3">
-      <div
-        className={cn(
-          "relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border bg-surface-card",
-          !unlocked && "opacity-45 grayscale",
-        )}
-      >
-        <HexIcon pillar={dimension.careerPath} size={32} />
-        {!unlocked && (
-          <Lock
-            size={14}
-            strokeWidth={2}
-            className="absolute -bottom-1 -right-1 rounded-full bg-bg-raised p-0.5 text-fg-muted"
-          />
-        )}
-      </div>
-      <div className="min-w-0">
-        <p className="font-sans text-sm font-semibold text-fg">Insignia · {areaName}</p>
-        <p className="text-xs text-fg-muted">
-          {unlocked
-            ? "¡Desbloqueada! Completaste todas las unidades de esta área."
-            : "Completá todas las unidades de esta área para desbloquearla."}
-        </p>
-      </div>
-    </div>
+    </section>
   );
 }
 

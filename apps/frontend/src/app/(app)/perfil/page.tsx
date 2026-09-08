@@ -11,7 +11,7 @@ import { BadgesCarousel } from "@/components/perfil/BadgesCarousel";
 import { DimensionSummarySection } from "@/components/perfil/DimensionSummarySection";
 import {
   GrowthArchetypeCard,
-  MilestonesTimeline,
+  StoryTimeline,
   WeeklyChallengeCard,
 } from "@/components/perfil/PerfilInsights";
 import { Radar } from "@/components/radar/Radar";
@@ -23,16 +23,16 @@ import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import {
   apiGetHomeDashboard,
-  apiGetMyBadges,
   apiGetMyRadar,
   apiGetMyResults,
+  apiGetMyTimeline,
   apiSetOnboardingSeen,
 } from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { growthArchetype, weeklyChallenge, weekOfYear } from "@/lib/perfil-insights";
 import { toast } from "@/lib/toast-store";
-import type { DimensionResult, HomeStats, MyBadge, RadarHistory } from "@/lib/types";
+import type { DimensionResult, HomeStats, RadarHistory, TimelineEvent } from "@/lib/types";
 
 const ROLE_LABEL: Record<string, string> = {
   collaborator: "Colaborador/a",
@@ -58,23 +58,23 @@ export default function PerfilPage() {
   const [results, setResults] = React.useState<DimensionResult[]>([]);
   const [radarHistory, setRadarHistory] = React.useState<RadarHistory | null>(null);
   const [stats, setStats] = React.useState<HomeStats | null>(null);
-  const [badges, setBadges] = React.useState<MyBadge[]>([]);
+  const [timeline, setTimeline] = React.useState<TimelineEvent[]>([]);
   const [showPrevious, setShowPrevious] = React.useState(true);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const [res, radarHist, dash, myBadges] = await Promise.all([
+      const [res, radarHist, dash, myTimeline] = await Promise.all([
         apiGetMyResults(),
         apiGetMyRadar().catch(() => null),
         apiGetHomeDashboard().catch(() => null),
-        apiGetMyBadges().catch(() => [] as MyBadge[]),
+        apiGetMyTimeline().catch(() => [] as TimelineEvent[]),
       ]);
       setResults(res.results);
       setRadarHistory(radarHist);
       setStats(dash?.stats ?? null);
-      setBadges(myBadges);
+      setTimeline(myTimeline);
       setStatus("ok");
     } catch {
       setStatus("error");
@@ -238,8 +238,9 @@ export default function PerfilPage() {
             <DimensionSummarySection results={results} radar={radar} onChanged={load} />
           )}
 
-          {/* Tu historia — línea de tiempo de hitos (diagnósticos + insignias). */}
-          <MilestonesTimeline results={results} badges={badges} />
+          {/* Tu historia — recorrido en horizontal: diagnósticos, dimensiones
+              empezadas, módulos completados e insignias. */}
+          <StoryTimeline events={timeline} />
         </>
       )}
     </main>

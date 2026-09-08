@@ -14,7 +14,7 @@ import { driveToCareerPath } from "@/lib/dimension-styles";
  * concreta y delega en `ModuloDetailView` (TASK 1). Como el detalle se fetchea
  * por slug, traducimos las coordenadas → slug vía el endpoint by-pillar
  * (dimensión→career path). Si no resuelve (unit inexistente o no publicada),
- * manda al índice.
+ * manda a Mi Ruta (`/modulos` ya no es un índice: abre el siguiente módulo).
  */
 export function ModuloNestedResolver({
   dimension,
@@ -45,13 +45,13 @@ export function ModuloNestedResolver({
           setSlug(match.slug);
         } else {
           setStatus("not_found");
-          router.replace("/modulos");
+          router.replace("/path");
         }
       })
       .catch(() => {
         if (!active) return;
         setStatus("not_found");
-        router.replace("/modulos");
+        router.replace("/path");
       });
     return () => {
       active = false;
@@ -65,7 +65,7 @@ export function ModuloNestedResolver({
       {status === "loading" ? (
         <EmptyRing label="Cargando módulo…" />
       ) : (
-        <Card className="px-6 py-12 text-center text-sm text-fg-muted">Redirigiendo al índice…</Card>
+        <Card className="px-6 py-12 text-center text-sm text-fg-muted">Llevándote a tu ruta…</Card>
       )}
     </div>
   );

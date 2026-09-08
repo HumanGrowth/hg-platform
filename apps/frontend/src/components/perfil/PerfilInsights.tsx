@@ -1,16 +1,24 @@
 "use client";
 
-import { ArrowRight, Award, Sparkles, Target } from "lucide-react";
+import {
+  ArrowRight,
+  Award,
+  CheckCircle2,
+  Flag,
+  Sparkles,
+  Target,
+  type LucideIcon,
+} from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 
 import { Card } from "@/components/ui/card";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { dimensionShortName } from "@/lib/dimension-styles";
 import { DIMENSIONS } from "@/lib/dimensions";
 import type { GrowthArchetype, WeeklyChallenge } from "@/lib/perfil-insights";
-import type { DimensionResult, MyBadge } from "@/lib/types";
+import type { TimelineEvent } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 // ─────────────────────────── Arquetipo ───────────────────────────
 
@@ -63,96 +71,86 @@ export function WeeklyChallengeCard({ challenge }: { challenge: WeeklyChallenge 
   );
 }
 
-// ─────────────────────────── Línea de tiempo de hitos ───────────────────────────
+// ─────────────────────────── Tu historia ───────────────────────────
 
-interface Milestone {
-  key: string;
-  date: string; // ISO
-  title: string;
-  subtitle?: string;
-  kind: "diagnostic" | "badge";
-  first?: boolean;
-}
-
-function buildMilestones(results: DimensionResult[], badges: MyBadge[]): Milestone[] {
-  const items: Milestone[] = [];
-
-  // Evaluaciones por dimensión (la más antigua = "primer diagnóstico").
-  const sortedResults = [...results].sort((a, b) => a.derived_at.localeCompare(b.derived_at));
-  sortedResults.forEach((r, i) => {
-    items.push({
-      key: `res-${r.dimension_code}`,
-      date: r.derived_at,
-      title: i === 0 ? "Tu primer diagnóstico" : `Evaluaste ${dimensionShortName(r.dimension_code)}`,
-      subtitle: i === 0 ? "Arrancaste tu recorrido en HumanGrowth." : r.state_label,
-      kind: "diagnostic",
-      first: i === 0,
-    });
-  });
-
-  // Insignias desbloqueadas.
-  for (const b of badges) {
-    if (b.unlocked && b.unlocked_at) {
-      items.push({
-        key: `badge-${b.code}`,
-        date: b.unlocked_at,
-        title: `Desbloqueaste "${b.name}"`,
-        subtitle: b.description,
-        kind: "badge",
-      });
-    }
-  }
-
-  // Más reciente primero.
-  return items.sort((a, b) => b.date.localeCompare(a.date));
-}
+const KIND_ICON: Record<TimelineEvent["kind"], LucideIcon> = {
+  diagnostic: Sparkles,
+  dimension_started: Flag,
+  unit_completed: CheckCircle2,
+  badge: Award,
+};
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("es", { day: "numeric", month: "long", year: "numeric" });
+  return new Date(iso).toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
 }
 
-export function MilestonesTimeline({
-  results,
-  badges,
-}: {
-  results: DimensionResult[];
-  badges: MyBadge[];
-}) {
-  const milestones = React.useMemo(() => buildMilestones(results, badges), [results, badges]);
-  if (milestones.length === 0) return null;
+/**
+ * "Tu historia": el recorrido completo en horizontal, del primer diagnóstico
+ * hasta lo último que hiciste.
+ *
+ * Horizontal y no vertical porque la lista creció: además de diagnósticos e
+ * insignias ahora trae dimensiones empezadas y módulos completados, y en
+ * vertical eso empujaba el resto del perfil fuera de la pantalla. Arranca
+ * desplazada al final (lo más reciente), que es donde está la persona hoy.
+ */
+export function StoryTimeline({ events }: { events: TimelineEvent[] }) {
+  const scroller = React.useRef<HTMLDivElement>(null);
+
+  // Al montar, mostramos el presente: el scroll arranca en el extremo derecho.
+  React.useEffect(() => {
+    const el = scroller.current;
+    if (el) el.scrollLeft = el.scrollWidth;
+  }, [events]);
+
+  if (events.length === 0) return null;
 
   return (
     <section className="mt-12" id="hitos">
       <Eyebrow>Tu historia</Eyebrow>
-      <ol className="mt-4 flex flex-col">
-        {milestones.map((m, i) => {
-          const last = i === milestones.length - 1;
-          const Icon = m.kind === "badge" ? Award : Sparkles;
+      <p className="mt-1 text-sm text-fg-muted">
+        Tu recorrido completo, del primer diagnóstico hasta hoy.
+      </p>
+      <div
+        ref={scroller}
+        role="list"
+        aria-label="Tu historia"
+        tabIndex={0}
+        className="mt-4 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
+      >
+        {events.map((e, i) => {
+          const Icon = KIND_ICON[e.kind];
+          const first = i === 0;
           return (
-            <li key={m.key} className="flex gap-4">
-              {/* Riel + nodo */}
-              <div className="flex flex-col items-center">
+            <article
+              key={e.key}
+              role="listitem"
+              className="flex w-60 shrink-0 snap-start flex-col gap-3"
+            >
+              {/* Riel horizontal + nodo */}
+              <div className="flex items-center gap-2" aria-hidden>
                 <span
-                  className={
-                    m.first
-                      ? "flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white"
-                      : "flex h-8 w-8 items-center justify-center rounded-full border border-border bg-bg-raised text-primary"
-                  }
+                  className={cn(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                    first
+                      ? "bg-primary text-white"
+                      : "border border-border bg-bg-raised text-primary",
+                  )}
                 >
-                  <Icon size={16} strokeWidth={2} aria-hidden />
+                  <Icon size={16} strokeWidth={2} />
                 </span>
-                {!last && <span className="w-px flex-1 bg-border" aria-hidden />}
+                <span className="h-px flex-1 bg-border" />
               </div>
-              {/* Contenido */}
-              <div className={last ? "pb-0" : "pb-6"}>
-                <p className="font-sans text-sm font-semibold text-fg">{m.title}</p>
-                {m.subtitle && <p className="mt-0.5 text-sm text-fg-muted">{m.subtitle}</p>}
-                <p className="mt-0.5 text-xs text-fg-subtle">{formatDate(m.date)}</p>
+              <div className="min-w-0">
+                <p className="font-sans text-sm font-semibold text-fg">{e.title}</p>
+                {e.subtitle && (
+                  <p className="mt-0.5 line-clamp-3 text-sm text-fg-muted">{e.subtitle}</p>
+                )}
+                <p className="mt-1 text-xs text-fg-subtle">{formatDate(e.at)}</p>
               </div>
-            </li>
+            </article>
           );
         })}
-      </ol>
+      </div>
     </section>
   );
 }
