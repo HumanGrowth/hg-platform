@@ -87,6 +87,27 @@ services:
       redis:
         condition: service_healthy
 
+  beat:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: hg-beat
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-hg}:${POSTGRES_PASSWORD:-hg}@postgres:5432/${POSTGRES_DB:-hg_dev}
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    # Programador de tasks periódicas (recordatorios de engagement). Sin este
+    # servicio, `beat_schedule` en hg.celery_app queda declarado pero nunca
+    # dispara — el worker solo no basta.
+    command: ["celery", "-A", "hg.celery_app", "beat", "--loglevel=info"]
+    depends_on:
+      worker:
+        condition: service_started
+      redis:
+        condition: service_healthy
+
   frontend:
     build:
       context: .

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<p style="margin:0 0 18px 0;">Hola <strong style="color:#1A1A1A;">{{ nombre }}</strong>,</p>
+<p style="margin:0 0 6px 0; font-size:20px; line-height:26px; font-weight:bold; color:#1A1A1A;">{{ headline }}</p>
+<p style="margin:0 0 22px 0; color:#4A4A4A;">{{ subtext }}</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%; background:#F6F1E6; border-radius:12px; margin:0 0 26px 0;">
+  <tr>
+    <td style="padding:18px 22px; font-size:15px; line-height:22px; color:#3D3D3D;">{{ insight }}</td>
+  </tr>
+</table>
+<table role="presentation" cellpadding="0" cellspacing="0">
+  <tr>
+    <td style="background:#E8530A; border-radius:12px;">
+      <a href="{{ cta_url }}" target="_blank" style="display:block; color:#FFFFFF; font-weight:bold; font-size:17px; line-height:20px; padding:17px 42px; text-decoration:none;">{{ cta_label }}&nbsp;→</a>
+    </td>
+  </tr>
+</table>
+{% endblock %}

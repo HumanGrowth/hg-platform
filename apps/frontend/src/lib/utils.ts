@@ -40,6 +40,14 @@ export function formatRelativeTime(iso: string | null): string {
   return "ahora";
 }
 
+/** ISO → fecha corta en español ("12 sep"), para due dates compactos. */
+export function formatShortDate(iso: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("es", { day: "numeric", month: "short" });
+}
+
 /**
  * Nombre para saludar. Los nombres seed tipo "Acme Corp Collaborator 1" no dan
  * un buen primer token; descartamos números sueltos y roles genéricos. Si no
