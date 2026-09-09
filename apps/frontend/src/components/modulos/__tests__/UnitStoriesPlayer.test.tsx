@@ -4,16 +4,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UnitStoriesPlayer } from "../UnitStoriesPlayer";
 import type { LearningUnitAttempt, LearningUnitDetail } from "@/lib/types";
 
-const { completeBlock, getModulosFeed } = vi.hoisted(() => ({
+const { completeBlock, getMyPath } = vi.hoisted(() => ({
   completeBlock: vi.fn(),
-  getModulosFeed: vi.fn(),
+  getMyPath: vi.fn(),
 }));
 
 vi.mock("@/lib/api", () => ({
   apiCompleteBlock: completeBlock,
   apiSubmitQuiz: vi.fn(),
   apiSubmitReflection: vi.fn(),
-  apiGetModulosFeed: getModulosFeed,
+  // UnitCompletionCard resuelve "Siguiente módulo" con GET /me/path.
+  apiGetMyPath: getMyPath,
 }));
 
 // duration_seconds >= 30 para que el auto-advance quede OFF por default y no
@@ -45,8 +46,12 @@ const attempt: LearningUnitAttempt = {
 
 beforeEach(() => {
   completeBlock.mockReset();
-  getModulosFeed.mockReset();
-  getModulosFeed.mockResolvedValue({ hero: null, next: [] });
+  getMyPath.mockReset();
+  getMyPath.mockResolvedValue({
+    current_level: null, next_step: null, upcoming: [],
+    completed_this_level: 0, total_this_level: 0,
+    dimensions_progress: [], milestones: [],
+  });
 });
 
 // El player full-bleed (player-01) completa el bloque de video on `ended`
@@ -59,7 +64,7 @@ function endVideo() {
 describe("UnitStoriesPlayer navigation", () => {
   it("blocks advancing past a required block until it's completed", async () => {
     completeBlock.mockResolvedValue({ unit_block_id: "block-a", status: "completed", submitted_at: null });
-    render(<UnitStoriesPlayer unit={unit} attempt={attempt} onComplete={vi.fn()} onClose={vi.fn()} />);
+    render(<UnitStoriesPlayer unit={unit} attempt={attempt} onClose={vi.fn()} />);
 
     // Bloque A activo (required, sin completar): tap-next no debe avanzar. Si
     // avanzara, el ended siguiente completaría block-b — al completar block-a
@@ -79,7 +84,7 @@ describe("UnitStoriesPlayer navigation", () => {
     completeBlock.mockImplementation(async (_slug: string, blockId: string) => ({
       unit_block_id: blockId, status: "completed", submitted_at: null,
     }));
-    render(<UnitStoriesPlayer unit={unit} attempt={attempt} onComplete={vi.fn()} onClose={vi.fn()} />);
+    render(<UnitStoriesPlayer unit={unit} attempt={attempt} onClose={vi.fn()} />);
 
     endVideo();
     await waitFor(() => expect(completeBlock).toHaveBeenCalledWith("test-unit", "block-a"));
@@ -95,7 +100,7 @@ describe("UnitStoriesPlayer navigation", () => {
 
   it("goPrev navigates back to the previous block", async () => {
     completeBlock.mockResolvedValue({ unit_block_id: "block-a", status: "completed", submitted_at: null });
-    render(<UnitStoriesPlayer unit={unit} attempt={attempt} onComplete={vi.fn()} onClose={vi.fn()} />);
+    render(<UnitStoriesPlayer unit={unit} attempt={attempt} onClose={vi.fn()} />);
 
     endVideo();
     await waitFor(() => expect(completeBlock).toHaveBeenCalledWith("test-unit", "block-a"));

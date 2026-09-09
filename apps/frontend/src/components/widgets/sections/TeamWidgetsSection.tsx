@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { InactivityFunnel, TeamActivityHeatmap, WidgetCard } from "@/components/widgets";
+import { TeamPerformersList, WidgetCard } from "@/components/widgets";
 import type { WidgetState } from "@/components/widgets/WidgetCard";
 import { apiGetManagerWidgets } from "@/lib/api";
 import type { ManagerWidgets, TeamOrgComparison } from "@/lib/types";
@@ -86,9 +86,8 @@ export default function TeamWidgetsSection() {
     void load();
   }, [load]);
 
-  const total = data ? Object.values(data.inactivity_buckets).reduce((s, n) => s + n, 0) : 0;
   const activityState: WidgetState =
-    state === "ok" && data && data.team_activity.length === 0 ? "empty" : state;
+    state === "ok" && data && data.top_performers.length === 0 ? "empty" : state;
 
   return (
     <section className="mb-8">
@@ -101,23 +100,15 @@ export default function TeamWidgetsSection() {
           <TeamComparison c={data.comparison} />
         </div>
       )}
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="mt-4">
         <WidgetCard
           title="Actividad del equipo"
-          description="Bloques completados por persona en los últimos 30 días."
+          description="Ranking por módulos completados, con días activos (30d) al lado."
           state={activityState}
           onRetry={load}
           emptyMessage="Sin actividad del equipo en los últimos 30 días."
         >
-          {data ? <TeamActivityHeatmap data={data.team_activity} /> : null}
-        </WidgetCard>
-        <WidgetCard
-          title="Inactividad por tiempo"
-          description="Cómo se distribuye tu equipo según su última actividad."
-          state={state}
-          onRetry={load}
-        >
-          {data ? <InactivityFunnel buckets={data.inactivity_buckets} total={total} /> : null}
+          {data ? <TeamPerformersList rows={data.top_performers} /> : null}
         </WidgetCard>
       </div>
     </section>

@@ -29,7 +29,11 @@ class PathStepOut(BaseModel):
 
 class PathMilestoneOut(BaseModel):
     """Hito de la ruta: dónde se cierra un área o un nivel y qué insignia da.
-    ``after_unit_id`` es la unit de `next_step`/`upcoming` tras la cual va."""
+    ``after_unit_id`` es la unit de `next_step`/`upcoming` tras la cual va —
+    solo sirve para interlinear en esa lista, y puede no estar entre las
+    visibles. ``sequence_position`` (0-based, sobre la secuencia COMPLETA del
+    nivel) es lo que hay que usar para ubicar el hito en la barra de progreso:
+    no depende de cuántos pasos muestre `upcoming`."""
 
     kind: Literal["area", "level"]
     after_unit_id: UUID
@@ -43,6 +47,7 @@ class PathMilestoneOut(BaseModel):
     badge_icon_url: str
     units_remaining: int
     requires_assessment: bool
+    sequence_position: int
 
 
 class DimensionProgressOut(BaseModel):

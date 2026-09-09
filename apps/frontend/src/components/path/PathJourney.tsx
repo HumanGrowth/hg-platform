@@ -8,16 +8,16 @@ import * as React from "react";
 import { DimensionCatalog } from "@/components/modulos/DimensionCatalog";
 import { UnitCardHero } from "@/components/modulos/UnitCardHero";
 import { BadgeIcon } from "@/components/ui/badge-icon";
-import { apiGetModulosFeed, apiGetMyPath } from "@/lib/api";
+import { apiGetMyPath, apiListModulosByDimension } from "@/lib/api";
 import { DIMENSIONS_META } from "@/lib/dimension-styles";
 import type {
-  LearningUnitFeed,
   LearningUnitFeedItem,
   MyPath,
   PathMilestone,
   PathStep,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { Eyebrow } from "../ui/eyebrow";
 
 const DOT: Record<string, string> = Object.fromEntries(DIMENSIONS_META.map((p) => [p.id, p.dot]));
 
@@ -84,18 +84,26 @@ function MilestoneRow({ milestone, last }: { milestone: PathMilestone; last: boo
 export function PathJourney() {
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [data, setData] = React.useState<MyPath | null>(null);
-  // El feed aporta la tarjeta completa (thumbnail/poster) del next_step para el header.
-  const [feed, setFeed] = React.useState<LearningUnitFeed | null>(null);
+  // Tarjeta completa (thumbnail/poster) del next_step para el header. Se pide
+  // por (dimensión, nivel) — la MISMA consulta que usó path_engine para elegir
+  // next_step — así el slug SIEMPRE está en la respuesta: nunca cae a un
+  // "hero" de otra unit (el desfase que había antes al usar /modulos/feed, que
+  // elige su propio hero con lógica independiente).
+  const [heroUnit, setHeroUnit] = React.useState<LearningUnitFeedItem | null>(null);
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const [path, modulosFeed] = await Promise.all([
-        apiGetMyPath(),
-        apiGetModulosFeed().catch(() => null),
-      ]);
+      const path = await apiGetMyPath();
       setData(path);
-      setFeed(modulosFeed);
+      const ns = path.next_step;
+      setHeroUnit(
+        ns
+          ? await apiListModulosByDimension(ns.career_path_code, ns.level_code, 50)
+              .then((units) => units.find((u) => u.slug === ns.slug) ?? null)
+              .catch(() => null)
+          : null,
+      );
       setStatus("ok");
     } catch {
       setStatus("error");
@@ -129,19 +137,41 @@ export function PathJourney() {
   const pct = total_this_level > 0 ? Math.round((completed_this_level / total_this_level) * 100) : 0;
   const milestonesAfter = groupMilestones(data.milestones ?? []);
 
-  // "Tu módulo de hoy" = el siguiente en la ruta (next_step), con la tarjeta
-  // completa (thumbnail/poster) que aporta el feed. Cae al hero del feed si no matchea.
-  const heroUnit: LearningUnitFeedItem | null = feed
-    ? ([feed.hero, ...feed.next].find((u) => u != null && u.slug === next_step?.slug) ?? feed.hero)
-    : null;
+  // Marcas de hito sobre la barra de nivel: en qué % cae cada uno. Se usa
+  // `sequence_position` (índice sobre la secuencia COMPLETA del nivel, no solo
+  // los ~8 pasos de `upcoming`) — así aparece el checkpoint de CADA pilar en
+  // curso, no solo el más cercano.
+  const levelMilestoneMarkers =
+    total_this_level > 0
+      ? (data.milestones ?? []).map((m) => ({
+          milestone: m,
+          at: Math.min(100, ((completed_this_level + m.sequence_position + 1) / total_this_level) * 100),
+        }))
+      : [];
+
+
 
   return (
     <div className="mt-8 flex flex-col gap-8">
-      {/* Tu módulo de hoy = siguiente de la ruta (header de Mi Ruta). */}
+      {/* Tu módulo de hoy = siguiente de la ruta (header de Mi Ruta). Si next_step
+          existe pero por lo que sea no se pudo resolver su tarjeta completa
+          (transitorio), se muestra una versión mínima con el mismo link — nunca
+          el estado de "completaste todo" mientras SÍ hay un próximo paso real. */}
       {heroUnit ? (
         <div className="motion-safe:animate-fade-in">
           <UnitCardHero unit={heroUnit} />
         </div>
+      ) : next_step ? (
+        <Link
+          href={stepHref(next_step)}
+          className="block rounded-lg border border-border bg-bg-raised p-6 transition-shadow hover:shadow-md"
+        >
+          <p className="font-sans text-micro uppercase tracking-meta text-primary">Tu módulo de hoy</p>
+          <h2 className="mt-2 font-sans text-xl font-semibold text-fg">{next_step.title}</h2>
+          <p className="mt-1 text-sm text-fg-muted">
+            {dimensionName(next_step.career_path_code)} · {next_step.level_code}
+          </p>
+        </Link>
       ) : (
         <section className="rounded-2xl border border-dashed border-border bg-bg-raised p-8 text-center">
           <p className="font-sans text-md font-semibold text-fg">¡Completaste todo lo disponible!</p>
@@ -149,7 +179,8 @@ export function PathJourney() {
         </section>
       )}
 
-      {/* Progreso del nivel */}
+      {/* Progreso del nivel, con los hitos marcados sobre la barra (además de
+          aparecer en la línea de "Sigue en tu ruta" más abajo). */}
       {current_level && total_this_level > 0 && (
         <section>
           <div className="mb-2 flex items-center justify-between text-sm">
@@ -160,12 +191,28 @@ export function PathJourney() {
               {completed_this_level} / {total_this_level} completadas
             </span>
           </div>
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-bg-sunken">
-            <div
-              className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
-              style={{ width: `${pct}%` }}
-            />
+          <div className="relative pt-3">
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-bg-sunken">
+              <div
+                className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            {levelMilestoneMarkers.map(({ milestone, at }) => (
+              <span
+                key={milestone.badge_code}
+                title={`${milestone.title} · ${milestone.badge_name}`}
+                className="absolute top-0 h-3.5 w-3.5 -translate-x-1/2 rotate-45 rounded-[3px] border-2 border-primary bg-bg"
+                style={{ left: `${at}%` }}
+                aria-hidden
+              />
+            ))}
           </div>
+          {levelMilestoneMarkers.length > 0 && (
+            <p className="mt-2 text-xs text-fg-subtle">
+              <span aria-hidden>◆</span> marca dónde ganás una insignia en este nivel.
+            </p>
+          )}
         </section>
       )}
 
@@ -213,9 +260,7 @@ export function PathJourney() {
           ahora arranca directo tu siguiente módulo). Es también la puerta para
           repasar un módulo ya visto. */}
       <section>
-        <p className="mb-1 font-sans text-micro uppercase tracking-meta text-fg-muted">
-          Explorá por dimensión
-        </p>
+        <Eyebrow>Explorá por dimensión</Eyebrow>
         <p className="mb-3 text-sm text-fg-muted">
           Todo el contenido, dimensión por dimensión. Entrá a cualquier módulo para verlo o repasarlo.
         </p>

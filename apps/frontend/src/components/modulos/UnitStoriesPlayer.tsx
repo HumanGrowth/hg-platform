@@ -23,7 +23,6 @@ const CLOSE_SWIPE_THRESHOLD = 120;
 export interface UnitStoriesPlayerProps {
   unit: LearningUnitDetail;
   attempt: LearningUnitAttempt;
-  onComplete: () => void;
   onClose: () => void;
 }
 
@@ -32,7 +31,7 @@ export interface UnitStoriesPlayerProps {
  * izq/der, progreso segmentado, swipe-down para cerrar (con confirmación si
  * hay progreso).
  */
-export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitStoriesPlayerProps) {
+export function UnitStoriesPlayer({ unit, attempt, onClose }: UnitStoriesPlayerProps) {
   const shouldAnimate = useShouldAnimate();
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [blockProgress, setBlockProgress] = React.useState<BlockProgressOut[]>(attempt.block_progress);
@@ -133,13 +132,6 @@ export function UnitStoriesPlayer({ unit, attempt, onComplete, onClose }: UnitSt
             attempt={{ ...attempt, block_progress: blockProgress, completed_at: new Date().toISOString() }}
             quizStats={quizStats.total > 0 ? quizStats : undefined}
           />
-          <button
-            type="button"
-            onClick={onComplete}
-            className="mt-4 w-full text-center font-sans text-sm font-semibold text-fg-muted"
-          >
-            Cerrar
-          </button>
         </div>
       </div>
     );

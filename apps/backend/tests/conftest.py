@@ -175,9 +175,9 @@ def manager_with_reports(factory) -> Generator[SimpleNamespace, None, None]:
             s, org_id=org.id, user_id=r1.id, unit=u,
             when=now - timedelta(days=1), completed=True,
         )
-    seed_attempt(  # r2: 1 en progreso, inactivo (10d)
+    seed_attempt(  # r2: 1 en progreso, inactivo (25d > INACTIVE_DAYS=21)
         s, org_id=org.id, user_id=r2.id, unit=units[0],
-        when=now - timedelta(days=10), completed=False,
+        when=now - timedelta(days=25), completed=False,
     )
 
     yield SimpleNamespace(org=org, manager=mgr, r1=r1, r2=r2, r3=r3, units=units, path=p1)

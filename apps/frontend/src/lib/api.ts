@@ -94,7 +94,26 @@ export const apiAcceptInvite = (token: string, password: string, usernameOrEmail
   postJson<AuthResult>("/api/auth/accept-invite", { token, password, usernameOrEmail });
 
 /** Rehidrata el access token desde la cookie httpOnly (no recibe el refresh). */
-export const apiRefresh = () => postJson<AuthResult>("/api/auth/refresh", {});
+const apiRefreshRaw = () => postJson<AuthResult>("/api/auth/refresh", {});
+
+// El refresh ROTA el token (revoca el viejo, emite uno nuevo — un solo uso).
+// Si dos llamadas concurrentes llegan con la misma cookie vieja (p.ej.
+// SessionGate montando en una navegación + el interceptor de axios
+// reintentando un 401 al mismo tiempo), la segunda pisa una sesión que la
+// primera ya revocó y el backend responde 401 "revoked or expired" — eso
+// tira al usuario a /login en medio de una navegación válida (visto en
+// superadmin al entrar/salir de la gestión de orgs de una empresa). Un solo
+// vuelo en curso evita la carrera: todo el que llega mientras hay un refresh
+// pendiente espera ESA misma promesa en vez de disparar una rotación propia.
+let inFlightRefresh: Promise<AuthResult> | null = null;
+export const apiRefresh = (): Promise<AuthResult> => {
+  if (!inFlightRefresh) {
+    inFlightRefresh = apiRefreshRaw().finally(() => {
+      inFlightRefresh = null;
+    });
+  }
+  return inFlightRefresh;
+};
 
 export const apiLogout = () => postJson<null>("/api/auth/logout", {});
 
@@ -342,6 +361,23 @@ export const apiGetMyTeam = async (filters?: TeamFilters): Promise<TeamResponse>
 
 export const apiGetTeamMemberDetail = async (userId: string): Promise<TeamMemberDetail> => {
   const res = await backend.get<TeamMemberDetail>(`/api/v1/manager/users/${userId}/detail`);
+  return res.data;
+};
+
+/** Progreso + próximos pasos de un reporte — mismo motor que "Mi Ruta" del
+ * colaborador (`GET /me/path`), scoped a esa persona. */
+export const apiGetTeamMemberPath = async (userId: string): Promise<MyPath> => {
+  const res = await backend.get<MyPath>(`/api/v1/manager/users/${userId}/path`);
+  return res.data;
+};
+
+/** Resultados completos del assessment de un reporte — mismo shape que
+ * `/me/results` (incluye `suggested_next_step`), gateado por el mismo
+ * consentimiento que `assessment_states`. Alimenta el "plan de acción" del
+ * detalle de equipo, calculado con el MISMO `getDimensionInsight` que usa
+ * `/dimensiones/{code}` para el propio colaborador. Sin consentimiento: []. */
+export const apiGetTeamMemberResults = async (userId: string): Promise<DimensionResult[]> => {
+  const res = await backend.get<DimensionResult[]>(`/api/v1/manager/users/${userId}/results`);
   return res.data;
 };
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
+from sqlalchemy import delete
 
 from hg.modules.identity.models import UserRole
 
@@ -87,3 +88,76 @@ def test_get_user_detail_not_my_report_404(client, manager_with_reports, factory
     stranger = factory.make_user(org=mw.org, role=UserRole.collaborator)
     res = client.get(f"/api/v1/manager/users/{stranger.id}/detail", headers=auth_headers(mw.manager))
     assert res.status_code == 404
+
+
+def test_get_team_surfaces_overdue_assignments(client, manager_with_reports, auth_headers) -> None:
+    """Due dates (cierre-beta TASK): un módulo asignado y vencido cuenta en
+    `assignments_overdue`, y el semáforo aparece en el listado del equipo."""
+    from datetime import UTC, datetime, timedelta
+
+    mw = manager_with_reports
+    h = auth_headers(mw.manager)
+    res = client.post(
+        f"/api/v1/admin/users/{mw.r3.id}/assignments",
+        headers=h,
+        json={
+            "unit_ids": [str(mw.units[0].id)],
+            "due_date": (datetime.now(UTC) - timedelta(days=2)).isoformat(),
+        },
+    )
+    assert res.status_code == 201, res.text
+
+    body = client.get("/api/v1/manager/me/team", headers=h).json()
+    r3_row = next(m for m in body["items"] if m["id"] == str(mw.r3.id))
+    assert r3_row["assignments_overdue"] == 1
+    assert r3_row["assignments_due_soon"] == 0
+    assert r3_row["next_assignment_due_at"] is not None
+
+
+def test_get_user_path_reuses_path_engine_for_a_report(client, manager_with_reports, auth_headers) -> None:
+    """El manager ve el mismo cálculo de Mi Ruta que su reporte (path_engine),
+    scoped a esa persona — no el propio del manager."""
+    mw = manager_with_reports
+    res = client.get(f"/api/v1/manager/users/{mw.r2.id}/path", headers=auth_headers(mw.manager))
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert "next_step" in body
+    assert "dimensions_progress" in body
+    assert isinstance(body["milestones"], list)
+
+
+def test_get_user_path_not_my_report_404(client, manager_with_reports, factory, auth_headers) -> None:
+    mw = manager_with_reports
+    stranger = factory.make_user(org=mw.org, role=UserRole.collaborator)
+    res = client.get(f"/api/v1/manager/users/{stranger.id}/path", headers=auth_headers(mw.manager))
+    assert res.status_code == 404
+
+
+def test_get_team_includes_badges_and_focus_dimension(client, manager_with_reports, factory, auth_headers) -> None:
+    """Tarjeta de /team (rediseño): badges alcanzados + área en la que
+    trabajó más recientemente (career_path de su último attempt)."""
+    from hg.modules.badges.models import Badge, UserBadge
+
+    mw = manager_with_reports
+    h = auth_headers(mw.manager)
+
+    badge = Badge(code="test-badge-r1", name="Test", icon_url="")
+    factory.session.add(badge)
+    factory.session.flush()
+    factory.session.add(
+        UserBadge(org_id=mw.org.id, user_id=mw.r1.id, badge_id=badge.id)
+    )
+    factory.session.commit()
+    try:
+        body = client.get("/api/v1/manager/me/team", headers=h).json()
+        r1_row = next(m for m in body["items"] if m["id"] == str(mw.r1.id))
+        # r1 completó 5 units de CP → foco = P1; y desbloqueó 1 badge acá.
+        assert r1_row["current_focus_dimension"] == "P1"
+        assert r1_row["badges_unlocked_count"] == 1
+        r3_row = next(m for m in body["items"] if m["id"] == str(mw.r3.id))
+        assert r3_row["current_focus_dimension"] is None
+        assert r3_row["badges_unlocked_count"] == 0
+    finally:
+        factory.session.execute(delete(UserBadge).where(UserBadge.badge_id == badge.id))
+        factory.session.execute(delete(Badge).where(Badge.id == badge.id))
+        factory.session.commit()

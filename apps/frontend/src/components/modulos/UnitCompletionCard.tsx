@@ -10,11 +10,10 @@ import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Card } from "@/components/ui/card";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { buttonVariants } from "@/components/ui/button";
-import { apiGetModulosFeed } from "@/lib/api";
+import { apiGetMyPath } from "@/lib/api";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { dimensionStyle } from "@/lib/dimension-styles";
-import type { LearningUnitAttempt, LearningUnitDetail, LearningUnitFeedItem } from "@/lib/types";
-import { unitCanonicalPath } from "@/lib/modulos";
+import type { LearningUnitAttempt, LearningUnitDetail, PathStep } from "@/lib/types";
 import { cn, formatApproxMinutes } from "@/lib/utils";
 
 export interface UnitCompletionCardProps {
@@ -25,23 +24,24 @@ export interface UnitCompletionCardProps {
 
 /**
  * TASK B-07 — NO auto-play del próximo módulo (P5 desirable difficulties:
- * el usuario decide cuándo seguir, no lo empuja el producto). El fetch del
- * feed es solo para poder linkear "Siguiente módulo" a un slug concreto —
- * no hay cache compartida (SWR/react-query) en el resto del código como
- * para "invalidar"; esto simplemente refresca los datos que se muestran acá
- * y en cualquier página que se visite después (todas re-fetchean on mount).
+ * el usuario decide cuándo seguir, no lo empuja el producto).
+ *
+ * "Siguiente módulo" se resuelve con `GET /me/path` — el MISMO motor que Mi
+ * Ruta y el launcher de Módulos — para que los tres coincidan siempre en cuál
+ * es "el siguiente". Antes pedía `/modulos/feed`, que elige su hero con lógica
+ * propia (puede caer en cualquier unit publicada) — un desfase real: acá podía
+ * ofrecer un módulo distinto al que Mi Ruta o Módulos abrían.
  */
 export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionCardProps) {
   const shouldAnimate = useShouldAnimate();
-  const [nextUnit, setNextUnit] = React.useState<LearningUnitFeedItem | null>(null);
+  const [nextStep, setNextStep] = React.useState<PathStep | null>(null);
 
   React.useEffect(() => {
     let active = true;
-    apiGetModulosFeed()
-      .then((feed) => {
+    apiGetMyPath()
+      .then((path) => {
         if (!active) return;
-        const candidate = [feed.hero, ...feed.next].find((u) => u && u.slug !== unit.slug);
-        setNextUnit(candidate ?? null);
+        setNextStep(path.next_step);
       })
       .catch(() => {
         // Best-effort: si falla, simplemente no se ofrece "Siguiente módulo".
@@ -104,16 +104,19 @@ export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionC
         className="w-full max-w-sm"
       />
       <div className="mt-2 flex flex-col gap-3 sm:flex-row">
-        {nextUnit && (
-          <Link href={unitCanonicalPath(nextUnit)} className={cn(buttonVariants({ size: "lg" }))}>
+        {nextStep && (
+          <Link
+            href={`/modulos/${nextStep.slug}` as Route}
+            className={cn(buttonVariants({ size: "lg" }))}
+          >
             Siguiente módulo
           </Link>
         )}
         <Link
-          href={"/modulos" as Route}
+          href={"/path" as Route}
           className={cn(buttonVariants({ variant: "secondary", size: "lg" }))}
         >
-          Volver a Módulos
+          Volver a Mi Ruta
         </Link>
       </div>
     </Card>

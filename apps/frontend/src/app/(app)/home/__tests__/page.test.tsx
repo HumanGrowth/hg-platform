@@ -11,7 +11,7 @@ const { getHome, router } = vi.hoisted(() => ({
 }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
-vi.mock("@/lib/api", () => ({ apiGetHomeDashboard: getHome }));
+vi.mock("@/lib/api", () => ({ apiGetHomeDashboard: getHome, apiGetMyBadges: vi.fn().mockResolvedValue([]) }));
 vi.mock("@/lib/auth-store", () => ({
   useAuthStore: (sel: (s: { user: { full_name: string } }) => unknown) =>
     sel({ user: { full_name: "Ana López" } }),

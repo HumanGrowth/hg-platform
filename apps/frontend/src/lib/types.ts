@@ -178,6 +178,13 @@ export interface TeamMember {
   courses_completed: number;
   total_watch_minutes: number;
   active_enrollments: number;
+  /** Módulos asignados (ModuleAssignment) vencidos / por vencer, sin completar. */
+  assignments_overdue: number;
+  assignments_due_soon: number;
+  next_assignment_due_at: string | null;
+  badges_unlocked_count: number;
+  /** Career-path (P1..P6) de su actividad más reciente; null = sin actividad. */
+  current_focus_dimension: string | null;
 }
 
 export interface TeamResponse {
@@ -331,10 +338,20 @@ export interface TeamOrgComparison {
   org_avg_completed: number;
 }
 
+/** Fila del ranking "Actividad del equipo" — ordenado por módulos completados. */
+export interface TeamPerformer {
+  user_id: string;
+  full_name: string;
+  courses_completed: number;
+  /** Días DISTINTOS con actividad en la ventana de 30 días (no es racha). */
+  days_active: number;
+}
+
 export interface ManagerWidgets {
   team_activity: TeamActivityCell[];
   inactivity_buckets: InactivityBuckets;
   comparison: TeamOrgComparison | null;
+  top_performers: TeamPerformer[];
 }
 
 export interface AdoptionMonthPoint {
@@ -842,6 +859,11 @@ export interface PathMilestone {
   units_remaining: number;
   /** Los badges de nivel también dependen de la evaluación, no solo del contenido. */
   requires_assessment: boolean;
+  /** Posición 0-based en la secuencia COMPLETA del nivel — usar esto para
+   * ubicar el hito en la barra de progreso (no depende de cuántos pasos
+   * traiga `upcoming`; `after_unit_id` sí, y solo sirve para intercalarlo en
+   * la lista de próximos pasos cuando esa unit está entre las visibles). */
+  sequence_position: number;
 }
 
 export interface MyPath {

@@ -31,12 +31,11 @@ const BLOCK_TYPE_LABEL: Record<string, string> = {
 export interface UnitBackToBackPlayerProps {
   unit: LearningUnitDetail;
   attempt: LearningUnitAttempt;
-  onComplete: () => void;
   onClose: () => void;
 }
 
 /** Player desktop 2 columnas + índice + focus mode (TASK B-05). */
-export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: UnitBackToBackPlayerProps) {
+export function UnitBackToBackPlayer({ unit, attempt, onClose }: UnitBackToBackPlayerProps) {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [blockProgress, setBlockProgress] = React.useState<BlockProgressOut[]>(attempt.block_progress);
   const [focusMode, setFocusMode] = React.useState(false);
@@ -134,13 +133,6 @@ export function UnitBackToBackPlayer({ unit, attempt, onComplete, onClose }: Uni
           attempt={{ ...attempt, block_progress: blockProgress, completed_at: new Date().toISOString() }}
           quizStats={quizStats.total > 0 ? quizStats : undefined}
         />
-        <button
-          type="button"
-          onClick={onComplete}
-          className="mt-4 w-full text-center font-sans text-sm font-semibold text-fg-muted"
-        >
-          Volver
-        </button>
       </div>
     );
   }

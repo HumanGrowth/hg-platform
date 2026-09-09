@@ -40,6 +40,14 @@ class TeamMemberOut(BaseModel):
     courses_completed: int
     total_watch_minutes: int
     active_enrollments: int
+    # Due dates de módulos asignados (ModuleAssignment), no completados.
+    assignments_overdue: int = 0
+    assignments_due_soon: int = 0
+    next_assignment_due_at: datetime | None = None
+    # Rediseño tarjeta de equipo: badges alcanzados + área en la que trabajó
+    # más recientemente (career_path P1..P6; None = sin actividad todavía).
+    badges_unlocked_count: int = 0
+    current_focus_dimension: str | None = None
 
 
 class TeamResponse(BaseModel):
@@ -205,10 +213,24 @@ class TeamOrgComparison(BaseModel):
     org_avg_completed: float
 
 
+class TeamPerformerOut(BaseModel):
+    """Fila del ranking de "Actividad del equipo" (cierre-beta · rediseño
+    manager): ordenado por módulos completados, con días activos (distintos,
+    no racha) en la misma ventana de 30 días que `team_activity`."""
+
+    user_id: UUID
+    full_name: str
+    courses_completed: int
+    days_active: int
+
+
 class ManagerWidgetsOut(BaseModel):
     team_activity: list[TeamActivityCell]  # 30 días x N reportes (solo cells >0)
     inactivity_buckets: InactivityBuckets
     comparison: TeamOrgComparison | None = None
+    # Ranking por módulos completados — reemplaza el heatmap en la vista de
+    # equipo (rediseño); `team_activity` se conserva por si otra vista lo usa.
+    top_performers: list[TeamPerformerOut] = []
 
 
 class AdoptionMonthPoint(BaseModel):

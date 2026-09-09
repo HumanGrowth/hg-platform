@@ -68,7 +68,10 @@ def _session_out(db: Session, session: AssessmentSession) -> SessionOut:
     )
 
 
-def _result_out(r: DimensionResult) -> DimensionResultOut:
+def result_out(r: DimensionResult) -> DimensionResultOut:
+    """Serializa un ``DimensionResult`` — pública para que otros módulos
+    (ej. ``people.router`` en el detalle de manager) devuelvan el MISMO shape
+    que ``/me/results``, sin reimplementar el mapeo."""
     return DimensionResultOut(
         dimension_code=r.dimension_code.value,
         source=r.source.value,
@@ -148,7 +151,7 @@ def finalize(
         results = service.finalize_session(db, session)
     except service.AssessmentError as exc:
         raise _bad_request(exc) from exc
-    return FinalizeOut(session_id=session.id, results=[_result_out(r) for r in results])
+    return FinalizeOut(session_id=session.id, results=[result_out(r) for r in results])
 
 
 @router.post("/sessions/{session_id}/abandon", status_code=status.HTTP_204_NO_CONTENT)
@@ -174,7 +177,7 @@ def my_results(
 ) -> MeResultsOut:
     # Estado actual = último DimensionResult por pilar (fuente canónica compartida).
     latest = service.latest_dimension_results(db, current_user.id)
-    return MeResultsOut(results=[_result_out(r) for r in latest])
+    return MeResultsOut(results=[result_out(r) for r in latest])
 
 
 @router.get("/me/radar", response_model=RadarHistoryOut)
@@ -228,7 +231,7 @@ def confirm(
         result = service.confirm_dimension(db, current_user, dimension)
     except service.AssessmentError as exc:
         raise _bad_request(exc) from exc
-    return _result_out(result)
+    return result_out(result)
 
 
 @router.post("/admin/users/{user_id}/reset-retake/{dimension}", status_code=status.HTTP_204_NO_CONTENT)

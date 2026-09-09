@@ -1,6 +1,5 @@
 "use client";
 
-import { Clock, Flame, Trophy } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,6 +7,7 @@ import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
 import { BadgesCarousel } from "@/components/perfil/BadgesCarousel";
+import { StatCardsRow } from "@/components/shared/StatCardsRow";
 import { DimensionSummarySection } from "@/components/perfil/DimensionSummarySection";
 import {
   GrowthArchetypeCard,
@@ -23,6 +23,7 @@ import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import {
   apiGetHomeDashboard,
+  apiGetMyBadges,
   apiGetMyRadar,
   apiGetMyResults,
   apiGetMyTimeline,
@@ -32,7 +33,7 @@ import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { growthArchetype, weeklyChallenge, weekOfYear } from "@/lib/perfil-insights";
 import { toast } from "@/lib/toast-store";
-import type { DimensionResult, HomeStats, RadarHistory, TimelineEvent } from "@/lib/types";
+import type { DimensionResult, HomeStats, MyBadge, RadarHistory, TimelineEvent } from "@/lib/types";
 
 const ROLE_LABEL: Record<string, string> = {
   collaborator: "Colaborador/a",
@@ -59,22 +60,25 @@ export default function PerfilPage() {
   const [radarHistory, setRadarHistory] = React.useState<RadarHistory | null>(null);
   const [stats, setStats] = React.useState<HomeStats | null>(null);
   const [timeline, setTimeline] = React.useState<TimelineEvent[]>([]);
+  const [badges, setBadges] = React.useState<MyBadge[]>([]);
   const [showPrevious, setShowPrevious] = React.useState(true);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const [res, radarHist, dash, myTimeline] = await Promise.all([
+      const [res, radarHist, dash, myTimeline, myBadges] = await Promise.all([
         apiGetMyResults(),
         apiGetMyRadar().catch(() => null),
         apiGetHomeDashboard().catch(() => null),
         apiGetMyTimeline().catch(() => [] as TimelineEvent[]),
+        apiGetMyBadges().catch(() => [] as MyBadge[]),
       ]);
       setResults(res.results);
       setRadarHistory(radarHist);
       setStats(dash?.stats ?? null);
       setTimeline(myTimeline);
+      setBadges(myBadges);
       setStatus("ok");
     } catch {
       setStatus("error");
@@ -144,37 +148,15 @@ export default function PerfilPage() {
 
       {status === "ok" && (
         <>
-          {/* Resumen de aprendizaje — snapshot de tu recorrido. */}
+          {/* Resumen de aprendizaje — mismas 4 tarjetas y mismo orden que Inicio. */}
           {stats && (
-            <div className="mt-8 grid grid-cols-3 gap-3 sm:gap-4">
-              <Card className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
-                <Trophy size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
-                <div>
-                  <p className="font-mono text-2xl font-semibold text-fg">
-                    {stats.courses_completed}
-                  </p>
-                  <p className="text-xs text-fg-muted">mods completados</p>
-                </div>
-              </Card>
-              <Card className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
-                <Clock size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
-                <div>
-                  <p className="font-mono text-2xl font-semibold text-fg">
-                    {stats.month_watch_minutes}
-                  </p>
-                  <p className="text-xs text-fg-muted">min en plataforma</p>
-                </div>
-              </Card>
-              <Card className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
-                <Flame size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
-                <div>
-                  <p className="font-mono text-2xl font-semibold text-fg">{stats.streak_days}</p>
-                  <p className="text-xs text-fg-muted">
-                    {stats.streak_days === 1 ? "día seguido" : "días seguidos"}
-                  </p>
-                </div>
-              </Card>
-            </div>
+            <StatCardsRow
+              className="mt-8"
+              modulesCompleted={stats.courses_completed}
+              badgesUnlocked={badges.filter((b) => b.unlocked).length}
+              minutesOnPlatform={stats.month_watch_minutes}
+              daysActive={stats.streak_days}
+            />
           )}
 
           {/* Arquetipo de crecimiento — headline derivado de la forma del radar. */}

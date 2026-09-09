@@ -32,6 +32,20 @@ const NOT_EVALUATED = content.not_evaluated as Record<string, StateEntry | undef
 // promedio, así que su lectura no puede salir del texto de un solo sub-estado.
 const COMBINED = content.combined as Record<string, { score_insight: string } | undefined>;
 
+// Orden ascendente de los estados de cada instrumento del assessment — espejo de
+// `STATE_TO_VALUE` en el backend (hg/modules/assessment/scoring.py). Alimenta el
+// "state ladder" visual de la tarjeta de estado: dónde cae tu estado actual
+// dentro de la escala completa de la dimensión.
+export const STATE_ORDER: Record<string, string[]> = {
+  P1: ["L1", "L2", "L3", "L4", "L5", "L6"],
+  P2: ["Latente", "Explorador", "Direccionado", "Integrado"],
+  P3: ["N1", "N2", "N3", "N4"],
+  P4: ["E1", "E2", "E3", "E4", "E5"],
+  P5: ["N1", "N2", "N3", "N4"],
+  P6A: ["Baja", "Media", "Alta"],
+  P6B: ["Frágil", "Vulnerable", "Estable"],
+};
+
 /** Un instrumento de la dimensión (solo Estabilidad tiene más de uno). */
 export interface InsightPart {
   code: AssessmentDimensionCode;
@@ -40,6 +54,10 @@ export interface InsightPart {
   /** Nombre corto del estado ("Media", "Frágil"…). */
   stateLabel: string;
   meaning: string;
+  /** Posición 0-based de tu estado en STATE_ORDER (para el ladder visual). */
+  stateIndex: number;
+  /** Cantidad total de estados de este instrumento. */
+  stateTotal: number;
 }
 
 export interface DimensionInsight {
@@ -53,6 +71,9 @@ export interface DimensionInsight {
   parts: InsightPart[];
   /** `suggested_next_step` del motor de assessment (Carrera trae el cuello de botella). */
   suggestedNextStep: string | null;
+  /** Posición 0-based del estado principal en su escala (ladder visual). */
+  stateIndex: number;
+  stateTotal: number;
 }
 
 /** Códigos del assessment que componen una dimensión de producto. */
@@ -107,15 +128,22 @@ export async function getDimensionInsight(input: {
       tips: fallback?.tips ?? [],
       parts: [],
       suggestedNextStep: null,
+      stateIndex: -1,
+      stateTotal: (STATE_ORDER[assessmentCodesFor(dimension)[0]] ?? []).length || 1,
     };
   }
 
-  const parts: InsightPart[] = found.map(({ code, result }) => ({
-    code,
-    name: DIMENSION_SHORT_LABEL[code],
-    stateLabel: shortLabel(code, result),
-    meaning: entryFor(code, result.state_code)?.meaning ?? "",
-  }));
+  const parts: InsightPart[] = found.map(({ code, result }) => {
+    const order = STATE_ORDER[code] ?? [];
+    return {
+      code,
+      name: DIMENSION_SHORT_LABEL[code],
+      stateLabel: shortLabel(code, result),
+      meaning: entryFor(code, result.state_code)?.meaning ?? "",
+      stateIndex: Math.max(0, order.indexOf(result.state_code)),
+      stateTotal: order.length || 1,
+    };
+  });
 
   // El insight "principal" sale del primer instrumento evaluado; en ES es P6A
   // (resiliencia) y los dos estados se muestran vía `parts`.
@@ -140,6 +168,8 @@ export async function getDimensionInsight(input: {
     tips,
     parts: multi ? parts : [],
     suggestedNextStep: primary.result.suggested_next_step ?? null,
+    stateIndex: parts[0]?.stateIndex ?? 0,
+    stateTotal: parts[0]?.stateTotal ?? 1,
   };
 }
 

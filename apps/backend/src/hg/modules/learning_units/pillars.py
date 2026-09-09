@@ -36,6 +36,18 @@ _NUMBERED_RE = re.compile(r"^P(\d+)$")
 _STATE_RE = re.compile(r"^V(\d+)$")
 
 
+def pillar_rank(pillar_code: str | None) -> int:
+    """Orden de prioridad de un pilar DENTRO de su dimensión — "AI" (Foundation)
+    siempre va último, el resto mantiene su orden natural (numérico o de
+    estado). Espejo de `pillarRank` en el frontend
+    (`components/dimensions/DimensionDetail.tsx` /
+    `components/modulos/DimensionCatalog.tsx`): sin este orden, "AI" quedaba
+    primero en `path_engine.build_path` porque alfabéticamente "AI" < "P1",
+    y el motor de ruta terminaba RECOMENDANDO módulos de IA antes que el resto
+    de los pilares de Carrera."""
+    return 1 if (pillar_code or "").upper() == "AI" else 0
+
+
 def pillar_display_name(dimension_code: str, pillar_code: str) -> str:
     """Nombre visible del área. Sin entrada en el registro cae a un fallback
     legible según la convención del código (``P3`` → "Pilar 3", ``V1`` → "Etapa

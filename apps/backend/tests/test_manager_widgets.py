@@ -85,3 +85,24 @@ def test_manager_widgets_collaborator_empty(client, manager_with_reports, factor
     body = client.get("/api/v1/manager/me/widgets", headers=auth_headers(loner)).json()
     assert body["team_activity"] == []
     assert sum(body["inactivity_buckets"].values()) == 0
+
+
+def test_manager_widgets_top_performers_sorted_by_courses_completed(
+    client, manager_with_reports, auth_headers
+) -> None:
+    """Rediseño equipo: ranking por módulos completados + días activos (30d),
+    reemplaza el heatmap en /team."""
+    mw = manager_with_reports
+    body = client.get("/api/v1/manager/me/widgets", headers=auth_headers(mw.manager)).json()
+    rows = body["top_performers"]
+    ids = {r["user_id"] for r in rows}
+    assert {str(mw.r1.id), str(mw.r2.id), str(mw.r3.id)} == ids
+    # Ordenado desc por courses_completed.
+    completed = [r["courses_completed"] for r in rows]
+    assert completed == sorted(completed, reverse=True)
+    r1_row = next(r for r in rows if r["user_id"] == str(mw.r1.id))
+    assert r1_row["courses_completed"] == 5
+    assert r1_row["days_active"] >= 1
+    r3_row = next(r for r in rows if r["user_id"] == str(mw.r3.id))
+    assert r3_row["courses_completed"] == 0
+    assert r3_row["days_active"] == 0

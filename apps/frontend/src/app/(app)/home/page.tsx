@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Clock, Flame, Trophy } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,15 +11,16 @@ import { FactOfTheDay } from "@/components/home/FactOfTheDay";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { MiniRadar } from "@/components/radar/MiniRadar";
 import { DimensionCard } from "@/components/shared/DimensionCard";
+import { StatCardsRow } from "@/components/shared/StatCardsRow";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { apiGetHomeDashboard, apiGetMyResults, apiSetOnboardingSeen } from "@/lib/api";
+import { apiGetHomeDashboard, apiGetMyBadges, apiGetMyResults, apiSetOnboardingSeen } from "@/lib/api";
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { DIMENSIONS } from "@/lib/dimensions";
-import type { HomeDashboard, DimensionResult } from "@/lib/types";
+import type { HomeDashboard, DimensionResult, MyBadge } from "@/lib/types";
 import { cn, greetingName, isFixtureCourse } from "@/lib/utils";
 
 const HomeActivitySection = React.lazy(
@@ -71,6 +72,7 @@ export default function HomePage() {
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
   const [data, setData] = React.useState<HomeDashboard | null>(null);
   const [results, setResults] = React.useState<DimensionResult[]>([]);
+  const [badges, setBadges] = React.useState<MyBadge[]>([]);
 
   const loadResults = React.useCallback(async () => {
     try {
@@ -84,7 +86,12 @@ export default function HomePage() {
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const [dash] = await Promise.all([apiGetHomeDashboard(), loadResults()]);
+      const [dash, , myBadges] = await Promise.all([
+        apiGetHomeDashboard(),
+        loadResults(),
+        apiGetMyBadges().catch(() => [] as MyBadge[]),
+      ]);
+      setBadges(myBadges);
       // Ocultar cursos-fixture (seed-w-*, cp-complete) de la actividad reciente.
       setData({
         ...dash,
@@ -161,36 +168,14 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Stats — las 3 siempre en una sola fila (col-4 c/u). */}
-          <div className="mt-8 grid grid-cols-3 gap-3 sm:gap-4">
-            <Card className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
-              <Flame size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
-              <div>
-                <p className="font-mono text-2xl font-semibold text-fg">{data.stats.streak_days}</p>
-                <p className="text-xs text-fg-muted">
-                  {data.stats.streak_days === 1 ? "día seguido" : "días seguidos"}
-                </p>
-              </div>
-            </Card>
-            <Card className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
-              <Clock size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
-              <div>
-                <p className="font-mono text-2xl font-semibold text-fg">
-                  {data.stats.month_watch_minutes}
-                </p>
-                <p className="text-xs text-fg-muted">min en plataforma</p>
-              </div>
-            </Card>
-            <Card className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
-              <Trophy size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
-              <div>
-                <p className="font-mono text-2xl font-semibold text-fg">
-                  {data.stats.courses_completed}
-                </p>
-                <p className="text-xs text-fg-muted">mods completados</p>
-              </div>
-            </Card>
-          </div>
+          {/* Stats — mismas 4 tarjetas y mismo orden que Mi Perfil. */}
+          <StatCardsRow
+            className="mt-8"
+            modulesCompleted={data.stats.courses_completed}
+            badgesUnlocked={badges.filter((b) => b.unlocked).length}
+            minutesOnPlatform={data.stats.month_watch_minutes}
+            daysActive={data.stats.streak_days}
+          />
 
           {/* Mini radar */}
           <Card className="mt-4 flex items-center gap-5 bg-bg-raised">

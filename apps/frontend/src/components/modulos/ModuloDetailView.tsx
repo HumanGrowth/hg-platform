@@ -89,12 +89,9 @@ export function ModuloDetailView({
 
   // Salir de un módulo vuelve a Mi Ruta, no a /modulos: /modulos abre
   // automáticamente el siguiente módulo, así que volver ahí sería una cinta sin
-  // salida — completás uno y ya estás dentro del próximo.
-  function handleComplete() {
-    toast("¡Módulo completado!", "success");
-    router.push("/path");
-  }
-
+  // salida — completás uno y ya estás dentro del próximo. La pantalla de
+  // finalización (UnitCompletionCard) ya ofrece "Siguiente módulo" y "Volver a
+  // Mi Ruta" como links directos, así que no hace falta un callback acá.
   function handleClose() {
     router.push("/path");
   }
@@ -155,17 +152,12 @@ export function ModuloDetailView({
       // NO scrollea la página; el contenido del bloque scrollea adentro y el
       // botón "Siguiente" queda siempre visible.
       <main className="mx-auto flex h-full w-full max-w-app flex-col px-6 py-6">
-        <UnitBackToBackPlayer
-          unit={unit}
-          attempt={attempt}
-          onComplete={handleComplete}
-          onClose={handleClose}
-        />
+        <UnitBackToBackPlayer unit={unit} attempt={attempt} onClose={handleClose} />
       </main>
     );
   }
 
   return (
-    <UnitStoriesPlayer unit={unit} attempt={attempt} onComplete={handleComplete} onClose={handleClose} />
+    <UnitStoriesPlayer unit={unit} attempt={attempt} onClose={handleClose} />
   );
 }

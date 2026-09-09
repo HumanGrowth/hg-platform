@@ -77,6 +77,90 @@ class ActivityAgg:
         return self.last_active_at < now_utc() - timedelta(days=INACTIVE_DAYS)
 
 
+# Ventana de "vence pronto" para el semáforo de due dates del dashboard de
+# equipo — separado de INACTIVE_DAYS (esto es sobre asignaciones, no actividad).
+ASSIGNMENT_DUE_SOON_DAYS = 7
+
+
+@dataclass
+class AssignmentDueSummary:
+    """Resumen de `ModuleAssignment.due_date` de un user, para el semáforo del
+    dashboard de equipo (cierre-beta TASK · due dates). "Vencida" = due_date ya
+    pasó y la asignación no está completada; "por vencer" = vence dentro de
+    ``ASSIGNMENT_DUE_SOON_DAYS``. Una asignación cuenta en una sola categoría."""
+
+    overdue_count: int = 0
+    due_soon_count: int = 0
+    next_due_at: datetime | None = None
+
+
+def assignments_due_summary_by_users(
+    db: Session, user_ids: list[UUID]
+) -> dict[UUID, AssignmentDueSummary]:
+    from hg.modules.learning_units.models import ModuleAssignment
+
+    out: dict[UUID, AssignmentDueSummary] = {uid: AssignmentDueSummary() for uid in user_ids}
+    if not user_ids:
+        return out
+    now = now_utc()
+    soon_cutoff = now + timedelta(days=ASSIGNMENT_DUE_SOON_DAYS)
+    rows = db.execute(
+        select(ModuleAssignment.user_id, ModuleAssignment.due_date).where(
+            ModuleAssignment.user_id.in_(user_ids),
+            ModuleAssignment.status != "completed",
+            ModuleAssignment.due_date.is_not(None),
+        )
+    ).all()
+    for uid, due_date in rows:
+        s = out[uid]
+        if due_date < now:
+            s.overdue_count += 1
+        elif due_date <= soon_cutoff:
+            s.due_soon_count += 1
+        if s.next_due_at is None or due_date < s.next_due_at:
+            s.next_due_at = due_date
+    return out
+
+
+def team_focus_by_users(db: Session, user_ids: list[UUID]) -> dict[UUID, str | None]:
+    """Career-path (P1..P6) de la actividad MÁS RECIENTE de cada user — "en qué
+    área está trabajando" para la tarjeta de /team (rediseño). Toma el intento
+    (completado o en progreso) con la fecha más reciente; sin ningún intento,
+    None ("sin actividad")."""
+    out: dict[UUID, str | None] = dict.fromkeys(user_ids)
+    if not user_ids:
+        return out
+    ts = func.coalesce(LearningUnitAttempt.completed_at, LearningUnitAttempt.started_at)
+    rows = db.execute(
+        select(LearningUnitAttempt.user_id, LearningUnit.dimension_code)
+        .join(LearningUnit, LearningUnit.id == LearningUnitAttempt.unit_id)
+        .where(LearningUnitAttempt.user_id.in_(user_ids))
+        .distinct(LearningUnitAttempt.user_id)
+        .order_by(LearningUnitAttempt.user_id, ts.desc())
+    ).all()
+    for uid, dimension_code in rows:
+        out[uid] = DRIVE_TO_CAREER_PATH.get(dimension_code.upper(), dimension_code)
+    return out
+
+
+def badges_unlocked_count_by_users(db: Session, user_ids: list[UUID]) -> dict[UUID, int]:
+    """Cantidad de insignias desbloqueadas por user — para la tarjeta de /team
+    (antes solo se mostraba en /perfil y en el detalle del propio colaborador)."""
+    from hg.modules.badges.models import UserBadge
+
+    out: dict[UUID, int] = dict.fromkeys(user_ids, 0)
+    if not user_ids:
+        return out
+    rows = db.execute(
+        select(UserBadge.user_id, func.count())
+        .where(UserBadge.user_id.in_(user_ids))
+        .group_by(UserBadge.user_id)
+    ).all()
+    for uid, n in rows:
+        out[uid] = int(n)
+    return out
+
+
 def _completed_block_events(
     db: Session, user_ids: list[UUID], since: datetime
 ) -> list[tuple[UUID, datetime]]:

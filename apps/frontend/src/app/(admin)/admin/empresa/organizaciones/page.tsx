@@ -28,6 +28,7 @@ import {
   ApiError,
 } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
+import { COUNTRIES, countryName } from "@/lib/countries";
 import { toast } from "@/lib/toast-store";
 import type { Company, CompanyOrg } from "@/lib/types";
 
@@ -179,7 +180,7 @@ function OrganizacionesContent() {
                   <div className="font-sans text-sm font-semibold text-fg">{o.name}</div>
                   <div className="font-mono text-xs text-fg-muted">{o.slug}</div>
                 </td>
-                <td className="px-5 py-3 text-sm text-fg-muted">{o.country ?? "—"}</td>
+                <td className="px-5 py-3 text-sm text-fg-muted">{countryName(o.country)}</td>
                 <td className="px-5 py-3 font-mono text-sm tabular-nums text-fg">{o.user_count}</td>
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-2">
@@ -276,11 +277,19 @@ function OrganizacionesContent() {
           </div>
           <div>
             <Label htmlFor="org-country">País (opcional)</Label>
-            <Input
+            <select
               id="org-country"
               value={form.country}
               onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-            />
+              className="h-10 w-full rounded-md border border-border bg-bg-raised px-4 py-3 font-sans text-base text-fg focus:border-primary focus:outline-none focus:ring-2 focus:ring-hg-amber/40"
+            >
+              <option value="">Sin especificar</option>
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <Label htmlFor="org-quota">Cupo de licencias</Label>

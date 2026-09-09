@@ -1,15 +1,17 @@
 "use client";
 
-import { Check, CircleDashed, Route } from "lucide-react";
+import { AlertTriangle, Award, Check, Compass } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Route as NextRoute } from "next";
 import Link from "next/link";
+import type * as React from "react";
 
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { dimensionShortName } from "@/lib/dimension-styles";
 import type { TeamMember } from "@/lib/types";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, formatShortDate } from "@/lib/utils";
 
 /** Semáforo por persona (umbral 21d): activo ≤7d, en riesgo 8-21d, inactivo >21d, nunca. */
 function memberStatus(lastActive: string | null): { label: string; dot: string; text: string } {
@@ -20,7 +22,17 @@ function memberStatus(lastActive: string | null): { label: string; dot: string; 
   return { label: "Inactivo", dot: "bg-danger", text: "text-danger" };
 }
 
-function Stat({ icon: Icon, value, label, tone }: { icon: LucideIcon; value: number; label: string; tone: string }) {
+function Stat({
+  icon: Icon,
+  value,
+  label,
+  tone,
+}: {
+  icon: LucideIcon;
+  value: React.ReactNode;
+  label: string;
+  tone: string;
+}) {
   return (
     <div className="flex flex-col items-center gap-0.5 rounded-lg bg-bg-sunken px-2 py-2 text-center">
       <Icon size={16} strokeWidth={2} className={tone} aria-hidden />
@@ -58,6 +70,25 @@ export function TeamMemberCard({ member: m }: { member: TeamMember }) {
         </span>
       </div>
 
+      {/* Due dates de módulos asignados — solo si hay algo que avisar. */}
+      {(m.assignments_overdue > 0 || m.assignments_due_soon > 0) && (
+        <div
+          className={`mt-3 flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold ${
+            m.assignments_overdue > 0 ? "bg-danger-bg text-danger" : "bg-warning-bg text-warning"
+          }`}
+        >
+          <AlertTriangle size={13} strokeWidth={2} aria-hidden />
+          {m.assignments_overdue > 0
+            ? `${m.assignments_overdue} ${m.assignments_overdue === 1 ? "módulo vencido" : "módulos vencidos"}`
+            : `${m.assignments_due_soon} por vencer`}
+          {m.next_assignment_due_at && (
+            <span className="font-normal opacity-80">
+              · próximo {formatShortDate(m.next_assignment_due_at)}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Progreso de módulos (completados / iniciados). */}
       <div className="mt-4">
         <div className="mb-1 flex items-center justify-between text-xs text-fg-muted">
@@ -69,11 +100,17 @@ export function TeamMemberCard({ member: m }: { member: TeamMember }) {
         <Progress value={pct} label={`Progreso de ${m.full_name}`} />
       </div>
 
-      {/* Stat strip. */}
+      {/* Stat strip: cursos completados, badges alcanzados, área en la que
+          está trabajando (su actividad más reciente). */}
       <div className="mt-4 grid grid-cols-3 gap-3">
         <Stat icon={Check} value={m.courses_completed} label="completados" tone="text-success" />
-        <Stat icon={CircleDashed} value={m.courses_in_progress} label="en progreso" tone="text-warning" />
-        <Stat icon={Route} value={m.active_enrollments} label="rutas" tone="text-primary" />
+        <Stat icon={Award} value={m.badges_unlocked_count} label="badges" tone="text-primary" />
+        <Stat
+          icon={Compass}
+          value={m.current_focus_dimension ? dimensionShortName(m.current_focus_dimension) : "—"}
+          label="en foco"
+          tone="text-fg-muted"
+        />
       </div>
 
       <p className="mt-3 text-xs text-fg-subtle">

@@ -142,3 +142,104 @@ def test_all_completed_no_next_step(client, factory, auth_headers) -> None:
         assert body["next_step"] is None
     finally:
         _clear_all()
+
+
+def test_milestones_surface_for_every_pillar_not_just_the_closest(client, factory, auth_headers) -> None:
+    """Antes, `_build_milestones` recortaba a una ventana de ~9 pasos: con dos
+    pilares en curso en el mismo nivel, el segundo (o ambos, si el primero es
+    grande) quedaba afuera. Ahora el hito se ubica por `sequence_position`
+    sobre la secuencia COMPLETA del nivel, sin ventana."""
+    from hg.modules.badges.models import Badge
+
+    _clear_all()
+    _ensure_paths()
+    user = factory.make_user(org=factory.make_org(), role=UserRole.collaborator)
+
+    # P1: 10 units pendientes (su hito cae en sequence_position=9, fuera de la
+    # ventana vieja de 9). P2: 2 units, más lejos todavía (position=11).
+    for i in range(1, 11):
+        _make_unit("CP", "L1", "P1", i)
+    for i in range(1, 3):
+        _make_unit("CP", "L1", "P2", i)
+
+    s = SessionLocal()
+    b1 = Badge(code="pillar-cp-p1", name="Área P1", icon_url="")
+    b2 = Badge(code="pillar-cp-p2", name="Área P2", icon_url="")
+    s.add_all([b1, b2])
+    s.commit()
+    try:
+        body = client.get("/api/v1/me/path", headers=auth_headers(user)).json()
+        area_codes = {m["badge_code"] for m in body["milestones"] if m["kind"] == "area"}
+        assert area_codes == {"pillar-cp-p1", "pillar-cp-p2"}
+        p1 = next(m for m in body["milestones"] if m["badge_code"] == "pillar-cp-p1")
+        p2 = next(m for m in body["milestones"] if m["badge_code"] == "pillar-cp-p2")
+        assert p1["sequence_position"] == 9
+        assert p2["sequence_position"] == 11
+    finally:
+        s.execute(delete(Badge).where(Badge.code.in_(["pillar-cp-p1", "pillar-cp-p2"])))
+        s.commit()
+        s.close()
+        _clear_all()
+
+
+def test_next_step_prioritizes_in_progress_unit_over_recommendation(
+    client, factory, auth_headers
+) -> None:
+    """Si hay una unit YA EMPEZADA (sin completar), next_step debe ser ESA —
+    no la que la ronda-robin recomendaría — para que coincida con lo que
+    Módulos abre (retomar antes que recomendar algo nuevo)."""
+    from datetime import UTC, datetime
+
+    from sqlalchemy import select as sa_select
+
+    from hg.db import SessionLocal
+    from hg.modules.learning_units.models import LearningUnitAttempt
+
+    _clear_all()
+    _ensure_paths()
+    user = factory.make_user(org=factory.make_org(), role=UserRole.collaborator)
+
+    # P1 tiene prioridad de ronda-robin sobre P2 → sin nada en curso, next_step
+    # sería la primera unit de P1.
+    p1_u1 = _make_unit("CP", "L1", "P1", 1)
+    _make_unit("CP", "L1", "P1", 2)
+    p2_u1 = _make_unit("CP", "L1", "P2", 1)
+
+    s = SessionLocal()
+    s.add(LearningUnitAttempt(
+        user_id=user.id, unit_id=p2_u1, org_id=user.org_id,
+        started_at=datetime.now(UTC), completed_at=None,
+    ))
+    s.commit()
+    s.close()
+
+    try:
+        body = client.get("/api/v1/me/path", headers=auth_headers(user)).json()
+        assert body["next_step"]["unit_id"] == str(p2_u1)
+        # La que hubiera sido recomendada (P1#1) sigue en upcoming, no se pierde.
+        upcoming_ids = {s["unit_id"] for s in body["upcoming"]}
+        assert str(p1_u1) in upcoming_ids
+    finally:
+        _clear_all()
+
+
+def test_ai_pillar_always_ranks_last_within_dimension(client, factory, auth_headers) -> None:
+    """"AI" (Foundation) ordena alfabéticamente ANTES que "P1" — sin
+    `pillar_rank`, el motor terminaba recomendando módulos de IA antes que el
+    resto de los pilares de Carrera. AI debe ir siempre al final."""
+    _clear_all()
+    _ensure_paths()
+    user = factory.make_user(org=factory.make_org(), role=UserRole.collaborator)
+
+    ai_unit = _make_unit("CP", "L1", "AI", 1)
+    p5_unit = _make_unit("CP", "L1", "P5", 1)
+
+    try:
+        body = client.get("/api/v1/me/path", headers=auth_headers(user)).json()
+        # P5 (numerado) va antes que AI, aunque "AI" < "P5" alfabéticamente.
+        assert body["next_step"]["unit_id"] == str(p5_unit)
+        upcoming_ids = [s["unit_id"] for s in body["upcoming"]]
+        assert str(ai_unit) in upcoming_ids
+        assert upcoming_ids[-1] == str(ai_unit)
+    finally:
+        _clear_all()

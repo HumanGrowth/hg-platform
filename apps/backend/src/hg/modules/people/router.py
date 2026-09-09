@@ -17,6 +17,8 @@ from sqlalchemy.orm import Session
 
 from hg.core.deps import get_current_user, get_db_as_superadmin, require_role
 from hg.db import get_db
+from hg.modules.assessment.router import result_out as assessment_result_out
+from hg.modules.assessment.schemas import DimensionResultOut
 from hg.modules.identity.models import Organization, User, UserRole
 from hg.modules.learning import enrollments_service
 from hg.modules.learning.enrollments_service import InvalidPathCodeError
@@ -25,6 +27,7 @@ from hg.modules.learning.models import (
     Enrollment,
 )
 from hg.modules.learning.schemas import EnrollmentIn, EnrollmentOut
+from hg.modules.learning_units import path_engine
 from hg.modules.learning_units.dimensions import career_path_for_dimension
 from hg.modules.learning_units.models import (
     BlockProgress,
@@ -32,6 +35,12 @@ from hg.modules.learning_units.models import (
     LearningUnit,
     LearningUnitAttempt,
     UnitBlock,
+)
+from hg.modules.learning_units.path_router import (
+    DimensionProgressOut,
+    PathMilestoneOut,
+    PathOut,
+    PathStepOut,
 )
 from hg.modules.people import service
 from hg.modules.people.schemas import (
@@ -55,6 +64,7 @@ from hg.modules.people.schemas import (
     TeamMemberDetailOut,
     TeamMemberOut,
     TeamOrgComparison,
+    TeamPerformerOut,
     TeamResponse,
     TopPerformerOut,
     UserMetricsOut,
@@ -63,11 +73,15 @@ from hg.modules.people.schemas import (
 from hg.modules.people.service import (
     ACTIVE_WINDOW_DAYS,
     ActivityAgg,
+    AssignmentDueSummary,
     activity_by_users,
+    assignments_due_summary_by_users,
+    badges_unlocked_count_by_users,
     dimension_completion_rate,
     now_utc,
     org_dimension_metrics,
     streak_days,
+    team_focus_by_users,
 )
 
 manager_router = APIRouter()
@@ -77,7 +91,14 @@ me_router = APIRouter()
 _ADMIN_ROLES = (UserRole.admin, UserRole.superadmin)
 
 
-def _member_out(user: User, agg: ActivityAgg) -> TeamMemberOut:
+def _member_out(
+    user: User,
+    agg: ActivityAgg,
+    due: AssignmentDueSummary | None = None,
+    badges_unlocked_count: int = 0,
+    current_focus_dimension: str | None = None,
+) -> TeamMemberOut:
+    due = due or AssignmentDueSummary()
     return TeamMemberOut(
         id=user.id,
         full_name=user.full_name,
@@ -91,6 +112,11 @@ def _member_out(user: User, agg: ActivityAgg) -> TeamMemberOut:
         courses_completed=agg.courses_completed,
         total_watch_minutes=agg.total_watch_minutes,
         active_enrollments=agg.active_enrollments,
+        assignments_overdue=due.overdue_count,
+        assignments_due_soon=due.due_soon_count,
+        next_assignment_due_at=due.next_due_at,
+        badges_unlocked_count=badges_unlocked_count,
+        current_focus_dimension=current_focus_dimension,
     )
 
 
@@ -146,8 +172,14 @@ def list_my_team(
     from hg.modules.consent import service as consent_service
 
     consent_service.log_access(db, actor=current_user, resource=consent_service.RESOURCE_ROSTER)
-    aggs = activity_by_users(db, [m.id for m in members])
-    rows = [_member_out(m, aggs[m.id]) for m in members]
+    member_ids = [m.id for m in members]
+    aggs = activity_by_users(db, member_ids)
+    due = assignments_due_summary_by_users(db, member_ids)
+    badges = badges_unlocked_count_by_users(db, member_ids)
+    focus = team_focus_by_users(db, member_ids)
+    rows = [
+        _member_out(m, aggs[m.id], due[m.id], badges[m.id], focus[m.id]) for m in members
+    ]
 
     inactive_count = sum(1 for r in rows if r.is_inactive)
     if inactive_only:
@@ -306,7 +338,10 @@ def get_user_detail(
 ) -> TeamMemberDetailOut:
     target = _authorize_target(db, current_user, user_id)
     agg = activity_by_users(db, [target.id])[target.id]
-    base = _member_out(target, agg)
+    due = assignments_due_summary_by_users(db, [target.id])[target.id]
+    badges = badges_unlocked_count_by_users(db, [target.id])[target.id]
+    focus = team_focus_by_users(db, [target.id])[target.id]
+    base = _member_out(target, agg, due, badges, focus)
     enrollments = enrollments_service.list_user_enrollments(
         db, user_id=target.id, active_only=False
     )
@@ -336,6 +371,59 @@ def get_user_detail(
         dimension_completion_rate=dimension_completion_rate(db, target.id),
         assessment_states=states,
     )
+
+
+@manager_router.get("/users/{user_id}/path", response_model=PathOut)
+def get_user_path(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> PathOut:
+    """Progreso y próximos pasos por área de un reporte — el mismo motor que
+    alimenta "Mi Ruta" del colaborador (`hg.modules.learning_units.path_engine`),
+    para que el manager vea exactamente lo que su reporte ve. No requiere el gate
+    de consentimiento de assessment: es progreso de contenido, no estados de
+    evaluación (esos siguen gateados en `/users/{user_id}/detail`)."""
+    target = _authorize_target(db, current_user, user_id)
+    r = path_engine.build_path(db, target.id)
+    return PathOut(
+        current_level=r.current_level,
+        next_step=PathStepOut(**vars(r.next_step)) if r.next_step else None,
+        upcoming=[PathStepOut(**vars(s)) for s in r.upcoming],
+        completed_this_level=r.completed_this_level,
+        total_this_level=r.total_this_level,
+        dimensions_progress=[DimensionProgressOut(**vars(d)) for d in r.dimensions_progress],
+        milestones=[PathMilestoneOut(**vars(m)) for m in r.milestones],
+    )
+
+
+@manager_router.get("/users/{user_id}/results", response_model=list[DimensionResultOut])
+def get_user_results(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[DimensionResultOut]:
+    """Resultados completos del assessment de un reporte — mismo shape que
+    `/me/results` del colaborador, para que el manager pueda armar el MISMO
+    "plan de acción" (insights + tips por dimensión) que `/dimensiones/{code}`
+    le muestra a esa persona, en vez de reinventar el contenido en el backend.
+
+    Gateado por el mismo consentimiento granular que `assessment_states` en
+    `/users/{user_id}/detail` — sin eso, lista vacía (no 403: el manager puede
+    ver que hay un reporte, solo no sus resultados)."""
+    from hg.modules.assessment.service import latest_dimension_results
+    from hg.modules.consent import service as consent_service
+
+    target = _authorize_target(db, current_user, user_id)
+    if not consent_service.consent_manager_ok(
+        consent_service.get_privacy_consent(db, target.id)
+    ):
+        return []
+    consent_service.log_access(
+        db, actor=current_user,
+        resource=consent_service.RESOURCE_ASSESSMENT_STATE, target_user_id=target.id,
+    )
+    return [assessment_result_out(r) for r in latest_dimension_results(db, target.id)]
 
 
 @manager_router.post(
@@ -725,11 +813,33 @@ def get_manager_widgets(
     names = {m.id: m.full_name for m in members}
     member_ids = list(names)
     today = now_utc().date()
+    activity_rows = service.team_activity_cells(db, member_ids, today)
     cells = [
         TeamActivityCell(user_id=uid, user_full_name=names[uid], date=d, minutes=m)
-        for uid, d, m in service.team_activity_cells(db, member_ids, today)
+        for uid, d, m in activity_rows
     ]
     buckets = InactivityBuckets(**service.inactivity_buckets(db, member_ids, now_utc()))
+
+    # Ranking "Actividad del equipo": módulos completados + días activos
+    # distintos, contando las MISMAS filas que arman `cells` arriba (una fila
+    # por (user, día) con bloques>0 — ver `team_activity_cells`).
+    days_active_by_user: dict[UUID, int] = {}
+    for uid, _d, _m in activity_rows:
+        days_active_by_user[uid] = days_active_by_user.get(uid, 0) + 1
+    member_aggs = activity_by_users(db, member_ids)
+    top_performers = sorted(
+        (
+            TeamPerformerOut(
+                user_id=uid,
+                full_name=names[uid],
+                courses_completed=member_aggs[uid].courses_completed,
+                days_active=days_active_by_user.get(uid, 0),
+            )
+            for uid in member_ids
+        ),
+        key=lambda p: p.courses_completed,
+        reverse=True,
+    )
 
     # Comparativa equipo vs promedio de la organización.
     comparison: TeamOrgComparison | None = None
@@ -758,7 +868,8 @@ def get_manager_widgets(
             team_avg_completed=t_avg, org_avg_completed=o_avg,
         )
     return ManagerWidgetsOut(
-        team_activity=cells, inactivity_buckets=buckets, comparison=comparison
+        team_activity=cells, inactivity_buckets=buckets, comparison=comparison,
+        top_performers=top_performers,
     )
 
 

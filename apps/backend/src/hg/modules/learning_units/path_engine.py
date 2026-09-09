@@ -36,7 +36,7 @@ from hg.modules.learning.models import CareerPath
 from hg.modules.learning_units.area_access import visible_units_predicate
 from hg.modules.learning_units.dimensions import career_path_for_dimension
 from hg.modules.learning_units.models import LearningUnit, LearningUnitAttempt
-from hg.modules.learning_units.pillars import pillar_display_name
+from hg.modules.learning_units.pillars import pillar_display_name, pillar_rank
 
 _LEVEL_RE = re.compile(r"L(\d+)")
 
@@ -74,6 +74,11 @@ class PathMilestone:
     # alcanza si la dimensión pondera la evaluación. El front lo dice explícito
     # en vez de prometer una insignia que no se va a otorgar.
     requires_assessment: bool = False
+    # Posición 0-based dentro de la secuencia COMPLETA del nivel actual (no solo
+    # de `upcoming`, que el front trunca a `upcoming_n`). Con esto el front
+    # calcula el % exacto sobre la barra de nivel para CUALQUIER hito, aunque su
+    # unit ancla no esté entre las visibles en "Sigue en tu ruta".
+    sequence_position: int = 0
 
 
 @dataclass
@@ -173,10 +178,14 @@ def _build_milestones(
     units: list[LearningUnit],
     completed_ids: set[uuid.UUID],
     sequence: list[PathStep],
-    window: int,
 ) -> list[PathMilestone]:
-    """Hitos alcanzables dentro de la ventana visible de la ruta (``window`` =
-    next_step + upcoming), ordenados por dónde caen en la secuencia."""
+    """Todos los hitos alcanzables del nivel actual — uno por área/nivel cuyas
+    units pendientes están enteramente en `sequence` (la ronda-robin completa
+    del nivel, no solo lo que el front muestra en "Sigue en tu ruta"). Antes se
+    recortaba a la ventana visible (`window`), lo que dejaba fuera el checkpoint
+    de cualquier pilar que no cupiera en los primeros ~8 pasos — con varios
+    pilares en curso (Carrera + Propósito, etc.) eso escondía casi todos los
+    hitos salvo el más cercano. Ordenados por dónde caen en la secuencia."""
     order = {s.unit_id: i for i, s in enumerate(sequence)}
     candidates = _milestone_groups(units, completed_ids, sequence)
     if not candidates:
@@ -203,8 +212,6 @@ def _build_milestones(
     for kind, key, pending in candidates:
         anchor = max(pending, key=lambda u: order[u.id])
         index = order[anchor.id]
-        if index >= window:
-            continue  # cae fuera de lo que el front muestra
         code = badge_code(kind, key)
         badge = badges.get(code)
         if badge is None:
@@ -229,6 +236,7 @@ def _build_milestones(
                 badge_icon_url=badge.icon_url,
                 units_remaining=len(pending),
                 requires_assessment=kind == "level" and dim in assessment_weighted,
+                sequence_position=index,
             )
         )
     out.sort(key=lambda m: (order[m.after_unit_id], 0 if m.kind == "area" else 1))
@@ -299,12 +307,15 @@ def build_path(db: Session, user_id: uuid.UUID, upcoming_n: int = 8) -> PathResu
     level_pending = [u for u in level_units if u.id not in completed_ids]
 
     # Agrupar pendientes por career_path, ordenar dentro por (pilar, número).
+    # "AI" (Foundation) siempre al final del pilar — sin `pillar_rank`, "AI"
+    # ordenaba primero (alfabéticamente antes que "P1") y el motor terminaba
+    # RECOMENDANDO módulos de IA antes que el resto de Carrera.
     by_cp: dict[str, list[LearningUnit]] = {}
     for u in level_pending:
         cp = career_path_for_dimension(u.dimension_code) or u.dimension_code
         by_cp.setdefault(cp, []).append(u)
     for lst in by_cp.values():
-        lst.sort(key=lambda u: (u.pillar_code or "", u.unit_number or 0))
+        lst.sort(key=lambda u: (pillar_rank(u.pillar_code), u.pillar_code or "", u.unit_number or 0))
 
     # Prioridad a CP (Carrera): se alterna 1:1 un curso de CP con uno del resto,
     # tomando el resto en orden de menor score primero (la dimensión que más
@@ -319,11 +330,28 @@ def build_path(db: Session, user_id: uuid.UUID, upcoming_n: int = 8) -> PathResu
     track_rest = [_to_step(u, cp) for cp in rest_cps for u in by_cp[cp]]
     sequence = _interleave([track_cp, track_rest])
 
+    # Un módulo YA EN CURSO siempre gana el primer lugar — es lo que "Módulos"
+    # abre (retomar antes que recomendar algo nuevo, ver
+    # `ModulosLauncher`/`ModuloDetailView` en el front). Sin esto, `next_step`
+    # podía recomendar una unit distinta a la que el colaborador ya empezó,
+    # mostrando un "módulo de hoy" que no coincidía con lo que Módulos abría.
+    in_progress_ids = list(
+        db.scalars(
+            select(LearningUnitAttempt.unit_id).where(
+                LearningUnitAttempt.user_id == user_id,
+                LearningUnitAttempt.started_at.isnot(None),
+                LearningUnitAttempt.completed_at.is_(None),
+            ).order_by(LearningUnitAttempt.started_at.desc())
+        ).all()
+    )
+    seq_by_unit = {s.unit_id: i for i, s in enumerate(sequence)}
+    resume_idx = next((seq_by_unit[uid] for uid in in_progress_ids if uid in seq_by_unit), None)
+    if resume_idx is not None and resume_idx != 0:
+        sequence.insert(0, sequence.pop(resume_idx))
+
     next_step = sequence[0] if sequence else None
     upcoming = sequence[1 : 1 + upcoming_n]
-    milestones = _build_milestones(
-        db, units, completed_ids, sequence, window=1 + len(upcoming)
-    )
+    milestones = _build_milestones(db, units, completed_ids, sequence)
     return PathResult(
         current_level=current_level,
         next_step=next_step,

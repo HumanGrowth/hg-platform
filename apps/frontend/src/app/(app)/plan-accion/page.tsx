@@ -5,6 +5,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
 
+import { NextStepsSpotlight } from "@/components/plan-accion/NextStepsSpotlight";
 import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
@@ -88,6 +89,8 @@ export default function PlanAccionPage() {
         {all.length} {all.length === 1 ? "tip guardado" : "tips guardados"} · {doneCount} completado
         {doneCount === 1 ? "" : "s"}
       </p>
+
+      <NextStepsSpotlight />
 
       {/* Sugerencias AI (detrás del flag) */}
       {ai && (ai.enabled ? ai.suggestions.length > 0 : true) && (
