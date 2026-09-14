@@ -36,7 +36,9 @@ from hg.modules.learning.models import CareerPath
 from hg.modules.learning_units.area_access import visible_units_predicate
 from hg.modules.learning_units.dimensions import career_path_for_dimension
 from hg.modules.learning_units.models import LearningUnit, LearningUnitAttempt
+from hg.modules.learning_units.onboarding import ONBOARDING_DIMENSION_CODE
 from hg.modules.learning_units.pillars import pillar_display_name, pillar_rank
+from hg.modules.paths.resolution import custom_path_unit_order, resolve_custom_path
 
 _LEVEL_RE = re.compile(r"L(\d+)")
 
@@ -98,6 +100,10 @@ class PathResult:
     total_this_level: int
     dimensions_progress: list[DimensionProgress] = field(default_factory=list)
     milestones: list[PathMilestone] = field(default_factory=list)
+    # FASE 2.2 — nombre de la CustomPath de Empresa/Org que priorizó el orden
+    # de esta secuencia (None = solo el algoritmo). El front la usa para el
+    # badge "Ruta de tu empresa" (ver `custom_path_priority` más abajo).
+    custom_path_name: str | None = None
 
 
 def _level_num(level_code: str) -> int:
@@ -124,6 +130,23 @@ def _dimension_score(result: DimensionResult | None) -> float:
 def _career_path_for_dimension(dimension_code: str) -> str:
     """Assessment dimension (P1..P5, P6A/P6B) → career_path (P6A/P6B → P6)."""
     return "P6" if dimension_code.startswith("P6") else dimension_code
+
+
+def _prioritize_custom_path(sequence: list[PathStep], custom_unit_ids: list[uuid.UUID]) -> list[PathStep]:
+    """Antepone a la secuencia algorítmica los pasos cuyo unit_id está en la
+    CustomPath aplicable (FASE 2.2 — decisión: custom y algoritmo CONVIVEN, no
+    se reemplazan). Solo reordena dentro de lo que el algoritmo ya iba a
+    recomendar (units del nivel actual, visibles y pendientes) — una unit de
+    la custom path que caiga en otro nivel/dimensión no se adelanta acá, sigue
+    el orden normal de niveles; eso mantiene ``current_level`` con un único
+    significado en vez de dos sistemas de prioridad compitiendo."""
+    if not custom_unit_ids:
+        return sequence
+    by_unit = {s.unit_id: s for s in sequence}
+    custom_first = [by_unit[uid] for uid in custom_unit_ids if uid in by_unit]
+    custom_set = {s.unit_id for s in custom_first}
+    rest = [s for s in sequence if s.unit_id not in custom_set]
+    return custom_first + rest
 
 
 def _interleave(groups: list[list[PathStep]]) -> list[PathStep]:
@@ -252,6 +275,7 @@ def build_path(db: Session, user_id: uuid.UUID, upcoming_n: int = 8) -> PathResu
             select(LearningUnit).where(
                 LearningUnit.published_at.isnot(None),
                 LearningUnit.superseded_by_unit_id.is_(None),
+                LearningUnit.dimension_code != ONBOARDING_DIMENSION_CODE,  # track aparte, ver onboarding.py
                 visible_units_predicate(user),  # gating por Área de la Empresa (TASK 8)
             )
         ).all()
@@ -330,6 +354,13 @@ def build_path(db: Session, user_id: uuid.UUID, upcoming_n: int = 8) -> PathResu
     track_rest = [_to_step(u, cp) for cp in rest_cps for u in by_cp[cp]]
     sequence = _interleave([track_cp, track_rest])
 
+    # FASE 2.2: si el colaborador tiene una CustomPath aplicable (asignación
+    # puntual > org > empresa, ver `paths/resolution.resolve_custom_path`), sus
+    # units priorizan el orden dentro de lo que el algoritmo ya recomendaba.
+    custom_path = resolve_custom_path(db, user)
+    if custom_path is not None:
+        sequence = _prioritize_custom_path(sequence, custom_path_unit_order(db, custom_path.id))
+
     # Un módulo YA EN CURSO siempre gana el primer lugar — es lo que "Módulos"
     # abre (retomar antes que recomendar algo nuevo, ver
     # `ModulosLauncher`/`ModuloDetailView` en el front). Sin esto, `next_step`
@@ -360,6 +391,7 @@ def build_path(db: Session, user_id: uuid.UUID, upcoming_n: int = 8) -> PathResu
         total_this_level=total_this_level,
         dimensions_progress=dimensions_progress,
         milestones=milestones,
+        custom_path_name=custom_path.name if custom_path is not None else None,
     )
 
 

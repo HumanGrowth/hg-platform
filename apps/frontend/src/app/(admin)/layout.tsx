@@ -9,7 +9,9 @@ import {
   ChevronDown,
   Layers,
   LineChart,
+  Map,
   Newspaper,
+  Scale,
   Users2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -34,6 +36,7 @@ const SUPERADMIN_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin/areas", label: "Áreas de contenido", icon: Layers },
   { href: "/admin/events", label: "Eventos", icon: Calendar },
   { href: "/admin/perspectivas", label: "Perspectivas", icon: Newspaper },
+  { href: "/admin/scoring", label: "Pesos del score", icon: Scale },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -110,6 +113,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   >
                     <Users2 size={16} strokeWidth={1.75} />
                     Miembros
+                  </Link>
+                )}
+                {showOrgMgmt && (
+                  <Link
+                    href={"/admin/empresa/rutas" as Route}
+                    className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm font-medium text-fg hover:bg-bg-sunken"
+                  >
+                    <Map size={16} strokeWidth={1.75} />
+                    Rutas
                   </Link>
                 )}
                 {/* M2·3: TODAS las opciones exclusivas de superadmin en UN solo

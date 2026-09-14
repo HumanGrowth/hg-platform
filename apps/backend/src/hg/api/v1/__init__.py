@@ -7,12 +7,15 @@ from hg.modules.admin.router import router as admin_router
 from hg.modules.admin.upload_router import router as admin_upload_router
 from hg.modules.assessment.router import router as assessment_router
 from hg.modules.badges.router import me_router as badges_me_router
+from hg.modules.badges.scoring_admin_router import router as scoring_admin_router
 from hg.modules.badges.timeline_router import router as timeline_me_router
 from hg.modules.community_events.router import admin_router as community_events_admin_router
 from hg.modules.community_events.router import public_router as community_events_public_router
 from hg.modules.company.router import admin_router as company_admin_router
 from hg.modules.company.router import company_router
 from hg.modules.consent.router import router as consent_me_router
+from hg.modules.feedback.router import admin_router as feedback_admin_router
+from hg.modules.feedback.router import me_router as feedback_me_router
 from hg.modules.identity.router import router as identity_router
 from hg.modules.learning.router import router as learning_router
 from hg.modules.learning_units.admin_router import router as learning_units_admin_router
@@ -23,6 +26,7 @@ from hg.modules.learning_units.router import router as learning_units_router
 from hg.modules.learning_units.tips_router import router as tips_me_router
 from hg.modules.marketing.router import admin_router as marketing_admin_router
 from hg.modules.marketing.router import public_router as marketing_public_router
+from hg.modules.paths.router import router as custom_paths_router
 from hg.modules.people.router import admin_router as people_admin_router
 from hg.modules.people.router import manager_router, me_router
 from hg.modules.perspectives.router import admin_router as perspectives_admin_router
@@ -80,3 +84,12 @@ router.include_router(badges_me_router, prefix="/me", tags=["badges"])
 router.include_router(timeline_me_router, prefix="/me", tags=["badges"])
 # Motor de assessment: /assessment/sessions, /me/results, ... (B2-02/B2-03)
 router.include_router(assessment_router, prefix="/assessment", tags=["assessment"])
+# Feedback del manager (FASE 1.2): matriz de comportamientos del pilar en curso.
+# /admin/users/{id}/behavior-matrix + /admin/users/{id}/behavior-evaluations
+# (manager/admin/superadmin; company_admin solo lectura) · /me/behavior-feedback
+router.include_router(feedback_admin_router, prefix="/admin", tags=["admin", "feedback"])
+router.include_router(feedback_me_router, prefix="/me", tags=["feedback"])
+# Pesos del score + recompute masivo (FASE 1.4): /admin/scoring-config (superadmin).
+router.include_router(scoring_admin_router, prefix="/admin", tags=["admin", "scoring"])
+# Rutas customizables por Empresa/Org (FASE 2.2): /admin/custom-paths + /admin/users/{id}/custom-path.
+router.include_router(custom_paths_router, prefix="/admin", tags=["admin", "paths"])

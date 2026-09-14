@@ -67,4 +67,31 @@ describe("SessionGate · gate de onboarding", () => {
 
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/onboarding/welcome"));
   });
+
+  it("redirige a los módulos de onboarding cuando el user está restringido a contenido", async () => {
+    storeUser = { ...completed, content_restricted_to_onboarding: true };
+    apiMe.mockResolvedValue({ ...completed, content_restricted_to_onboarding: true });
+
+    render(
+      <SessionGate requireOnboarding>
+        <div>app-home</div>
+      </SessionGate>,
+    );
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/onboarding/modulos"));
+  });
+
+  it("no redirige a onboarding/modulos cuando el user ya no está restringido", async () => {
+    storeUser = { ...completed, content_restricted_to_onboarding: false };
+    apiMe.mockResolvedValue({ ...completed, content_restricted_to_onboarding: false });
+
+    render(
+      <SessionGate requireOnboarding>
+        <div>app-home</div>
+      </SessionGate>,
+    );
+
+    await waitFor(() => expect(screen.getByText("app-home")).toBeTruthy());
+    expect(router.replace).not.toHaveBeenCalledWith("/onboarding/modulos");
+  });
 });

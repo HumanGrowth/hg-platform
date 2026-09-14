@@ -7,7 +7,15 @@ import type {
   PerspectiveContentType,
   PerspectiveInput,
   PerspectiveSummary,
+  BehaviorMatrix,
+  CustomPath,
+  CustomPathScope,
+  DimensionScoringConfig,
+  MyBehaviorEvaluation,
   MyPath,
+  OnboardingStatus,
+  RecomputeResult,
+  ResolvedCustomPath,
   SavedTip,
   Area,
   BulkImportResponse,
@@ -381,6 +389,134 @@ export const apiGetTeamMemberResults = async (userId: string): Promise<Dimension
   return res.data;
 };
 
+// ─────────────────────────── Feedback del manager (FASE 1.2) ───────────────────────────
+
+/** Matriz de comportamientos del pilar en curso del colaborador (+ contexto
+ * del resto de pilares de esa dimensión). */
+export const apiGetBehaviorMatrix = async (userId: string): Promise<BehaviorMatrix> => {
+  const res = await backend.get<BehaviorMatrix>(`/api/v1/admin/users/${userId}/behavior-matrix`);
+  return res.data;
+};
+
+/** Upsert batch de calificaciones 1..3. Devuelve la matriz actualizada
+ * (incluye el `manager_pct` recalculado). */
+export const apiUpsertBehaviorEvaluations = async (
+  userId: string,
+  evaluations: { behavior_id: string; rating: number; note?: string | null }[],
+): Promise<BehaviorMatrix> => {
+  const res = await backend.put<BehaviorMatrix>(
+    `/api/v1/admin/users/${userId}/behavior-evaluations`,
+    { evaluations },
+  );
+  return res.data;
+};
+
+export const apiGetMyBehaviorFeedback = async (): Promise<MyBehaviorEvaluation[]> => {
+  const res = await backend.get<MyBehaviorEvaluation[]>("/api/v1/me/behavior-feedback");
+  return res.data;
+};
+
+// ─────────────────────────── Pesos del score (FASE 1.4, superadmin) ───────────────────────────
+
+export const apiListScoringConfig = async (): Promise<DimensionScoringConfig[]> => {
+  const res = await backend.get<DimensionScoringConfig[]>("/api/v1/admin/scoring-config");
+  return res.data;
+};
+
+export const apiUpdateScoringConfig = async (
+  dimensionCode: string,
+  weights: { learning_weight: number; assessment_weight: number; manager_weight: number },
+): Promise<DimensionScoringConfig> => {
+  const res = await backend.put<DimensionScoringConfig>(
+    `/api/v1/admin/scoring-config/${dimensionCode}`,
+    weights,
+  );
+  return res.data;
+};
+
+export const apiRecomputeScoring = async (dimensionCode?: string): Promise<RecomputeResult> => {
+  const res = await backend.post<RecomputeResult>("/api/v1/admin/scoring-config/recompute", null, {
+    params: dimensionCode ? { dimension_code: dimensionCode } : undefined,
+  });
+  return res.data;
+};
+
+// ─────────────────────────── Rutas customizables (FASE 2.3) ───────────────────────────
+
+export const apiListCustomPaths = async (params: {
+  companyId?: string;
+  orgId?: string;
+}): Promise<CustomPath[]> => {
+  const res = await backend.get<CustomPath[]>("/api/v1/admin/custom-paths", {
+    params: { company_id: params.companyId, org_id: params.orgId },
+  });
+  return res.data;
+};
+
+export const apiCreateCustomPath = async (
+  body: { name: string; description?: string | null; scope: CustomPathScope; org_id?: string },
+  companyId?: string,
+): Promise<CustomPath> => {
+  const res = await backend.post<CustomPath>("/api/v1/admin/custom-paths", body, {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
+  return res.data;
+};
+
+export const apiUpdateCustomPath = async (
+  id: string,
+  body: { name?: string; description?: string | null; is_active?: boolean },
+  companyId?: string,
+): Promise<CustomPath> => {
+  const res = await backend.patch<CustomPath>(`/api/v1/admin/custom-paths/${id}`, body, {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
+  return res.data;
+};
+
+export const apiDeleteCustomPath = async (id: string, companyId?: string): Promise<void> => {
+  await backend.delete(`/api/v1/admin/custom-paths/${id}`, {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
+};
+
+export const apiSetCustomPathItems = async (
+  id: string,
+  items: { learning_unit_id: string; is_required: boolean }[],
+  companyId?: string,
+): Promise<CustomPath> => {
+  const res = await backend.put<CustomPath>(
+    `/api/v1/admin/custom-paths/${id}/items`,
+    { items },
+    { params: companyId ? { company_id: companyId } : undefined },
+  );
+  return res.data;
+};
+
+export const apiSetCustomPathAssignments = async (
+  id: string,
+  userIds: string[],
+  companyId?: string,
+): Promise<CustomPath> => {
+  const res = await backend.put<CustomPath>(
+    `/api/v1/admin/custom-paths/${id}/assignments`,
+    { user_ids: userIds },
+    { params: companyId ? { company_id: companyId } : undefined },
+  );
+  return res.data;
+};
+
+export const apiGetResolvedCustomPath = async (
+  userId: string,
+  companyId?: string,
+): Promise<ResolvedCustomPath> => {
+  const res = await backend.get<ResolvedCustomPath>(
+    `/api/v1/admin/users/${userId}/custom-path`,
+    { params: companyId ? { company_id: companyId } : undefined },
+  );
+  return res.data;
+};
+
 export const apiAssignPath = async (userId: string, pathCode: string): Promise<Enrollment> => {
   const res = await backend.post<Enrollment>(`/api/v1/manager/users/${userId}/enroll`, {
     career_path_code: pathCode,
@@ -616,6 +752,13 @@ export const apiSubmitReflection = async (
   text: string,
 ): Promise<void> => {
   await backend.post(`/api/v1/modulos/${slug}/blocks/${blockId}/reflection/submit`, { text });
+};
+
+// ─────────────────────────── Onboarding ("capa 0") ───────────────────────────
+
+export const apiGetOnboardingStatus = async (): Promise<OnboardingStatus> => {
+  const res = await backend.get<OnboardingStatus>("/api/v1/me/onboarding");
+  return res.data;
 };
 
 // ─────────────────────────── Asignaciones de módulos (TASK 3) ───────────────────────────

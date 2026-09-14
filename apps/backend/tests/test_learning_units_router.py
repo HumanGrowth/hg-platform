@@ -14,6 +14,7 @@ from hg.modules.identity.models import UserRole
 from hg.modules.learning.models import CareerPath
 from hg.modules.learning_units.models import (
     LearningUnit,
+    ModuleAssignment,
     QuizBlock,
     QuizOption,
     QuizQuestion,
@@ -86,16 +87,28 @@ def _cleanup(unit_id: uuid.UUID) -> None:
     s.close()
 
 
-def _auth(factory, auth_headers):
+def _auth(factory, auth_headers, unlock_unit_id: uuid.UUID | None = None):
+    """Colaborador de prueba. Onboarding (FASE — restricción de contenido):
+    un colaborador nuevo sin asignaciones solo ve la dimensión "ON" — estos
+    tests prueban la mecánica genérica de completion, no onboarding, así que
+    si se les pasa `unlock_unit_id` se le crea una `ModuleAssignment` (misma
+    señal que lo "gradúa" en producción) para poder tocar el contenido CP de
+    prueba como cualquier colaborador ya asignado."""
     _p1_id()
-    u = factory.make_user(org=factory.make_org(), role=UserRole.collaborator)
+    org = factory.make_org()
+    u = factory.make_user(org=org, role=UserRole.collaborator)
+    if unlock_unit_id is not None:
+        s = SessionLocal()
+        s.add(ModuleAssignment(org_id=org.id, user_id=u.id, learning_unit_id=unlock_unit_id))
+        s.commit()
+        s.close()
     return u, auth_headers(u)
 
 
 def test_full_completion_flow(client: TestClient, factory, auth_headers) -> None:
     slug = f"test-unit-{uuid.uuid4().hex[:8]}"
     unit_id, text_block_id, quiz_block_id, refl_block_id = _make_unit(slug)
-    _, headers = _auth(factory, auth_headers)
+    _, headers = _auth(factory, auth_headers, unlock_unit_id=unit_id)
     try:
         detail = client.get(f"/api/v1/modulos/{slug}", headers=headers)
         assert detail.status_code == 200
@@ -145,7 +158,7 @@ def test_full_completion_flow(client: TestClient, factory, auth_headers) -> None
 def test_quiz_endpoint_rejects_non_quiz_block(client: TestClient, factory, auth_headers) -> None:
     slug = f"test-unit-{uuid.uuid4().hex[:8]}"
     unit_id, text_block_id, _, _ = _make_unit(slug)
-    _, headers = _auth(factory, auth_headers)
+    _, headers = _auth(factory, auth_headers, unlock_unit_id=unit_id)
     try:
         client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
         r = client.post(
@@ -160,7 +173,7 @@ def test_quiz_endpoint_rejects_non_quiz_block(client: TestClient, factory, auth_
 def test_complete_endpoint_rejects_quiz_block(client: TestClient, factory, auth_headers) -> None:
     slug = f"test-unit-{uuid.uuid4().hex[:8]}"
     unit_id, _, quiz_block_id, _ = _make_unit(slug)
-    _, headers = _auth(factory, auth_headers)
+    _, headers = _auth(factory, auth_headers, unlock_unit_id=unit_id)
     try:
         client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
         r = client.post(f"/api/v1/modulos/{slug}/blocks/{quiz_block_id}/complete", headers=headers)
@@ -172,7 +185,7 @@ def test_complete_endpoint_rejects_quiz_block(client: TestClient, factory, auth_
 def test_reflection_rejects_too_short_text(client: TestClient, factory, auth_headers) -> None:
     slug = f"test-unit-{uuid.uuid4().hex[:8]}"
     unit_id, _, _, refl_block_id = _make_unit(slug)
-    _, headers = _auth(factory, auth_headers)
+    _, headers = _auth(factory, auth_headers, unlock_unit_id=unit_id)
     try:
         client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
         r = client.post(
@@ -187,7 +200,7 @@ def test_reflection_rejects_too_short_text(client: TestClient, factory, auth_hea
 def test_replay_resets_completed_attempt(client: TestClient, factory, auth_headers) -> None:
     slug = f"test-unit-{uuid.uuid4().hex[:8]}"
     unit_id, text_block_id, quiz_block_id, refl_block_id = _make_unit(slug)
-    _, headers = _auth(factory, auth_headers)
+    _, headers = _auth(factory, auth_headers, unlock_unit_id=unit_id)
     try:
         client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
         client.post(f"/api/v1/modulos/{slug}/blocks/{text_block_id}/complete", headers=headers)
@@ -226,7 +239,7 @@ def test_double_completion_of_same_unit_does_not_move_completed_at(
     completed_at a un timestamp más nuevo (idempotencia de _maybe_complete_unit)."""
     slug = f"test-unit-{uuid.uuid4().hex[:8]}"
     unit_id, text_block_id, quiz_block_id, refl_block_id = _make_unit(slug)
-    _, headers = _auth(factory, auth_headers)
+    _, headers = _auth(factory, auth_headers, unlock_unit_id=unit_id)
     try:
         client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
         client.post(f"/api/v1/modulos/{slug}/blocks/{text_block_id}/complete", headers=headers)
@@ -261,7 +274,7 @@ def test_double_completion_of_same_unit_does_not_move_completed_at(
 def test_feed_shows_unit_as_hero_when_in_progress(client: TestClient, factory, auth_headers) -> None:
     slug = f"test-unit-{uuid.uuid4().hex[:8]}"
     unit_id, text_block_id, _, _ = _make_unit(slug)
-    _, headers = _auth(factory, auth_headers)
+    _, headers = _auth(factory, auth_headers, unlock_unit_id=unit_id)
     try:
         client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
         client.post(f"/api/v1/modulos/{slug}/blocks/{text_block_id}/complete", headers=headers)
@@ -342,7 +355,7 @@ def test_full_admin_create_to_consumer_complete_flow(client: TestClient, factory
         publish = client.post(f"/api/v1/admin/learning-units/{uid}/publish", headers=admin_headers)
         assert publish.status_code == 200, publish.text
 
-        _, user_headers = _auth(factory, auth_headers)
+        _, user_headers = _auth(factory, auth_headers, unlock_unit_id=uuid.UUID(uid))
 
         detail = client.get(f"/api/v1/modulos/{slug}", headers=user_headers)
         assert detail.status_code == 200
@@ -455,7 +468,7 @@ def _make_unit_with_all_question_types(slug: str) -> tuple[uuid.UUID, uuid.UUID]
 def test_quiz_submit_all_five_remaining_question_types(client: TestClient, factory, auth_headers) -> None:
     slug = f"test-unit-{uuid.uuid4().hex[:8]}"
     unit_id, quiz_block_id = _make_unit_with_all_question_types(slug)
-    _, headers = _auth(factory, auth_headers)
+    _, headers = _auth(factory, auth_headers, unlock_unit_id=unit_id)
     try:
         client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
 

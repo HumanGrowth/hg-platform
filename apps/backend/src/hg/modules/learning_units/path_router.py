@@ -65,6 +65,10 @@ class PathOut(BaseModel):
     total_this_level: int
     dimensions_progress: list[DimensionProgressOut]
     milestones: list[PathMilestoneOut]
+    # FASE 2.2 — nombre de la ruta custom (empresa/org/asignación puntual) que
+    # priorizó este orden; None = solo el algoritmo. El front la usa para el
+    # badge "Ruta de tu empresa".
+    custom_path_name: str | None = None
 
 
 @router.get("/path", response_model=PathOut)
@@ -81,4 +85,5 @@ def get_my_path(
         total_this_level=r.total_this_level,
         dimensions_progress=[DimensionProgressOut(**vars(d)) for d in r.dimensions_progress],
         milestones=[PathMilestoneOut(**vars(m)) for m in r.milestones],
+        custom_path_name=r.custom_path_name,
     )

@@ -51,6 +51,12 @@ class MeResponse(UserOut):
     # SessionGate del frontend usa este flag: si es False, redirige a
     # /onboarding/welcome. Se computa (no es columna): tiene >=1 resultado.
     has_completed_onboarding: bool = False
+    # Restricción de CONTENIDO (distinta de `has_completed_onboarding`, que es
+    # sobre el assessment inicial): true = el user todavía no recibió ninguna
+    # asignación de su organización/Empresa y solo puede ver la dimensión
+    # Onboarding ("ON"). Se recomputa en cada /me — no es una columna, ver
+    # `learning_units/onboarding.py`.
+    content_restricted_to_onboarding: bool = False
     # Consentimiento de privacidad granular (TASK 5 v2). null = pendiente → el
     # SessionGate redirige a /consentimiento antes del onboarding.
     consent_manager: bool | None = None

@@ -6,6 +6,7 @@ import * as React from "react";
 
 import { AssignModulesModal } from "@/components/admin/AssignModulesModal";
 import { AssignPathDialog } from "@/components/team/AssignPathDialog";
+import { BehaviorMatrixCard } from "@/components/team/BehaviorMatrixCard";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
@@ -16,16 +17,12 @@ import {
   apiDeleteAssignment,
   apiGetTeamMemberDetail,
   apiGetTeamMemberPath,
-  apiGetTeamMemberResults,
   apiListUserAssignments,
   apiUnassignPath,
 } from "@/lib/api";
-import { getDimensionInsight, type DimensionInsight } from "@/lib/dimension-insights";
 import { DIMENSIONS_META, dimensionShortName } from "@/lib/dimension-styles";
-import { DIMENSIONS } from "@/lib/dimensions";
-import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { toast } from "@/lib/toast-store";
-import type { DimensionResult, ModuleAssignment, MyPath, TeamMemberDetail } from "@/lib/types";
+import type { ModuleAssignment, MyPath, TeamMemberDetail } from "@/lib/types";
 import { formatRelativeTime, formatShortDate } from "@/lib/utils";
 
 const PILLAR_NAME: Record<string, string> = Object.fromEntries(
@@ -43,38 +40,18 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
   const [assignModulesOpen, setAssignModulesOpen] = React.useState(false);
   const [assignments, setAssignments] = React.useState<ModuleAssignment[]>([]);
   const [path, setPath] = React.useState<MyPath | null>(null);
-  const [results, setResults] = React.useState<DimensionResult[]>([]);
-  // Plan de acción por dimensión — MISMO cálculo que /dimensiones/{code} le
-  // muestra al propio colaborador (getDimensionInsight), no una versión
-  // aparte para el manager.
-  const [insights, setInsights] = React.useState<Map<string, DimensionInsight>>(new Map());
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const [detail, assign, p, res] = await Promise.all([
+      const [detail, assign, p] = await Promise.all([
         apiGetTeamMemberDetail(id),
         apiListUserAssignments(id).catch(() => [] as ModuleAssignment[]),
         apiGetTeamMemberPath(id).catch(() => null),
-        apiGetTeamMemberResults(id).catch(() => [] as DimensionResult[]),
       ]);
       setData(detail);
       setAssignments(assign);
       setPath(p);
-      setResults(res);
-
-      const radar = res.length > 0 ? radarValuesFromResults(res) : {};
-      const evaluated = DIMENSIONS.filter((d) =>
-        res.some((r) => r.dimension_code === d.assessmentDimension || r.dimension_code.startsWith(d.careerPath)),
-      );
-      const entries = await Promise.all(
-        evaluated.map(async (d) => [
-          d.code,
-          await getDimensionInsight({ dimension: d, results: res, score: radar[d.careerPath] ?? 0 }),
-        ] as const),
-      );
-      setInsights(new Map(entries));
-
       setStatus("ok");
     } catch (e) {
       setStatus(e instanceof ApiError && e.status === 404 ? "notfound" : "error");
@@ -335,46 +312,11 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
         </section>
       )}
 
-      {/* Próximos pasos — el MISMO contenido (consejos concretos) que
-          /dimensiones/{code} le muestra a esta persona para su estado actual,
-          calculado con getDimensionInsight — no las units crudas de la ruta
-          (eso decía QUÉ video sigue, no en qué enfocarse; esto sí). Solo
-          aparece para dimensiones evaluadas — sin evaluación no hay consejo
-          que dar todavía. */}
-      <section className="mt-8">
-        <Eyebrow className="mb-3">Próximos pasos</Eyebrow>
-        {insights.size === 0 ? (
-          <p className="text-sm text-fg-muted">
-            Todavía no hay próximos pasos para mostrar: {data.full_name.split(" ")[0]} no se evaluó
-            en ninguna dimensión, o no habilitó que su manager vea sus estados.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {DIMENSIONS.filter((d) => insights.has(d.code)).map((d) => {
-              const insight = insights.get(d.code);
-              if (!insight || insight.tips.length === 0) return null;
-              return (
-                <div key={d.code} className="rounded-lg border border-border bg-bg-raised p-4">
-                  <div className="flex items-center gap-2">
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${PILLAR_DOT[d.careerPath] ?? "bg-fg-subtle"}`} />
-                    <p className="font-sans text-sm font-semibold text-fg">
-                      {d.short} <span className="font-normal text-fg-muted">· {insight.headline}</span>
-                    </p>
-                  </div>
-                  <ul className="mt-2 flex flex-col gap-1.5">
-                    {insight.tips.map((tip) => (
-                      <li key={tip} className="flex items-start gap-2 text-xs text-fg-muted">
-                        <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-fg-subtle" />
-                        <span className="min-w-0">{tip}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+      {/* Feedback del manager (FASE 1.3): matriz de comportamientos del pilar
+          en curso — 3er componente del score (ver badges/progression.py). */}
+      <div className="mt-8">
+        <BehaviorMatrixCard userId={id} />
+      </div>
 
       {/* Cursos. El header usa `courses_completed` (el conteo real, mismo que
           ve el propio colaborador) — `courses_completed_list` solo trae los 10

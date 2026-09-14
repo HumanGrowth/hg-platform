@@ -394,6 +394,7 @@ def get_user_path(
         total_this_level=r.total_this_level,
         dimensions_progress=[DimensionProgressOut(**vars(d)) for d in r.dimensions_progress],
         milestones=[PathMilestoneOut(**vars(m)) for m in r.milestones],
+        custom_path_name=r.custom_path_name,
     )
 
 

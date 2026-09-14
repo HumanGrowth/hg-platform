@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 
 from hg.modules.company.models import CompanyAreaAccess
 from hg.modules.identity.models import UserRole
+from hg.modules.learning_units.models import ModuleAssignment
 
 from ._lu_helpers import cleanup_units, make_unit
 
@@ -59,6 +60,11 @@ def test_direct_access_to_non_enabled_area_is_404(client: TestClient, factory, a
     general = make_unit(s, dimension_code="CP", n_blocks=0)
     it = make_unit(s, dimension_code="CP", area_code="IT", n_blocks=0)
     ids = [general.id, it.id]
+    # Onboarding: un colaborador sin asignaciones solo ve la dimensión "ON" —
+    # irrelevante para lo que este test cubre (gating por Área), así que se
+    # lo "gradúa" con una asignación para poder ejercer el gating de verdad.
+    s.add(ModuleAssignment(org_id=org.id, user_id=user.id, learning_unit_id=general.id))
+    s.commit()
     try:
         assert (
             client.get(f"{API}/modulos/{general.slug}", headers=auth_headers(user)).status_code == 200

@@ -60,11 +60,20 @@ def _require_company_org(db: Session, company_id: UUID, org_id: UUID) -> Organiz
     return org
 
 
+# Alias público — otros módulos (p.ej. learning_units/assignments_router.py,
+# FASE 2.1/2.2) reusan el mismo chequeo de frontera de Empresa en vez de
+# reimplementarlo.
+require_company_org = _require_company_org
+
+
 def _require_company_member(db: Session, company_id: UUID, user_id: UUID) -> User:
     user = db.get(User, user_id)
     if user is None or user.company_id != company_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="member not found")
     return user
+
+
+require_company_member = _require_company_member  # alias público, ver require_company_org
 
 
 # ─────────────────────────── Superadmin: companies ───────────────────────────

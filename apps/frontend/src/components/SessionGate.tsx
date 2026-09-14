@@ -36,6 +36,13 @@ export function SessionGate({
     if (!ready || !requireOnboarding || !user || !meChecked) return;
     if (user.has_completed_onboarding === false) {
       router.replace("/onboarding/welcome" as never);
+      return;
+    }
+    // Restricción de CONTENIDO (distinta del assessment de arriba): el user
+    // todavía no recibió ninguna asignación de su organización/empresa →
+    // solo puede ver la dimensión Onboarding ("ON"), ver `onboarding.py`.
+    if (user.content_restricted_to_onboarding === true) {
+      router.replace("/onboarding/modulos" as never);
     }
   }, [ready, requireOnboarding, user, meChecked, router]);
 

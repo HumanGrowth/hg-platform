@@ -2,8 +2,10 @@
 
 /**
  * "Tu nivel por dimensión" (TASK 6): nivel actual + completion 0-100 (mezcla de
- * aprendizaje + assessment) por dimensión, con lo que falta para el próximo badge.
- * Lee GET /me/progression (dimension_level_progress).
+ * aprendizaje + assessment + feedback del manager, FASE 1.1 — el 3er
+ * componente pesa 0 hasta que se configure, ver `docs/scoring.md`) por
+ * dimensión, con lo que falta para el próximo badge. Lee GET /me/progression
+ * (dimension_level_progress).
  */
 import * as React from "react";
 
@@ -30,8 +32,9 @@ export function ProgressionSection() {
     <section className="mt-12" id="mi-nivel">
       <Eyebrow>Tu nivel por dimensión</Eyebrow>
       <p className="mt-1 text-sm text-fg-muted">
-        Cada dimensión avanza por niveles. El % combina tu aprendizaje y tu evaluación; al llegar al
-        100% ganás el badge de ese nivel.
+        Cada dimensión avanza por niveles. El % combina tu aprendizaje, tu evaluación y —cuando tu
+        empresa lo configura— el feedback de tu manager; al llegar al 100% ganás el badge de ese
+        nivel.
       </p>
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {visible.map((r) => {

@@ -43,6 +43,11 @@ from hg.modules.learning_units.models import (
     UnitBlockType,
     VideoBlock,
 )
+from hg.modules.learning_units.onboarding import (
+    ONBOARDING_DIMENSION_CODE,
+    build_onboarding_status,
+    is_content_restricted,
+)
 from hg.modules.learning_units.schemas import (
     BlockProgressOut,
     LearningUnitAttemptOut,
@@ -50,6 +55,8 @@ from hg.modules.learning_units.schemas import (
     LearningUnitFeed,
     LearningUnitFeedItem,
     MatchingItemOut,
+    OnboardingStatusOut,
+    OnboardingUnitOut,
     OrderingItemOut,
     QuizBlockRead,
     QuizOptionOut,
@@ -89,6 +96,16 @@ def _published_unit_or_404(db: Session, slug: str, user: User) -> LearningUnit:
     )
     if unit is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="unit not found")
+    # Restricción de Onboarding: un colaborador/manager sin asignaciones
+    # todavía solo puede tocar contenido de la dimensión "ON" (ver
+    # `onboarding.py`). Acá sí es 403 (no 404) — a diferencia del gating por
+    # Área, el user SABE que el resto del catálogo existe; el mensaje se lo
+    # dice explícito en vez de fingir que no está.
+    if unit.dimension_code != ONBOARDING_DIMENSION_CODE and is_content_restricted(db, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Completá el onboarding para acceder al resto del contenido",
+        )
     return unit
 
 
@@ -278,6 +295,7 @@ def _select_feed_units(db: Session, user: User) -> tuple[LearningUnit | None, li
 
     candidates_q = select(LearningUnit).where(
         LearningUnit.published_at.isnot(None),
+        LearningUnit.dimension_code != ONBOARDING_DIMENSION_CODE,  # track aparte, ver onboarding.py
         visible_units_predicate(user),  # gating por Área de la Empresa (TASK 8)
     )
     if completed_unit_ids:
@@ -299,6 +317,29 @@ def _select_feed_units(db: Session, user: User) -> tuple[LearningUnit | None, li
 
 
 # ─────────────────────────── Endpoints ───────────────────────────
+
+
+@router.get("/me/onboarding", response_model=OnboardingStatusOut)
+def get_onboarding_status(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> OnboardingStatusOut:
+    """Units de la dimensión Onboarding + progreso del user + si sigue
+    restringido al resto del catálogo (ver `onboarding.py`)."""
+    s = build_onboarding_status(db, current_user)
+    return OnboardingStatusOut(
+        is_restricted=s.is_restricted,
+        units=[
+            OnboardingUnitOut(
+                unit_id=u.unit_id, slug=u.slug, title=u.title,
+                estimated_minutes=u.estimated_minutes, completed=u.completed,
+            )
+            for u in s.units
+        ],
+        completed_count=s.completed_count,
+        total_count=s.total_count,
+        all_completed=s.all_completed,
+    )
 
 
 @router.get("/modulos/feed", response_model=LearningUnitFeed)

@@ -1,6 +1,17 @@
 "use client";
 
-import { ArrowLeft, Building2, Calendar, Layers, LineChart, Newspaper, Upload, Users2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  Calendar,
+  Layers,
+  LineChart,
+  Map,
+  Newspaper,
+  Scale,
+  Upload,
+  Users2,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -33,6 +44,7 @@ function itemsForRole(role: UserRole | undefined, managingCompany: boolean): Adm
         { href: "/admin/empresa", label: "Empresa", icon: Building2 },
         { href: "/admin/empresa/miembros", label: "Miembros", icon: Users2 },
         { href: "/admin/empresa/organizaciones", label: "Orgs", icon: Layers },
+        { href: "/admin/empresa/rutas", label: "Rutas", icon: Map },
       ];
     }
     // Global HG (sin empresa elegida): el selector de empresas + contenido.
@@ -40,6 +52,7 @@ function itemsForRole(role: UserRole | undefined, managingCompany: boolean): Adm
       { href: "/admin/companies", label: "Empresas", icon: Building2 },
       { href: "/admin/events", label: "Eventos", icon: Calendar },
       { href: "/admin/perspectivas", label: "Contenido", icon: Newspaper },
+      { href: "/admin/scoring", label: "Score", icon: Scale },
     ];
   }
   if (role === "admin") {
@@ -48,6 +61,7 @@ function itemsForRole(role: UserRole | undefined, managingCompany: boolean): Adm
       { href: "/admin/org", label: "Dashboard", icon: LineChart },
       { href: "/admin/empresa/miembros", label: "Miembros", icon: Users2 },
       { href: "/admin/empresa/organizaciones", label: "Orgs", icon: Layers },
+      { href: "/admin/empresa/rutas", label: "Rutas", icon: Map },
     ];
   }
   if (role === "company_admin") {
@@ -55,6 +69,7 @@ function itemsForRole(role: UserRole | undefined, managingCompany: boolean): Adm
     return [
       { href: "/admin/empresa/miembros", label: "Miembros", icon: Users2 },
       { href: "/admin/empresa/organizaciones", label: "Orgs", icon: Layers },
+      { href: "/admin/empresa/rutas", label: "Rutas", icon: Map },
       { href: "/admin/empresa/importar", label: "Importar", icon: Upload },
     ];
   }

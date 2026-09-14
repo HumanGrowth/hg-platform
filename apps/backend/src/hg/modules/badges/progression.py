@@ -34,6 +34,8 @@ from hg.modules.badges.models import (
     DimensionScoringConfig,
     UserBadge,
 )
+from hg.modules.feedback.models import BehaviorEvaluation, PillarBehavior
+from hg.modules.feedback.scoring import rating_to_value
 from hg.modules.identity.models import User
 from hg.modules.learning_units.models import LearningUnit, LearningUnitAttempt
 from hg.modules.learning_units.pillars import pillar_display_name
@@ -103,11 +105,34 @@ def _assessment_pct(db: Session, user_id: UUID, dimension_code: str) -> float:
     return dimension_value_from_states(states)
 
 
-def _weights(db: Session, dimension_code: str) -> tuple[float, float]:
+def _weights(db: Session, dimension_code: str) -> tuple[float, float, float]:
     cfg = db.get(DimensionScoringConfig, dimension_code)
     if cfg is None:
-        return 0.7, 0.3
-    return cfg.learning_weight, cfg.assessment_weight
+        return 0.7, 0.3, 0.0
+    return cfg.learning_weight, cfg.assessment_weight, cfg.manager_weight
+
+
+def _manager_pct(db: Session, user_id: UUID, dimension_code: str) -> float | None:
+    """Valor 0-100 del feedback del manager para la dimensión: promedio del
+    valor (rating→0/50/100) de la ÚLTIMA evaluación por comportamiento, sobre
+    los ``pillar_behaviors`` activos de la dimensión que tengan al menos una
+    evaluación del colaborador. Sin evaluaciones → ``None`` (se excluye del
+    promedio ponderado, no se castiga con 0 a quien aún no fue evaluado)."""
+    rows = db.execute(
+        select(BehaviorEvaluation.behavior_id, BehaviorEvaluation.rating)
+        .join(PillarBehavior, PillarBehavior.id == BehaviorEvaluation.behavior_id)
+        .where(
+            BehaviorEvaluation.user_id == user_id,
+            PillarBehavior.dimension_code == dimension_code,
+            PillarBehavior.is_active.is_(True),
+        )
+    ).all()
+    if not rows:
+        return None
+    values = [v for r in rows if (v := rating_to_value(r.rating)) is not None]
+    if not values:
+        return None
+    return round(sum(values) / len(values), 1)
 
 
 def _award_badge(db: Session, user: User, badge_code: str) -> None:
@@ -127,6 +152,12 @@ def _award_badge(db: Session, user: User, badge_code: str) -> None:
     db.flush()
 
 
+def manager_pct_for_dimension(db: Session, user_id: UUID, dimension_code: str) -> float | None:
+    """Wrapper público de ``_manager_pct`` (FASE 1.2 — el endpoint de la matriz
+    lo usa para mostrar el aporte al score sin tocar un símbolo privado)."""
+    return _manager_pct(db, user_id, dimension_code.upper())
+
+
 def recompute_dimension(db: Session, user: User, dimension_code: str) -> None:
     """Recalcula el completion de todos los niveles de una dimensión para el user,
     persiste ``dimension_level_progress`` y otorga los badges de nivel alcanzados."""
@@ -141,13 +172,22 @@ def recompute_dimension(db: Session, user: User, dimension_code: str) -> None:
     if not levels:
         return
 
-    lw, aw = _weights(db, dimension_code)
+    lw, aw, mw = _weights(db, dimension_code)
     a_pct = _assessment_pct(db, user.id, dimension_code)
+    m_pct = _manager_pct(db, user.id, dimension_code)
 
     for level in levels:
         l_pct = _learning_pct(db, user.id, dimension_code, level.level_code)
-        weight_sum = lw + aw
-        completion = round((lw * l_pct + aw * a_pct) / weight_sum, 1) if weight_sum else 0.0
+        # Renormalización: si el manager no evaluó todavía (m_pct es None), su
+        # peso se excluye y el resto se reparte entre learning+assessment, como
+        # antes de que existiera este 3er componente.
+        components = [(lw, l_pct), (aw, a_pct)]
+        if m_pct is not None:
+            components.append((mw, m_pct))
+        weight_sum = sum(w for w, _ in components)
+        completion = (
+            round(sum(w * v for w, v in components) / weight_sum, 1) if weight_sum else 0.0
+        )
 
         row = db.scalar(
             select(DimensionLevelProgress).where(
@@ -165,6 +205,7 @@ def recompute_dimension(db: Session, user: User, dimension_code: str) -> None:
         row.completion_pct = completion
         row.learning_pct = l_pct
         row.assessment_pct = a_pct
+        row.manager_pct = m_pct if m_pct is not None else 0.0
 
         if completion >= level.unlock_threshold:
             _award_badge(db, user, f"level-{dimension_code}-{level.level_code}".lower())

@@ -221,6 +221,25 @@ class LearningUnitFeed(BaseModel):
     next: list[LearningUnitFeedItem]
 
 
+# ─────────────────────────── Onboarding ("capa 0") ───────────────────────────
+
+
+class OnboardingUnitOut(BaseModel):
+    unit_id: UUID
+    slug: str
+    title: str
+    estimated_minutes: int | None
+    completed: bool
+
+
+class OnboardingStatusOut(BaseModel):
+    is_restricted: bool
+    units: list[OnboardingUnitOut]
+    completed_count: int
+    total_count: int
+    all_completed: bool
+
+
 # ─────────────────────────── Attempts + progress ───────────────────────────
 
 

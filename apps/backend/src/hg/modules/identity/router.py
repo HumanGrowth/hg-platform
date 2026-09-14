@@ -81,6 +81,12 @@ def _has_completed_onboarding(db: Session, user_id: object) -> bool:
     )
 
 
+def _content_restricted_to_onboarding(db: Session, user: User) -> bool:
+    from hg.modules.learning_units.onboarding import is_content_restricted
+
+    return is_content_restricted(db, user)
+
+
 def _consent_fields(db: Session, user_id: object) -> dict[str, bool | None]:
     """Consentimiento granular del user para MeResponse (TASK 5 v2). null=pendiente."""
     from hg.modules.consent import service as consent_service
@@ -102,6 +108,7 @@ def me(
         org_name=org.name if org else "",
         reports_count=_reports_count(db, user.id),
         has_completed_onboarding=_has_completed_onboarding(db, user.id),
+        content_restricted_to_onboarding=_content_restricted_to_onboarding(db, user),
         **_consent_fields(db, user.id),
     )
 
@@ -132,6 +139,7 @@ def update_me(
         org_name=org.name if org else "",
         reports_count=_reports_count(db, db_user.id),
         has_completed_onboarding=_has_completed_onboarding(db, db_user.id),
+        content_restricted_to_onboarding=_content_restricted_to_onboarding(db, db_user),
         **_consent_fields(db, db_user.id),
     )
 
@@ -160,6 +168,7 @@ def set_onboarding_seen(
         org_name=org.name if org else "",
         reports_count=_reports_count(db, db_user.id),
         has_completed_onboarding=_has_completed_onboarding(db, db_user.id),
+        content_restricted_to_onboarding=_content_restricted_to_onboarding(db, db_user),
         **_consent_fields(db, db_user.id),
     )
 

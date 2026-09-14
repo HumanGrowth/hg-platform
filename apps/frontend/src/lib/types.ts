@@ -17,6 +17,12 @@ export interface User {
    * Si viene `false`, el SessionGate manda al onboarding. `undefined` = no
    * forzar (usuarios actuales no se ven afectados). */
   has_completed_onboarding?: boolean;
+  /** Distinto de `has_completed_onboarding` (ese es sobre el assessment
+   * inicial): esto es sobre CONTENIDO — true = todavía no recibió ninguna
+   * asignación de su organización/empresa y solo puede ver la dimensión
+   * Onboarding ("ON"). El SessionGate manda a /onboarding/modulos mientras
+   * sea true. Se recomputa en cada /me, no es un flag persistente. */
+  content_restricted_to_onboarding?: boolean;
   /** Consentimiento granular (TASK 5 v2). `null` = pendiente → el SessionGate
    * manda a /consentimiento antes del onboarding. `undefined` = aún no cargado. */
   consent_manager?: boolean | null;
@@ -813,6 +819,109 @@ export interface ModuleAssignment {
   assigned_at: string;
   assigned_by_user_id: string | null;
   assigned_by_name: string | null;
+}
+
+// ─────────────────────────── Feedback del manager (FASE 1.2) ───────────────────────────
+
+export interface BehaviorOut {
+  behavior_id: string;
+  text: string;
+  order_index: number;
+  rating: number | null; // 1 sin_demostrar, 2 en_progreso, 3 demostrando
+  updated_at: string | null;
+  evaluated_by_name: string | null;
+}
+
+export interface PillarBehaviors {
+  pillar_code: string;
+  pillar_name: string;
+  is_current: boolean;
+  behaviors: BehaviorOut[];
+}
+
+export interface BehaviorMatrix {
+  dimension_code: string;
+  dimension_name: string;
+  current_pillar_code: string | null;
+  pillars: PillarBehaviors[];
+  manager_pct: number | null;
+  manager_weight: number;
+  learning_weight: number;
+  assessment_weight: number;
+}
+
+// ─────────────────────────── Rutas customizables (FASE 2.2/2.3) ───────────────────────────
+
+export type CustomPathScope = "company" | "org";
+
+export interface CustomPathItem {
+  id: string;
+  learning_unit_id: string;
+  unit_slug: string;
+  unit_title: string;
+  order_index: number;
+  is_required: boolean;
+}
+
+export interface CustomPath {
+  id: string;
+  name: string;
+  description: string | null;
+  scope: CustomPathScope;
+  company_id: string;
+  org_id: string | null;
+  org_name: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  items: CustomPathItem[];
+  assigned_member_count: number;
+}
+
+export interface ResolvedCustomPath {
+  custom_path_id: string | null;
+  custom_path_name: string | null;
+}
+
+// ─────────────────────────── Pesos del score (FASE 1.4) ───────────────────────────
+
+export interface DimensionScoringConfig {
+  dimension_code: string;
+  learning_weight: number;
+  assessment_weight: number;
+  manager_weight: number;
+}
+
+export interface RecomputeResult {
+  dimension_codes: string[];
+  users_recomputed: number;
+}
+
+export interface MyBehaviorEvaluation {
+  behavior_id: string;
+  dimension_code: string;
+  pillar_code: string;
+  text: string;
+  rating: number;
+  updated_at: string;
+}
+
+// ─────────────────────────── Onboarding ("capa 0") ───────────────────────────
+
+export interface OnboardingUnit {
+  unit_id: string;
+  slug: string;
+  title: string;
+  estimated_minutes: number | null;
+  completed: boolean;
+}
+
+export interface OnboardingStatus {
+  is_restricted: boolean;
+  units: OnboardingUnit[];
+  completed_count: number;
+  total_count: number;
+  all_completed: boolean;
 }
 
 export interface AssignableUnit {

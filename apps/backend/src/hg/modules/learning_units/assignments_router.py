@@ -12,17 +12,18 @@ del handler → se usa `flush()` y `get_db` commitea al final.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy import delete as sa_delete
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from hg.core.deps import get_current_user
+from hg.core.deps import get_current_user, get_db_as_superadmin, require_role
 from hg.db import get_db
+from hg.modules.company import service as company_service
 from hg.modules.identity.models import User, UserRole
 from hg.modules.learning_units.area_access import enabled_area_codes, visible_units_predicate
 from hg.modules.learning_units.models import LearningUnit, ModuleAssignment
@@ -68,7 +69,29 @@ class AssignableUnitOut(BaseModel):
     title: str
     dimension_code: str
     level_code: str
-    pillar_code: int | None
+    pillar_code: str | None
+
+
+class OrgAssignmentSummaryOut(BaseModel):
+    """Resultado de asignar un set de units a TODOS los miembros activos de
+    una organización (FASE 2.1) — materializa N `ModuleAssignment`, una
+    puntual, no una regla que siga a futuros miembros (para eso, `CustomPath`
+    en FASE 2.2)."""
+
+    org_id: UUID
+    members_targeted: int
+    units_targeted: int
+    assignments_created: int
+    already_assigned: int
+
+
+class OrgUnitAssignmentAggOut(BaseModel):
+    learning_unit_id: UUID
+    unit_slug: str
+    unit_title: str
+    assigned_count: int
+    completed_count: int
+    overdue_count: int
 
 
 # ─────────────────────────── Helpers ───────────────────────────
@@ -229,6 +252,123 @@ def assign_modules(
     for a in created:
         db.refresh(a)
     return _serialize(db, created)
+
+
+# ─────────────────────────── Organización (FASE 2.1) ───────────────────────────
+
+# Cross-org/cross-empresa: corre bajo hg_superadmin + un filtro duro de
+# company_id en el handler, mismo patrón que company/router.py (la RLS de
+# module_assignments es por org, no por empresa).
+_ORG_ASSIGN_ROLES = ("admin", "company_admin", "superadmin")
+
+
+@admin_router.post(
+    "/organizations/{org_id}/assignments",
+    response_model=OrgAssignmentSummaryOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def assign_modules_to_organization(
+    org_id: UUID,
+    body: AssignModulesRequest,
+    company_id: UUID | None = Query(default=None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role(*_ORG_ASSIGN_ROLES)),
+) -> OrgAssignmentSummaryOut:
+    """Asigna un set de units a TODOS los miembros ACTIVOS de una organización
+    ahora mismo (materializa `ModuleAssignment`, aditivo). Puntual: no aplica a
+    quien se sume después — para eso, una `CustomPath` (FASE 2.2)."""
+    org = company_service.require_company_org(
+        db, company_service.resolve_company_id(actor, company_id), org_id
+    )
+
+    units = list(db.scalars(select(LearningUnit).where(LearningUnit.id.in_(body.unit_ids))).all())
+    valid_ids = {u.id for u in units}
+    missing = set(body.unit_ids) - valid_ids
+    if missing:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"learning units inexistentes: {sorted(str(m) for m in missing)}",
+        )
+    enabled = enabled_area_codes(db, org.company_id)
+    blocked = [u.slug for u in units if u.area_code is not None and u.area_code not in enabled]
+    if blocked:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Área no habilitada para la empresa: {sorted(blocked)}",
+        )
+
+    members = list(
+        db.scalars(
+            select(User).where(User.org_id == org_id, User.is_active.is_(True))
+        ).all()
+    )
+    already = set(
+        db.execute(
+            select(ModuleAssignment.user_id, ModuleAssignment.learning_unit_id).where(
+                ModuleAssignment.user_id.in_([m.id for m in members]),
+                ModuleAssignment.learning_unit_id.in_(valid_ids),
+            )
+        ).all()
+    )
+    created = [
+        ModuleAssignment(
+            org_id=org_id, user_id=m.id, learning_unit_id=uid,
+            assigned_by_user_id=actor.id, due_date=body.due_date, note=body.note,
+        )
+        for m in members
+        for uid in body.unit_ids
+        if uid in valid_ids and (m.id, uid) not in already
+    ]
+    db.add_all(created)
+    db.flush()
+    total_pairs = len(members) * len(valid_ids)
+    return OrgAssignmentSummaryOut(
+        org_id=org_id,
+        members_targeted=len(members),
+        units_targeted=len(valid_ids),
+        assignments_created=len(created),
+        already_assigned=total_pairs - len(created),
+    )
+
+
+@admin_router.get(
+    "/organizations/{org_id}/assignments-summary",
+    response_model=list[OrgUnitAssignmentAggOut],
+)
+def org_assignments_summary(
+    org_id: UUID,
+    company_id: UUID | None = Query(default=None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role(*_ORG_ASSIGN_ROLES)),
+) -> list[OrgUnitAssignmentAggOut]:
+    """Qué se asignó en la organización, a cuántos y con qué estado agregado —
+    vista para admin/company_admin (doc FASE 2.1 punto 3)."""
+    company_service.require_company_org(
+        db, company_service.resolve_company_id(actor, company_id), org_id
+    )
+    rows = db.execute(
+        select(ModuleAssignment, LearningUnit)
+        .join(LearningUnit, LearningUnit.id == ModuleAssignment.learning_unit_id)
+        .where(ModuleAssignment.org_id == org_id)
+    ).all()
+    now = datetime.now(UTC)
+    agg: dict[UUID, dict] = {}
+    for a, u in rows:
+        entry = agg.setdefault(
+            u.id, {"unit_slug": u.slug, "unit_title": u.title, "assigned": 0, "completed": 0, "overdue": 0}
+        )
+        entry["assigned"] += 1
+        if a.status == "completed":
+            entry["completed"] += 1
+        elif a.due_date is not None and a.due_date < now:
+            entry["overdue"] += 1
+    return [
+        OrgUnitAssignmentAggOut(
+            learning_unit_id=uid, unit_slug=v["unit_slug"], unit_title=v["unit_title"],
+            assigned_count=v["assigned"], completed_count=v["completed"], overdue_count=v["overdue"],
+        )
+        for uid, v in agg.items()
+    ]
 
 
 def _get_assignment_or_404(db: Session, assignment_id: UUID, current_user: User) -> ModuleAssignment:
