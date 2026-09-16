@@ -55,6 +55,10 @@ class ModuleAssignmentOut(BaseModel):
     learning_unit_id: UUID
     unit_slug: str
     unit_title: str
+    # Corrección post-2.4: team/[id] agrupa "Paths asignados" por pilar (todo
+    # lo asignado es CP) — evita que el frontend tenga que cruzar contra el
+    # catálogo completo solo para saber a qué pilar pertenece cada unit.
+    pillar_code: str | None
     status: str
     note: str | None
     due_date: datetime | None
@@ -121,6 +125,7 @@ def _out(a: ModuleAssignment, units: dict[UUID, LearningUnit], names: dict[UUID,
         learning_unit_id=a.learning_unit_id,
         unit_slug=unit.slug if unit else "?",
         unit_title=unit.title if unit else "?",
+        pillar_code=unit.pillar_code if unit else None,
         status=a.status,
         note=a.note,
         due_date=a.due_date,

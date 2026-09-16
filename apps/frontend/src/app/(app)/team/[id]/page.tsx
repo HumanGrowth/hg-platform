@@ -4,7 +4,6 @@ import { AlertTriangle, ArrowLeft, CheckCircle2, Info, Plus, X } from "lucide-re
 import Link from "next/link";
 import * as React from "react";
 
-import { AssignModulesModal } from "@/components/admin/AssignModulesModal";
 import { AssignPathDialog } from "@/components/team/AssignPathDialog";
 import { BehaviorMatrixCard } from "@/components/team/BehaviorMatrixCard";
 import { Avatar } from "@/components/ui/avatar";
@@ -22,7 +21,7 @@ import {
   apiUnassignCustomPathFromUser,
   apiUnassignPath,
 } from "@/lib/api";
-import { DIMENSIONS_META, dimensionShortName } from "@/lib/dimension-styles";
+import { DIMENSIONS_META, dimensionShortName, subPillarName } from "@/lib/dimension-styles";
 import { toast } from "@/lib/toast-store";
 import type { ModuleAssignment, MyPath, TeamMemberDetail, UserCustomPath } from "@/lib/types";
 import { formatRelativeTime, formatShortDate } from "@/lib/utils";
@@ -33,14 +32,38 @@ const PILLAR_NAME: Record<string, string> = Object.fromEntries(
 
 const PILLAR_DOT: Record<string, string> = Object.fromEntries(DIMENSIONS_META.map((p) => [p.id, p.dot]));
 
+interface PillarAssignmentGroup {
+  key: string;
+  label: string;
+  items: ModuleAssignment[];
+}
+
+/** Agrupa los `ModuleAssignment` (siempre CP) por pilar — "Paths asignados"
+ * ya no lista módulos sueltos, solo bloques (corrección post-2.4: mismo
+ * criterio que el picker de asignación, ModuleBlockAssignFields). */
+function groupAssignmentsByPillar(assignments: ModuleAssignment[]): PillarAssignmentGroup[] {
+  const map = new Map<string, ModuleAssignment[]>();
+  for (const a of assignments) {
+    const key = a.pillar_code ?? "otros";
+    const items = map.get(key) ?? [];
+    if (items.length === 0) map.set(key, items);
+    items.push(a);
+  }
+  return [...map.entries()].map(([key, items]) => ({
+    key,
+    label: key === "otros" ? "Otros módulos" : subPillarName("CP", key),
+    items,
+  }));
+}
+
 export default function TeamMemberDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const [status, setStatus] = React.useState<"loading" | "error" | "notfound" | "ok">("loading");
   const [data, setData] = React.useState<TeamMemberDetail | null>(null);
   const [confirmCode, setConfirmCode] = React.useState<string | null>(null);
   const [confirmCustomPath, setConfirmCustomPath] = React.useState<UserCustomPath | null>(null);
+  const [confirmPillarGroup, setConfirmPillarGroup] = React.useState<PillarAssignmentGroup | null>(null);
   const [assignOpen, setAssignOpen] = React.useState(false);
-  const [assignModulesOpen, setAssignModulesOpen] = React.useState(false);
   const [assignments, setAssignments] = React.useState<ModuleAssignment[]>([]);
   const [path, setPath] = React.useState<MyPath | null>(null);
   const [customPaths, setCustomPaths] = React.useState<UserCustomPath[]>([]);
@@ -63,16 +86,6 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
       setStatus(e instanceof ApiError && e.status === 404 ? "notfound" : "error");
     }
   }, [id]);
-
-  async function doRemoveAssignment(assignmentId: string) {
-    try {
-      await apiDeleteAssignment(assignmentId);
-      toast("Quitaste la asignación", "success");
-      await load();
-    } catch {
-      toast("No se pudo quitar la asignación", "danger");
-    }
-  }
 
   React.useEffect(() => {
     void load();
@@ -100,6 +113,17 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
     }
   }
 
+  async function doUnassignPillarGroup(group: PillarAssignmentGroup) {
+    try {
+      await Promise.all(group.items.map((a) => apiDeleteAssignment(a.id)));
+      toast(`Quitaste ${group.label} de su ruta`, "success");
+      setConfirmPillarGroup(null);
+      await load();
+    } catch {
+      toast("No se pudo quitar el pilar", "danger");
+    }
+  }
+
   if (status === "loading") {
     return (
       <div className="mx-auto max-w-app px-6 py-10">
@@ -122,6 +146,7 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
   if (!data) return null;
 
   const activeEnrollments = data.enrollments.filter((e) => e.is_active);
+  const pillarGroups = groupAssignmentsByPillar(assignments);
 
   return (
     <div className="mx-auto max-w-app px-6 py-8">
@@ -191,13 +216,53 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
           </div>
         )}
 
-        {/* Paths asignados: pilares (Enrollment) + rutas personalizadas (CustomPath). */}
+        {/* Paths asignados: un solo listado — pilares/skills de CP (ModuleAssignment,
+            agrupados), rutas personalizadas (CustomPath) y pilares legacy
+            (Enrollment, ya no se pueden crear nuevos acá pero se conservan los
+            existentes). El botón "Asignar módulo" desapareció: "Asignar nuevo
+            path" cubre ambos casos ahora (ver AssignPathDialog). */}
         <div className="rounded-lg border border-border bg-bg-raised p-5 lg:col-span-2">
           <Eyebrow className="mb-4">Paths asignados</Eyebrow>
-          {activeEnrollments.length === 0 && customPaths.length === 0 ? (
+          {pillarGroups.length === 0 && activeEnrollments.length === 0 && customPaths.length === 0 ? (
             <p className="text-sm text-fg-muted">Sin paths asignados todavía.</p>
           ) : (
             <ul className="flex flex-col gap-3">
+              {pillarGroups.map((g) => {
+                const overdue = g.items.some(
+                  (a) => a.due_date !== null && a.status !== "completed" && new Date(a.due_date) < new Date(),
+                );
+                const allCompleted = g.items.every((a) => a.status === "completed");
+                const nextDue = g.items
+                  .map((a) => a.due_date)
+                  .filter((d): d is string => d !== null)
+                  .sort()[0];
+                return (
+                  <li key={g.key} className="flex items-start gap-3">
+                    {allCompleted ? (
+                      <CheckCircle2 size={16} strokeWidth={1.75} className="mt-0.5 shrink-0 text-success" />
+                    ) : overdue ? (
+                      <AlertTriangle size={16} strokeWidth={1.75} className="mt-0.5 shrink-0 text-danger" />
+                    ) : (
+                      <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-sans text-sm font-semibold text-fg">{g.label}</p>
+                      <p className={`text-xs ${overdue ? "font-semibold text-danger" : "text-fg-subtle"}`}>
+                        {g.items.length} módulo(s)
+                        {nextDue && (overdue ? ` · venció ${formatShortDate(nextDue)}` : ` · vence ${formatShortDate(nextDue)}`)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={`Quitar ${g.label}`}
+                      onClick={() => setConfirmPillarGroup(g)}
+                      className="shrink-0 rounded-md p-1 text-fg-subtle hover:bg-bg-sunken hover:text-danger"
+                    >
+                      <X size={16} strokeWidth={2} />
+                    </button>
+                  </li>
+                );
+              })}
               {activeEnrollments.map((e) => (
                 <li key={e.id} className="flex items-start gap-3">
                   <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${PILLAR_DOT[e.career_path_code]}`} />
@@ -251,63 +316,11 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
         </div>
       </div>
 
-      {/* Módulos asignados — due dates (cierre-beta TASK). Visible acá y en el
-          semáforo de la tarjeta de /team; asignar reusa el mismo modal del panel
-          de admin (ya autoriza manager sobre sus reportes). */}
-      <section className="mt-8">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <Eyebrow>Módulos asignados ({assignments.length})</Eyebrow>
-          <button
-            type="button"
-            onClick={() => setAssignModulesOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 font-sans text-xs font-semibold text-fg hover:bg-bg-sunken"
-          >
-            <Plus size={14} strokeWidth={2} />
-            Asignar módulo
-          </button>
-        </div>
-        {assignments.length === 0 ? (
-          <p className="text-sm text-fg-muted">Sin módulos asignados todavía.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {assignments.map((a) => {
-              const overdue =
-                a.due_date !== null && a.status !== "completed" && new Date(a.due_date) < new Date();
-              return (
-                <li
-                  key={a.id}
-                  className="flex items-center gap-3 rounded-lg border border-border bg-bg-raised px-4 py-3 text-sm"
-                >
-                  {a.status === "completed" ? (
-                    <CheckCircle2 size={15} strokeWidth={1.75} className="shrink-0 text-success" />
-                  ) : overdue ? (
-                    <AlertTriangle size={15} strokeWidth={1.75} className="shrink-0 text-danger" />
-                  ) : (
-                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-fg-subtle" />
-                  )}
-                  <span className="min-w-0 flex-1 truncate text-fg">{a.unit_title}</span>
-                  {a.due_date && (
-                    <span className={`shrink-0 text-xs ${overdue ? "font-semibold text-danger" : "text-fg-muted"}`}>
-                      {overdue ? "venció" : "vence"} {formatShortDate(a.due_date)}
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    aria-label={`Quitar asignación de ${a.unit_title}`}
-                    onClick={() => void doRemoveAssignment(a.id)}
-                    className="shrink-0 rounded-md p-1 text-fg-subtle hover:bg-bg-sunken hover:text-danger"
-                  >
-                    <X size={14} strokeWidth={2} />
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-
       {/* Progreso por área — mismo motor que "Mi Ruta" del colaborador
-          (path_engine): completed/total reales por dimensión con contenido. */}
+          (path_engine): completed/total reales por dimensión con contenido.
+          Cubre el seguimiento de los módulos asignados (ya no hay una
+          sección aparte de "Módulos asignados" — el detalle de due dates
+          vive en "Paths asignados" arriba). */}
       {path && path.dimensions_progress.length > 0 && (
         <section className="mt-8">
           <Eyebrow className="mb-3">Progreso por dimensión</Eyebrow>
@@ -444,24 +457,43 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
         </div>
       </Dialog>
 
+      <Dialog
+        open={confirmPillarGroup !== null}
+        onClose={() => setConfirmPillarGroup(null)}
+        title="Quitar pilar"
+        description={
+          confirmPillarGroup
+            ? `¿Seguro que querés quitar "${confirmPillarGroup.label}" (${confirmPillarGroup.items.length} módulo(s)) de la ruta de ${data.full_name}?`
+            : ""
+        }
+      >
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setConfirmPillarGroup(null)}
+            className="rounded-md border border-border px-5 py-2 font-sans text-sm font-semibold text-fg hover:bg-bg-sunken"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={() => confirmPillarGroup && void doUnassignPillarGroup(confirmPillarGroup)}
+            className="rounded-md bg-danger px-5 py-2 font-sans text-sm font-semibold text-white hover:opacity-90"
+          >
+            Quitar
+          </button>
+        </div>
+      </Dialog>
+
       <AssignPathDialog
         open={assignOpen}
         onClose={() => setAssignOpen(false)}
         userId={id}
         userName={data.full_name}
-        alreadyAssignedCodes={activeEnrollments.map((e) => e.career_path_code)}
+        alreadyAssignedUnitIds={new Set(assignments.map((a) => a.learning_unit_id))}
         alreadyAssignedCustomPathIds={customPaths.map((cp) => cp.id)}
-        onAssigned={() => void load()}
+        onModulesAssigned={() => void load()}
         onCustomPathAssigned={() => void load()}
-      />
-
-      <AssignModulesModal
-        open={assignModulesOpen}
-        onClose={() => setAssignModulesOpen(false)}
-        userId={id}
-        userName={data.full_name}
-        alreadyAssignedIds={new Set(assignments.map((a) => a.learning_unit_id))}
-        onAssigned={() => void load()}
       />
     </div>
   );

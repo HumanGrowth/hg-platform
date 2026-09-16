@@ -1,21 +1,38 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { AssignableUnit } from "@/lib/types";
+
 import { AssignPathDialog } from "../AssignPathDialog";
 
-const { assign, listAvailable, assignCustomPath } = vi.hoisted(() => ({
-  assign: vi.fn(),
+const { listUnits, assignModules, listAvailable, assignCustomPath } = vi.hoisted(() => ({
+  listUnits: vi.fn(),
+  assignModules: vi.fn(),
   listAvailable: vi.fn(),
   assignCustomPath: vi.fn(),
 }));
 vi.mock("@/lib/api", () => ({
-  apiAssignPath: assign,
+  apiListAssignableUnits: listUnits,
+  apiAssignModules: assignModules,
   apiListAvailableCustomPaths: listAvailable,
   apiAssignCustomPathToUser: assignCustomPath,
 }));
 
+function unit(overrides: Partial<AssignableUnit>): AssignableUnit {
+  return {
+    id: "a",
+    slug: "a",
+    title: "Unit A",
+    dimension_code: "CP",
+    level_code: "L1",
+    pillar_code: "P1",
+    keywords: null,
+    ...overrides,
+  };
+}
+
 function setup(props?: Partial<React.ComponentProps<typeof AssignPathDialog>>) {
-  const onAssigned = vi.fn();
+  const onModulesAssigned = vi.fn();
   const onCustomPathAssigned = vi.fn();
   const onClose = vi.fn();
   render(
@@ -24,45 +41,45 @@ function setup(props?: Partial<React.ComponentProps<typeof AssignPathDialog>>) {
       onClose={onClose}
       userId="u1"
       userName="María"
-      alreadyAssignedCodes={["P1"]}
+      alreadyAssignedUnitIds={new Set()}
       alreadyAssignedCustomPathIds={[]}
-      onAssigned={onAssigned}
+      onModulesAssigned={onModulesAssigned}
       onCustomPathAssigned={onCustomPathAssigned}
       {...props}
     />,
   );
-  return { onAssigned, onCustomPathAssigned, onClose };
+  return { onModulesAssigned, onCustomPathAssigned, onClose };
 }
 
 beforeEach(() => {
-  assign.mockReset();
+  listUnits.mockReset();
+  assignModules.mockReset();
   listAvailable.mockReset();
   assignCustomPath.mockReset();
   listAvailable.mockResolvedValue([]);
+  listUnits.mockResolvedValue([unit({ id: "a" }), unit({ id: "b" })]);
 });
 
 describe("AssignPathDialog", () => {
-  it("renders a card for each of the 6 pillars", () => {
+  it("opens on the Módulos tab, grouped by pillar", async () => {
     setup();
-    for (const code of ["P1", "P2", "P3", "P4", "P5", "P6"]) {
-      expect(screen.getByText(code)).toBeTruthy();
-    }
+    await waitFor(() => expect(screen.getByText(/Adaptabilidad/)).toBeTruthy());
+    expect(screen.getByRole("tab", { name: "Módulos", selected: true })).toBeTruthy();
   });
 
-  it("disables already-assigned pillars", () => {
-    setup({ alreadyAssignedCodes: ["P1"] });
-    const p1Btn = screen.getByText("P1").closest("button");
-    const p2Btn = screen.getByText("P2").closest("button");
-    expect(p1Btn?.disabled).toBe(true);
-    expect(p2Btn?.disabled).toBe(false);
-  });
+  it("assigns a pillar block with a due date", async () => {
+    assignModules.mockResolvedValue([]);
+    const { onModulesAssigned } = setup();
+    await waitFor(() => expect(screen.getByText(/Adaptabilidad/)).toBeTruthy());
 
-  it("assigns an available pillar on click", async () => {
-    assign.mockResolvedValue({ id: "e1", career_path_code: "P2" });
-    const { onAssigned } = setup({ alreadyAssignedCodes: ["P1"] });
-    fireEvent.click(screen.getByText("P2").closest("button")!);
-    await waitFor(() => expect(assign).toHaveBeenCalledWith("u1", "P2"));
-    await waitFor(() => expect(onAssigned).toHaveBeenCalled());
+    fireEvent.click(screen.getByText(/Adaptabilidad/).closest("button")!);
+    fireEvent.change(screen.getByLabelText("Fecha límite"), { target: { value: "2026-12-01" } });
+    fireEvent.click(screen.getByRole("button", { name: "Asignar" }));
+
+    await waitFor(() =>
+      expect(assignModules).toHaveBeenCalledWith("u1", expect.arrayContaining(["a", "b"]), expect.any(String), null),
+    );
+    await waitFor(() => expect(onModulesAssigned).toHaveBeenCalled());
   });
 
   it("switches to the custom paths tab and assigns one", async () => {

@@ -819,6 +819,8 @@ export interface ModuleAssignment {
   learning_unit_id: string;
   unit_slug: string;
   unit_title: string;
+  /** Todo lo asignable es CP — se usa para agrupar "Paths asignados" por pilar. */
+  pillar_code: string | null;
   status: string;
   note: string | null;
   due_date: string | null;
