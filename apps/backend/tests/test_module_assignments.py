@@ -11,11 +11,11 @@ from hg.modules.identity.models import UserRole
 from hg.modules.learning_units.models import LearningUnit
 
 
-def _make_unit() -> uuid.UUID:
+def _make_unit(dimension_code: str = "CP") -> uuid.UUID:
     s = SessionLocal()
     try:
         u = LearningUnit(
-            slug=f"asgn-{uuid.uuid4().hex[:8]}", title="t", dimension_code="CP",
+            slug=f"asgn-{uuid.uuid4().hex[:8]}", title="t", dimension_code=dimension_code,
             level_code="L1", pillar_code="P1", unit_number=1, published_at=datetime.now(UTC),
         )
         s.add(u)
@@ -57,6 +57,24 @@ def test_manager_assigns_to_report_and_report_sees_them(client, factory, auth_he
         assert len(listed.json()) == 2
     finally:
         _cleanup([u1, u2])
+
+
+def test_assign_rejects_non_cp_units(client, factory, auth_headers) -> None:
+    """Corrección post-2.4: la asignación manual solo admite Carrera
+    Profesional — el resto se asigna vía score del assessment."""
+    org = factory.make_org()
+    mgr = factory.make_user(org=org, role=UserRole.manager)
+    report = factory.make_user(org=org, manager_id=mgr.id)
+    non_cp = _make_unit(dimension_code="PR")
+    try:
+        res = client.post(
+            f"/api/v1/admin/users/{report.id}/assignments", headers=auth_headers(mgr),
+            json={"unit_ids": [str(non_cp)]},
+        )
+        assert res.status_code == 422
+        assert "Carrera Profesional" in res.json()["detail"]
+    finally:
+        _cleanup([non_cp])
 
 
 def test_assign_is_idempotent_dedup(client, factory, auth_headers) -> None:

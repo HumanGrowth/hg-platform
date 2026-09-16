@@ -33,14 +33,11 @@ import {
   apiUpdateCustomPath,
   ApiError,
 } from "@/lib/api";
+import { blocksFor, cpCatalog, cpLevels, CP_DIMENSION as CUSTOM_PATH_DIMENSION, type BlockMode, type ContentBlock } from "@/lib/cp-blocks";
 import { subPillarName } from "@/lib/dimension-styles";
 import { toast } from "@/lib/toast-store";
 import type { AssignableUnit, CompanyMember, CompanyOrg, CustomPath, CustomPathScope } from "@/lib/types";
-
-/** Las rutas custom solo admiten contenido de Carrera Profesional (CP) — el
- * resto de las dimensiones se asigna vía el score del assessment, no
- * manualmente. Mismo hard-restrict que el backend (`paths/router.py`). */
-const CUSTOM_PATH_DIMENSION = "CP";
+import { cn } from "@/lib/utils";
 
 function RutasContent() {
   const { companyId, ready } = useScopedCompanyId();
@@ -297,6 +294,33 @@ function CreatePathDialog({
   );
 }
 
+/** Une un unitId nuevo al bloque (por pilar) que le corresponde dentro de
+ * `blocks`, creando el bloque al final si todavía no existe. Se usa para que
+ * "En la ruta" siempre agrupe por pilar sin importar si se agregó en modo
+ * Pilar o Skill (un skill puede cruzar varios pilares). */
+function mergeUnitIntoPillarBlocks(
+  blocks: ContentBlock[],
+  unitId: string,
+  catalog: AssignableUnit[],
+): ContentBlock[] {
+  if (blocks.some((b) => b.unitIds.includes(unitId))) return blocks;
+  const pillarCode = catalog.find((u) => u.id === unitId)?.pillar_code ?? "otros";
+  const idx = blocks.findIndex((b) => b.key === pillarCode);
+  if (idx === -1) {
+    return [
+      ...blocks,
+      {
+        key: pillarCode,
+        label: pillarCode === "otros" ? "Otros módulos" : subPillarName(CUSTOM_PATH_DIMENSION, pillarCode),
+        unitIds: [unitId],
+      },
+    ];
+  }
+  const next = [...blocks];
+  next[idx] = { ...next[idx], unitIds: [...next[idx].unitIds, unitId] };
+  return next;
+}
+
 function PathItemsDialog({
   path,
   onClose,
@@ -309,63 +333,45 @@ function PathItemsDialog({
   onSaved: () => void;
 }) {
   const [catalog, setCatalog] = React.useState<AssignableUnit[]>([]);
-  const [ordered, setOrdered] = React.useState<{ id: string; title: string; required: boolean }[]>([]);
-  const [q, setQ] = React.useState("");
-  const [pillarF, setPillarF] = React.useState("");
+  const [pathBlocks, setPathBlocks] = React.useState<ContentBlock[]>([]);
+  const [mode, setMode] = React.useState<BlockMode>("pillar");
   const [levelF, setLevelF] = React.useState("");
-  const [skillF, setSkillF] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (!path) return;
-    setOrdered(
-      path.items.map((it) => ({ id: it.learning_unit_id, title: it.unit_title, required: it.is_required })),
-    );
-    setQ("");
-    setPillarF("");
+    setMode("pillar");
     setLevelF("");
-    setSkillF("");
-    apiListAssignableUnits().then(setCatalog).catch(() => setCatalog([]));
+    apiListAssignableUnits().then((units) => {
+      setCatalog(units);
+      let blocks: ContentBlock[] = [];
+      for (const it of path.items) blocks = mergeUnitIntoPillarBlocks(blocks, it.learning_unit_id, units);
+      setPathBlocks(blocks);
+    }).catch(() => setCatalog([]));
   }, [path]);
 
-  // Hard-restricción a Carrera Profesional — el resto de las dimensiones se
-  // asigna vía score del assessment, no eligiendo módulos acá.
-  const cpCatalog = catalog.filter((u) => u.dimension_code === CUSTOM_PATH_DIMENSION);
-  const pillars = Array.from(
-    new Set(cpCatalog.map((u) => u.pillar_code).filter((c): c is string => c != null)),
-  ).sort((a, b) => a.localeCompare(b));
-  const levels = Array.from(new Set(cpCatalog.map((u) => u.level_code))).sort();
-  const skills = Array.from(new Set(cpCatalog.flatMap((u) => u.keywords ?? []))).sort((a, b) =>
-    a.localeCompare(b),
-  );
+  const availableBlocks = blocksFor(cpCatalog(catalog, levelF), mode);
+  const includedIds = new Set(pathBlocks.flatMap((b) => b.unitIds));
+  const totalUnits = pathBlocks.reduce((n, b) => n + b.unitIds.length, 0);
 
-  const selectedIds = new Set(ordered.map((o) => o.id));
-  const candidates = cpCatalog.filter(
-    (u) =>
-      !selectedIds.has(u.id) &&
-      u.title.toLowerCase().includes(q.toLowerCase()) &&
-      (!pillarF || u.pillar_code === pillarF) &&
-      (!levelF || u.level_code === levelF) &&
-      (!skillF || (u.keywords ?? []).includes(skillF)),
-  );
-
-  function add(u: AssignableUnit) {
-    setOrdered((prev) => [...prev, { id: u.id, title: u.title, required: true }]);
+  function addBlock(block: ContentBlock) {
+    setPathBlocks((prev) => {
+      let next = prev;
+      for (const unitId of block.unitIds) next = mergeUnitIntoPillarBlocks(next, unitId, catalog);
+      return next;
+    });
   }
-  function remove(id: string) {
-    setOrdered((prev) => prev.filter((o) => o.id !== id));
+  function removeBlock(key: string) {
+    setPathBlocks((prev) => prev.filter((b) => b.key !== key));
   }
-  function move(index: number, dir: -1 | 1) {
-    setOrdered((prev) => {
+  function moveBlock(index: number, dir: -1 | 1) {
+    setPathBlocks((prev) => {
       const next = [...prev];
       const j = index + dir;
       if (j < 0 || j >= next.length) return prev;
       [next[index], next[j]] = [next[j], next[index]];
       return next;
     });
-  }
-  function toggleRequired(id: string) {
-    setOrdered((prev) => prev.map((o) => (o.id === id ? { ...o, required: !o.required } : o)));
   }
 
   async function save() {
@@ -374,7 +380,7 @@ function PathItemsDialog({
     try {
       await apiSetCustomPathItems(
         path.id,
-        ordered.map((o) => ({ learning_unit_id: o.id, is_required: o.required })),
+        pathBlocks.flatMap((b) => b.unitIds.map((id) => ({ learning_unit_id: id, is_required: true }))),
         companyId,
       );
       toast("Módulos guardados.", "success");
@@ -404,103 +410,124 @@ function PathItemsDialog({
       <div className="flex flex-col gap-4">
         {/* Dos columnas en paralelo (apiladas en mobile) — cada una con su
             propio scroll interno, así el diálogo no crece verticalmente sin
-            límite a medida que se agregan módulos a la ruta. */}
+            límite a medida que se agregan bloques a la ruta. */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex min-w-0 flex-col">
             <p className="mb-2 text-xs text-fg-subtle">
-              Solo contenido de Carrera Profesional — las demás dimensiones se asignan según el
-              score del assessment.
+              Solo contenido de Carrera Profesional, por pilar o skill — las demás dimensiones se
+              asignan según el score del assessment.
             </p>
-            <Input placeholder="Buscar módulo…" value={q} onChange={(e) => setQ(e.target.value)} />
-            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <Select value={pillarF} onChange={(e) => setPillarF(e.target.value)}>
-                <option value="">Todos los pilares</option>
-                {pillars.map((n) => (
-                  <option key={n} value={n}>{subPillarName(CUSTOM_PATH_DIMENSION, n)}</option>
-                ))}
-              </Select>
-              <Select value={levelF} onChange={(e) => setLevelF(e.target.value)}>
+            <div className="flex flex-wrap items-center gap-2">
+              <div role="tablist" aria-label="Agrupar por" className="inline-flex rounded-md border border-border">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === "pillar"}
+                  onClick={() => setMode("pillar")}
+                  className={cn(
+                    "px-3 py-1.5 font-sans text-xs font-semibold transition-colors",
+                    mode === "pillar" ? "bg-hg-green-100 text-primary" : "text-fg-muted hover:bg-bg-sunken",
+                  )}
+                >
+                  Pilar
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === "skill"}
+                  onClick={() => setMode("skill")}
+                  className={cn(
+                    "border-l border-border px-3 py-1.5 font-sans text-xs font-semibold transition-colors",
+                    mode === "skill" ? "bg-hg-green-100 text-primary" : "text-fg-muted hover:bg-bg-sunken",
+                  )}
+                >
+                  Skill
+                </button>
+              </div>
+              <Select value={levelF} onChange={(e) => setLevelF(e.target.value)} className="w-auto">
                 <option value="">Todos los niveles</option>
-                {levels.map((l) => (
+                {cpLevels(catalog).map((l) => (
                   <option key={l} value={l}>Nivel {l.replace("L", "")}</option>
-                ))}
-              </Select>
-              <Select value={skillF} onChange={(e) => setSkillF(e.target.value)}>
-                <option value="">Todos los skills</option>
-                {skills.map((s) => (
-                  <option key={s} value={s}>{s}</option>
                 ))}
               </Select>
             </div>
             <p className="mb-2 mt-2 font-sans text-xs font-semibold uppercase tracking-meta text-fg-muted">
-              Disponibles ({candidates.length})
+              Disponibles ({availableBlocks.length})
             </p>
             <div className="h-72 overflow-y-auto rounded-md border border-border">
-              {candidates.length === 0 ? (
+              {availableBlocks.length === 0 ? (
                 <p className="p-3 text-sm text-fg-muted">Sin resultados.</p>
               ) : (
-                candidates.map((u) => (
-                  <button
-                    key={u.id}
-                    type="button"
-                    onClick={() => add(u)}
-                    className="flex w-full items-center justify-between gap-2 border-b border-border px-3 py-2 text-left last:border-0 hover:bg-bg-sunken"
-                  >
-                    <span className="line-clamp-1 min-w-0 text-sm text-fg">{u.title}</span>
-                    <Plus size={14} strokeWidth={2} className="shrink-0 text-fg-subtle" />
-                  </button>
-                ))
+                availableBlocks.map((b) => {
+                  const pending = b.unitIds.filter((id) => !includedIds.has(id));
+                  const fullyIncluded = pending.length === 0;
+                  return (
+                    <button
+                      key={b.key}
+                      type="button"
+                      disabled={fullyIncluded}
+                      onClick={() => addBlock(b)}
+                      className={cn(
+                        "flex w-full items-center justify-between gap-2 border-b border-border px-3 py-2 text-left last:border-0",
+                        fullyIncluded ? "cursor-not-allowed opacity-50" : "hover:bg-bg-sunken",
+                      )}
+                    >
+                      <span className="min-w-0 flex-1">
+                        <span className="line-clamp-1 text-sm text-fg">{b.label}</span>
+                        <span className="text-xs text-fg-muted">
+                          {b.unitIds.length} módulo(s){fullyIncluded ? " · ya en la ruta" : ""}
+                        </span>
+                      </span>
+                      <Plus size={14} strokeWidth={2} className="shrink-0 text-fg-subtle" />
+                    </button>
+                  );
+                })
               )}
             </div>
           </div>
 
           <div className="flex min-w-0 flex-col">
             <p className="font-sans text-xs font-semibold uppercase tracking-meta text-fg-muted">
-              En la ruta ({ordered.length})
+              En la ruta ({pathBlocks.length} pilar(es) · {totalUnits} módulo(s))
             </p>
             <div className="mt-2 h-72 overflow-y-auto rounded-md border border-border">
-              {ordered.length === 0 ? (
-                <p className="p-3 text-sm text-fg-muted">Sin módulos todavía — agregá desde "Disponibles".</p>
+              {pathBlocks.length === 0 ? (
+                <p className="p-3 text-sm text-fg-muted">Sin pilares todavía — agregá desde "Disponibles".</p>
               ) : (
                 <ul className="flex flex-col gap-1.5 p-1.5">
-                  {ordered.map((o, i) => (
+                  {pathBlocks.map((b, i) => (
                     <li
-                      key={o.id}
+                      key={b.key}
                       className="flex items-center gap-2 rounded-md border border-border bg-surface-card px-2 py-2"
                     >
                       <div className="flex shrink-0 flex-col">
                         <button
                           type="button"
-                          aria-label={`Subir ${o.title}`}
+                          aria-label={`Subir ${b.label}`}
                           disabled={i === 0}
-                          onClick={() => move(i, -1)}
+                          onClick={() => moveBlock(i, -1)}
                           className="text-fg-subtle hover:text-fg disabled:opacity-30"
                         >
                           <ChevronUp size={14} strokeWidth={2} />
                         </button>
                         <button
                           type="button"
-                          aria-label={`Bajar ${o.title}`}
-                          disabled={i === ordered.length - 1}
-                          onClick={() => move(i, 1)}
+                          aria-label={`Bajar ${b.label}`}
+                          disabled={i === pathBlocks.length - 1}
+                          onClick={() => moveBlock(i, 1)}
                           className="text-fg-subtle hover:text-fg disabled:opacity-30"
                         >
                           <ChevronDown size={14} strokeWidth={2} />
                         </button>
                       </div>
-                      <span className="min-w-0 flex-1 truncate text-sm text-fg">{o.title}</span>
-                      <label className="flex shrink-0 items-center gap-1.5 text-xs text-fg-muted">
-                        <input
-                          type="checkbox"
-                          checked={o.required}
-                          onChange={() => toggleRequired(o.id)}
-                        />
-                        Req.
-                      </label>
+                      <span className="min-w-0 flex-1">
+                        <span className="line-clamp-1 block text-sm text-fg">{b.label}</span>
+                        <span className="text-xs text-fg-muted">{b.unitIds.length} módulo(s)</span>
+                      </span>
                       <button
                         type="button"
-                        aria-label={`Quitar ${o.title}`}
-                        onClick={() => remove(o.id)}
+                        aria-label={`Quitar ${b.label}`}
+                        onClick={() => removeBlock(b.key)}
                         className="shrink-0 rounded-md p-1 text-fg-subtle hover:bg-bg-sunken hover:text-danger"
                       >
                         <Trash2 size={14} strokeWidth={2} />

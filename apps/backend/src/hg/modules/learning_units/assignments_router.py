@@ -229,6 +229,18 @@ def assign_modules(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Área no habilitada para la empresa: {sorted(blocked)}",
         )
+    # Corrección post-2.4: la asignación manual (manager/admin) solo admite
+    # contenido de Carrera Profesional — el resto de las dimensiones se asigna
+    # vía score del assessment, no eligiendo módulos a mano.
+    non_cp = [u.slug for u in units if u.dimension_code != "CP"]
+    if non_cp:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                "Solo se puede asignar contenido de Carrera Profesional (CP): "
+                f"{sorted(non_cp)}"
+            ),
+        )
     # Dedup contra lo ya asignado (respeta el unique constraint sin romper).
     already = set(
         db.scalars(
@@ -298,6 +310,15 @@ def assign_modules_to_organization(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Área no habilitada para la empresa: {sorted(blocked)}",
+        )
+    non_cp = [u.slug for u in units if u.dimension_code != "CP"]
+    if non_cp:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                "Solo se puede asignar contenido de Carrera Profesional (CP): "
+                f"{sorted(non_cp)}"
+            ),
         )
 
     members = list(

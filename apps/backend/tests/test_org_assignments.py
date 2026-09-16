@@ -11,11 +11,11 @@ from hg.modules.identity.models import UserRole
 from hg.modules.learning_units.models import Area, LearningUnit
 
 
-def _make_unit(*, area_code: str | None = None) -> uuid.UUID:
+def _make_unit(*, area_code: str | None = None, dimension_code: str = "CP") -> uuid.UUID:
     s = SessionLocal()
     try:
         u = LearningUnit(
-            slug=f"orgasgn-{uuid.uuid4().hex[:8]}", title="t", dimension_code="CP",
+            slug=f"orgasgn-{uuid.uuid4().hex[:8]}", title="t", dimension_code=dimension_code,
             level_code="L1", pillar_code="P1", unit_number=1, published_at=datetime.now(UTC),
             area_code=area_code,
         )
@@ -171,3 +171,19 @@ def test_org_assignments_summary_reports_counts(client, factory, auth_headers) -
         assert rows[0]["completed_count"] == 0
     finally:
         _cleanup([u1])
+
+
+def test_org_assign_rejects_non_cp_units(client, factory, auth_headers) -> None:
+    org = factory.make_org()
+    admin = factory.make_user(org=org, role=UserRole.admin)
+    non_cp = _make_unit(dimension_code="PR")
+    try:
+        res = client.post(
+            f"/api/v1/admin/organizations/{org.id}/assignments",
+            headers=auth_headers(admin),
+            json={"unit_ids": [str(non_cp)]},
+        )
+        assert res.status_code == 422
+        assert "Carrera Profesional" in res.json()["detail"]
+    finally:
+        _cleanup([non_cp])
