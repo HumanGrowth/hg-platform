@@ -191,6 +191,10 @@ export interface TeamMember {
   badges_unlocked_count: number;
   /** Career-path (P1..P6) de su actividad más reciente; null = sin actividad. */
   current_focus_dimension: string | null;
+  /** Notificación para el manager: completó el 100% del contenido asignado
+   * (módulos sueltos + su ruta custom resuelta). No depende del feedback del
+   * manager ni del assessment. */
+  completed_assigned_content: boolean;
 }
 
 export interface TeamResponse {
@@ -628,6 +632,8 @@ export interface LearningUnitFeedItem {
   attempt_status: LearningUnitAttemptStatus;
   poster_url: string | null;
   video_url: string | null;
+  /** Skills de la unit (columna `keywords`) — fuente del toggle Dimensión/Skill. */
+  keywords: string[] | null;
 }
 
 export interface LearningUnitFeed {
@@ -844,10 +850,11 @@ export interface BehaviorMatrix {
   dimension_name: string;
   current_pillar_code: string | null;
   pillars: PillarBehaviors[];
+  /** Promedio 0-100 de lo calificado — informativo, ya no pondera el score. */
   manager_pct: number | null;
-  manager_weight: number;
-  learning_weight: number;
-  assessment_weight: number;
+  /** Gate real: true cuando TODOS los comportamientos activos están en
+   * "Demostrando" — condición (junto al completion) para el badge de nivel. */
+  manager_approved: boolean;
 }
 
 // ─────────────────────────── Rutas customizables (FASE 2.2/2.3) ───────────────────────────
@@ -883,13 +890,20 @@ export interface ResolvedCustomPath {
   custom_path_name: string | null;
 }
 
+/** Ruta personalizada asignada directamente a un colaborador puntual — ver
+ * "Asignar nuevo path" en team/[id]. */
+export interface UserCustomPath {
+  id: string;
+  name: string;
+  description: string | null;
+}
+
 // ─────────────────────────── Pesos del score (FASE 1.4) ───────────────────────────
 
 export interface DimensionScoringConfig {
   dimension_code: string;
   learning_weight: number;
   assessment_weight: number;
-  manager_weight: number;
 }
 
 export interface RecomputeResult {
@@ -931,6 +945,8 @@ export interface AssignableUnit {
   dimension_code: string;
   level_code: string;
   pillar_code: string | null;
+  /** Skills de la unit (columna `keywords`) — fuente del filtro por Skill. */
+  keywords: string[] | null;
 }
 
 export interface PathStep {

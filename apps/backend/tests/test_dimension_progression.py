@@ -14,8 +14,25 @@ from hg.modules.assessment.models import DimensionResult
 from hg.modules.assessment.scoring import dimension_value_from_states, state_to_value
 from hg.modules.badges import progression
 from hg.modules.badges.models import Badge, DimensionLevelProgress, UserBadge
+from hg.modules.feedback.models import BehaviorEvaluation, PillarBehavior
 
 from ._lu_helpers import cleanup_units, make_unit, seed_attempt
+
+
+def _approve_all_active_behaviors(s, user, dimension_code: str) -> None:
+    """El badge de nivel ahora requiere el gate de aprobación del manager
+    (TODOS los ``pillar_behaviors`` activos calificados "Demostrando"). CP
+    trae un catálogo real pre-seedeado (CE-10) — sin esto, ningún test de
+    unlock de nivel CP otorgaría el badge."""
+    behavior_ids = s.scalars(
+        select(PillarBehavior.id).where(
+            PillarBehavior.dimension_code == dimension_code,
+            PillarBehavior.is_active.is_(True),
+        )
+    ).all()
+    for behavior_id in behavior_ids:
+        s.add(BehaviorEvaluation(org_id=user.org_id, user_id=user.id, behavior_id=behavior_id, rating=3))
+    s.commit()
 
 # ─────────────────────────── scoring puro ───────────────────────────
 
@@ -85,6 +102,7 @@ def test_level_badge_unlocks_at_threshold_and_conserves_max(factory) -> None:
     badge = s.scalar(select(Badge).where(Badge.code == "level-cp-l1"))
     assert badge is not None
     try:
+        _approve_all_active_behaviors(s, user, "CP")
         progression.recompute_dimension(s, user, "CP")
         s.commit()
         assert s.scalar(
@@ -120,6 +138,8 @@ def test_level_badge_unlocks_at_threshold_and_conserves_max(factory) -> None:
         ) == 1  # el badge se conserva
     finally:
         s.query(UserBadge).filter(UserBadge.user_id == user.id).delete()
+        s.query(BehaviorEvaluation).filter(BehaviorEvaluation.user_id == user.id).delete()
+        s.commit()
         cleanup_units(s, [unit.id])
 
 

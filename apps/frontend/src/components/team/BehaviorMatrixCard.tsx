@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckCircle2, Clock } from "lucide-react";
 import * as React from "react";
 
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -19,10 +20,10 @@ interface Props {
 }
 
 /** Matriz de comportamientos del pilar en curso — el manager califica cada
- * comportamiento en 3 puntos (FASE 1.3). Guardado optimista: la fila muestra
- * el rating elegido de inmediato y confirma/revierte según la respuesta del
- * PUT (`apiUpsertBehaviorEvaluations`), que trae la matriz recalculada
- * (`manager_pct`) para el indicador de aporte al score. */
+ * comportamiento en 3 puntos. Guardado optimista: la fila muestra el rating
+ * elegido de inmediato y confirma/revierte según la respuesta del PUT
+ * (`apiUpsertBehaviorEvaluations`), que trae la matriz recalculada
+ * (`manager_approved`) para el estado de aprobación del badge de nivel. */
 export function BehaviorMatrixCard({ userId }: Props) {
   const [matrix, setMatrix] = React.useState<BehaviorMatrix | null>(null);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok" | "empty">("loading");
@@ -115,7 +116,7 @@ export function BehaviorMatrixCard({ userId }: Props) {
         <p className="text-sm text-fg-muted">Sin un pilar en curso identificado todavía.</p>
       )}
 
-      <ScoreContribution matrix={matrix} />
+      <ApprovalStatus matrix={matrix} />
 
       {rest.length > 0 && (
         <details className="mt-5 rounded-md border border-border">
@@ -133,21 +134,25 @@ export function BehaviorMatrixCard({ userId }: Props) {
   );
 }
 
-function ScoreContribution({ matrix }: { matrix: BehaviorMatrix }) {
-  if (matrix.manager_weight <= 0) {
+/** El manager tiene la decisión final: el badge de nivel de esta dimensión
+ * solo se otorga si, además de aprendizaje+assessment, TODOS los
+ * comportamientos activos están calificados "Demostrando". No es una
+ * ponderación numérica — es un estado de verificación. */
+function ApprovalStatus({ matrix }: { matrix: BehaviorMatrix }) {
+  if (matrix.manager_approved) {
     return (
-      <p className="mt-4 text-xs text-fg-subtle">
-        El feedback del manager todavía no pesa en el score de {matrix.dimension_name} (peso
-        configurado: 0%).
+      <p className="mt-4 flex items-center gap-1.5 text-xs text-success">
+        <CheckCircle2 size={14} strokeWidth={2} className="shrink-0" />
+        Aprobado — habilita el badge de nivel de {matrix.dimension_name} (junto con el completion de
+        aprendizaje y assessment).
       </p>
     );
   }
-  const pct = matrix.manager_pct;
   return (
-    <p className="mt-4 text-xs text-fg-subtle">
-      Feedback del manager: <span className="font-semibold text-fg">{pct ?? "—"}/100</span> · pesa{" "}
-      {Math.round(matrix.manager_weight * 100)}% del score de {matrix.dimension_name}
-      {pct === null && " (sin evaluaciones todavía — no afecta el score hasta la primera calificación)"}
+    <p className="mt-4 flex items-center gap-1.5 text-xs text-fg-subtle">
+      <Clock size={14} strokeWidth={2} className="shrink-0" />
+      Pendiente de aprobación — calificá "Demostrando" todos los comportamientos activos para
+      habilitar el badge de nivel de {matrix.dimension_name}.
     </p>
   );
 }

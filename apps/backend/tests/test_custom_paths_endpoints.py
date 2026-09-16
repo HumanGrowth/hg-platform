@@ -117,6 +117,31 @@ def test_item_gating_by_area_is_enforced(client, factory, auth_headers) -> None:
         factory.session.commit()
 
 
+def test_items_hard_restricted_to_cp_dimension(client, factory, auth_headers) -> None:
+    """Corrección post-2.4: las rutas custom solo admiten contenido de
+    Carrera Profesional — el resto se asigna vía score del assessment."""
+    org = factory.make_org()
+    admin = factory.make_user(org=org, role=UserRole.admin)
+    unit = make_unit(factory.session, dimension_code="PR", level_code="L1", n_blocks=1)
+    created = client.post(
+        "/api/v1/admin/custom-paths",
+        headers=auth_headers(admin),
+        json={"name": "No CP", "scope": "company"},
+    )
+    path_id = created.json()["id"]
+    try:
+        res = client.put(
+            f"/api/v1/admin/custom-paths/{path_id}/items",
+            headers=auth_headers(admin),
+            json={"items": [{"learning_unit_id": str(unit.id)}]},
+        )
+        assert res.status_code == 422
+        assert "Carrera Profesional" in res.json()["detail"]
+    finally:
+        _cleanup_path(path_id)
+        cleanup_units(factory.session, [unit.id])
+
+
 def test_set_assignments_and_resolved_path(client, factory, auth_headers) -> None:
     org = factory.make_org()
     admin = factory.make_user(org=org, role=UserRole.admin)

@@ -36,7 +36,7 @@ def test_manager_sees_behavior_matrix_for_report(client, factory, auth_headers) 
     body = res.json()
     assert body["dimension_code"] == "CP"  # único contenido publicado hoy
     assert len(body["pillars"]) >= 1
-    assert body["manager_weight"] == 0.0  # default FASE 1.1, inerte
+    assert body["manager_approved"] is False  # ningún comportamiento calificado todavía
 
 
 def test_manager_evaluates_report_and_score_reflects_it(client, factory, auth_headers) -> None:
@@ -62,7 +62,7 @@ def test_manager_evaluates_report_and_score_reflects_it(client, factory, auth_he
             )
         )
         assert row is not None
-        assert row.manager_pct == 100.0  # persistido aunque manager_weight=0 no lo pese aún
+        assert row.manager_pct == 100.0  # persistido de referencia; no pesa en completion_pct
         s.close()
 
         s = SessionLocal()

@@ -28,11 +28,14 @@ class BehaviorMatrixOut(BaseModel):
     dimension_name: str
     current_pillar_code: str | None
     pillars: list[PillarBehaviorsOut]
-    # Aporte al score (lee los pesos reales, el front no hardcodea nada).
+    # Ya NO pondera el score (ver badges/progression._manager_approved) — es
+    # un gate: `manager_approved` = true cuando TODOS los comportamientos
+    # activos de la dimensión están en "Demostrando", condición (junto con el
+    # completion de aprendizaje+assessment) para que se otorgue el badge de
+    # nivel. `manager_pct` queda de referencia (promedio 0-100 de lo
+    # calificado), no determina nada por sí solo.
     manager_pct: float | None
-    manager_weight: float
-    learning_weight: float
-    assessment_weight: float
+    manager_approved: bool
 
 
 class BehaviorEvaluationIn(BaseModel):

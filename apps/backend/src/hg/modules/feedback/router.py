@@ -28,7 +28,6 @@ from sqlalchemy.orm import Session
 from hg.core.deps import get_current_user
 from hg.db import get_db
 from hg.modules.badges import progression
-from hg.modules.badges.models import DimensionScoringConfig
 from hg.modules.feedback.models import BehaviorEvaluation, PillarBehavior
 from hg.modules.feedback.schemas import (
     BehaviorMatrixOut,
@@ -151,8 +150,8 @@ def get_behavior_matrix(
     # Pilar en curso primero, después el resto en su orden natural (contexto).
     pillars_out.sort(key=lambda p: (0 if p.is_current else 1, p.pillar_code))
 
-    cfg = db.get(DimensionScoringConfig, dimension_code)
     manager_pct = progression.manager_pct_for_dimension(db, target.id, dimension_code)
+    manager_approved = progression.manager_approved_for_dimension(db, target.id, dimension_code)
     career_path_code = career_path_for_dimension(dimension_code)
     career_path = (
         db.scalar(select(CareerPath).where(CareerPath.code == career_path_code))
@@ -166,9 +165,7 @@ def get_behavior_matrix(
         current_pillar_code=current_pillar_code,
         pillars=pillars_out,
         manager_pct=manager_pct,
-        manager_weight=cfg.manager_weight if cfg else 0.0,
-        learning_weight=cfg.learning_weight if cfg else 0.7,
-        assessment_weight=cfg.assessment_weight if cfg else 0.3,
+        manager_approved=manager_approved,
     )
 
 

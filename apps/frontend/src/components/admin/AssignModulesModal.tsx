@@ -35,7 +35,8 @@ export function AssignModulesModal({
   const [q, setQ] = React.useState("");
   const [dimF, setDimF] = React.useState("");
   const [levelF, setLevelF] = React.useState("");
-  const [dimensionF, setDimensionF] = React.useState("");
+  const [pillarF, setPillarF] = React.useState("");
+  const [skillF, setSkillF] = React.useState("");
   const [dueDate, setDueDate] = React.useState("");
   const [note, setNote] = React.useState("");
   const [saving, setSaving] = React.useState(false);
@@ -46,7 +47,8 @@ export function AssignModulesModal({
     setQ("");
     setDimF("");
     setLevelF("");
-    setDimensionF("");
+    setPillarF("");
+    setSkillF("");
     setDueDate("");
     setNote("");
     apiListAssignableUnits().then(setUnits).catch(() => setUnits([]));
@@ -58,13 +60,17 @@ export function AssignModulesModal({
   const pillars = Array.from(
     new Set(units.filter((u) => !dimF || u.dimension_code === dimF).map((u) => u.pillar_code).filter((c): c is string => c != null)),
   ).sort((a, b) => a.localeCompare(b));
+  const skills = Array.from(new Set(units.flatMap((u) => u.keywords ?? []))).sort((a, b) =>
+    a.localeCompare(b),
+  );
 
   const filtered = units.filter(
     (u) =>
       u.title.toLowerCase().includes(q.toLowerCase()) &&
       (!dimF || u.dimension_code === dimF) &&
       (!levelF || u.level_code === levelF) &&
-      (!dimensionF || u.pillar_code === dimensionF),
+      (!pillarF || u.pillar_code === pillarF) &&
+      (!skillF || (u.keywords ?? []).includes(skillF)),
   );
 
   // "Seleccionar todos": agrega los filtrados que aún no están asignados.
@@ -88,13 +94,13 @@ export function AssignModulesModal({
   }
 
   async function submit() {
-    if (selected.size === 0) return;
+    if (selected.size === 0 || !dueDate) return;
     setSaving(true);
     try {
       await apiAssignModules(
         userId,
         [...selected],
-        dueDate ? new Date(dueDate).toISOString() : null,
+        new Date(dueDate).toISOString(),
         note.trim() || null,
       );
       toast(`Módulos asignados a ${userName}.`, "success");
@@ -112,16 +118,16 @@ export function AssignModulesModal({
       <div className="flex flex-col gap-4">
         <Input placeholder="Buscar módulo…" value={q} onChange={(e) => setQ(e.target.value)} />
 
-        {/* Filtros para asignar en grupo (dimensión / pilar / nivel). */}
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <Select value={dimF} onChange={(e) => { setDimF(e.target.value); setDimensionF(""); }}>
+        {/* Filtros para asignar en grupo (dimensión / pilar / nivel / skill). */}
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <Select value={dimF} onChange={(e) => { setDimF(e.target.value); setPillarF(""); }}>
             <option value="">Todas las dimensiones</option>
             {dimensions.map((d) => (
               <option key={d} value={d}>{dimensionShortName(driveToCareerPath(d))}</option>
             ))}
           </Select>
-          <Select value={dimensionF} onChange={(e) => setDimensionF(e.target.value)}>
-            <option value="">Todos las dimensiones</option>
+          <Select value={pillarF} onChange={(e) => setPillarF(e.target.value)}>
+            <option value="">Todos los pilares</option>
             {pillars.map((n) => (
               <option key={n} value={n}>{subPillarName(dimF || undefined, n)}</option>
             ))}
@@ -130,6 +136,12 @@ export function AssignModulesModal({
             <option value="">Todos los niveles</option>
             {levels.map((l) => (
               <option key={l} value={l}>Nivel {l.replace("L", "")}</option>
+            ))}
+          </Select>
+          <Select value={skillF} onChange={(e) => setSkillF(e.target.value)}>
+            <option value="">Todos los skills</option>
+            {skills.map((s) => (
+              <option key={s} value={s}>{s}</option>
             ))}
           </Select>
         </div>
@@ -177,8 +189,14 @@ export function AssignModulesModal({
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="due">Fecha límite (opcional)</Label>
-            <Input id="due" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+            <Label htmlFor="due">Fecha límite</Label>
+            <Input
+              id="due"
+              type="date"
+              required
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+            />
           </div>
           <div>
             <Label htmlFor="note">Nota (opcional)</Label>
@@ -191,7 +209,7 @@ export function AssignModulesModal({
             <Button variant="secondary" onClick={onClose}>
               Cancelar
             </Button>
-            <Button onClick={() => void submit()} disabled={saving || selected.size === 0}>
+            <Button onClick={() => void submit()} disabled={saving || selected.size === 0 || !dueDate}>
               {saving ? "Asignando…" : "Asignar"}
             </Button>
           </div>

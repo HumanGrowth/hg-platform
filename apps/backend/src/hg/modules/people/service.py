@@ -161,6 +161,61 @@ def badges_unlocked_count_by_users(db: Session, user_ids: list[UUID]) -> dict[UU
     return out
 
 
+def assigned_content_completed_by_users(db: Session, user_ids: list[UUID]) -> dict[UUID, bool]:
+    """True si el user completó el 100% de su contenido asignado — units
+    sueltas (``ModuleAssignment``) + la ``CustomPath`` resuelta para él (si
+    tiene alguna, vía ``resolve_custom_path``, misma precedencia que el
+    colaborador ve en /mi-ruta). Dispara la notificación "completó las rutas
+    asignadas" en la tarjeta del manager. Independiente del feedback del
+    manager y del assessment — solo mira completion de contenido
+    (``LearningUnitAttempt.completed_at``, nunca el ``ModuleAssignment.status``
+    que no se actualiza). Sin nada asignado → False (nada que notificar)."""
+    from hg.modules.identity.models import User
+    from hg.modules.learning_units.models import ModuleAssignment
+    from hg.modules.paths.resolution import custom_path_unit_order, resolve_custom_path
+
+    out: dict[UUID, bool] = dict.fromkeys(user_ids, False)
+    if not user_ids:
+        return out
+
+    assigned_by_user: dict[UUID, set[UUID]] = {uid: set() for uid in user_ids}
+    for uid, unit_id in db.execute(
+        select(ModuleAssignment.user_id, ModuleAssignment.learning_unit_id).where(
+            ModuleAssignment.user_id.in_(user_ids)
+        )
+    ).all():
+        assigned_by_user[uid].add(unit_id)
+
+    users = {u.id: u for u in db.scalars(select(User).where(User.id.in_(user_ids))).all()}
+    for uid in user_ids:
+        user = users.get(uid)
+        if user is None:
+            continue
+        path = resolve_custom_path(db, user)
+        if path is not None:
+            assigned_by_user[uid].update(custom_path_unit_order(db, path.id))
+
+    all_unit_ids = {u for units in assigned_by_user.values() for u in units}
+    if not all_unit_ids:
+        return out
+
+    completed_by_user: dict[UUID, set[UUID]] = {uid: set() for uid in user_ids}
+    for uid, unit_id in db.execute(
+        select(LearningUnitAttempt.user_id, LearningUnitAttempt.unit_id).where(
+            LearningUnitAttempt.user_id.in_(user_ids),
+            LearningUnitAttempt.unit_id.in_(all_unit_ids),
+            LearningUnitAttempt.completed_at.is_not(None),
+        )
+    ).all():
+        completed_by_user[uid].add(unit_id)
+
+    for uid in user_ids:
+        assigned = assigned_by_user[uid]
+        if assigned and assigned <= completed_by_user[uid]:
+            out[uid] = True
+    return out
+
+
 def _completed_block_events(
     db: Session, user_ids: list[UUID], since: datetime
 ) -> list[tuple[UUID, datetime]]:

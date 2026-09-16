@@ -15,6 +15,16 @@ class AssessmentStateSnapshotOut(BaseModel):
     source: str
 
 
+class UserCustomPathOut(BaseModel):
+    """Ruta personalizada (`CustomPath`) asignada directamente a un
+    colaborador puntual — corrección post-2.4 de "Asignar nuevo path" en
+    ``team/[id]``, alternativa a asignar un pilar (career-path/Enrollment)."""
+
+    id: UUID
+    name: str
+    description: str | None = None
+
+
 class UserMetricsOut(BaseModel):
     """Métricas canónicas de un usuario (Release TASK 2) — misma fuente para el
     colaborador (/me/metrics) y el manager (/team/[id])."""
@@ -48,6 +58,10 @@ class TeamMemberOut(BaseModel):
     # más recientemente (career_path P1..P6; None = sin actividad todavía).
     badges_unlocked_count: int = 0
     current_focus_dimension: str | None = None
+    # Notificación para el manager: True si el colaborador completó el 100%
+    # del contenido asignado (ModuleAssignment sueltos + la CustomPath
+    # resuelta para él). Independiente del feedback del manager / assessment.
+    completed_assigned_content: bool = False
 
 
 class TeamResponse(BaseModel):

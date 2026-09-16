@@ -16,7 +16,7 @@ from ._lu_helpers import cleanup_units, make_unit, seed_attempt
 def _reset_cp_weights() -> None:
     s = SessionLocal()
     cfg = s.get(DimensionScoringConfig, "CP")
-    cfg.learning_weight, cfg.assessment_weight, cfg.manager_weight = 0.7, 0.3, 0.0
+    cfg.learning_weight, cfg.assessment_weight = 0.7, 0.3
     s.commit()
     s.close()
 
@@ -43,7 +43,7 @@ def test_update_weights_rejects_zero_sum(client, factory, auth_headers) -> None:
     res = client.put(
         "/api/v1/admin/scoring-config/CP",
         headers=auth_headers(superadmin),
-        json={"learning_weight": 0, "assessment_weight": 0, "manager_weight": 0},
+        json={"learning_weight": 0, "assessment_weight": 0},
     )
     assert res.status_code == 422
 
@@ -54,7 +54,7 @@ def test_update_weights_rejects_unknown_dimension(client, factory, auth_headers)
     res = client.put(
         "/api/v1/admin/scoring-config/ZZ",
         headers=auth_headers(superadmin),
-        json={"learning_weight": 0.5, "assessment_weight": 0.5, "manager_weight": 0},
+        json={"learning_weight": 0.5, "assessment_weight": 0.5},
     )
     assert res.status_code == 404
 
@@ -75,7 +75,7 @@ def test_update_weights_and_recompute_moves_completion(client, factory, auth_hea
         updated = client.put(
             "/api/v1/admin/scoring-config/CP",
             headers=auth_headers(superadmin),
-            json={"learning_weight": 1.0, "assessment_weight": 0.0, "manager_weight": 0.0},
+            json={"learning_weight": 1.0, "assessment_weight": 0.0},
         )
         assert updated.status_code == 200, updated.text
         assert updated.json()["learning_weight"] == 1.0

@@ -33,8 +33,14 @@ import {
   apiUpdateCustomPath,
   ApiError,
 } from "@/lib/api";
+import { subPillarName } from "@/lib/dimension-styles";
 import { toast } from "@/lib/toast-store";
 import type { AssignableUnit, CompanyMember, CompanyOrg, CustomPath, CustomPathScope } from "@/lib/types";
+
+/** Las rutas custom solo admiten contenido de Carrera Profesional (CP) — el
+ * resto de las dimensiones se asigna vía el score del assessment, no
+ * manualmente. Mismo hard-restrict que el backend (`paths/router.py`). */
+const CUSTOM_PATH_DIMENSION = "CP";
 
 function RutasContent() {
   const { companyId, ready } = useScopedCompanyId();
@@ -305,6 +311,9 @@ function PathItemsDialog({
   const [catalog, setCatalog] = React.useState<AssignableUnit[]>([]);
   const [ordered, setOrdered] = React.useState<{ id: string; title: string; required: boolean }[]>([]);
   const [q, setQ] = React.useState("");
+  const [pillarF, setPillarF] = React.useState("");
+  const [levelF, setLevelF] = React.useState("");
+  const [skillF, setSkillF] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
@@ -313,12 +322,31 @@ function PathItemsDialog({
       path.items.map((it) => ({ id: it.learning_unit_id, title: it.unit_title, required: it.is_required })),
     );
     setQ("");
+    setPillarF("");
+    setLevelF("");
+    setSkillF("");
     apiListAssignableUnits().then(setCatalog).catch(() => setCatalog([]));
   }, [path]);
 
+  // Hard-restricción a Carrera Profesional — el resto de las dimensiones se
+  // asigna vía score del assessment, no eligiendo módulos acá.
+  const cpCatalog = catalog.filter((u) => u.dimension_code === CUSTOM_PATH_DIMENSION);
+  const pillars = Array.from(
+    new Set(cpCatalog.map((u) => u.pillar_code).filter((c): c is string => c != null)),
+  ).sort((a, b) => a.localeCompare(b));
+  const levels = Array.from(new Set(cpCatalog.map((u) => u.level_code))).sort();
+  const skills = Array.from(new Set(cpCatalog.flatMap((u) => u.keywords ?? []))).sort((a, b) =>
+    a.localeCompare(b),
+  );
+
   const selectedIds = new Set(ordered.map((o) => o.id));
-  const candidates = catalog.filter(
-    (u) => !selectedIds.has(u.id) && u.title.toLowerCase().includes(q.toLowerCase()),
+  const candidates = cpCatalog.filter(
+    (u) =>
+      !selectedIds.has(u.id) &&
+      u.title.toLowerCase().includes(q.toLowerCase()) &&
+      (!pillarF || u.pillar_code === pillarF) &&
+      (!levelF || u.level_code === levelF) &&
+      (!skillF || (u.keywords ?? []).includes(skillF)),
   );
 
   function add(u: AssignableUnit) {
@@ -379,7 +407,31 @@ function PathItemsDialog({
             límite a medida que se agregan módulos a la ruta. */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="flex min-w-0 flex-col">
+            <p className="mb-2 text-xs text-fg-subtle">
+              Solo contenido de Carrera Profesional — las demás dimensiones se asignan según el
+              score del assessment.
+            </p>
             <Input placeholder="Buscar módulo…" value={q} onChange={(e) => setQ(e.target.value)} />
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <Select value={pillarF} onChange={(e) => setPillarF(e.target.value)}>
+                <option value="">Todos los pilares</option>
+                {pillars.map((n) => (
+                  <option key={n} value={n}>{subPillarName(CUSTOM_PATH_DIMENSION, n)}</option>
+                ))}
+              </Select>
+              <Select value={levelF} onChange={(e) => setLevelF(e.target.value)}>
+                <option value="">Todos los niveles</option>
+                {levels.map((l) => (
+                  <option key={l} value={l}>Nivel {l.replace("L", "")}</option>
+                ))}
+              </Select>
+              <Select value={skillF} onChange={(e) => setSkillF(e.target.value)}>
+                <option value="">Todos los skills</option>
+                {skills.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </Select>
+            </div>
             <p className="mb-2 mt-2 font-sans text-xs font-semibold uppercase tracking-meta text-fg-muted">
               Disponibles ({candidates.length})
             </p>

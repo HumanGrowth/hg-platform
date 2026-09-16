@@ -1,73 +1,82 @@
 # Cómo se compone el score 0–100 (completion por dimensión)
 
-- **Actualizado:** 2026-09-11 (FASE 1.4 del plan de feedback del manager + currícula custom).
+- **Actualizado:** 2026-09-16 (corrección post-FASE 1.4: el manager pasa de ponderación a gate de aprobación).
 - **Código fuente de verdad:** `apps/backend/src/hg/modules/badges/progression.py` (`recompute_dimension`).
 
-## Los 3 componentes
+## Los 2 componentes del score
 
 Cada `(user, dimensión, nivel)` tiene un `completion_pct` 0–100 persistido en
-`dimension_level_progress`, mezcla ponderada de hasta 3 componentes:
+`dimension_level_progress`, mezcla ponderada de 2 componentes:
 
 | Componente   | Fuente                                                                 | Función que lo calcula                       |
 | ------------ | ----------------------------------------------------------------------- | --------------------------------------------- |
 | Aprendizaje  | % de units publicadas del `(dimensión, nivel)` que el user completó   | `_learning_pct`                               |
 | Assessment   | Valor 0–100 del último estado del assessment de esa dimensión          | `_assessment_pct` (`assessment/scoring.py`)   |
-| Manager      | Promedio de las evaluaciones de comportamiento (última por comportamiento) | `_manager_pct` (`feedback/scoring.py`)     |
 
 Los pesos de cada componente por dimensión viven en `dimension_scoring_config`
 (catálogo global, sin RLS, gobernado por superadmin) — editables desde
 `/admin/scoring` (panel superadmin, FASE 1.4) o `PUT /api/v1/admin/scoring-config/{dimension}`.
 
-**Default:** `learning_weight=0.7`, `assessment_weight=0.3`, `manager_weight=0.0`.
-El manager arrancó en 0 a propósito (FASE 1.1): el 3er componente existe en el
-modelo de datos y en el motor de cálculo, pero no altera ningún score hasta que
-alguien lo configure explícitamente.
+**Default:** `learning_weight=0.7`, `assessment_weight=0.3`.
 
 ## Renormalización
 
-Los 3 pesos **no necesitan sumar 1**. La fórmula es:
+Los 2 pesos **no necesitan sumar 1**. La fórmula es:
 
 ```
-completion = Σ(peso_i · valor_i) / Σ(peso_i)
+completion = (learning_weight·learning_pct + assessment_weight·assessment_pct) / (learning_weight+assessment_weight)
 ```
 
-sobre los componentes **presentes**. Un componente está "presente" si:
+Aprendizaje y Assessment están siempre presentes (su valor es 0 cuando no hay
+datos, no se excluyen).
 
-- Aprendizaje y Assessment: siempre presentes (su valor es 0 cuando no hay
-  datos, no se excluyen).
-- Manager: presente solo si el colaborador tiene **al menos una** evaluación de
-  comportamiento activa en esa dimensión. Sin evaluaciones, `manager_pct` es
-  `None` y se excluye del promedio ponderado — **no se lo castiga con un 0**
-  por no haber sido evaluado todavía. El peso de manager se reparte
-  proporcionalmente entre aprendizaje y assessment en ese caso.
-
-Ejemplo: `learning_weight=0.4`, `assessment_weight=0.3`, `manager_weight=0.3`,
-un colaborador con aprendizaje=100, assessment=0, sin evaluaciones de manager:
+Ejemplo: `learning_weight=0.7`, `assessment_weight=0.3`, un colaborador con
+aprendizaje=100, assessment=0:
 
 ```
-completion = (0.4·100 + 0.3·0) / (0.4+0.3) = 57.1
+completion = (0.7·100 + 0.3·0) / (0.7+0.3) = 70.0
 ```
 
-Si luego el manager lo evalúa y el promedio de sus comportamientos da 100:
+## El manager tiene la decisión final: gate de aprobación (no ponderación)
 
-```
-completion = (0.4·100 + 0.3·0 + 0.3·100) / (0.4+0.3+0.3) = 70.0
-```
+El feedback del manager **no** entra al cálculo numérico del `completion_pct`.
+En su lugar, el badge de **nivel** de una dimensión requiere DOS condiciones
+simultáneas:
+
+1. `completion_pct >= level.unlock_threshold` (aprendizaje + assessment, como
+   arriba).
+2. **Aprobación del manager**: TODOS los `pillar_behaviors` **activos** de esa
+   dimensión (de cualquier pilar) tienen una `BehaviorEvaluation.rating ==
+   DEMOSTRANDO (3)` — la última evaluación por comportamiento, no un
+   histórico. Si la dimensión no tiene comportamientos activos, la condición
+   se considera cumplida vacíamente (no bloquea el badge).
+
+Esto se calcula en `_manager_approved()` (`badges/progression.py`) y se
+expone como `manager_approved: bool` en `BehaviorMatrixOut`
+(`GET /api/v1/team/{user_id}/behavior-matrix`), consumido por
+`BehaviorMatrixCard` en `/team/[id]` para mostrar el estado "Aprobado" /
+"Pendiente de aprobación".
+
+`row.manager_pct` sigue persistido en `dimension_level_progress` como
+referencia informativa (promedio 0–100 de las evaluaciones del manager), pero
+**no** participa en la fórmula de `completion`.
+
+Nota de diseño: los sub-badges de pilar (completion de contenido puro) NO
+están gateados por aprobación del manager — solo los badges de **nivel**,
+porque `PillarBehavior` no tiene granularidad por nivel en el modelo de datos.
 
 ## Escala del feedback del manager
 
 `BehaviorEvaluation.rating` es 1..3 (`feedback/scoring.py`):
 
-| rating | significado     | valor 0–100 |
-| ------ | ---------------- | ----------- |
-| 1      | Sin demostrar     | 0           |
-| 2      | En progreso       | 50          |
-| 3      | Demostrando       | 100         |
+| rating | significado     | valor 0–100 (solo informativo, `manager_pct`) |
+| ------ | ---------------- | ---------------------------------------------- |
+| 1      | Sin demostrar     | 0                                              |
+| 2      | En progreso       | 50                                             |
+| 3      | Demostrando       | 100                                            |
 
-`_manager_pct` promedia el valor de la **última** evaluación por comportamiento
-(no un histórico), sobre todos los `pillar_behaviors` **activos** de la
-dimensión (de cualquier pilar, no solo el pilar en curso) que el colaborador
-tenga evaluados.
+Solo el rating 3 (Demostrando) en **todos** los comportamientos activos
+habilita el gate de aprobación.
 
 ## Recompute masivo
 
@@ -77,6 +86,11 @@ Cambiar los pesos de una dimensión **no** recalcula automáticamente el
 para una sola dimensión). Es superadmin-only, idempotente, y toca
 `dimension_level_progress` de **todos** los usuarios activos. En producción:
 snapshot de Neon antes de correrlo (mismo guardrail que cualquier migración).
+
+Este mismo recompute también reevalúa `manager_approved` y, si corresponde,
+otorga el badge de nivel a colaboradores que ya tenían completion +
+aprobación pero cuyo badge no se había disparado (p.ej. si el manager aprobó
+antes de que el completion cruzara el threshold).
 
 ## Dos espacios de códigos
 

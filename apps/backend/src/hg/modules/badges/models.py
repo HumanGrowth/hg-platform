@@ -68,20 +68,19 @@ class UserBadge(Base):
 
 
 class DimensionScoringConfig(Base):
-    """Pesos de la mezcla aprendizaje/assessment/manager por dimensión (config
-    global, sin RLS). Default 0.70/0.30/0.0; una dimensión sin contenido de
-    aprendizaje puede tener ``learning_weight=0`` (se apoya solo en el
-    assessment) y viceversa. ``manager_weight`` arranca en 0.0 (FASE 1.1 — el
-    feedback del manager no altera el score hasta que se configuren pesos
-    reales en FASE 1.4). Los 3 pesos se renormalizan sobre los componentes
-    presentes (ver ``badges/progression.recompute_dimension``)."""
+    """Pesos de la mezcla aprendizaje/assessment por dimensión (config global,
+    sin RLS). Default 0.70/0.30; una dimensión sin contenido de aprendizaje
+    puede tener ``learning_weight=0`` (se apoya solo en el assessment) y
+    viceversa. El feedback del manager NO pondera acá — es un gate binario de
+    aprobación sobre el badge de nivel, no un componente del score (ver
+    ``badges/progression._manager_approved``; el ``manager_weight`` de FASE
+    1.1 se eliminó)."""
 
     __tablename__ = "dimension_scoring_config"
 
     dimension_code: Mapped[str] = mapped_column(String(4), primary_key=True)  # CP/PR/RE/SA/PI/ES
     learning_weight: Mapped[float] = mapped_column(Float, nullable=False, default=0.7)
     assessment_weight: Mapped[float] = mapped_column(Float, nullable=False, default=0.3)
-    manager_weight: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
 
 
 class DimensionLevel(Base):
@@ -127,10 +126,9 @@ class DimensionLevelProgress(Base):
     completion_pct: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     learning_pct: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     assessment_pct: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
-    # FASE 1.1 — feedback del manager como 3er componente. 0.0 = "sin
-    # evaluaciones" en la fila persistida, pero el cálculo del blend usa None
-    # (ver _manager_pct) para excluirlo del promedio ponderado, no para
-    # castigar con 0 a un colaborador aún no evaluado.
+    # Promedio (0-100) de los comportamientos calificados por el manager —
+    # informativo, ya NO pondera en `completion_pct` (ver
+    # `badges/progression._manager_approved`, el gate real de aprobación).
     manager_pct: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

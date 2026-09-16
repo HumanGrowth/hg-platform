@@ -42,7 +42,7 @@ const unit: LearningUnitFeedItem = {
   estimated_duration_seconds: 300,
   blocks_count: 5,
   attempt_status: "not_started",
-  poster_url: null, video_url: null,
+  poster_url: null, video_url: null, keywords: null,
 };
 
 describe("DimensionDetail", () => {

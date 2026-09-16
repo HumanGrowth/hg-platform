@@ -18,6 +18,7 @@ const resp: TeamResponse = {
       is_inactive: false, courses_in_progress: 3, courses_completed: 5, total_watch_minutes: 120,
       active_enrollments: 2, assignments_overdue: 0, assignments_due_soon: 0,
       next_assignment_due_at: null, badges_unlocked_count: 2, current_focus_dimension: "P1",
+      completed_assigned_content: false,
     },
     {
       id: "u2", full_name: "Juan Pérez", email: "juan@acme.test", role: "collaborator",
@@ -25,6 +26,7 @@ const resp: TeamResponse = {
       courses_in_progress: 0, courses_completed: 0, total_watch_minutes: 0, active_enrollments: 0,
       assignments_overdue: 0, assignments_due_soon: 0, next_assignment_due_at: null,
       badges_unlocked_count: 0, current_focus_dimension: null,
+      completed_assigned_content: true,
     },
   ],
 };

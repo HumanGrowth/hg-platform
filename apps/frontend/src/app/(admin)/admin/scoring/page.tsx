@@ -17,26 +17,22 @@ const DIMENSION_NAME: Record<string, string> = Object.fromEntries(
   DIMENSIONS.map((d) => [d.code, d.name]),
 );
 
-type DraftWeights = Record<string, { learning: string; assessment: string; manager: string }>;
+type DraftWeights = Record<string, { learning: string; assessment: string }>;
 
 function toDraft(rows: DimensionScoringConfig[]): DraftWeights {
   return Object.fromEntries(
     rows.map((r) => [
       r.dimension_code,
-      {
-        learning: String(r.learning_weight),
-        assessment: String(r.assessment_weight),
-        manager: String(r.manager_weight),
-      },
+      { learning: String(r.learning_weight), assessment: String(r.assessment_weight) },
     ]),
   );
 }
 
-/** Panel superadmin (FASE 1.4) para editar los 3 pesos del score por
- * dimensión (aprendizaje/assessment/manager) y disparar el recompute masivo
- * de `dimension_level_progress` tras un cambio. Los pesos NO necesitan sumar
- * 1 — el motor renormaliza sobre los componentes presentes (ver
- * `docs/scoring.md` y `badges/progression.recompute_dimension`). */
+/** Panel superadmin para editar los 2 pesos del score por dimensión
+ * (aprendizaje/assessment) y disparar el recompute masivo de
+ * `dimension_level_progress` tras un cambio. El feedback del manager NO
+ * pondera acá — es un gate de aprobación sobre el badge de nivel (matriz de
+ * comportamientos en `/team/[id]`), no un componente del score. */
 function ScoringContent() {
   const [rows, setRows] = React.useState<DimensionScoringConfig[] | null>(null);
   const [draft, setDraft] = React.useState<DraftWeights>({});
@@ -57,22 +53,17 @@ function ScoringContent() {
     const d = draft[code];
     const learning = Number(d.learning);
     const assessment = Number(d.assessment);
-    const manager = Number(d.manager);
-    if ([learning, assessment, manager].some((n) => Number.isNaN(n) || n < 0)) {
+    if ([learning, assessment].some((n) => Number.isNaN(n) || n < 0)) {
       toast("Los pesos deben ser números ≥ 0.", "danger");
       return;
     }
-    if (learning + assessment + manager <= 0) {
-      toast("La suma de los 3 pesos debe ser mayor a 0.", "danger");
+    if (learning + assessment <= 0) {
+      toast("La suma de los 2 pesos debe ser mayor a 0.", "danger");
       return;
     }
     setSavingCode(code);
     try {
-      await apiUpdateScoringConfig(code, {
-        learning_weight: learning,
-        assessment_weight: assessment,
-        manager_weight: manager,
-      });
+      await apiUpdateScoringConfig(code, { learning_weight: learning, assessment_weight: assessment });
       toast(`Pesos de ${DIMENSION_NAME[code] ?? code} guardados.`, "success");
       load();
     } catch (err) {
@@ -109,10 +100,12 @@ function ScoringContent() {
         Pesos del score
       </Display>
       <p className="mt-3 max-w-prose text-sm text-fg-muted">
-        El completion 0–100 de cada dimensión combina 3 componentes: aprendizaje, assessment y
-        feedback del manager. Los pesos no necesitan sumar 1 — si falta un componente (p. ej. nadie
-        evaluó comportamientos todavía), el motor renormaliza sobre los presentes. Después de cambiar
-        pesos, corré el recompute para que el completion existente lo refleje.
+        El completion 0–100 de cada dimensión combina 2 componentes: aprendizaje y assessment. Los
+        pesos no necesitan sumar 1 — el motor renormaliza. El feedback del manager (matriz de
+        comportamientos) no pondera acá: es un gate de aprobación sobre el badge de nivel — el
+        colaborador necesita el completion Y que el manager haya calificado "Demostrando" todos sus
+        comportamientos activos. Después de cambiar pesos, corré el recompute para que el completion
+        existente lo refleje.
       </p>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -138,7 +131,7 @@ function ScoringContent() {
                     {DIMENSION_NAME[r.dimension_code] ?? r.dimension_code}{" "}
                     <span className="font-mono text-xs text-fg-subtle">{r.dimension_code}</span>
                   </p>
-                  <div className="mt-2 grid grid-cols-3 gap-3">
+                  <div className="mt-2 grid grid-cols-2 gap-3">
                     <div>
                       <Label htmlFor={`learning-${r.dimension_code}`}>Aprendizaje</Label>
                       <Input
@@ -167,22 +160,6 @@ function ScoringContent() {
                           setDraft({
                             ...draft,
                             [r.dimension_code]: { ...d, assessment: e.target.value },
-                          })
-                        }
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor={`manager-${r.dimension_code}`}>Manager</Label>
-                      <Input
-                        id={`manager-${r.dimension_code}`}
-                        type="number"
-                        step="0.05"
-                        min="0"
-                        value={d.manager}
-                        onChange={(e) =>
-                          setDraft({
-                            ...draft,
-                            [r.dimension_code]: { ...d, manager: e.target.value },
                           })
                         }
                       />

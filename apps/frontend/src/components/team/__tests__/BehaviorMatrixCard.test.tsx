@@ -27,9 +27,7 @@ function makeMatrix(overrides?: Partial<BehaviorMatrix>): BehaviorMatrix {
     dimension_name: "Carrera",
     current_pillar_code: "P1",
     manager_pct: null,
-    manager_weight: 0.3,
-    learning_weight: 0.4,
-    assessment_weight: 0.3,
+    manager_approved: false,
     pillars: [
       {
         pillar_code: "P1",
@@ -90,7 +88,7 @@ describe("BehaviorMatrixCard", () => {
 
   it("rates a behavior optimistically and saves via PUT", async () => {
     getMatrix.mockResolvedValue(singlePillarMatrix());
-    upsert.mockResolvedValue(singlePillarMatrix({ manager_pct: 100 }));
+    upsert.mockResolvedValue(singlePillarMatrix({ manager_pct: 100, manager_approved: true }));
     render(<BehaviorMatrixCard userId="u1" />);
     await waitFor(() => expect(screen.getByText("Busca feedback y lo aplica")).toBeTruthy());
 
@@ -98,7 +96,7 @@ describe("BehaviorMatrixCard", () => {
     await waitFor(() =>
       expect(upsert).toHaveBeenCalledWith("u1", [{ behavior_id: "b1", rating: 3 }]),
     );
-    await waitFor(() => expect(screen.getByText("100/100")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/Aprobado/)).toBeTruthy());
   });
 
   it("reverts the optimistic rating if the save fails", async () => {
@@ -113,11 +111,9 @@ describe("BehaviorMatrixCard", () => {
     await waitFor(() => expect(button.getAttribute("aria-checked")).toBe("false"));
   });
 
-  it("shows a neutral message when manager_weight is 0", async () => {
-    getMatrix.mockResolvedValue(singlePillarMatrix({ manager_weight: 0 }));
+  it("shows a pending message when the manager hasn't approved yet", async () => {
+    getMatrix.mockResolvedValue(singlePillarMatrix({ manager_approved: false }));
     render(<BehaviorMatrixCard userId="u1" />);
-    await waitFor(() =>
-      expect(screen.getByText(/todavía no pesa en el score/)).toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.getByText(/Pendiente de aprobación/)).toBeTruthy());
   });
 });

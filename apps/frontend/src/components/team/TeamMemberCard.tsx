@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Award, Check, Compass } from "lucide-react";
+import { AlertTriangle, Award, Check, Compass, PartyPopper } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Route as NextRoute } from "next";
 import Link from "next/link";
@@ -69,6 +69,16 @@ export function TeamMemberCard({ member: m }: { member: TeamMember }) {
           <span className={`text-xs font-semibold ${st.text}`}>{st.label}</span>
         </span>
       </div>
+
+      {/* Notificación: completó el 100% del contenido asignado — el manager
+          tiene la decisión final sobre si aprueba la ruta (matriz de
+          comportamientos), esto solo le avisa que ya puede revisar. */}
+      {m.completed_assigned_content && (
+        <div className="mt-3 flex items-center gap-1.5 rounded-md bg-success-bg px-2.5 py-1.5 text-xs font-semibold text-success">
+          <PartyPopper size={13} strokeWidth={2} aria-hidden />
+          Completó las rutas asignadas — revisá su aprobación
+        </div>
+      )}
 
       {/* Due dates de módulos asignados — solo si hay algo que avisar. */}
       {(m.assignments_overdue > 0 || m.assignments_due_soon > 0) && (

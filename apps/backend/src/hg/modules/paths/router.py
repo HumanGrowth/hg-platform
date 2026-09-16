@@ -195,6 +195,18 @@ def set_custom_path_items(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Área no habilitada para la empresa: {sorted(blocked)}",
         )
+    # Hard-restricción (corrección post-2.4): las rutas custom solo pueden
+    # componerse de contenido de Carrera Profesional — el resto de las
+    # dimensiones se asigna vía el score del assessment, no manualmente acá.
+    non_cp = [units[uid].slug for uid in unit_ids if units[uid].dimension_code != "CP"]
+    if non_cp:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                "Las rutas custom solo admiten contenido de Carrera Profesional (CP): "
+                f"{sorted(non_cp)}"
+            ),
+        )
     if len(set(unit_ids)) != len(unit_ids):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="learning units duplicadas"

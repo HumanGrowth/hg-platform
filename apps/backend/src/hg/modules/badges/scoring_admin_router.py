@@ -39,7 +39,6 @@ def list_scoring_config(
             dimension_code=code,
             learning_weight=rows[code].learning_weight if code in rows else 0.7,
             assessment_weight=rows[code].assessment_weight if code in rows else 0.3,
-            manager_weight=rows[code].manager_weight if code in rows else 0.0,
         )
         for code in PRODUCT_DIMENSIONS
     ]
@@ -61,13 +60,11 @@ def update_scoring_config(
         db.add(cfg)
     cfg.learning_weight = body.learning_weight
     cfg.assessment_weight = body.assessment_weight
-    cfg.manager_weight = body.manager_weight
     db.flush()
     return DimensionScoringConfigOut(
         dimension_code=dimension_code,
         learning_weight=cfg.learning_weight,
         assessment_weight=cfg.assessment_weight,
-        manager_weight=cfg.manager_weight,
     )
 
 

@@ -32,6 +32,21 @@ function groupByDimension(units: LearningUnitFeedItem[]): Map<string, LearningUn
   );
 }
 
+/** Agrupa units por skill (columna `keywords`) en vez de dimensión/pilar — una
+ * unit con varios skills aparece en cada uno. Sin skills → bucket "Sin skill". */
+function groupBySkill(units: LearningUnitFeedItem[]): Map<string, LearningUnitFeedItem[]> {
+  const groups = new Map<string, LearningUnitFeedItem[]>();
+  for (const u of units) {
+    const keys = u.keywords && u.keywords.length > 0 ? u.keywords : ["Sin skill"];
+    for (const key of keys) {
+      const bucket = groups.get(key) ?? [];
+      if (bucket.length === 0) groups.set(key, bucket);
+      bucket.push(u);
+    }
+  }
+  return new Map([...groups.entries()].sort(([a], [b]) => a.localeCompare(b)));
+}
+
 /**
  * Catálogo por Dimensión → Pilar → Unidades (TASK 1 · pulido). Master-detail:
  * las dimensiones en una columna a la izquierda; al elegir uno, sus módulos se
@@ -52,6 +67,7 @@ export function DimensionCatalog({
 } = {}) {
   const [byDimension, setByDimension] = React.useState<Record<string, LearningUnitFeedItem[]>>({});
   const [status, setStatus] = React.useState<"loading" | "ok">("loading");
+  const [mode, setMode] = React.useState<"dimension" | "skill">("dimension");
 
   React.useEffect(() => {
     let active = true;
@@ -78,31 +94,88 @@ export function DimensionCatalog({
     (progressByCareerPath ?? []).map((p) => [p.career_path_code, p]),
   );
 
+  const allUnits = Object.values(byDimension).flat();
+  const skillGroups = groupBySkill(allUnits);
+  const skills = [...skillGroups.keys()];
+
   return (
-    <Tabs defaultValue={dimensionsWithUnits[0].code}>
-      {/* Tabs horizontales — una dimensión por tab; scrollean en mobile. */}
-      {/* Cada tab se ve como el título de una dimensión: badge (HexIcon) + nombre. */}
-      <TabsList aria-label="Dimensiones" className="gap-4 overflow-x-auto">
-        {dimensionsWithUnits.map((dim) => (
-          <TabsTrigger
-            key={dim.code}
-            value={dim.code}
-            className="flex shrink-0 items-center gap-2 whitespace-nowrap"
-          >
-            <HexIcon pillar={dim.pillar} size={22} />
-            {dim.name}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      {dimensionsWithUnits.map((dim) => (
-        <TabsContent key={dim.code} value={dim.code}>
-          <DimensionSection
-            units={byDimension[dim.code]}
-            progress={progressByPillar.get(dim.pillar)}
-          />
-        </TabsContent>
-      ))}
-    </Tabs>
+    <div className="flex flex-col gap-4">
+      {/* Toggle Dimensión/Skill: cambia el eje de agrupación del catálogo. */}
+      <div role="tablist" aria-label="Agrupar por" className="inline-flex w-fit rounded-md border border-border">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "dimension"}
+          onClick={() => setMode("dimension")}
+          className={cn(
+            "px-3 py-1.5 font-sans text-xs font-semibold transition-colors",
+            mode === "dimension" ? "bg-hg-green-100 text-primary" : "text-fg-muted hover:bg-bg-sunken",
+          )}
+        >
+          Dimensión
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "skill"}
+          onClick={() => setMode("skill")}
+          className={cn(
+            "border-l border-border px-3 py-1.5 font-sans text-xs font-semibold transition-colors",
+            mode === "skill" ? "bg-hg-green-100 text-primary" : "text-fg-muted hover:bg-bg-sunken",
+          )}
+        >
+          Skill
+        </button>
+      </div>
+
+      {mode === "dimension" ? (
+        <Tabs defaultValue={dimensionsWithUnits[0].code}>
+          {/* Tabs horizontales — una dimensión por tab; scrollean en mobile. */}
+          {/* Cada tab se ve como el título de una dimensión: badge (HexIcon) + nombre. */}
+          <TabsList aria-label="Dimensiones" className="gap-4 overflow-x-auto">
+            {dimensionsWithUnits.map((dim) => (
+              <TabsTrigger
+                key={dim.code}
+                value={dim.code}
+                className="flex shrink-0 items-center gap-2 whitespace-nowrap"
+              >
+                <HexIcon pillar={dim.pillar} size={22} />
+                {dim.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {dimensionsWithUnits.map((dim) => (
+            <TabsContent key={dim.code} value={dim.code}>
+              <DimensionSection
+                units={byDimension[dim.code]}
+                progress={progressByPillar.get(dim.pillar)}
+              />
+            </TabsContent>
+          ))}
+        </Tabs>
+      ) : skills.length === 0 ? (
+        <p className="text-sm text-fg-muted">Todavía no hay skills etiquetados en el contenido.</p>
+      ) : (
+        <Tabs defaultValue={skills[0]}>
+          <TabsList aria-label="Skills" className="gap-4 overflow-x-auto">
+            {skills.map((skill) => (
+              <TabsTrigger key={skill} value={skill} className="shrink-0 whitespace-nowrap">
+                {skill}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {skills.map((skill) => (
+            <TabsContent key={skill} value={skill}>
+              <div className="flex flex-col gap-2">
+                {(skillGroups.get(skill) ?? []).map((u) => (
+                  <UnitCardCompact key={u.id} unit={u} />
+                ))}
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
+      )}
+    </div>
   );
 }
 

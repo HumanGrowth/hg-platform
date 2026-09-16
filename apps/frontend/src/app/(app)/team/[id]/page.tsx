@@ -18,11 +18,13 @@ import {
   apiGetTeamMemberDetail,
   apiGetTeamMemberPath,
   apiListUserAssignments,
+  apiListUserCustomPathAssignments,
+  apiUnassignCustomPathFromUser,
   apiUnassignPath,
 } from "@/lib/api";
 import { DIMENSIONS_META, dimensionShortName } from "@/lib/dimension-styles";
 import { toast } from "@/lib/toast-store";
-import type { ModuleAssignment, MyPath, TeamMemberDetail } from "@/lib/types";
+import type { ModuleAssignment, MyPath, TeamMemberDetail, UserCustomPath } from "@/lib/types";
 import { formatRelativeTime, formatShortDate } from "@/lib/utils";
 
 const PILLAR_NAME: Record<string, string> = Object.fromEntries(
@@ -36,22 +38,26 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
   const [status, setStatus] = React.useState<"loading" | "error" | "notfound" | "ok">("loading");
   const [data, setData] = React.useState<TeamMemberDetail | null>(null);
   const [confirmCode, setConfirmCode] = React.useState<string | null>(null);
+  const [confirmCustomPath, setConfirmCustomPath] = React.useState<UserCustomPath | null>(null);
   const [assignOpen, setAssignOpen] = React.useState(false);
   const [assignModulesOpen, setAssignModulesOpen] = React.useState(false);
   const [assignments, setAssignments] = React.useState<ModuleAssignment[]>([]);
   const [path, setPath] = React.useState<MyPath | null>(null);
+  const [customPaths, setCustomPaths] = React.useState<UserCustomPath[]>([]);
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const [detail, assign, p] = await Promise.all([
+      const [detail, assign, p, cps] = await Promise.all([
         apiGetTeamMemberDetail(id),
         apiListUserAssignments(id).catch(() => [] as ModuleAssignment[]),
         apiGetTeamMemberPath(id).catch(() => null),
+        apiListUserCustomPathAssignments(id).catch(() => [] as UserCustomPath[]),
       ]);
       setData(detail);
       setAssignments(assign);
       setPath(p);
+      setCustomPaths(cps);
       setStatus("ok");
     } catch (e) {
       setStatus(e instanceof ApiError && e.status === 404 ? "notfound" : "error");
@@ -80,6 +86,17 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
       await load();
     } catch {
       toast("No se pudo quitar el path", "danger");
+    }
+  }
+
+  async function doUnassignCustomPath(customPathId: string) {
+    try {
+      await apiUnassignCustomPathFromUser(id, customPathId);
+      toast("Quitaste la ruta personalizada", "success");
+      setConfirmCustomPath(null);
+      await load();
+    } catch {
+      toast("No se pudo quitar la ruta", "danger");
     }
   }
 
@@ -174,10 +191,10 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
           </div>
         )}
 
-        {/* Paths asignados */}
+        {/* Paths asignados: pilares (Enrollment) + rutas personalizadas (CustomPath). */}
         <div className="rounded-lg border border-border bg-bg-raised p-5 lg:col-span-2">
           <Eyebrow className="mb-4">Paths asignados</Eyebrow>
-          {activeEnrollments.length === 0 ? (
+          {activeEnrollments.length === 0 && customPaths.length === 0 ? (
             <p className="text-sm text-fg-muted">Sin paths asignados todavía.</p>
           ) : (
             <ul className="flex flex-col gap-3">
@@ -198,6 +215,23 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
                     type="button"
                     aria-label={`Quitar ${e.career_path_code}`}
                     onClick={() => setConfirmCode(e.career_path_code)}
+                    className="shrink-0 rounded-md p-1 text-fg-subtle hover:bg-bg-sunken hover:text-danger"
+                  >
+                    <X size={16} strokeWidth={2} />
+                  </button>
+                </li>
+              ))}
+              {customPaths.map((cp) => (
+                <li key={cp.id} className="flex items-start gap-3">
+                  <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-sans text-sm font-semibold text-fg">Ruta personalizada · {cp.name}</p>
+                    {cp.description && <p className="text-xs text-fg-subtle">{cp.description}</p>}
+                  </div>
+                  <button
+                    type="button"
+                    aria-label={`Quitar ${cp.name}`}
+                    onClick={() => setConfirmCustomPath(cp)}
                     className="shrink-0 rounded-md p-1 text-fg-subtle hover:bg-bg-sunken hover:text-danger"
                   >
                     <X size={16} strokeWidth={2} />
@@ -312,8 +346,9 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
         </section>
       )}
 
-      {/* Feedback del manager (FASE 1.3): matriz de comportamientos del pilar
-          en curso — 3er componente del score (ver badges/progression.py). */}
+      {/* Feedback del manager: matriz de comportamientos del pilar en curso —
+          gate de aprobación del badge de nivel, no un componente del score
+          (ver badges/progression.py `_manager_approved`). */}
       <div className="mt-8">
         <BehaviorMatrixCard userId={id} />
       </div>
@@ -381,13 +416,43 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
         </div>
       </Dialog>
 
+      <Dialog
+        open={confirmCustomPath !== null}
+        onClose={() => setConfirmCustomPath(null)}
+        title="Quitar ruta personalizada"
+        description={
+          confirmCustomPath
+            ? `¿Seguro que querés quitar "${confirmCustomPath.name}" de la ruta de ${data.full_name}?`
+            : ""
+        }
+      >
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setConfirmCustomPath(null)}
+            className="rounded-md border border-border px-5 py-2 font-sans text-sm font-semibold text-fg hover:bg-bg-sunken"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={() => confirmCustomPath && void doUnassignCustomPath(confirmCustomPath.id)}
+            className="rounded-md bg-danger px-5 py-2 font-sans text-sm font-semibold text-white hover:opacity-90"
+          >
+            Quitar
+          </button>
+        </div>
+      </Dialog>
+
       <AssignPathDialog
         open={assignOpen}
         onClose={() => setAssignOpen(false)}
         userId={id}
         userName={data.full_name}
         alreadyAssignedCodes={activeEnrollments.map((e) => e.career_path_code)}
+        alreadyAssignedCustomPathIds={customPaths.map((cp) => cp.id)}
         onAssigned={() => void load()}
+        onCustomPathAssigned={() => void load()}
       />
 
       <AssignModulesModal

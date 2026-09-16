@@ -161,3 +161,82 @@ def test_get_team_includes_badges_and_focus_dimension(client, manager_with_repor
         factory.session.execute(delete(UserBadge).where(UserBadge.badge_id == badge.id))
         factory.session.execute(delete(Badge).where(Badge.id == badge.id))
         factory.session.commit()
+
+
+def test_manager_assigns_and_unassigns_custom_path(client, manager_with_reports, auth_headers) -> None:
+    """Corrección post-2.4: "Asignar nuevo path" también ofrece las
+    CustomPath de la Empresa/Org del colaborador — un manager (no solo
+    admin/company_admin) puede asignarlas/quitarlas a sus reportes directos."""
+    from hg.modules.paths.models import CustomPath, CustomPathAssignment, CustomPathScope
+
+    mw = manager_with_reports
+    h = auth_headers(mw.manager)
+    from hg.db import SessionLocal
+
+    cp = CustomPath(name="Onboarding Ventas", scope=CustomPathScope.company, company_id=mw.org.company_id)
+    s = SessionLocal()
+    s.add(cp)
+    s.commit()
+    cp_id = cp.id
+    try:
+        available = client.get(
+            f"/api/v1/manager/users/{mw.r1.id}/available-custom-paths", headers=h
+        )
+        assert available.status_code == 200, available.text
+        assert any(p["id"] == str(cp_id) for p in available.json())
+
+        assigned = client.post(
+            f"/api/v1/manager/users/{mw.r1.id}/custom-path-assignments/{cp_id}", headers=h
+        )
+        assert assigned.status_code == 201, assigned.text
+        assert assigned.json()["name"] == "Onboarding Ventas"
+
+        # Idempotente.
+        again = client.post(
+            f"/api/v1/manager/users/{mw.r1.id}/custom-path-assignments/{cp_id}", headers=h
+        )
+        assert again.status_code == 201
+
+        listed = client.get(f"/api/v1/manager/users/{mw.r1.id}/custom-path-assignments", headers=h)
+        assert listed.status_code == 200
+        assert [p["id"] for p in listed.json()] == [str(cp_id)]
+
+        removed = client.delete(
+            f"/api/v1/manager/users/{mw.r1.id}/custom-path-assignments/{cp_id}", headers=h
+        )
+        assert removed.status_code == 204
+
+        listed_after = client.get(
+            f"/api/v1/manager/users/{mw.r1.id}/custom-path-assignments", headers=h
+        )
+        assert listed_after.json() == []
+    finally:
+        s.execute(delete(CustomPathAssignment).where(CustomPathAssignment.custom_path_id == cp_id))
+        s.execute(delete(CustomPath).where(CustomPath.id == cp_id))
+        s.commit()
+        s.close()
+
+
+def test_manager_cannot_assign_custom_path_of_another_company(
+    client, manager_with_reports, factory, auth_headers
+) -> None:
+    from hg.db import SessionLocal
+    from hg.modules.paths.models import CustomPath, CustomPathScope
+
+    mw = manager_with_reports
+    other_org = factory.make_org()  # otra Company
+    s = SessionLocal()
+    cp = CustomPath(name="Otra empresa", scope=CustomPathScope.company, company_id=other_org.company_id)
+    s.add(cp)
+    s.commit()
+    cp_id = cp.id
+    try:
+        res = client.post(
+            f"/api/v1/manager/users/{mw.r1.id}/custom-path-assignments/{cp_id}",
+            headers=auth_headers(mw.manager),
+        )
+        assert res.status_code == 404
+    finally:
+        s.execute(delete(CustomPath).where(CustomPath.id == cp_id))
+        s.commit()
+        s.close()

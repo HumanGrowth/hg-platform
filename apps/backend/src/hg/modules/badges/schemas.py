@@ -48,18 +48,16 @@ class DimensionScoringConfigOut(BaseModel):
     dimension_code: str
     learning_weight: float
     assessment_weight: float
-    manager_weight: float
 
 
 class UpdateScoringWeightsRequest(BaseModel):
     learning_weight: float = Field(ge=0)
     assessment_weight: float = Field(ge=0)
-    manager_weight: float = Field(ge=0)
 
     @model_validator(mode="after")
     def _weights_must_sum_positive(self) -> UpdateScoringWeightsRequest:
-        if self.learning_weight + self.assessment_weight + self.manager_weight <= 0:
-            raise ValueError("la suma de los 3 pesos debe ser > 0")
+        if self.learning_weight + self.assessment_weight <= 0:
+            raise ValueError("la suma de los 2 pesos debe ser > 0")
         return self
 
 

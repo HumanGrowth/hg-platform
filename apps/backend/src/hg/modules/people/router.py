@@ -9,9 +9,11 @@ import csv
 import io
 from collections import Counter
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from sqlalchemy import delete as sa_delete
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -67,6 +69,7 @@ from hg.modules.people.schemas import (
     TeamPerformerOut,
     TeamResponse,
     TopPerformerOut,
+    UserCustomPathOut,
     UserMetricsOut,
     WeeklyMinutesBar,
 )
@@ -75,6 +78,7 @@ from hg.modules.people.service import (
     ActivityAgg,
     AssignmentDueSummary,
     activity_by_users,
+    assigned_content_completed_by_users,
     assignments_due_summary_by_users,
     badges_unlocked_count_by_users,
     dimension_completion_rate,
@@ -83,6 +87,9 @@ from hg.modules.people.service import (
     streak_days,
     team_focus_by_users,
 )
+
+if TYPE_CHECKING:
+    from hg.modules.paths.models import CustomPath
 
 manager_router = APIRouter()
 admin_router = APIRouter()
@@ -97,6 +104,7 @@ def _member_out(
     due: AssignmentDueSummary | None = None,
     badges_unlocked_count: int = 0,
     current_focus_dimension: str | None = None,
+    completed_assigned_content: bool = False,
 ) -> TeamMemberOut:
     due = due or AssignmentDueSummary()
     return TeamMemberOut(
@@ -117,6 +125,7 @@ def _member_out(
         next_assignment_due_at=due.next_due_at,
         badges_unlocked_count=badges_unlocked_count,
         current_focus_dimension=current_focus_dimension,
+        completed_assigned_content=completed_assigned_content,
     )
 
 
@@ -177,8 +186,10 @@ def list_my_team(
     due = assignments_due_summary_by_users(db, member_ids)
     badges = badges_unlocked_count_by_users(db, member_ids)
     focus = team_focus_by_users(db, member_ids)
+    completed_content = assigned_content_completed_by_users(db, member_ids)
     rows = [
-        _member_out(m, aggs[m.id], due[m.id], badges[m.id], focus[m.id]) for m in members
+        _member_out(m, aggs[m.id], due[m.id], badges[m.id], focus[m.id], completed_content[m.id])
+        for m in members
     ]
 
     inactive_count = sum(1 for r in rows if r.is_inactive)
@@ -468,6 +479,126 @@ def unassign_path_from_user(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="invalid career_path_code"
         ) from exc
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ─────────────────────────── Rutas personalizadas (CustomPath) puntuales ───────────────────────────
+# Corrección post-2.4: "Asignar nuevo path" en team/[id] también ofrece las
+# CustomPath de la Empresa/Org del colaborador (no solo los 6 pilares vía
+# Enrollment arriba). Vive acá (manager_router, `_authorize_target`) y no en
+# `paths/router.py` (admin-only, BYPASSRLS) porque cualquier manager debe poder
+# hacerlo sobre sus reportes directos, igual que enroll/unenroll. `custom_paths`
+# no tiene RLS (ver `paths/models.py`) — se filtra a mano por company/org;
+# `custom_path_assignments` SÍ tiene RLS, así que el INSERT/DELETE ya queda
+# acotado a la org del manager sin filtro adicional.
+
+
+def _available_custom_paths(db: Session, target: User) -> list[CustomPath]:
+    from hg.modules.paths.models import CustomPath, CustomPathScope
+
+    return list(
+        db.scalars(
+            select(CustomPath).where(
+                CustomPath.company_id == target.company_id,
+                CustomPath.is_active.is_(True),
+                (CustomPath.scope == CustomPathScope.company)
+                | (CustomPath.org_id == target.org_id),
+            )
+        ).all()
+    )
+
+
+@manager_router.get("/users/{user_id}/available-custom-paths", response_model=list[UserCustomPathOut])
+def list_available_custom_paths(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[UserCustomPathOut]:
+    """Rutas personalizadas que aplican a la Empresa/Org de este colaborador —
+    para elegir en "Asignar nuevo path"."""
+    target = _authorize_target(db, current_user, user_id)
+    return [
+        UserCustomPathOut(id=cp.id, name=cp.name, description=cp.description)
+        for cp in _available_custom_paths(db, target)
+    ]
+
+
+@manager_router.get("/users/{user_id}/custom-path-assignments", response_model=list[UserCustomPathOut])
+def list_user_custom_path_assignments(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[UserCustomPathOut]:
+    """Rutas personalizadas asignadas DIRECTAMENTE a este colaborador (no la
+    resuelta por precedencia — ver `paths/resolution.py` — sino el set
+    explícito de `custom_path_assignments`, igual que Enrollment arriba)."""
+    from hg.modules.paths.models import CustomPath, CustomPathAssignment
+
+    target = _authorize_target(db, current_user, user_id)
+    rows = db.execute(
+        select(CustomPath)
+        .join(CustomPathAssignment, CustomPathAssignment.custom_path_id == CustomPath.id)
+        .where(CustomPathAssignment.user_id == target.id)
+    ).scalars().all()
+    return [UserCustomPathOut(id=cp.id, name=cp.name, description=cp.description) for cp in rows]
+
+
+@manager_router.post(
+    "/users/{user_id}/custom-path-assignments/{custom_path_id}",
+    response_model=UserCustomPathOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def assign_custom_path_to_user(
+    user_id: UUID,
+    custom_path_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> UserCustomPathOut:
+    from hg.modules.paths.models import CustomPathAssignment
+
+    target = _authorize_target(db, current_user, user_id)
+    available = {cp.id: cp for cp in _available_custom_paths(db, target)}
+    cp = available.get(custom_path_id)
+    if cp is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="custom path not found")
+
+    exists = db.scalar(
+        select(CustomPathAssignment.id).where(
+            CustomPathAssignment.custom_path_id == custom_path_id,
+            CustomPathAssignment.user_id == target.id,
+        )
+    )
+    if exists is None:
+        db.add(
+            CustomPathAssignment(
+                org_id=target.org_id, custom_path_id=custom_path_id, user_id=target.id,
+                assigned_by_user_id=current_user.id,
+            )
+        )
+        db.flush()
+    return UserCustomPathOut(id=cp.id, name=cp.name, description=cp.description)
+
+
+@manager_router.delete(
+    "/users/{user_id}/custom-path-assignments/{custom_path_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def unassign_custom_path_from_user(
+    user_id: UUID,
+    custom_path_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Response:
+    from hg.modules.paths.models import CustomPathAssignment
+
+    target = _authorize_target(db, current_user, user_id)
+    db.execute(
+        sa_delete(CustomPathAssignment).where(
+            CustomPathAssignment.custom_path_id == custom_path_id,
+            CustomPathAssignment.user_id == target.id,
+        )
+    )
+    db.flush()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

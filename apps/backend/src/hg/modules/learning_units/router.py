@@ -256,7 +256,7 @@ def _feed_item(db: Session, unit: LearningUnit, user: User) -> LearningUnitFeedI
         pillar_code=unit.pillar_code, unit_number=unit.unit_number,
         level_code=unit.level_code, estimated_duration_seconds=unit.estimated_duration_seconds,
         blocks_count=n_blocks, attempt_status=_attempt_status(attempt),
-        poster_url=poster_url, video_url=video_url,
+        poster_url=poster_url, video_url=video_url, keywords=unit.keywords,
     )
 
 

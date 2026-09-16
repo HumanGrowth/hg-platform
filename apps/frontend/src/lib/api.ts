@@ -65,6 +65,7 @@ import type {
   TeamFilters,
   TeamMemberDetail,
   TeamResponse,
+  UserCustomPath,
   UserMetrics,
   UserRole,
 } from "@/lib/types";
@@ -425,7 +426,7 @@ export const apiListScoringConfig = async (): Promise<DimensionScoringConfig[]> 
 
 export const apiUpdateScoringConfig = async (
   dimensionCode: string,
-  weights: { learning_weight: number; assessment_weight: number; manager_weight: number },
+  weights: { learning_weight: number; assessment_weight: number },
 ): Promise<DimensionScoringConfig> => {
   const res = await backend.put<DimensionScoringConfig>(
     `/api/v1/admin/scoring-config/${dimensionCode}`,
@@ -526,6 +527,37 @@ export const apiAssignPath = async (userId: string, pathCode: string): Promise<E
 
 export const apiUnassignPath = async (userId: string, pathCode: string): Promise<void> => {
   await backend.delete(`/api/v1/manager/users/${userId}/enroll/${pathCode}`);
+};
+
+export const apiListAvailableCustomPaths = async (userId: string): Promise<UserCustomPath[]> => {
+  const res = await backend.get<UserCustomPath[]>(
+    `/api/v1/manager/users/${userId}/available-custom-paths`,
+  );
+  return res.data;
+};
+
+export const apiListUserCustomPathAssignments = async (userId: string): Promise<UserCustomPath[]> => {
+  const res = await backend.get<UserCustomPath[]>(
+    `/api/v1/manager/users/${userId}/custom-path-assignments`,
+  );
+  return res.data;
+};
+
+export const apiAssignCustomPathToUser = async (
+  userId: string,
+  customPathId: string,
+): Promise<UserCustomPath> => {
+  const res = await backend.post<UserCustomPath>(
+    `/api/v1/manager/users/${userId}/custom-path-assignments/${customPathId}`,
+  );
+  return res.data;
+};
+
+export const apiUnassignCustomPathFromUser = async (
+  userId: string,
+  customPathId: string,
+): Promise<void> => {
+  await backend.delete(`/api/v1/manager/users/${userId}/custom-path-assignments/${customPathId}`);
 };
 
 export const apiGetOrgMetrics = async (

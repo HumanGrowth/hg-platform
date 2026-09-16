@@ -6,14 +6,21 @@
   (``dimension_scoring_config``, default 0.70/0.30). Se persiste en
   ``dimension_level_progress`` y se recalcula al completar un bloque o derivar un
   ``DimensionResult``.
-- **Unlock**: al cruzar el ``unlock_threshold`` de un nivel se otorga su badge
-  (``UserBadge``). Idempotente y **conserva el máximo** (un badge ganado no se
-  pierde si el completion baja tras una reevaluación).
+- **Unlock de nivel**: además de cruzar el ``unlock_threshold`` de aprendizaje+
+  assessment, el badge de NIVEL requiere que el manager haya calificado
+  "Demostrando" TODOS los comportamientos activos de la dimensión
+  (``_manager_approved``) — el manager tiene la decisión final sobre si el
+  colaborador aprueba la ruta, vía la matriz de comportamientos que ya existe
+  (no una ponderación numérica: eso se eliminó, ver git history de FASE 1.1).
+  Sin comportamientos activos definidos para la dimensión, el gate no aplica
+  (no hay nada que el manager deba aprobar todavía). Idempotente y **conserva
+  el máximo** (un badge ganado no se pierde si el completion baja después).
 
 Los **sub-badges por pilar** (el "área de crecimiento" dentro de la dimensión) se
-otorgan al completar todas las units publicadas de ese ``(dimensión, pilar)``.
-Su fila de catálogo la pre-seedea el sync de contenido (``ensure_pillar_badge``),
-porque ``hg_app`` solo tiene SELECT sobre ``badges``.
+otorgan al completar todas las units publicadas de ese ``(dimensión, pilar)`` —
+NO requieren aprobación del manager (son de contenido puro, no de "graduación"
+de nivel). Su fila de catálogo la pre-seedea el sync de contenido
+(``ensure_pillar_badge``), porque ``hg_app`` solo tiene SELECT sobre ``badges``.
 """
 from __future__ import annotations
 
@@ -35,7 +42,7 @@ from hg.modules.badges.models import (
     UserBadge,
 )
 from hg.modules.feedback.models import BehaviorEvaluation, PillarBehavior
-from hg.modules.feedback.scoring import rating_to_value
+from hg.modules.feedback.scoring import DEMOSTRANDO, rating_to_value
 from hg.modules.identity.models import User
 from hg.modules.learning_units.models import LearningUnit, LearningUnitAttempt
 from hg.modules.learning_units.pillars import pillar_display_name
@@ -105,11 +112,11 @@ def _assessment_pct(db: Session, user_id: UUID, dimension_code: str) -> float:
     return dimension_value_from_states(states)
 
 
-def _weights(db: Session, dimension_code: str) -> tuple[float, float, float]:
+def _weights(db: Session, dimension_code: str) -> tuple[float, float]:
     cfg = db.get(DimensionScoringConfig, dimension_code)
     if cfg is None:
-        return 0.7, 0.3, 0.0
-    return cfg.learning_weight, cfg.assessment_weight, cfg.manager_weight
+        return 0.7, 0.3
+    return cfg.learning_weight, cfg.assessment_weight
 
 
 def _manager_pct(db: Session, user_id: UUID, dimension_code: str) -> float | None:
@@ -135,6 +142,34 @@ def _manager_pct(db: Session, user_id: UUID, dimension_code: str) -> float | Non
     return round(sum(values) / len(values), 1)
 
 
+def _manager_approved(db: Session, user_id: UUID, dimension_code: str) -> bool:
+    """El manager tiene la decisión final: True solo si TODOS los
+    ``pillar_behaviors`` activos de la dimensión están calificados
+    "Demostrando" (rating=3) para este user. Sin comportamientos activos
+    definidos → True (nada que aprobar todavía, no bloquea el badge por un
+    catálogo vacío)."""
+    active_ids = set(
+        db.scalars(
+            select(PillarBehavior.id).where(
+                PillarBehavior.dimension_code == dimension_code,
+                PillarBehavior.is_active.is_(True),
+            )
+        ).all()
+    )
+    if not active_ids:
+        return True
+    demonstrated_ids = set(
+        db.scalars(
+            select(BehaviorEvaluation.behavior_id).where(
+                BehaviorEvaluation.user_id == user_id,
+                BehaviorEvaluation.behavior_id.in_(active_ids),
+                BehaviorEvaluation.rating == DEMOSTRANDO,
+            )
+        ).all()
+    )
+    return active_ids <= demonstrated_ids
+
+
 def _award_badge(db: Session, user: User, badge_code: str) -> None:
     """Otorga (idempotente) el badge de catálogo ``badge_code`` al user. Conserva
     el máximo: si ya lo tiene, no hace nada (no se revoca)."""
@@ -154,8 +189,16 @@ def _award_badge(db: Session, user: User, badge_code: str) -> None:
 
 def manager_pct_for_dimension(db: Session, user_id: UUID, dimension_code: str) -> float | None:
     """Wrapper público de ``_manager_pct`` (FASE 1.2 — el endpoint de la matriz
-    lo usa para mostrar el aporte al score sin tocar un símbolo privado)."""
+    lo usa para mostrar el promedio de comportamientos calificados sin tocar
+    un símbolo privado). Ya no pesa en el completion — ver ``manager_approved_for_dimension``
+    para el gate real de aprobación."""
     return _manager_pct(db, user_id, dimension_code.upper())
+
+
+def manager_approved_for_dimension(db: Session, user_id: UUID, dimension_code: str) -> bool:
+    """Wrapper público de ``_manager_approved`` — el endpoint de la matriz lo
+    usa para mostrar el estado de aprobación del manager."""
+    return _manager_approved(db, user_id, dimension_code.upper())
 
 
 def recompute_dimension(db: Session, user: User, dimension_code: str) -> None:
@@ -172,22 +215,15 @@ def recompute_dimension(db: Session, user: User, dimension_code: str) -> None:
     if not levels:
         return
 
-    lw, aw, mw = _weights(db, dimension_code)
+    lw, aw = _weights(db, dimension_code)
     a_pct = _assessment_pct(db, user.id, dimension_code)
     m_pct = _manager_pct(db, user.id, dimension_code)
+    approved = _manager_approved(db, user.id, dimension_code)
 
     for level in levels:
         l_pct = _learning_pct(db, user.id, dimension_code, level.level_code)
-        # Renormalización: si el manager no evaluó todavía (m_pct es None), su
-        # peso se excluye y el resto se reparte entre learning+assessment, como
-        # antes de que existiera este 3er componente.
-        components = [(lw, l_pct), (aw, a_pct)]
-        if m_pct is not None:
-            components.append((mw, m_pct))
-        weight_sum = sum(w for w, _ in components)
-        completion = (
-            round(sum(w * v for w, v in components) / weight_sum, 1) if weight_sum else 0.0
-        )
+        weight_sum = lw + aw
+        completion = round((lw * l_pct + aw * a_pct) / weight_sum, 1) if weight_sum else 0.0
 
         row = db.scalar(
             select(DimensionLevelProgress).where(
@@ -205,9 +241,11 @@ def recompute_dimension(db: Session, user: User, dimension_code: str) -> None:
         row.completion_pct = completion
         row.learning_pct = l_pct
         row.assessment_pct = a_pct
+        # manager_pct queda de referencia (promedio de lo calificado) — ya NO
+        # pesa en `completion_pct`. El gate real es `approved` (abajo).
         row.manager_pct = m_pct if m_pct is not None else 0.0
 
-        if completion >= level.unlock_threshold:
+        if completion >= level.unlock_threshold and approved:
             _award_badge(db, user, f"level-{dimension_code}-{level.level_code}".lower())
 
     _award_pillar_badges(db, user, dimension_code)

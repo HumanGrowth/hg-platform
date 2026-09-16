@@ -70,6 +70,9 @@ class AssignableUnitOut(BaseModel):
     dimension_code: str
     level_code: str
     pillar_code: str | None
+    # Skills (columna `keywords`) — fuente del filtro por Skill en los
+    # pickers de asignación (módulos sueltos y rutas custom).
+    keywords: list[str] | None = None
 
 
 class OrgAssignmentSummaryOut(BaseModel):
@@ -167,7 +170,7 @@ def list_assignable_units(
     return [
         AssignableUnitOut(
             id=u.id, slug=u.slug, title=u.title, dimension_code=u.dimension_code,
-            level_code=u.level_code, pillar_code=u.pillar_code,
+            level_code=u.level_code, pillar_code=u.pillar_code, keywords=u.keywords,
         )
         for u in rows
     ]
