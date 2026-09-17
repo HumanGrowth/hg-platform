@@ -44,7 +44,7 @@ export function AreaCard({
   return (
     <section
       aria-labelledby={`area-${dimensionCode}-${pillarCode}`}
-      className="flex flex-col gap-4 rounded-lg border border-border bg-bg-raised p-5"
+      className="glass-surface-strong flex flex-col gap-4 rounded-lg border border-border bg-bg-raised p-5"
     >
       <header className="flex items-start gap-4">
         <BadgeIcon

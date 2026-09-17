@@ -29,7 +29,10 @@ function StatCard({
   label: string;
 }) {
   return (
-    <Card className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left">
+    <Card
+      glass="strong"
+      className="flex flex-col items-center gap-1 bg-bg-raised text-center sm:flex-row sm:items-center sm:gap-3 sm:text-left"
+    >
       <Icon size={22} strokeWidth={1.75} className="text-primary" aria-hidden />
       <div>
         <p className="font-mono text-2xl font-semibold text-fg">{value}</p>

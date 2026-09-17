@@ -55,7 +55,7 @@ export default function HomeActivitySection({
           {data ? <StreakHeatmap data={data.streak} /> : null}
         </WidgetCard>
 
-        <Card className="flex flex-col bg-bg-raised">
+        <Card glass="strong" className="flex flex-col bg-bg-raised">
           <h3 className="font-sans text-md font-semibold text-fg">Actividad reciente</h3>
           {recentActivity.length === 0 ? (
             <div className="flex flex-1 items-center justify-center py-10">
@@ -67,7 +67,7 @@ export default function HomeActivitySection({
                 <li key={a.course_id}>
                   <Link
                     href={`/modulos/${a.course_slug}` as Route}
-                    className="flex items-center gap-3 rounded-lg border border-border bg-surface-card px-4 py-3 transition-colors hover:bg-bg-raised"
+                    className="glass-surface-strong flex items-center gap-3 rounded-lg border border-border bg-surface-card px-4 py-3 transition-colors hover:bg-bg-raised"
                   >
                     <Badge variant={dimensionBadgeVariant(a.dimension_code)}>
                       {dimensionShortName(a.dimension_code)}

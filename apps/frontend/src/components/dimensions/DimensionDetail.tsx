@@ -66,33 +66,43 @@ export function DimensionDetail({ dimension }: { dimension: Dimension }) {
 
   return (
     <main className="mx-auto w-full max-w-app px-6 pb-16">
-      {/* ── Header: metáfora + gradient del pilar (como UnitOpeningScreen) ── */}
-      <header
-        className="-mx-6 flex flex-col items-center gap-5 px-6 pb-10 pt-12 text-center"
-        style={{
-          background: `radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, ${style.glow} 14%, var(--bg)) 0%, var(--bg) 62%)`,
-        }}
-      >
-        <Link
-          href={"/home" as Route}
-          className="self-start font-sans text-sm font-semibold text-fg-muted hover:text-fg"
-        >
-          ← Volver
-        </Link>
-        <div
-          className="flex h-28 w-28 items-center justify-center rounded-full"
-          style={{
-            color: style.glow,
-            background: `color-mix(in srgb, ${style.glow} 8%, transparent)`,
-            boxShadow: `0 0 32px 0 color-mix(in srgb, ${style.glow} 28%, transparent)`,
-          }}
-        >
-          <DimensionMetaphor code={dimension.code} className="h-16 w-16" />
-        </div>
-        <div className="flex flex-col items-center gap-2">
-          <Eyebrow accent>Dimensión</Eyebrow>
-          <Display variant="display-2">{dimension.name}</Display>
-          <p className="mt-1 max-w-prose text-md text-fg-muted">{dimension.description}</p>
+      {/* ── Header: metáfora + gradient del pilar (como UnitOpeningScreen).
+          Full-bleed real: `<main>` vive dentro de max-w-app, así que un
+          -mx-6 (que solo cancela el padding de main) dejaba un corte visible
+          del gradiente en displays > 1440px. relative left-1/2 -mx-[50vw]
+          w-screen estira el fondo al viewport completo; el contenido vuelve
+          a centrarse en el wrapper interno max-w-app. ── */}
+      <header className="relative left-1/2 -mx-[50vw] w-screen">
+        {/* El fondo lo da SpatialCanvas (blobs + tiles) — sin gradiente local
+            duplicado; la app es siempre glass. */}
+        <div className="flex flex-col items-center gap-5 px-6 pb-10 pt-12 text-center">
+          <div className="mx-auto flex w-full max-w-app flex-col items-center gap-5">
+            <Link
+              href={"/home" as Route}
+              className="self-start font-sans text-sm font-semibold text-fg-muted hover:text-fg"
+            >
+              ← Volver
+            </Link>
+            {/* Panel de vidrio para que el ícono + título tengan legibilidad
+                sobre el fondo de blobs. */}
+            <div className="glass-surface-strong flex flex-col items-center gap-5 rounded-[28px] px-8 py-8">
+              <div
+                className="flex h-28 w-28 items-center justify-center rounded-full"
+                style={{
+                  color: style.glow,
+                  background: `color-mix(in srgb, ${style.glow} 8%, transparent)`,
+                  boxShadow: `0 0 32px 0 color-mix(in srgb, ${style.glow} 28%, transparent)`,
+                }}
+              >
+                <DimensionMetaphor code={dimension.code} className="h-16 w-16" />
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <Eyebrow accent>Dimensión</Eyebrow>
+                <Display variant="display-2">{dimension.name}</Display>
+                <p className="mt-1 max-w-prose text-md text-fg-muted">{dimension.description}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -275,7 +285,7 @@ function MaterialSection() {
               href={m.url}
               target="_blank"
               rel="noreferrer"
-              className="group flex flex-col overflow-hidden rounded-xl border border-border bg-bg-raised transition-shadow hover:shadow-md"
+              className="glass-surface-strong group flex flex-col overflow-hidden rounded-xl border border-border bg-bg-raised transition-shadow hover:shadow-md"
             >
               <div className="flex aspect-video w-full items-center justify-center overflow-hidden bg-bg-sunken">
                 {m.cover_image_url ? (
@@ -319,7 +329,7 @@ function HistorySection({
       <Eyebrow>Historial de reevaluaciones</Eyebrow>
       {result ? (
         <ol className="mt-4 flex flex-col gap-2">
-          <li className="flex items-start gap-4 rounded-lg border border-border bg-bg-raised px-4 py-3">
+          <li className="glass-surface-strong flex items-start gap-4 rounded-lg border border-border bg-bg-raised px-4 py-3">
             <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden />
             <span className="min-w-0 flex-1 font-sans text-sm font-medium text-fg">
               {result.state_label}

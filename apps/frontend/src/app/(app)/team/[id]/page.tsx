@@ -182,11 +182,11 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
             (dimension_completion_rate) con otra fuente, mostrando números
             distintos para lo mismo. */}
         {Object.keys(data.assessment_states ?? {}).length > 0 && (
-          <div className="rounded-lg border border-border bg-bg-raised p-5 lg:col-span-2">
+          <div className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-5 lg:col-span-2">
             <Eyebrow className="mb-4">Estados por dimensión</Eyebrow>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {Object.entries(data.assessment_states).map(([code, st]) => (
-                <div key={code} className="rounded-md border border-border bg-surface-card p-3">
+                <div key={code} className="glass-fill-strong rounded-md border border-border bg-surface-card p-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-fg">{dimensionShortName(code)}</span>
                     <span
@@ -221,7 +221,7 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
             (Enrollment, ya no se pueden crear nuevos acá pero se conservan los
             existentes). El botón "Asignar módulo" desapareció: "Asignar nuevo
             path" cubre ambos casos ahora (ver AssignPathDialog). */}
-        <div className="rounded-lg border border-border bg-bg-raised p-5 lg:col-span-2">
+        <div className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-5 lg:col-span-2">
           <Eyebrow className="mb-4">Paths asignados</Eyebrow>
           {pillarGroups.length === 0 && activeEnrollments.length === 0 && customPaths.length === 0 ? (
             <p className="text-sm text-fg-muted">Sin paths asignados todavía.</p>
@@ -328,7 +328,7 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
             {path.dimensions_progress.map((d) => {
               const dpct = d.total > 0 ? Math.round((d.completed / d.total) * 100) : 0;
               return (
-                <div key={d.career_path_code} className="rounded-lg border border-border bg-bg-raised p-3">
+                <div key={d.career_path_code} className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-3">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-semibold text-fg">
                       {PILLAR_NAME[d.career_path_code] ?? d.name}

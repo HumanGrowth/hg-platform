@@ -10,6 +10,7 @@ import {
   RadarChart,
 } from "recharts";
 
+import { useTheme } from "@/components/theme/ThemeProvider";
 import { dimensionByCareerPath } from "@/lib/dimensions";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +45,14 @@ const FILL_MS = 5200;
 
 const GREEN = "#4A7A54"; // --hg-green
 const GREEN_100 = "#E3EBDF"; // --hg-green-100
-const NEUTRAL = "#6B7061"; // --hg-muted (overlay previo)
+const NEUTRAL_LIGHT = "#6B7061"; // --hg-olive-gray (overlay previo, tema light)
+const NEUTRAL_DARK = "#B3B0A8"; // --fg-muted bajo [data-theme="dark"] (mismo tono que el resto de la app)
+// Recharts pinta SVG con atributos stroke/fill directos — no hereda `currentColor`
+// ni CSS vars de forma confiable entre navegadores, así que el grid y las
+// líneas neutras se resuelven en JS según el tema (bug reportado: la
+// spiderweb era casi invisible en dark con el stroke fijo pensado para claro).
+const GRID_STROKE_LIGHT = "rgba(26,26,26,0.12)";
+const GRID_STROKE_DARK = "rgba(250,243,232,0.22)";
 
 export function Radar({
   values,
@@ -56,6 +64,10 @@ export function Radar({
   animateOnMount = false,
 }: RadarProps) {
   const router = useRouter();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const NEUTRAL = isDark ? NEUTRAL_DARK : NEUTRAL_LIGHT;
+  const gridStroke = isDark ? GRID_STROKE_DARK : GRID_STROKE_LIGHT;
   const maxBox = SIZE_PX[size];
   // Radar fluido: escala al ancho del contenedor, capado al máximo del `size`
   // (fix de overflow en mobile — el SVG de recharts es de ancho fijo y no
@@ -177,7 +189,7 @@ export function Radar({
         outerRadius={showLabels ? "60%" : "72%"}
         margin={showLabels ? { top: 40, right: 56, bottom: 40, left: 56 } : undefined}
       >
-        <PolarGrid stroke="rgba(26,26,26,0.12)" />
+        <PolarGrid stroke={gridStroke} />
         {showLabels && <PolarAngleAxis dataKey="axis" tick={DimensionTick as never} />}
         <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
         {hasPrevious && (

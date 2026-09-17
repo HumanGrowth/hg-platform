@@ -37,7 +37,7 @@ export function SideNav({ className }: { className?: string }) {
         // h-full + min-h-0: la sidebar ocupa toda la altura del shell (que ya
         // es h-screen overflow-hidden) y NO scrollea con el body — solo su
         // propia lista de ítems scrollea si hace falta (TASK polish-04).
-        "flex h-full min-h-0 shrink-0 flex-col justify-between border-r border-border bg-bg-raised py-5 transition-[width] duration-base ease-state",
+        "glass-fill-strong flex h-full min-h-0 shrink-0 flex-col justify-between border-r border-border bg-bg-raised py-5 transition-[width] duration-base ease-state",
         collapsed ? "w-16 px-2" : "w-60 px-4",
         className,
       )}

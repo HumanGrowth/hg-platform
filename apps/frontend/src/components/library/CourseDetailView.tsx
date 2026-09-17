@@ -162,7 +162,7 @@ export function CourseDetailView({ slug }: { slug: string }) {
             {nextCourse ? (
               <Link
                 href={`/eventos/${nextCourse.slug}` as Route}
-                className="flex items-center gap-3 rounded-lg border border-border bg-bg-raised px-4 py-3 transition-colors hover:bg-bg-sunken"
+                className="glass-surface-strong flex items-center gap-3 rounded-lg border border-border bg-bg-raised px-4 py-3 transition-colors hover:bg-bg-sunken"
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-fg-muted">Siguiente en tu ruta</p>
@@ -184,7 +184,7 @@ export function CourseDetailView({ slug }: { slug: string }) {
       {/* Diálogo de reanudación */}
       {resumeOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-hg-ink/50 p-6">
-          <div className="w-full max-w-sm rounded-lg border border-border bg-bg-raised p-6 text-center">
+          <div className="glass-surface-strong w-full max-w-sm rounded-lg border border-border bg-bg-raised p-6 text-center">
             <h2 className="mb-2 font-sans text-lg font-semibold text-fg">¿Dónde querés seguir?</h2>
             <p className="mb-5 text-sm text-fg-muted">
               Dejaste este evento en {formatDuration(course.progress?.last_position_seconds ?? 0)}.

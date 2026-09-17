@@ -119,7 +119,7 @@ export function PathJourney() {
   }
   if (status === "error") {
     return (
-      <div className="mt-8 rounded-lg border border-border bg-bg-raised p-8 text-center">
+      <div className="glass-surface-strong mt-8 rounded-lg border border-border bg-bg-raised p-8 text-center">
         <p className="mb-3 font-sans text-sm font-semibold text-fg">No pudimos cargar tu ruta.</p>
         <button
           type="button"
@@ -164,7 +164,7 @@ export function PathJourney() {
       ) : next_step ? (
         <Link
           href={stepHref(next_step)}
-          className="block rounded-lg border border-border bg-bg-raised p-6 transition-shadow hover:shadow-md"
+          className="glass-surface-strong block rounded-lg border border-border bg-bg-raised p-6 transition-shadow hover:shadow-md"
         >
           <p className="font-sans text-micro uppercase tracking-meta text-primary">Tu módulo de hoy</p>
           <h2 className="mt-2 font-sans text-xl font-semibold text-fg">{next_step.title}</h2>
@@ -173,7 +173,7 @@ export function PathJourney() {
           </p>
         </Link>
       ) : (
-        <section className="rounded-2xl border border-dashed border-border bg-bg-raised p-8 text-center">
+        <section className="glass-surface-strong rounded-2xl border border-dashed border-border bg-bg-raised p-8 text-center">
           <p className="font-sans text-md font-semibold text-fg">¡Completaste todo lo disponible!</p>
           <p className="mt-1 text-sm text-fg-muted">Estamos preparando nuevos módulos para tu ruta.</p>
         </section>
@@ -233,7 +233,7 @@ export function PathJourney() {
                     </div>
                     <Link
                       href={stepHref(s)}
-                      className="mb-3 min-w-0 flex-1 rounded-lg border border-border bg-bg-raised px-4 py-3 transition-shadow hover:shadow-md"
+                      className="glass-surface-strong mb-3 min-w-0 flex-1 rounded-lg border border-border bg-bg-raised px-4 py-3 transition-shadow hover:shadow-md"
                     >
                       <p className="line-clamp-1 font-sans text-sm font-semibold text-fg">{s.title}</p>
                       <p className="mt-0.5 text-xs text-fg-muted">

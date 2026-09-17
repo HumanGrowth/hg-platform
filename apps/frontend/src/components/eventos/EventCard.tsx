@@ -32,7 +32,7 @@ export function EventCard({ event, variant = "grid" }: { event: CommunityEvent; 
   return (
     <Card
       className={cn(
-        "flex gap-4 overflow-hidden bg-bg-raised p-0",
+        "glass-surface-strong flex gap-4 overflow-hidden bg-bg-raised p-0",
         variant === "row" ? "flex-row items-stretch" : "flex-col",
       )}
     >

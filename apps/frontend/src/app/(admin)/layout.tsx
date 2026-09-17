@@ -11,7 +11,6 @@ import {
   LineChart,
   Map,
   Newspaper,
-  Scale,
   Users2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -23,6 +22,7 @@ import { ActingAsBanner } from "@/components/admin/ActingAsBanner";
 import { BetaBanner } from "@/components/BetaBanner";
 import { AdminBottomNav } from "@/components/nav/AdminBottomNav";
 import { SessionGate } from "@/components/SessionGate";
+import { useTheme } from "@/components/theme/ThemeProvider";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { useActingCompany } from "@/lib/acting-company";
 import { useAuthStore } from "@/lib/auth-store";
@@ -36,11 +36,11 @@ const SUPERADMIN_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin/areas", label: "Áreas de contenido", icon: Layers },
   { href: "/admin/events", label: "Eventos", icon: Calendar },
   { href: "/admin/perspectivas", label: "Perspectivas", icon: Newspaper },
-  { href: "/admin/scoring", label: "Pesos del score", icon: Scale },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
+  const { theme } = useTheme();
   const acting = useActingCompany();
   const isSuperadmin = user?.role === "superadmin";
   const isOrgAdmin = user?.role === "admin" || isSuperadmin;
@@ -63,9 +63,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <BetaBanner />
       <SessionGate>
         <div className="flex min-h-0 flex-1">
-          <aside className="hidden h-full w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-border bg-bg-raised px-5 py-6 md:flex">
+          <aside className="glass-fill-strong hidden h-full w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-border bg-bg-raised px-5 py-6 md:flex">
             <Link href="/home" aria-label="Volver a la app">
-              <img src="/logo/nav/logo-nav-negro@2x.png" alt="Human Growth" className="h-7 w-auto" />
+              <img
+                src={theme === "dark" ? "/logo/nav/logo-nav-blanco@2x.png" : "/logo/nav/logo-nav-negro@2x.png"}
+                alt="Human Growth"
+                className="h-7 w-auto"
+              />
             </Link>
             <div>
               <Eyebrow className="mb-3">Panel HG</Eyebrow>

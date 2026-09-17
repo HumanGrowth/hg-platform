@@ -75,7 +75,7 @@ export default function OnboardingModulosPage() {
               <li key={u.unit_id}>
                 <Link
                   href={`/onboarding/modulos/${u.slug}` as Route}
-                  className="flex items-center gap-3 rounded-lg border border-border bg-bg-raised px-4 py-3 text-sm hover:bg-bg-sunken"
+                  className="glass-surface-strong flex items-center gap-3 rounded-lg border border-border bg-bg-raised px-4 py-3 text-sm hover:bg-bg-sunken"
                 >
                   {u.completed ? (
                     <CheckCircle2 size={18} strokeWidth={1.75} className="shrink-0 text-success" />

@@ -34,7 +34,7 @@ function Stat({
   tone: string;
 }) {
   return (
-    <div className="flex flex-col items-center gap-0.5 rounded-lg bg-bg-sunken px-2 py-2 text-center">
+    <div className="glass-fill-flat flex flex-col items-center gap-0.5 rounded-lg bg-bg-sunken px-2 py-2 text-center">
       <Icon size={16} strokeWidth={2} className={tone} aria-hidden />
       <span className="font-mono text-sm font-semibold text-fg">{value}</span>
       <span className="text-[10px] uppercase tracking-meta text-fg-subtle">{label}</span>
@@ -50,7 +50,7 @@ export function TeamMemberCard({ member: m }: { member: TeamMember }) {
   return (
     <Link
       href={`/team/${m.id}` as NextRoute}
-      className="group block rounded-xl border border-border bg-bg-raised p-5 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
+      className="glass-surface-strong glass-hover group block rounded-xl border border-border bg-bg-raised p-5 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
     >
       <div className="flex items-start gap-4">
         <Avatar name={m.full_name} size="md" />
@@ -64,7 +64,7 @@ export function TeamMemberCard({ member: m }: { member: TeamMember }) {
             {m.job_title ? ` · ${m.job_title}` : ""}
           </p>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-bg-sunken px-2.5 py-1">
+        <span className="glass-fill-flat inline-flex shrink-0 items-center gap-1.5 rounded-full bg-bg-sunken px-2.5 py-1">
           <span className={`h-2 w-2 rounded-full ${st.dot}`} aria-hidden />
           <span className={`text-xs font-semibold ${st.text}`}>{st.label}</span>
         </span>

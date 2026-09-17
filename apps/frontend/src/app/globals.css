@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tema glass (opcional, activado por [data-theme="glass"]) — ver §2 de
+   HG/Artifacts/Renovación glassmorphic HG/CLAUDE.md. Aditivo: no toca los
+   tokens de marca de este archivo. */
+@import "./glass.css";
+
 /* ===========================================================================
    Human Growth · Design System v2 (Jul 2 2026).
 

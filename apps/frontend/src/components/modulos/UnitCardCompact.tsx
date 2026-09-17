@@ -60,7 +60,7 @@ export function UnitCardCompact({
       <div
         aria-disabled
         title="Bloqueado: alcanzá este nivel en Carrera para desbloquearlo."
-        className="flex cursor-not-allowed items-center gap-4 rounded-lg border border-border bg-bg-raised p-4 opacity-60"
+        className="glass-surface-strong flex cursor-not-allowed items-center gap-4 rounded-lg border border-border bg-bg-raised p-4 opacity-60"
       >
         {body}
       </div>
@@ -70,7 +70,7 @@ export function UnitCardCompact({
   return (
     <Link
       href={unitCanonicalPath(unit)}
-      className="group flex items-center gap-4 rounded-lg border border-border bg-bg-raised p-4 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
+      className="glass-surface-strong group flex items-center gap-4 rounded-lg border border-border bg-bg-raised p-4 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
     >
       {body}
     </Link>

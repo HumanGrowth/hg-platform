@@ -190,8 +190,6 @@ def test_next_step_prioritizes_in_progress_unit_over_recommendation(
     Módulos abre (retomar antes que recomendar algo nuevo)."""
     from datetime import UTC, datetime
 
-    from sqlalchemy import select as sa_select
-
     from hg.db import SessionLocal
     from hg.modules.learning_units.models import LearningUnitAttempt
 

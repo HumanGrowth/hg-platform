@@ -68,7 +68,7 @@ export function TabsList({ className, onKeyDown, ...props }: React.HTMLAttribute
       ref={ref}
       role="tablist"
       onKeyDown={handleKeyDown}
-      className={cn("flex gap-6 border-b border-border", className)}
+      className={cn("glass-fill-strong flex gap-6 border-b border-border", className)}
       {...props}
     />
   );

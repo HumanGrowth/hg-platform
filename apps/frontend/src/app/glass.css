@@ -1,0 +1,324 @@
+/* ===========================================================================
+   Human Growth · Glass theme (glassmorphic overlay on DS v2).
+
+   Fuente de verdad visual: HG/Artifacts/Renovación glassmorphic HG/CLAUDE.md
+   (§2). La app es SIEMPRE glassmorphic — dos variantes, activadas vía
+   [data-theme="light"|"dark"] en <html> (cookie `hg-theme`, ver
+   components/theme/ThemeProvider.tsx). No hay un tercer modo "classic"
+   plano: el toggle de usuario elige entre light glass (crema, el look
+   original de la exploración) y dark glass (fondo oscuro).
+
+   [data-theme="dark"] ya traía un palette completo (bg/fg/border/surface)
+   definido en globals.css pero nunca activado en UI antes de esta sesión;
+   este archivo SOLO agrega la superficie translúcida + blur encima de esos
+   colores (light usa los tokens :root por defecto, dark usa el override) —
+   no toca fg/bg/border.
+
+   Reglas de legibilidad (no negociables):
+   - Texto/datos NUNCA sobre glass translúcido simple: usar .glass-surface-strong
+     (≥80% opaco) o una superficie sólida. Por eso <Card> por defecto usa
+     glass="strong" (ver card.tsx) — casi todas las cards de esta app
+     muestran texto.
+   - Texto SIEMPRE con contraste garantizado: light usa texto oscuro (--fg
+     default), dark usa texto claro (--fg override) — ya resuelto por los
+     tokens de globals.css, este archivo no los toca.
+   - Respeta prefers-reduced-transparency, prefers-contrast y prefers-reduced-motion.
+
+   Buenas prácticas aplicadas (investigación externa, ver resumen de sesión):
+   - Blur en rango 14–26px (no 30px+: costo de GPU exponencial, ver Axess Lab
+     / Colorffy).
+   - "One backdrop-filter per stack": ninguna superficie con backdrop-filter
+     vive DENTRO de otra con backdrop-filter (evita blur-sobre-blur y doble
+     costo de compositing) — variantes "-flat" para chrome anidado (badge
+     dentro de GlassSmartCard, ítems del dock) que ya heredan el blur del
+     contenedor padre.
+   - Borde 1px sólido siempre presente (accesibilidad: delimita el área
+     interactiva incluso si el blur falla/se desactiva).
+   - Medido, no intuido: subir la opacidad de un fill CLARO no mejora el
+     contraste de texto gris muted sobre fondo OSCURO — lo empeora (el fill
+     claro converge en luminancia hacia el texto gris). Por eso el tier
+     liviano (.glass-fill) se reserva para chrome sin texto secundario
+     (íconos del dock) y el tier fuerte (.glass-fill-strong) es el default
+     para todo lo demás.
+   =========================================================================== */
+
+/* Keyframes del Command Palette — nombres únicos, sin costo si no se usan. */
+@keyframes hgDot {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+@keyframes hgSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Tokens — light (crema) y dark (oscuro). Mismos nombres de variable,
+   valores propios por tema; las clases estructurales de abajo son
+   compartidas y solo leen estas variables.
+   --------------------------------------------------------------------------- */
+[data-theme="light"] {
+  --glass-fill: rgba(255, 255, 255, 0.55);
+  --glass-fill-strong: rgba(255, 255, 255, 0.88); /* superficies con texto/datos (a11y) */
+  /* Modales: base casi-blanca con un toque cálido (no cream puro) — al 62%
+     el cream puro compuesto sobre los blobs de fondo cae bajo 4.5:1 con
+     texto muted (medido). 0.88 sobre (253,250,246) mantiene el look
+     "crema cálido" con margen de a11y. */
+  --glass-fill-deep: rgba(253, 250, 246, 0.88);
+  --glass-blur: blur(18px) saturate(150%);
+  --glass-blur-deep: blur(26px) saturate(160%);
+  --glass-stroke: 1px solid rgba(255, 255, 255, 0.65);
+  --glass-radius: 22px;
+  --glass-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --glass-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.7),
+    0 24px 48px -24px rgba(42, 40, 38, 0.28),
+    0 8px 24px -16px rgba(74, 122, 84, 0.2);
+  --glass-glow-green: 0 0 0 1px rgba(74, 122, 84, 0.35), 0 0 32px -6px rgba(74, 122, 84, 0.45);
+  --glass-glow-amber: 0 0 0 1px rgba(232, 160, 48, 0.4), 0 0 32px -6px rgba(232, 160, 48, 0.55);
+  --glass-focus-ring: var(--hg-charcoal);
+  --glass-focus-halo: rgba(255, 255, 255, 0.85);
+  /* Color de borde suelto para chrome secundario (badge/panel de
+     GlassSmartCard, chips de SpatialCanvas) que antes usaba un
+     border-white/NN de Tailwind fijo — calibrado para dark, casi invisible
+     sobre el cream de light (bug real: el borde 1px que delimita el área
+     interactiva desaparecía). Mismo valor que --glass-stroke. */
+  --glass-edge-color: rgba(255, 255, 255, 0.65);
+  /* Tinte de hover para filas de menú/chrome sobre una superficie glass ya
+     opaca (ej. dropdown del avatar) — mismo bug que --glass-edge-color:
+     un hover:bg-white/10 fijo es invisible sobre un panel casi blanco. */
+  --glass-hover-overlay: rgba(42, 40, 38, 0.06);
+}
+
+[data-theme="dark"] {
+  /* Chrome liviano (nav, dock, chips) — frost claro y sutil sobre fondo oscuro. */
+  --glass-fill: rgba(255, 255, 255, 0.08);
+  /* Superficies con texto/datos — panel oscuro casi opaco (scrim), texto
+     claro encima. 82% opaco: 6.7:1+ contra --fg (medido). */
+  --glass-fill-strong: rgba(30, 28, 26, 0.82);
+  --glass-fill-deep: rgba(18, 17, 16, 0.88); /* modales */
+  --glass-blur: blur(18px) saturate(160%);
+  --glass-blur-deep: blur(26px) saturate(170%);
+  --glass-stroke: 1px solid rgba(255, 255, 255, 0.14);
+  --glass-radius: 22px;
+  --glass-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Sombra oscura pura desaparece sobre fondo oscuro — se reemplaza el
+     "filo de luz" cálido por un glow ambiental de color (verde de marca). */
+  --glass-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+    0 24px 56px -20px rgba(0, 0, 0, 0.65),
+    0 0 40px -12px rgba(74, 122, 84, 0.3);
+  --glass-glow-green: 0 0 0 1px rgba(74, 122, 84, 0.45), 0 0 34px -6px rgba(74, 122, 84, 0.55);
+  --glass-glow-amber: 0 0 0 1px rgba(232, 160, 48, 0.5), 0 0 34px -6px rgba(232, 160, 48, 0.6);
+  /* Sobre vidrio OSCURO el anillo de foco tiene que ser CLARO (charcoal se
+     volvería invisible) — crema + halo oscuro. */
+  --glass-focus-ring: var(--hg-cream);
+  --glass-focus-halo: rgba(0, 0, 0, 0.55);
+  --glass-edge-color: rgba(255, 255, 255, 0.14);
+  --glass-hover-overlay: rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  [data-theme] {
+    --glass-fill: var(--surface-card);
+    --glass-fill-strong: var(--surface-card);
+    --glass-fill-deep: var(--surface-card);
+    --glass-blur: none;
+    --glass-blur-deep: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Fondo del tema — blobs de color difusos, SOLO detrás del contenido. La
+   textura de tiles vive en <GlassTileBackdrop> (tiles aleatorios de
+   assets/tiles/, desenfocados, elegidos client-side), montada por
+   RootLayout en z-index -1 (justo encima de este ::before, z-index -2).
+   --------------------------------------------------------------------------- */
+[data-theme] body {
+  position: relative;
+}
+[data-theme="light"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(60% 55% at 18% 22%, rgba(74, 122, 84, 0.22), transparent 70%),
+    radial-gradient(50% 50% at 82% 15%, rgba(232, 160, 48, 0.2), transparent 70%),
+    radial-gradient(55% 60% at 75% 85%, rgba(168, 196, 160, 0.28), transparent 72%),
+    radial-gradient(45% 45% at 30% 88%, rgba(232, 83, 10, 0.1), transparent 70%),
+    var(--hg-cream);
+}
+[data-theme="dark"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(58% 55% at 16% 20%, rgba(74, 122, 84, 0.32), transparent 70%),
+    radial-gradient(50% 50% at 86% 12%, rgba(232, 160, 48, 0.26), transparent 70%),
+    radial-gradient(55% 62% at 80% 88%, rgba(168, 196, 160, 0.2), transparent 72%),
+    radial-gradient(46% 46% at 24% 90%, rgba(232, 83, 10, 0.16), transparent 70%),
+    var(--bg-sunken, #100f0e);
+}
+
+/* ---------------------------------------------------------------------------
+   Superficies glass — clases estáticas, compartidas por light y dark (solo
+   leen las variables de arriba, que ya difieren por tema).
+
+   Deliberadamente SIN @layer: Tailwind envuelve sus utilities en
+   `@layer utilities`, que siempre gana sobre `@layer components` pese a la
+   especificidad (los layers priman sobre specificity en la cascada CSS). Las
+   reglas sin layer superan a CUALQUIER regla en un layer, así que estas
+   overrides (bg-bg-raised, border-border, etc. de los primitivos) se
+   aplican de forma confiable sin tener que pelear la especificidad.
+   --------------------------------------------------------------------------- */
+[data-theme] .glass-surface {
+  background: var(--glass-fill);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-stroke);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Superficies con texto largo / datos — casi opaco por legibilidad (a11y). */
+[data-theme] .glass-surface-strong {
+  background: var(--glass-fill-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-stroke);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Modales — blur profundo, fill más opaco. */
+[data-theme] .glass-modal {
+  background: var(--glass-fill-deep);
+  backdrop-filter: var(--glass-blur-deep);
+  -webkit-backdrop-filter: var(--glass-blur-deep);
+  border: var(--glass-stroke);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Chrome pequeño (badge, chip, button, input, select, alert, tabs): solo
+   fill + blur + borde — deliberadamente SIN radius/shadow, para no pisar la
+   forma (pill, rounded-md, etc.) que ya define cada primitivo. */
+[data-theme] .glass-fill {
+  background: var(--glass-fill);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+/* Variante con texto/datos — casi opaco (a11y). */
+[data-theme] .glass-fill-strong {
+  background: var(--glass-fill-strong);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* "One backdrop-filter per stack": variantes SIN backdrop-filter para
+   chrome anidado dentro de una superficie que YA tiene blur (ej. badge de
+   GlassSmartCard dentro de .glass-surface, ítems del dock dentro de
+   SpatialCanvas). Blur-sobre-blur multiplica alpha y costo de compositing
+   sin aportar nada visualmente. Mismo fill/borde, cero backdrop-filter. */
+[data-theme] .glass-fill-flat {
+  background: var(--glass-fill);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+[data-theme] .glass-fill-strong-flat {
+  background: var(--glass-fill-strong);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Solo borde — para chrome con bg semántico que no debe perder su tinte
+   (ej. Alert: info/success/warning/danger son señal, no decoración). */
+[data-theme] .glass-stroke-only {
+  border-color: var(--glass-edge-color);
+}
+
+/* Borde suelto para chrome secundario que vive DENTRO de una superficie
+   glass ya establecida (badge/panel de GlassSmartCard, chips de
+   SpatialCanvas) — reemplaza los border-white/NN fijos de Tailwind, que
+   quedaban calibrados para un solo tema y casi invisibles en el otro. */
+[data-theme] .glass-edge {
+  border-color: var(--glass-edge-color);
+}
+
+/* Hover/feedback para filas de menú dentro de una superficie glass —
+   reemplaza hover:bg-white/NN fijos de Tailwind. */
+[data-theme] .glass-hover-bg:hover {
+  background: var(--glass-hover-overlay);
+}
+
+/* Header de /perfil: fill-strong + radius/padding propios. */
+[data-theme] .glass-header {
+  background: var(--glass-fill-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-stroke);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+  padding: 16px;
+}
+
+/* Stroke glow reactivo + lift, hover/focus. Verde por defecto. */
+[data-theme] .glass-hover {
+  transition:
+    transform 0.28s var(--glass-ease),
+    box-shadow 0.28s var(--glass-ease),
+    border-color 0.28s var(--glass-ease);
+}
+[data-theme] .glass-hover:hover,
+[data-theme] .glass-hover:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: var(--glass-glow-green);
+}
+[data-theme="light"] .glass-hover:hover,
+[data-theme="light"] .glass-hover:focus-visible {
+  border-color: rgba(255, 255, 255, 0.9);
+}
+[data-theme="dark"] .glass-hover:hover,
+[data-theme="dark"] .glass-hover:focus-visible {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+[data-theme] .glass-hover-amber:hover,
+[data-theme] .glass-hover-amber:focus-visible {
+  box-shadow: var(--glass-glow-amber);
+}
+/* Naranja SOLO en riesgo/alerta — nunca como glow de hover por defecto. */
+[data-theme] .glass-hover-danger:hover,
+[data-theme] .glass-hover-danger:focus-visible {
+  box-shadow: 0 0 0 1px rgba(232, 83, 10, 0.45), 0 0 34px -6px rgba(232, 83, 10, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme] .glass-hover:hover,
+  [data-theme] .glass-hover:focus-visible {
+    transform: none;
+  }
+}
+
+/* Foco accesible SIEMPRE visible, no depende solo del glow — color y halo
+   por tema (ver --glass-focus-ring/--glass-focus-halo arriba). */
+[data-theme] .glass-surface:focus-visible,
+[data-theme] .glass-surface-strong:focus-visible,
+[data-theme] .glass-modal:focus-visible,
+[data-theme] .glass-fill:focus-visible,
+[data-theme] .glass-fill-strong:focus-visible,
+[data-theme] .glass-fill-flat:focus-visible,
+[data-theme] .glass-fill-strong-flat:focus-visible {
+  outline: 2px solid var(--glass-focus-ring);
+  outline-offset: 2px;
+  box-shadow: var(--glass-shadow), 0 0 0 4px var(--glass-focus-halo);
+}

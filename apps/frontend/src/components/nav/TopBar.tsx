@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { Avatar } from "@/components/ui/avatar";
 import { apiLogout } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
@@ -56,6 +57,10 @@ export function TopBar() {
                 <p className="truncate font-sans text-sm font-semibold text-fg">{user?.full_name}</p>
                 <p className="truncate font-sans text-xs text-fg-muted">{user?.email}</p>
               </div>
+
+              <div className="my-1 border-t border-border" />
+              <ThemeToggle variant="menu-item" className="hover:bg-bg-sunken" />
+              <div className="my-1 border-t border-border" />
 
               <Link
                 href={"/perfil/editar" as Route}

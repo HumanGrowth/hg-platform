@@ -143,7 +143,7 @@ function OrganizacionesContent() {
 
       {/* Resumen del pool de licencias de la empresa (CE-07). */}
       {company && (
-        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-border bg-bg-raised px-5 py-4">
+        <div className="glass-surface-strong mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-border bg-bg-raised px-5 py-4">
           <div>
             <span className="font-mono text-2xl font-semibold text-fg">{assigned}</span>
             <span className="font-mono text-lg text-fg-muted"> / {pool}</span>

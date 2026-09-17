@@ -50,7 +50,7 @@ export function PreviewControls({
   warnings,
 }: PreviewControlsProps) {
   return (
-    <aside className="flex w-full flex-col gap-5 rounded-lg border border-border bg-bg-raised p-4 lg:w-72">
+    <aside className="glass-surface-strong flex w-full flex-col gap-5 rounded-lg border border-border bg-bg-raised p-4 lg:w-72">
       <div className="flex flex-col gap-2">
         <span className="font-sans text-micro font-semibold uppercase tracking-meta text-fg-muted">Tono narrativo</span>
         <div className="flex flex-wrap gap-1.5">

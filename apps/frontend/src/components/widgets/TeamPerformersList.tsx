@@ -17,7 +17,9 @@ export function TeamPerformersList({ rows }: { rows: TeamPerformer[] }) {
   const maxCompleted = Math.max(1, ...rows.map((r) => r.courses_completed));
 
   return (
-    <ol className="flex flex-col gap-3">
+    // max-h + overflow: con equipos grandes esta lista crecía sin límite y
+    // empujaba el resto de la página — ahora queda contenida y scrollable.
+    <ol className="flex max-h-72 flex-col gap-3 overflow-y-auto pr-1">
       {rows.map((r, i) => (
         <li key={r.user_id} className="flex items-center gap-3">
           <span className="w-5 shrink-0 text-center font-mono text-xs text-fg-subtle">{i + 1}</span>

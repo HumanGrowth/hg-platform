@@ -16,6 +16,7 @@ import {
 } from "@/components/perfil/PerfilInsights";
 import { Radar } from "@/components/radar/Radar";
 import type { RadarValues } from "@/components/radar/radar-model";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -101,7 +102,7 @@ export default function PerfilPage() {
   return (
     <main className="mx-auto w-full max-w-app px-6 py-10">
       {/* Header — apila en mobile para no exceder el ancho del viewport. */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+      <div className="glass-header flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="flex min-w-0 items-start gap-4">
           <Avatar name={user?.full_name ?? "?"} size="lg" />
           <div className="min-w-0">
@@ -116,6 +117,8 @@ export default function PerfilPage() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:ml-auto sm:flex-col sm:items-end">
+          {/* Sprint Glass · PASO 2 — toggle de validación en localhost (?theme=dark persiste igual). */}
+          <ThemeToggle />
           <Link href={"/perfil/editar" as Route}>
             <Button variant="secondary" size="sm">
               Editar mi información

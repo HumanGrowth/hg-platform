@@ -44,7 +44,7 @@ export function Dialog({ open, onClose, title, description, children, className 
         aria-label={title}
         className={cn(
           "w-full max-w-md rounded-xl border border-border bg-bg-raised p-8 shadow-lg",
-          "animate-fade-up",
+          "glass-modal animate-fade-up",
           className,
         )}
         onMouseDown={(e) => e.stopPropagation()}

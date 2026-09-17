@@ -14,7 +14,7 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
       type={type ?? "button"}
       aria-pressed={active}
       className={cn(
-        "inline-flex items-center gap-1 rounded-md border px-3 py-2 font-sans text-xs font-semibold uppercase tracking-meta",
+        "glass-fill-strong inline-flex items-center gap-1 rounded-md border px-3 py-2 font-sans text-xs font-semibold uppercase tracking-meta",
         "transition-[background-color,border-color] duration-fast ease-state",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
         active

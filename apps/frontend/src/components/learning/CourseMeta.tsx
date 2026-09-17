@@ -7,7 +7,7 @@ import { formatDuration } from "@/lib/utils";
  * nivel, descripción, duración). */
 export function CourseMeta({ course }: { course: CourseDetail }) {
   return (
-    <aside className="flex h-fit flex-col gap-4 rounded-lg border border-border bg-bg-raised p-5">
+    <aside className="glass-surface-strong flex h-fit flex-col gap-4 rounded-lg border border-border bg-bg-raised p-5">
       <div className="flex flex-wrap gap-2">
         {course.dimension_code && (
           <Badge variant={dimensionBadgeVariant(course.dimension_code)}>

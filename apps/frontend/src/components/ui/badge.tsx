@@ -8,19 +8,22 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-bg-sunken text-fg-muted",
+        // Tints neutros/pilar → glass sutil bajo el tema glass. Los estados
+        // semánticos sólidos (earned/success/warning/danger/info) se
+        // mantienen sólidos en TODOS los temas: son señal, no chrome.
+        default: "glass-fill-strong bg-bg-sunken text-fg-muted",
         earned: "bg-hg-orange text-white",
         success: "bg-success-bg text-success",
         warning: "bg-warning-bg text-warning",
         danger: "bg-danger-bg text-danger",
         info: "bg-info-bg text-info",
         // Pillar tints — alineados a los tokens de pilar v2 (§4.2 delta).
-        "dimension-p1": "bg-[#fdece3] text-hg-orange",       // Carrera · orange
-        "dimension-p2": "bg-[#f5eddd] text-[#8f6f38]",       // Propósito · gold
-        "dimension-p3": "bg-hg-green-100 text-hg-green",     // Relaciones · green
-        "dimension-p4": "bg-[#e9f0e5] text-[#4f6a46]",       // Salud · sage
-        "dimension-p5": "bg-info-bg text-info",              // Paz interior · slate
-        "dimension-p6": "bg-warning-bg text-warning",        // Estabilidad · amber
+        "dimension-p1": "glass-fill-strong bg-[#fdece3] text-hg-orange",   // Carrera · orange
+        "dimension-p2": "glass-fill-strong bg-[#f5eddd] text-[#8f6f38]",  // Propósito · gold
+        "dimension-p3": "glass-fill-strong bg-hg-green-100 text-hg-green", // Relaciones · green
+        "dimension-p4": "glass-fill-strong bg-[#e9f0e5] text-[#4f6a46]", // Salud · sage
+        "dimension-p5": "glass-fill-strong bg-info-bg text-info",         // Paz interior · slate
+        "dimension-p6": "glass-fill-strong bg-warning-bg text-warning",  // Estabilidad · amber
       },
     },
     defaultVariants: { variant: "default" },

@@ -72,13 +72,6 @@ export default function PlanAccionPage() {
     return true;
   });
 
-  // Agrupar por dimensión (columnas tipo pizarra).
-  const byDim = new Map<string, SavedTip[]>();
-  for (const t of filtered) {
-    const key = t.dimension_code ?? "";
-    byDim.set(key, [...(byDim.get(key) ?? []), t]);
-  }
-
   return (
     <main className="mx-auto w-full max-w-app px-6 py-10">
       <Eyebrow accent>Plan de Acción</Eyebrow>
@@ -155,53 +148,61 @@ export default function PlanAccionPage() {
           </Link>
         </Card>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {[...byDim.entries()].map(([dim, list]) => (
-            <section key={dim} className="flex flex-col gap-3">
-              <p className="font-sans text-micro uppercase tracking-meta text-fg-muted">{dimName(dim || null)}</p>
-              {list.map((t) => (
-                <Card key={t.id} className={cn("flex flex-col gap-2", t.is_completed && "opacity-60")}>
-                  <p className={cn("whitespace-pre-line text-sm text-fg", t.is_completed && "line-through")}>
-                    {t.tip_text}
-                  </p>
-                  <div className="flex items-center justify-between gap-2">
-                    {t.unit_slug ? (
-                      <Link
-                        href={`/modulos/${t.unit_slug}` as Route}
-                        className="line-clamp-1 text-xs text-fg-subtle hover:text-primary"
-                      >
-                        {t.unit_title ?? "Ver módulo"}
-                      </Link>
-                    ) : (
-                      <span className="text-xs text-fg-subtle">Nota propia</span>
+        // Flujo tipo masonry por CSS columns (no grid agrupado por dimensión):
+        // antes, si tus notas se concentraban en 1-2 dimensiones, quedaban en
+        // una sola columna aunque hubiera espacio de sobra en pantallas
+        // grandes. `columns-*` reparte las tarjetas por ancho disponible sin
+        // importar cómo se agrupen; la dimensión ahora vive como badge
+        // dentro de cada tarjeta.
+        <div className="mt-8 columns-1 gap-6 md:columns-2 xl:columns-3">
+          {filtered.map((t) => (
+            <Card
+              key={t.id}
+              glass="strong"
+              className={cn("mb-6 flex break-inside-avoid flex-col gap-2", t.is_completed && "opacity-60")}
+            >
+              <span className="self-start rounded-full bg-bg-sunken px-2 py-0.5 font-sans text-[10.5px] font-semibold uppercase tracking-meta text-fg-muted">
+                {dimName(t.dimension_code)}
+              </span>
+              <p className={cn("whitespace-pre-line text-sm text-fg", t.is_completed && "line-through")}>
+                {t.tip_text}
+              </p>
+              <div className="flex items-center justify-between gap-2">
+                {t.unit_slug ? (
+                  <Link
+                    href={`/modulos/${t.unit_slug}` as Route}
+                    className="line-clamp-1 text-xs text-fg-subtle hover:text-primary"
+                  >
+                    {t.unit_title ?? "Ver módulo"}
+                  </Link>
+                ) : (
+                  <span className="text-xs text-fg-subtle">Nota propia</span>
+                )}
+                <div className="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => void toggle(t)}
+                    aria-label={t.is_completed ? "Marcar pendiente" : "Marcar hecho"}
+                    className={cn(
+                      "flex h-7 w-7 items-center justify-center rounded-md border",
+                      t.is_completed
+                        ? "border-success bg-success text-white"
+                        : "border-border text-fg-muted hover:border-primary hover:text-primary",
                     )}
-                    <div className="flex shrink-0 items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => void toggle(t)}
-                        aria-label={t.is_completed ? "Marcar pendiente" : "Marcar hecho"}
-                        className={cn(
-                          "flex h-7 w-7 items-center justify-center rounded-md border",
-                          t.is_completed
-                            ? "border-success bg-success text-white"
-                            : "border-border text-fg-muted hover:border-primary hover:text-primary",
-                        )}
-                      >
-                        <Check size={15} strokeWidth={2.5} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void remove(t.id)}
-                        aria-label="Eliminar"
-                        className="flex h-7 w-7 items-center justify-center rounded-md text-fg-muted hover:bg-bg-sunken hover:text-danger"
-                      >
-                        <Trash2 size={15} strokeWidth={1.75} />
-                      </button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </section>
+                  >
+                    <Check size={15} strokeWidth={2.5} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void remove(t.id)}
+                    aria-label="Eliminar"
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-fg-muted hover:bg-bg-sunken hover:text-danger"
+                  >
+                    <Trash2 size={15} strokeWidth={1.75} />
+                  </button>
+                </div>
+              </div>
+            </Card>
           ))}
         </div>
       )}

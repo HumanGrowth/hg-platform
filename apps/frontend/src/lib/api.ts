@@ -10,11 +10,9 @@ import type {
   BehaviorMatrix,
   CustomPath,
   CustomPathScope,
-  DimensionScoringConfig,
   MyBehaviorEvaluation,
   MyPath,
   OnboardingStatus,
-  RecomputeResult,
   ResolvedCustomPath,
   SavedTip,
   Area,
@@ -414,31 +412,6 @@ export const apiUpsertBehaviorEvaluations = async (
 
 export const apiGetMyBehaviorFeedback = async (): Promise<MyBehaviorEvaluation[]> => {
   const res = await backend.get<MyBehaviorEvaluation[]>("/api/v1/me/behavior-feedback");
-  return res.data;
-};
-
-// ─────────────────────────── Pesos del score (FASE 1.4, superadmin) ───────────────────────────
-
-export const apiListScoringConfig = async (): Promise<DimensionScoringConfig[]> => {
-  const res = await backend.get<DimensionScoringConfig[]>("/api/v1/admin/scoring-config");
-  return res.data;
-};
-
-export const apiUpdateScoringConfig = async (
-  dimensionCode: string,
-  weights: { learning_weight: number; assessment_weight: number },
-): Promise<DimensionScoringConfig> => {
-  const res = await backend.put<DimensionScoringConfig>(
-    `/api/v1/admin/scoring-config/${dimensionCode}`,
-    weights,
-  );
-  return res.data;
-};
-
-export const apiRecomputeScoring = async (dimensionCode?: string): Promise<RecomputeResult> => {
-  const res = await backend.post<RecomputeResult>("/api/v1/admin/scoring-config/recompute", null, {
-    params: dimensionCode ? { dimension_code: dimensionCode } : undefined,
-  });
   return res.data;
 };
 

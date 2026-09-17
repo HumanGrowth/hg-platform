@@ -22,7 +22,7 @@ export function UnitCardHero({ unit }: { unit: LearningUnitFeedItem }) {
   const dimensionDot = DIMENSIONS_META.find((p) => p.id === pillar)?.dot;
   const href = unitCanonicalPath(unit);
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-bg-raised">
+    <div className="glass-surface-strong overflow-hidden rounded-lg border border-border bg-bg-raised">
       <div className={cn("h-1.5 w-full", dimensionDot ?? "bg-bg-sunken")} aria-hidden />
       <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center">
         {/* Thumbnail al COSTADO IZQUIERDO (preview del video). */}

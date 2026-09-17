@@ -42,7 +42,7 @@ export function WidgetCard({
             aria-label={description}
           >
             <Info size={14} strokeWidth={1.75} aria-hidden />
-            <span className="pointer-events-none absolute right-0 top-5 z-10 hidden w-48 rounded-md border border-border bg-bg-raised p-2 text-xs text-fg-muted shadow-md group-hover:block group-focus:block">
+            <span className="glass-modal pointer-events-none absolute right-0 top-5 z-10 hidden w-48 p-2 text-xs text-fg-muted group-hover:block group-focus:block">
               {description}
             </span>
           </span>

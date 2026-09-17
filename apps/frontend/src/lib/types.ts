@@ -900,19 +900,6 @@ export interface UserCustomPath {
   description: string | null;
 }
 
-// ─────────────────────────── Pesos del score (FASE 1.4) ───────────────────────────
-
-export interface DimensionScoringConfig {
-  dimension_code: string;
-  learning_weight: number;
-  assessment_weight: number;
-}
-
-export interface RecomputeResult {
-  dimension_codes: string[];
-  users_recomputed: number;
-}
-
 export interface MyBehaviorEvaluation {
   behavior_id: string;
   dimension_code: string;

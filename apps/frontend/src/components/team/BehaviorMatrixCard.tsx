@@ -82,14 +82,14 @@ export function BehaviorMatrixCard({ userId }: Props) {
 
   if (status === "loading") {
     return (
-      <div className="rounded-lg border border-border bg-bg-raised p-5">
+      <div className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-5">
         <div className="h-24 animate-pulse rounded-md bg-bg-sunken" />
       </div>
     );
   }
   if (status === "error") {
     return (
-      <div className="rounded-lg border border-border bg-bg-raised p-5 text-sm text-fg-muted">
+      <div className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-5 text-sm text-fg-muted">
         No pudimos cargar la matriz de comportamientos.
       </div>
     );
@@ -106,7 +106,7 @@ export function BehaviorMatrixCard({ userId }: Props) {
   const rest = matrix.pillars.filter((p) => !p.is_current);
 
   return (
-    <section className="rounded-lg border border-border bg-bg-raised p-5">
+    <section className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-5">
       <Eyebrow className="mb-1">Comportamientos del pilar en curso</Eyebrow>
       <p className="mb-4 text-xs text-fg-subtle">{matrix.dimension_name}</p>
 
@@ -171,7 +171,7 @@ function PillarTable({
       <p className="mb-2 font-sans text-sm font-semibold text-fg">{pillar.pillar_name}</p>
       <ul className="flex flex-col gap-3">
         {pillar.behaviors.map((b) => (
-          <li key={b.behavior_id} className="rounded-md border border-border bg-surface-card p-3">
+          <li key={b.behavior_id} className="glass-fill-strong rounded-md border border-border bg-surface-card p-3">
             <p className="text-sm text-fg">{b.text}</p>
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <div

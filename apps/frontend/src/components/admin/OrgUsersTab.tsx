@@ -204,7 +204,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
                       <div className="fixed inset-0 z-40" onClick={() => setMenuFor(null)} />
                       <div
                         role="menu"
-                        className="absolute right-5 z-50 mt-1 w-52 rounded-lg border border-border bg-bg-raised p-2 text-left shadow-md"
+                        className="glass-modal absolute right-5 z-50 mt-1 w-52 p-2 text-left"
                       >
                         <button
                           type="button"

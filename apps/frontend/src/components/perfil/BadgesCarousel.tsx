@@ -66,7 +66,7 @@ export function BadgesCarousel() {
           type="button"
           aria-label="Ver badges anteriores"
           onClick={() => scrollBy(-1)}
-          className="absolute -left-3 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-border bg-bg-raised p-1.5 text-fg-muted shadow-sm hover:text-fg sm:block"
+          className="glass-fill-strong absolute -left-3 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-border bg-bg-raised p-1.5 text-fg-muted shadow-sm hover:text-fg sm:block"
         >
           <ChevronLeft size={18} strokeWidth={2} />
         </button>
@@ -83,7 +83,7 @@ export function BadgesCarousel() {
             >
               <div
                 className={cn(
-                  "flex h-24 w-24 items-center justify-center rounded-full border border-border bg-surface-card transition-transform hover:scale-105",
+                  "glass-fill-strong flex h-24 w-24 items-center justify-center rounded-full border border-border bg-surface-card transition-transform hover:scale-105",
                   !badge.unlocked && "opacity-40 grayscale",
                 )}
               >
@@ -114,7 +114,7 @@ export function BadgesCarousel() {
           type="button"
           aria-label="Ver más badges"
           onClick={() => scrollBy(1)}
-          className="absolute -right-3 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-border bg-bg-raised p-1.5 text-fg-muted shadow-sm hover:text-fg sm:block"
+          className="glass-fill-strong absolute -right-3 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-border bg-bg-raised p-1.5 text-fg-muted shadow-sm hover:text-fg sm:block"
         >
           <ChevronRight size={18} strokeWidth={2} />
         </button>
@@ -140,7 +140,7 @@ function BadgeModal({ badge, onClose }: { badge: MyBadge; onClose: () => void })
       >
         <div
           className={cn(
-            "flex h-24 w-24 items-center justify-center rounded-full border border-border bg-surface-card",
+            "glass-fill-strong flex h-24 w-24 items-center justify-center rounded-full border border-border bg-surface-card",
             !badge.unlocked && "opacity-40 grayscale",
           )}
         >
