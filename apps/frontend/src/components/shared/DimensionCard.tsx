@@ -29,7 +29,7 @@ export function DimensionCard({
       href={`/dimensiones/${dimension.code}` as Route}
       aria-label={`${dimension.name} · ${score} de 100`}
       className={cn(
-        "group relative flex flex-col gap-3 rounded-lg border border-border bg-surface-card p-4 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
+        "glass-fill-strong glass-hover group relative flex flex-col gap-3 rounded-lg border border-border bg-surface-card p-4 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
         !dimension.hasContent && "opacity-60",
         className,
       )}

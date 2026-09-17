@@ -4,8 +4,12 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+// Nota glass: el bg semántico (info/success/warning/danger) es señal — NO se
+// reemplaza por fill translúcido bajo el tema glass (perdería el
+// color-coding). Solo se agrega el borde glass (blur no visible sobre bg
+// opaco, no hace daño).
 const alertVariants = cva(
-  "flex items-start gap-3 rounded-md border px-4 py-3 font-sans text-sm",
+  "glass-stroke-only flex items-start gap-3 rounded-md border px-4 py-3 font-sans text-sm",
   {
     variants: {
       variant: {

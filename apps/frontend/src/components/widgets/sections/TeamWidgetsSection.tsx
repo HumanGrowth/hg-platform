@@ -53,7 +53,7 @@ function TeamComparison({ c }: { c: TeamOrgComparison }) {
   const asPct = (v: number) => `${Math.round(v * 100)}%`;
   const asNum = (v: number) => v.toFixed(1);
   return (
-    <div className="flex flex-col gap-5 rounded-lg border border-border bg-bg-raised p-5">
+    <div className="glass-surface-strong flex flex-col gap-5 rounded-lg border border-border bg-bg-raised p-5">
       <CompareRow label="Adopción (activos)" team={c.team_adoption} org={c.org_adoption} format={asPct} />
       <CompareRow
         label="Módulos completados (prom.)"

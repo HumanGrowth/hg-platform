@@ -67,7 +67,7 @@ export function ImageUploader({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="flex w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-border bg-bg-raised px-4 py-8 font-sans text-sm text-fg-muted hover:border-primary hover:text-fg disabled:opacity-60"
+          className="glass-fill-strong flex w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-border bg-bg-raised px-4 py-8 font-sans text-sm text-fg-muted hover:border-primary hover:text-fg disabled:opacity-60"
         >
           {uploading ? (
             <Loader2 size={20} className="animate-spin" strokeWidth={1.75} />

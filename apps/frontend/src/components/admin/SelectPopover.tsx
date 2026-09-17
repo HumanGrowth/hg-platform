@@ -80,7 +80,7 @@ export function SelectPopover({
             role="menu"
             aria-label={menuLabel}
             style={{ top: pos.top, left: pos.left, width: MENU_W }}
-            className="fixed z-[61] max-h-64 overflow-auto rounded-lg border border-border bg-bg-raised p-1 shadow-md"
+            className="glass-modal fixed z-[61] max-h-64 overflow-auto p-1"
           >
             {options.map((o) => (
               <button

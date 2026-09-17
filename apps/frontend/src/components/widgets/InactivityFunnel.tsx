@@ -26,7 +26,7 @@ function FunnelTooltip({ active, payload }: TooltipProps) {
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
   return (
-    <div className="rounded-md border border-border bg-bg-raised px-3 py-2 text-xs shadow-md">
+    <div className="glass-modal px-3 py-2 text-xs">
       <p className="font-semibold text-fg">{p.label}</p>
       <p className="text-fg-muted">
         {p.value} {p.value === 1 ? "persona" : "personas"} · {p.pct}

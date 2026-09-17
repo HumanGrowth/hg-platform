@@ -16,10 +16,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        // Primary se mantiene sólido en todos los temas — contraste garantizado.
         primary: "bg-primary text-white hover:bg-primary-hover active:bg-hg-green-700",
         secondary:
-          "bg-transparent text-fg border border-border-strong hover:bg-bg-sunken active:bg-surface-sunken",
-        ghost: "bg-transparent text-fg hover:bg-bg-sunken active:bg-surface-sunken",
+          "glass-fill-strong glass-hover bg-transparent text-fg border border-border-strong hover:bg-bg-sunken active:bg-surface-sunken",
+        ghost:
+          "glass-fill-strong glass-hover bg-transparent text-fg hover:bg-bg-sunken active:bg-surface-sunken",
         destructive: "bg-danger text-white hover:opacity-90 active:opacity-80",
       },
       size: {

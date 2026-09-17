@@ -142,7 +142,7 @@ export function OnboardingTour({
       role="dialog"
       aria-modal="true"
       aria-label="Tour de bienvenida"
-      className="pointer-events-auto w-[340px] max-w-[calc(100vw-24px)] rounded-2xl bg-bg-raised p-6 text-center shadow-xl motion-safe:animate-fade-in"
+      className="glass-modal pointer-events-auto w-[340px] max-w-[calc(100vw-24px)] rounded-2xl bg-bg-raised p-6 text-center shadow-xl motion-safe:animate-fade-in"
       onClick={(e) => e.stopPropagation()}
     >
       <button

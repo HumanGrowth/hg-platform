@@ -149,7 +149,7 @@ export default function MentorPreviewPage({ params }: { params: { slug: string }
                 <section
                   key={b.id}
                   className={cn(
-                    "rounded-lg border border-border bg-bg-raised",
+                    "glass-surface-strong rounded-lg border border-border bg-bg-raised",
                     isVideo(b.block_type) ? "overflow-hidden" : "p-6",
                   )}
                 >

@@ -69,7 +69,7 @@ export function InteractiveChecklist({ items, storageKey, dimensionCode }: Props
           const checked = checks[i];
           const hasDetail = Boolean(item.detail);
           return (
-            <li key={i} className="rounded-md border border-border bg-bg-raised">
+            <li key={i} className="glass-fill-strong rounded-md border border-border bg-bg-raised">
               <div className="flex items-start gap-3 p-3">
                 <button
                   type="button"

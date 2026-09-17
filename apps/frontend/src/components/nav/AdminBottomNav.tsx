@@ -8,7 +8,6 @@ import {
   LineChart,
   Map,
   Newspaper,
-  Scale,
   Upload,
   Users2,
 } from "lucide-react";
@@ -52,7 +51,6 @@ function itemsForRole(role: UserRole | undefined, managingCompany: boolean): Adm
       { href: "/admin/companies", label: "Empresas", icon: Building2 },
       { href: "/admin/events", label: "Eventos", icon: Calendar },
       { href: "/admin/perspectivas", label: "Contenido", icon: Newspaper },
-      { href: "/admin/scoring", label: "Score", icon: Scale },
     ];
   }
   if (role === "admin") {
@@ -95,7 +93,7 @@ export function AdminBottomNav({
   return (
     <nav
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-40 flex items-stretch border-t border-border bg-bg-raised",
+        "glass-fill-strong fixed bottom-0 left-0 right-0 z-40 flex items-stretch border-t border-border bg-bg-raised",
         className,
       )}
     >

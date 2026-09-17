@@ -122,13 +122,13 @@ function OrgDashboardContent() {
           <section className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <Eyebrow className="mb-3">Distribución de actividad</Eyebrow>
-              <div className="rounded-lg border border-border bg-bg-raised p-5">
+              <div className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-5">
                 <InactivityFunnel buckets={m.inactivity} total={m.total_licenses} />
               </div>
             </div>
             <div>
               <Eyebrow className="mb-3">Necesitan seguimiento</Eyebrow>
-              <div className="flex h-[calc(100%-2rem)] flex-col justify-center rounded-lg border border-border bg-bg-raised p-5 text-center">
+              <div className="flex h-[calc(100%-2rem)] flex-col justify-center glass-surface-strong rounded-lg border border-border bg-bg-raised p-5 text-center">
                 <span className="font-mono text-4xl font-semibold text-danger">
                   {m.inactivity.d22_30 + m.inactivity.gt_30 + m.inactivity.never_active}
                 </span>
@@ -154,7 +154,7 @@ function OrgDashboardContent() {
 
           <section className="mt-10">
             <Eyebrow className="mb-3">Completion por dimensión</Eyebrow>
-            <div className="flex flex-col gap-3 rounded-lg border border-border bg-bg-raised p-5">
+            <div className="flex flex-col gap-3 glass-surface-strong rounded-lg border border-border bg-bg-raised p-5">
               {PILLAR_CODES.map((code) => {
                 const pm = m.by_dimension[code];
                 const rate = pm?.completion_rate ?? 0;
@@ -176,7 +176,7 @@ function OrgDashboardContent() {
           <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <section>
               <Eyebrow className="mb-3">Distribución por nivel</Eyebrow>
-              <div className="flex flex-col gap-2 rounded-lg border border-border bg-bg-raised p-5">
+              <div className="flex flex-col gap-2 glass-surface-strong rounded-lg border border-border bg-bg-raised p-5">
                 {LEVELS.map((l) => {
                   const count = m.by_career_level[l] ?? 0;
                   return (
@@ -194,7 +194,7 @@ function OrgDashboardContent() {
 
             <section>
               <Eyebrow className="mb-3">Top performers</Eyebrow>
-              <div className="rounded-lg border border-border bg-bg-raised p-5">
+              <div className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-5">
                 {m.top_performers.length === 0 ? (
                   <p className="text-sm text-fg-muted">Sin actividad suficiente todavía.</p>
                 ) : (

@@ -72,7 +72,7 @@ export default function OnboardingResult() {
                   : undefined);
               if (!r) return null;
               return (
-                <div key={d.code} className="rounded-xl border border-border bg-surface-card p-5">
+                <div key={d.code} className="glass-surface-strong rounded-xl border border-border bg-surface-card p-5">
                   {r.recaida_detected && (
                     <span className="float-right rounded-full bg-warning-bg px-2 py-0.5 text-xs font-semibold text-warning">
                       ⚠ Recaída

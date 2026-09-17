@@ -106,7 +106,7 @@ export function TraditionalForm({
               disabled={isLoading}
               aria-pressed={selectedValue === opt.value}
               className={cn(
-                "min-h-[44px] rounded-lg border bg-surface-card px-4 py-3 text-left",
+                "glass-fill-strong min-h-[44px] rounded-lg border bg-surface-card px-4 py-3 text-left",
                 "font-sans text-sm text-fg transition-colors hover:border-primary hover:bg-hg-green-100",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber disabled:opacity-40",
                 selectedValue === opt.value ? "border-primary bg-hg-green-100" : "border-border-strong",

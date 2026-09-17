@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import {
   Anton,
   JetBrains_Mono,
@@ -7,7 +8,9 @@ import {
   Roboto,
 } from "next/font/google";
 
+import { GlassTileBackdrop } from "@/components/glass/GlassTileBackdrop";
 import { Toaster } from "@/components/Toaster";
+import { ThemeProvider, type HgTheme } from "@/components/theme/ThemeProvider";
 
 import "./globals.css";
 
@@ -97,14 +100,27 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Tema leído de la cookie `hg-theme` en el server, seteado en
+  // <html data-theme> antes del primer render (sin flash). La app es
+  // siempre glassmorphic — default "light" (glass claro, el look
+  // original), "dark" es la alternativa. No hay tema "classic" plano.
+  const themeCookie = cookies().get("hg-theme")?.value;
+  const theme: HgTheme = themeCookie === "dark" ? "dark" : "light";
+
   return (
     <html
       lang="es"
+      data-theme={theme}
       className={`${anton.variable} ${poppins.variable} ${manrope.variable} ${roboto.variable} ${mono.variable}`}
     >
       <body>
-        {children}
-        <Toaster />
+        {/* Fondo del tema — tiles aleatorios desenfocados (siempre, la app
+            es siempre glass). */}
+        <GlassTileBackdrop />
+        <ThemeProvider initialTheme={theme}>
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -178,7 +178,7 @@ export default function HomePage() {
           />
 
           {/* Mini radar */}
-          <Card className="mt-4 flex items-center gap-5 bg-bg-raised">
+          <Card glass="strong" className="mt-4 flex items-center gap-5 bg-bg-raised">
             <MiniRadar values={radarValues} />
             <div>
               <Eyebrow>Tu radar</Eyebrow>

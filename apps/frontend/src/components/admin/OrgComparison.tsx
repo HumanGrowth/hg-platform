@@ -22,7 +22,7 @@ export function OrgComparison({ orgs }: { orgs: OrgBreakdown[] }) {
   const bestAdoption = Math.max(...orgs.map((o) => o.adoption_rate));
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-bg-raised">
+    <div className="glass-surface-strong overflow-x-auto rounded-lg border border-border bg-bg-raised">
       <table className="w-full min-w-[36rem] text-left">
         <thead className="border-b border-border">
           <tr className="font-sans text-micro uppercase tracking-meta text-fg-muted">

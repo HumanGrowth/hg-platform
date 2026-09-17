@@ -498,7 +498,7 @@ function PathItemsDialog({
                   {pathBlocks.map((b, i) => (
                     <li
                       key={b.key}
-                      className="flex items-center gap-2 rounded-md border border-border bg-surface-card px-2 py-2"
+                      className="glass-fill-strong flex items-center gap-2 rounded-md border border-border bg-surface-card px-2 py-2"
                     >
                       <div className="flex shrink-0 flex-col">
                         <button
