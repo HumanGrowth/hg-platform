@@ -4,8 +4,10 @@ import { ChevronLeft, ChevronRight, Lock, Trophy } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 
+import { HgBadge } from "@/components/badges/HgBadge";
 import { Card } from "@/components/ui/card";
 import { apiGetMyBadges } from "@/lib/api";
+import { resolveLevelBadge } from "@/lib/badge-kit/dimension-adapter";
 import type { MyBadge } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -87,22 +89,7 @@ export function BadgesCarousel() {
                   !badge.unlocked && "opacity-40 grayscale",
                 )}
               >
-                <span className="relative">
-                  <Image
-                    src={badge.icon_url}
-                    alt=""
-                    width={64}
-                    height={64}
-                    className="h-16 w-16 object-contain"
-                  />
-                  {!badge.unlocked && (
-                    <Lock
-                      size={16}
-                      strokeWidth={2}
-                      className="absolute -bottom-1 -right-1 rounded-full bg-bg-raised p-0.5 text-fg-muted"
-                    />
-                  )}
-                </span>
+                <BadgeArt badge={badge} size={64} />
               </div>
               <span className="line-clamp-2 text-center text-xs font-medium text-fg">
                 {badge.name}
@@ -125,6 +112,41 @@ export function BadgesCarousel() {
   );
 }
 
+/**
+ * Resuelve el arte de un badge: si el `code` es un badge de nivel de dimensión
+ * (convención `level-<dim>-<levelcode>` del backend), renderiza el <HgBadge>
+ * dinámico; si no, cae al ícono/placeholder del catálogo (arte sin
+ * dimensión mapeable — comportamiento previo, sin cambios).
+ */
+function BadgeArt({ badge, size }: { badge: MyBadge; size: number }) {
+  const resolved = resolveLevelBadge(badge.code, badge.name);
+  if (resolved) {
+    return (
+      <HgBadge
+        dimension={resolved.dimensionCode}
+        level={resolved.levelTitle}
+        rank={resolved.rank}
+        state={badge.unlocked ? "earned" : "locked"}
+        size={size}
+        compact
+      />
+    );
+  }
+
+  return (
+    <span className="relative">
+      <Image src={badge.icon_url} alt="" width={size} height={size} className="object-contain" />
+      {!badge.unlocked && (
+        <Lock
+          size={16}
+          strokeWidth={2}
+          className="absolute -bottom-1 -right-1 rounded-full bg-bg-raised p-0.5 text-fg-muted"
+        />
+      )}
+    </span>
+  );
+}
+
 function BadgeModal({ badge, onClose }: { badge: MyBadge; onClose: () => void }) {
   return (
     <div
@@ -144,13 +166,7 @@ function BadgeModal({ badge, onClose }: { badge: MyBadge; onClose: () => void })
             !badge.unlocked && "opacity-40 grayscale",
           )}
         >
-          <Image
-            src={badge.icon_url}
-            alt=""
-            width={64}
-            height={64}
-            className="h-16 w-16 object-contain"
-          />
+          <BadgeArt badge={badge} size={64} />
         </div>
         <h3 className="font-sans text-lg font-semibold text-fg">{badge.name}</h3>
         <p className="text-sm text-fg-muted">{badge.description}</p>

@@ -1,0 +1,143 @@
+/**
+ * The ONLY place that translates the app's dimension/level vocabulary
+ * (lib/dimensions.ts, lib/dimension-styles.ts) into the badge kit's option
+ * shape (BadgeOpts). The kit's own `HGBadge.DIMENSIONS` presets and numbering
+ * (d1..d6, its own accents/pictos) are never used — they don't match the app.
+ *
+ * Conflicts resolved here (documented so nobody re-derives them from the kit):
+ *  - Numbering: kit uses d1..d6 in an unrelated order; the app's canonical
+ *    axis is the career-path code P1..P6 (see lib/dimensions.ts).
+ *  - Pictos: kit ships its own accent+picto per d1..d6. The app's canonical
+ *    picto per dimension is DIMENSION_ICON_SRC in dimension-styles.ts — most
+ *    notably P5 = bulb (claridad) and P6 = scales (estabilidad), which is the
+ *    OPPOSITE of the kit's own d5/d6 assignment. We mirror DIMENSION_ICON_SRC
+ *    here rather than import it (it's a private const there) — keep this map
+ *    in sync if that file's picto assignment ever changes.
+ *  - Accent color: the kit wants a parseable hex string; the app's canonical
+ *    hues live as CSS custom properties (`--dimension-p1`..`--dimension-p6`
+ *    in app/globals.css), which can't be resolved without a DOM. We mirror
+ *    their hex values here for the same reason — keep in sync with
+ *    app/globals.css if those hues change.
+ *  - Level naming: the app's level names are data-driven per dimension
+ *    (`DimensionProgression.current_level_name` / `LevelProgress.name` from
+ *    GET /me/progression) — NOT a fixed frontend enum. Prefer passing that
+ *    real name through as `level` wherever it's available. The LEVEL_NAME_BY_CODE
+ *    fallback below only covers callers that have a bare level_code (L1/L2/L3)
+ *    and mirrors the backend seed (migrations/versions/CE-04_dimension_progression.py),
+ *    which itself flags these three names as provisional.
+ */
+import {
+  dimensionByCareerPath,
+  type CareerPathCode,
+} from "@/lib/dimensions";
+import { dimensionBaseCode, driveToCareerPath } from "@/lib/dimension-styles";
+
+import type { BadgePicto } from "./index";
+
+const DIMENSION_PICTO: Record<CareerPathCode, BadgePicto> = {
+  P1: "rocket",
+  P2: "star",
+  P3: "chat",
+  P4: "sprout",
+  P5: "bulb", // dimension-styles.ts DIMENSION_ICON_SRC — web-v3 decisión I
+  P6: "scales",
+};
+
+// Mirrors --dimension-p1..p6 in app/globals.css (:root).
+const DIMENSION_ACCENT_HEX: Record<CareerPathCode, string> = {
+  P1: "#e8530a", // --hg-orange
+  P2: "#c8a76e", // --hg-gold
+  P3: "#4a7a54", // --hg-green
+  P4: "#a8c4a0", // --hg-sage
+  P5: "#2c3e50", // --hg-slate
+  P6: "#e8a030", // --hg-amber
+};
+
+export interface DimensionBadgeConfig {
+  picto: BadgePicto;
+  accent: string;
+  code: string;
+  name: string;
+}
+
+/** Normalizes any dimension identifier the app uses (Drive code, career-path,
+ * or assessment code incl. P6A/P6B) down to the canonical career-path. */
+function normalizeCareerPath(code: string): CareerPathCode {
+  return dimensionBaseCode(driveToCareerPath(code)) as CareerPathCode;
+}
+
+/**
+ * Resolves a dimension identifier (Drive code like "CP", career-path like
+ * "P1", or assessment code like "P6A") to its canonical badge config.
+ */
+export function badgeConfigForDimension(code: string): DimensionBadgeConfig {
+  const careerPath = normalizeCareerPath(code);
+  const dimension = dimensionByCareerPath(careerPath);
+  return {
+    picto: DIMENSION_PICTO[careerPath] ?? DIMENSION_PICTO.P1,
+    accent: DIMENSION_ACCENT_HEX[careerPath] ?? DIMENSION_ACCENT_HEX.P1,
+    code: dimension?.code ?? careerPath,
+    name: dimension?.name ?? careerPath,
+  };
+}
+
+// Fallback only — see file header. Real level names should come from the API.
+const LEVEL_NAME_BY_CODE: Record<string, string> = {
+  L1: "En crecimiento",
+  L2: "Sólido",
+  L3: "Ejemplar",
+};
+
+export interface LevelBadgeMeta {
+  /** Level display name, for the kit's `title`. */
+  title?: string;
+  /** Rank pip value (0–6) for the kit's `rank`. */
+  rank?: number;
+}
+
+/**
+ * Maps a level_code (L1, L2, L3, …) to a badge title/rank fallback, for
+ * callers that don't already have the resolved level name from the API.
+ * Rank scale: the kit lights `floor(rank/2)+1` pips (max 3, matching today's
+ * 3-level-per-dimension model) — so L1→rank 0 (1 pip), L2→rank 2 (2 pips),
+ * L3→rank 4 (3 pips).
+ */
+export function levelBadgeMeta(levelCode: string | undefined): LevelBadgeMeta {
+  if (!levelCode) return {};
+  const match = /^L(\d+)$/i.exec(levelCode.trim());
+  const n = match ? Number(match[1]) : undefined;
+  return {
+    title: LEVEL_NAME_BY_CODE[levelCode.trim().toUpperCase()],
+    rank: n !== undefined ? (n - 1) * 2 : undefined,
+  };
+}
+
+export interface ResolvedLevelBadge {
+  dimensionCode: string;
+  levelCode: string;
+  levelTitle: string;
+  rank: number;
+}
+
+// Backend seeds level badges as `level-<drive-code>-<level-code>`, e.g.
+// "level-cp-l2" (see migrations/versions/CE-04_dimension_progression.py).
+const LEVEL_BADGE_CODE_RE = /^level-([a-z]{2})-(l\d+)$/i;
+
+/**
+ * Recognizes a `MyBadge.code` that represents a dimension level badge and
+ * resolves it to what <HgBadge> needs. Returns null for badges that don't
+ * follow that convention (callers should fall back to <BadgeIcon>).
+ */
+export function resolveLevelBadge(code: string, name?: string): ResolvedLevelBadge | null {
+  const match = LEVEL_BADGE_CODE_RE.exec(code);
+  if (!match) return null;
+  const [, dimensionCode, levelCode] = match;
+  const meta = levelBadgeMeta(levelCode);
+  const nameAfterDot = name?.split("·")[1]?.trim();
+  return {
+    dimensionCode: dimensionCode.toUpperCase(),
+    levelCode: levelCode.toUpperCase(),
+    levelTitle: nameAfterDot || meta.title || levelCode.toUpperCase(),
+    rank: meta.rank ?? 0,
+  };
+}
