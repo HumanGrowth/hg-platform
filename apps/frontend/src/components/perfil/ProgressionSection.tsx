@@ -9,9 +9,11 @@
  */
 import * as React from "react";
 
+import { HgBadge } from "@/components/badges/HgBadge";
 import { Card } from "@/components/ui/card";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { apiGetProgression } from "@/lib/api";
+import { levelBadgeMeta } from "@/lib/badge-kit/dimension-adapter";
 import { dimensionShortName } from "@/lib/dimension-styles";
 import type { DimensionProgression } from "@/lib/types";
 
@@ -47,7 +49,15 @@ export function ProgressionSection() {
           return (
             <Card key={r.dimension_code} className="flex flex-col gap-2 bg-bg-raised">
               <div className="flex items-baseline justify-between gap-2">
-                <span className="font-sans text-sm font-semibold text-fg">
+                <span className="flex items-center gap-2 font-sans text-sm font-semibold text-fg">
+                  <HgBadge
+                    dimension={r.dimension_code}
+                    level={r.current_level_name ?? undefined}
+                    rank={levelBadgeMeta(r.current_level_code ?? undefined).rank}
+                    state="earned"
+                    size={28}
+                    compact
+                  />
                   {dimensionShortName(r.dimension_code)}
                 </span>
                 <span className="text-xs text-fg-muted">
