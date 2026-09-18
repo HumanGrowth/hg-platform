@@ -8,9 +8,10 @@ import { BlockScreenLayout } from "@/components/modulos/blocks/BlockScreenLayout
 import { HeroDataPoint } from "@/components/modulos/blocks/HeroDataPoint";
 import { InteractiveChecklist, type ChecklistEntry } from "@/components/modulos/blocks/InteractiveChecklist";
 import { MarkdownBody } from "@/components/modulos/blocks/MarkdownBody";
+import { useAutoCompleteBlock } from "@/components/modulos/blocks/useAutoCompleteBlock";
 import { Badge } from "@/components/ui/badge";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
-import { detectChecklistItems, detectHeroStat } from "@/lib/parsers/autoDetect";
+import { detectChecklistItems, detectHeroStat, numberedListStart } from "@/lib/parsers/autoDetect";
 import { stripCitationMarkers } from "@/lib/parsers/stripCitationMarkers";
 import { dimensionStyle } from "@/lib/dimension-styles";
 import type { TextBlock } from "@/lib/types";
@@ -38,14 +39,6 @@ const VARIANT_ICON: Record<TextBlock["variant"], LucideIcon> = {
   solution: Lightbulb,
 };
 
-const AUTO_COMPLETE_MS = 3000;
-
-/** Índice (0-based) del inicio de la lista de pasos (`1.`/`1)`/`(1)` o `(S)`…). */
-function numberedListStart(body: string): number {
-  const m = /(^|\n|\s)(?:\(?1[.)]|\([A-Za-z]\))\s/.exec(body);
-  return m ? m.index + (m[1] ? m[1].length : 0) : -1;
-}
-
 /**
  * text_context/text_evidence/text_solution (Sprint UI · TASK 4/5/6). Cada
  * variante tiene su propia identidad visual:
@@ -69,16 +62,7 @@ export function TextBlockView({
   const shouldAnimate = useShouldAnimate();
   const style = dimensionStyle(dimensionCode);
 
-  React.useEffect(() => {
-    if (isCompleted) return;
-    const timer = setTimeout(() => {
-      void onCompleteBlock();
-    }, AUTO_COMPLETE_MS);
-    return () => clearTimeout(timer);
-    // Solo dispara una vez al montar el bloque — no re-arma si isCompleted
-    // cambia por otra vía (evita re-llamar tras completar).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [block.id]);
+  useAutoCompleteBlock(block.id, isCompleted, onCompleteBlock);
 
   const Icon = VARIANT_ICON[block.variant];
 

@@ -1,9 +1,11 @@
-import type { Block, QuizSubmitPayload, QuizSubmitResponse } from "@/lib/types";
+import type { Block, NarrativeTone, QuizSubmitPayload, QuizSubmitResponse } from "@/lib/types";
 
 import { QuizBlockView } from "./blocks/QuizBlockView";
 import { ReflectionBlockView } from "./blocks/ReflectionBlockView";
 import { TextBlockView } from "./blocks/TextBlockView";
 import { VideoBlockView } from "./blocks/VideoBlockView";
+import { hasPresentation } from "./templates/registry";
+import { TemplatedTextBlock } from "./templates/TemplatedTextBlock";
 
 export interface BlockRendererHandlers {
   isCompleted: boolean;
@@ -17,13 +19,22 @@ export interface BlockRendererProps extends BlockRendererHandlers {
   /** Pilar de la unit — para la identidad visual por dimensión de los templates
    * (Sprint UI). Opcional: default primary si no se pasa. */
   dimensionCode?: string;
+  /** `narrative_tone` de la unit — modula la escala/peso de las plantillas
+   * sociales (con `presentation.emphasis_level` explícito, éste gana). */
+  narrativeTone?: NarrativeTone | null;
   /** Navegación del player (avanzar/cerrar) — la usa el botón "Finalizar" del
    * bloque de reflexión. Opcional (p.ej. el preview no navega). */
   onAdvance?: () => void;
 }
 
-/** Router polimórfico por block_type (TASK B-06) — 4 sub-vistas. */
-export function BlockRenderer({ block, dimensionCode, onAdvance, ...handlers }: BlockRendererProps) {
+/**
+ * Router polimórfico por block_type (TASK B-06) — 4 sub-vistas.
+ *
+ * Los bloques de texto CON `presentation` (tags de plantilla social) delegan el
+ * layout a `templateFor(block)` vía `TemplatedTextBlock`; los que no la traen —
+ * todas las units ya creadas — siguen en `TextBlockView`, sin cambios.
+ */
+export function BlockRenderer({ block, dimensionCode, narrativeTone, onAdvance, ...handlers }: BlockRendererProps) {
   switch (block.block_type) {
     case "video_intro":
     case "video_teaching":
@@ -39,6 +50,17 @@ export function BlockRenderer({ block, dimensionCode, onAdvance, ...handlers }: 
     case "text_context":
     case "text_evidence":
     case "text_solution":
+      if (hasPresentation(block)) {
+        return (
+          <TemplatedTextBlock
+            block={block}
+            dimensionCode={dimensionCode}
+            narrativeTone={narrativeTone}
+            isCompleted={handlers.isCompleted}
+            onCompleteBlock={handlers.onCompleteBlock}
+          />
+        );
+      }
       return (
         <TextBlockView
           block={block}

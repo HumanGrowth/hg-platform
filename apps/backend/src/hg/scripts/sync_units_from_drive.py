@@ -51,10 +51,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from pydantic import TypeAdapter, ValidationError
+
 from hg.core.storage import r2_configured, upload_file
 from hg.db import SessionLocal
+from hg.modules.learning_units.schemas import ChecklistItem, HeroStat
 from hg.modules.learning_units.services import (
     UnitDictError,
+    sanitize_presentation,
     try_publish,
     upsert_unit_from_dict,
 )
@@ -228,6 +232,30 @@ def _sanitize_citation(citation: dict[str, Any], slug: str) -> dict[str, Any]:
     return c
 
 
+def _sanitize_visual_slots(block: dict[str, Any], slug: str) -> dict[str, Any]:
+    """``hero_stat`` / ``checklist_items`` de un bloque de texto: si no cumplen el
+    schema (largos, forma) se descartan con warning en vez de tirar abajo la
+    ingesta de toda la unit — son capa visual opcional."""
+    out = dict(block)
+    if out.get("hero_stat") is not None:
+        try:
+            out["hero_stat"] = HeroStat.model_validate(out["hero_stat"]).model_dump()
+        except ValidationError:
+            log.warning("  %s: hero_stat inválido — se ignora (corregir en el Doc): %r", slug, out["hero_stat"])
+            out["hero_stat"] = None
+    if out.get("checklist_items") is not None:
+        try:
+            items = TypeAdapter(list[ChecklistItem]).validate_python(out["checklist_items"])
+            out["checklist_items"] = [i.model_dump() for i in items[:5]]
+        except ValidationError:
+            log.warning(
+                "  %s: checklist_items inválido — se ignora (corregir en el Doc): %r",
+                slug, out["checklist_items"],
+            )
+            out["checklist_items"] = None
+    return out
+
+
 def sanitize_unit_json(unit_json: dict[str, Any]) -> dict[str, Any]:
     """Normaliza un Doc de Jorge para que sea ingestable por
     ``upsert_unit_from_dict`` (schemas + enums estrictos), sin perder contenido:
@@ -235,6 +263,9 @@ def sanitize_unit_json(unit_json: dict[str, Any]) -> dict[str, Any]:
     - ``competency_code`` con un label libre (no C1-C5) → ``null`` (nullable, no
       es requisito de publish), con warning.
     - citaciones de los ``text_evidence`` → :func:`_sanitize_citation`.
+    - tags de presentación de los bloques de texto (template/tone/format/…) →
+      agrupados y validados en ``block["presentation"]``; los inválidos se ignoran
+      con warning (:func:`sanitize_presentation`).
 
     El resto del contenido no se toca."""
     slug = unit_json.get("slug", "?")
@@ -252,6 +283,11 @@ def sanitize_unit_json(unit_json: dict[str, Any]) -> dict[str, Any]:
     for b in out.get("blocks", []):
         if b.get("type") == "text_evidence" and isinstance(b.get("citation"), dict):
             b = {**b, "citation": _sanitize_citation(b["citation"], slug)}
+        if str(b.get("type", "")).startswith("text_"):
+            b = {
+                **_sanitize_visual_slots(b, slug),
+                "presentation": sanitize_presentation(b, slug),
+            }
         blocks.append(b)
     out["blocks"] = blocks
     return out

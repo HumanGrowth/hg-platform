@@ -11,7 +11,7 @@ Dos familias de discriminated unions (``Field(discriminator=...)``):
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -41,6 +41,48 @@ class ChecklistItem(BaseModel):
 
     title: str = Field(min_length=1, max_length=120)
     detail: str | None = Field(default=None, max_length=500)
+
+
+# ─── Tags de presentación por bloque (plantillas sociales) ───
+# Espejo de HG_LearningUnits_Dinamicas_Social_Estrategia_y_Tags.md §4.A/C. Sólo los
+# tags SIN columna propia (eyebrow/hero_stat/checklist_items/keywords ya la tienen).
+
+PresentationTemplate = Literal[
+    "editorial", "stat", "quote", "tip", "steps", "interactive", "video", "announce", "data"
+]
+PresentationFormat = Literal["story", "feed", "wide", "portrait", "li-infographic"]
+PresentationTone = Literal["cream", "green", "charcoal", "dimension"]
+PresentationAccent = Literal["auto", "green", "amber", "orange"]
+PresentationMotif = Literal["mosaic", "pencil", "quote", "none"]
+PresentationEmphasis = Literal["calm", "bold"]
+
+
+class PullQuote(BaseModel):
+    """Cita destacada de la plantilla Quote."""
+
+    text: str = Field(min_length=1, max_length=400)
+    attribution: str | None = Field(default=None, max_length=120)
+
+
+class PresentationCta(BaseModel):
+    """Botón de la plantilla Announce."""
+
+    label: str = Field(min_length=1, max_length=40)
+    href: str | None = Field(default=None, max_length=500)
+
+
+class BlockPresentation(BaseModel):
+    """Tags de presentación opcionales de un text_block. Todo nullable: sin tags →
+    el frontend auto-detecta la plantilla (look actual)."""
+
+    template: PresentationTemplate | None = None
+    format: PresentationFormat | None = None
+    tone: PresentationTone | None = None
+    accent: PresentationAccent | None = None
+    motif: PresentationMotif | None = None
+    emphasis_level: PresentationEmphasis | None = None
+    pull_quote: PullQuote | None = None
+    cta: PresentationCta | None = None
 
 
 # ─────────────────────────── Bloques · read ───────────────────────────
@@ -84,6 +126,9 @@ class TextBlockRead(BlockRead):
     requires_evidence_block_id: UUID | None
     hero_stat: HeroStat | None = None
     checklist_items: list[ChecklistItem] | None = None
+    # Lectura laxa (dict) a propósito: un valor viejo/desconocido en DB no debe
+    # romper el feed — el frontend ignora lo que no reconoce.
+    presentation: dict[str, Any] | None = None
 
 
 # ─────────────────────────── Quiz · 6 tipos ───────────────────────────
@@ -477,6 +522,7 @@ class TextBlockCreate(BaseModel):
     requires_evidence_block_id: UUID | None = None
     hero_stat: HeroStat | None = None
     checklist_items: list[ChecklistItem] | None = Field(default=None, max_length=5)
+    presentation: BlockPresentation | None = None
 
 
 class QuizBlockCreate(BaseModel):

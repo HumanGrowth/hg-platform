@@ -355,6 +355,11 @@ def _create_block_content(db: Session, unit_id: uuid.UUID, payload: BlockCreate)
                 if payload.checklist_items
                 else None
             ),
+            presentation=(
+                payload.presentation.model_dump(exclude_none=True) or None
+                if payload.presentation
+                else None
+            ),
         )
         db.add(text)
         db.flush()

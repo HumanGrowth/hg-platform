@@ -100,3 +100,65 @@ export function PencilCircle({
     </span>
   );
 }
+
+type MosaicTone = "green" | "amber" | "cream" | "gold" | "sage" | "ink" | "orange";
+// Clases ESTÁTICAS (purge): un mapa por rol, nunca `bg-hg-${tone}`.
+const MOSAIC_BG: Record<MosaicTone, string> = {
+  green: "bg-hg-green",
+  amber: "bg-hg-amber",
+  cream: "bg-hg-cream",
+  gold: "bg-hg-gold",
+  sage: "bg-hg-sage",
+  ink: "bg-hg-ink",
+  orange: "bg-hg-orange",
+};
+const MOSAIC_DEFAULT_BG: MosaicTone[] = ["green", "amber", "sage", "gold"];
+const MOSAIC_DEFAULT_FG: MosaicTone[] = ["cream", "green", "ink", "cream"];
+
+/**
+ * MosaicBand — franja de mosaico de la marca (social kit): una fila de fichas
+ * cuadradas con un círculo interior. Determinística por `seed` (mismo render en
+ * SSR/CSR y en snapshots). Decorativa (`aria-hidden`).
+ */
+export function MosaicBand({
+  count = 12,
+  tile = 28,
+  seed = 1,
+  bgTones = MOSAIC_DEFAULT_BG,
+  fgTones = MOSAIC_DEFAULT_FG,
+  className,
+  ...rest
+}: {
+  count?: number;
+  tile?: number;
+  seed?: number;
+  bgTones?: MosaicTone[];
+  fgTones?: MosaicTone[];
+} & React.HTMLAttributes<HTMLDivElement>) {
+  let state = seed * 9301 + 49297;
+  const next = (n: number) => {
+    state = (state * 9301 + 49297) % 233280;
+    return Math.floor((state / 233280) * n);
+  };
+  const tiles = Array.from({ length: count }, (_, i) => ({
+    key: i,
+    bg: bgTones[next(bgTones.length)],
+    fg: fgTones[next(fgTones.length)],
+  }));
+  return (
+    <div aria-hidden className={cn("flex w-full overflow-hidden", className)} {...rest}>
+      {tiles.map((t) => (
+        <span
+          key={t.key}
+          style={{ width: tile, height: tile }}
+          className={cn("flex shrink-0 items-center justify-center", MOSAIC_BG[t.bg])}
+        >
+          <span
+            style={{ width: tile * 0.46, height: tile * 0.46 }}
+            className={cn("rounded-full", MOSAIC_BG[t.fg])}
+          />
+        </span>
+      ))}
+    </div>
+  );
+}

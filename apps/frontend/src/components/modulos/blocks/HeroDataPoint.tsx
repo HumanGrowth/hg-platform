@@ -9,6 +9,11 @@ interface Props {
   value: string;
   label: string;
   dimensionCode?: string;
+  /** Plantilla Stat: reemplaza tamaño+color del número (default = look histórico,
+   * color inline del pilar). */
+  valueClassName?: string;
+  /** Plantilla Stat: reemplaza el estilo del label (default = `text-fg-muted`). */
+  labelClassName?: string;
 }
 
 /** Extrae el prefijo numérico de un value ("23%" → 23, "3 de cada 4" → 3). */
@@ -24,7 +29,7 @@ function leadingNumber(value: string): number | null {
  * en font display + color del pilar, con counter animation (0 → target). El
  * sufijo no numérico ("%", "x", " de cada 4") se mantiene fijo.
  */
-export function HeroDataPoint({ value, label, dimensionCode }: Props) {
+export function HeroDataPoint({ value, label, dimensionCode, valueClassName, labelClassName }: Props) {
   const shouldAnimate = useShouldAnimate();
   const color = dimensionStyle(dimensionCode).glow;
   const target = leadingNumber(value);
@@ -63,13 +68,13 @@ export function HeroDataPoint({ value, label, dimensionCode }: Props) {
   return (
     <div className="flex flex-col gap-1 py-2">
       <span
-        className="font-display text-6xl leading-none sm:text-7xl"
-        style={{ color }}
+        className={valueClassName ?? "font-display text-6xl leading-none sm:text-7xl"}
+        style={valueClassName ? undefined : { color }}
         aria-label={`${value} — ${label}`}
       >
         {rendered}
       </span>
-      <span className="font-heading text-sm font-medium text-fg-muted">{label}</span>
+      <span className={labelClassName ?? "font-heading text-sm font-medium text-fg-muted"}>{label}</span>
     </div>
   );
 }

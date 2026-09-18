@@ -1,0 +1,2732 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`regresión: bloques sin presentation renderizan como antes > BlockRenderer · context · blockquote 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p1) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p1);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <path
+          d="M60 16c12 15 12 45 0 60-12-15-12-45 0-60Z"
+        />
+        <circle
+          cx="60"
+          cy="42"
+          r="7"
+        />
+        <path
+          d="M48 62 38 82l14-8M72 62l10 20-14-8"
+        />
+        <path
+          d="M55 80q5 14 10 0"
+        />
+      </svg>
+    </span>
+    <div
+      class="relative overflow-hidden pl-5"
+    >
+      <span
+        aria-hidden="true"
+        class="absolute inset-y-0 left-0 w-1 rounded-full"
+        style="background-color: var(--dimension-p1);"
+      />
+      <div
+        class="relative flex flex-col gap-3"
+      >
+        <div
+          class="flex items-center gap-1.5 text-fg-muted"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-message-circle"
+            fill="none"
+            height="14"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="14"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"
+            />
+          </svg>
+          <span
+            class="font-sans text-micro font-semibold uppercase tracking-meta"
+          >
+            LA SITUACIÓN
+          </span>
+        </div>
+        <span
+          aria-hidden="true"
+          class="font-display text-6xl leading-[0.5]"
+          style="color: var(--dimension-p1); opacity: 0.5;"
+        >
+          “
+        </span>
+        <div
+          class="text-lg italic text-fg"
+        >
+          <div
+            class="font-sans text-lg sm:text-xl"
+          >
+            <p
+              class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+            >
+              Lo que se mide, se mejora.
+            </p>
+            
+
+            <p
+              class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+            >
+              Drucker
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > BlockRenderer · context · plain 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p1) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p1);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <path
+          d="M60 16c12 15 12 45 0 60-12-15-12-45 0-60Z"
+        />
+        <circle
+          cx="60"
+          cy="42"
+          r="7"
+        />
+        <path
+          d="M48 62 38 82l14-8M72 62l10 20-14-8"
+        />
+        <path
+          d="M55 80q5 14 10 0"
+        />
+      </svg>
+    </span>
+    <div
+      class="relative overflow-hidden pl-5"
+    >
+      <span
+        aria-hidden="true"
+        class="absolute inset-y-0 left-0 w-1 rounded-full"
+        style="background-color: var(--dimension-p1);"
+      />
+      <div
+        class="relative flex flex-col gap-3"
+      >
+        <div
+          class="flex items-center gap-1.5 text-fg-muted"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-message-circle"
+            fill="none"
+            height="14"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="14"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"
+            />
+          </svg>
+          <span
+            class="font-sans text-micro font-semibold uppercase tracking-meta"
+          >
+            LA SITUACIÓN
+          </span>
+        </div>
+        <div
+          class=""
+        >
+          <div
+            class="font-sans text-lg sm:text-xl"
+          >
+            <p
+              class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+            >
+              Un texto de contexto con 
+              <strong
+                class="font-semibold text-fg"
+              >
+                negrita
+              </strong>
+              , 
+              <em
+                class="italic text-primary"
+              >
+                énfasis
+              </em>
+               y 
+              <mark
+                class="rounded bg-hg-amber/20 px-1 py-0.5 text-fg"
+              >
+                la frase clave
+              </mark>
+              .
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > BlockRenderer · evidence · hero_stat auto-detectado 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p1) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p1);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <path
+          d="M60 16c12 15 12 45 0 60-12-15-12-45 0-60Z"
+        />
+        <circle
+          cx="60"
+          cy="42"
+          r="7"
+        />
+        <path
+          d="M48 62 38 82l14-8M72 62l10 20-14-8"
+        />
+        <path
+          d="M55 80q5 14 10 0"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-3"
+    >
+      <div
+        class="flex items-center gap-1.5 text-hg-amber"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-book-open"
+          fill="none"
+          height="14"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="14"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 7v14"
+          />
+          <path
+            d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+          />
+        </svg>
+        <span
+          class="font-sans text-micro font-semibold uppercase tracking-meta"
+        >
+          LA EVIDENCIA
+        </span>
+      </div>
+      <div
+        class="flex flex-col gap-1 py-2"
+      >
+        <span
+          aria-label="79% — las renuncias eran evitables según el estudio"
+          class="font-display text-6xl leading-none sm:text-7xl"
+          style="color: var(--dimension-p1);"
+        >
+          79%
+        </span>
+        <span
+          class="font-heading text-sm font-medium text-fg-muted"
+        >
+          las renuncias eran evitables según el estudio
+        </span>
+      </div>
+      <div
+        class="font-sans text-lg sm:text-xl"
+      >
+        <p
+          class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+        >
+          El 79% de las renuncias eran evitables según el estudio.
+        </p>
+      </div>
+      <div
+        class="mt-2 flex flex-col gap-2 rounded-md border border-border bg-bg-sunken p-4"
+      >
+        <div
+          class="flex flex-wrap items-center gap-2"
+        >
+          <span
+            class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-sans text-xs font-semibold whitespace-nowrap glass-fill-strong bg-bg-sunken text-fg-muted"
+          >
+            Estudio controlado
+          </span>
+          <span
+            class="text-xs text-fg-muted"
+          >
+            Journal X
+          </span>
+        </div>
+        <p
+          class="text-sm text-fg-muted"
+        >
+          Estudio
+        </p>
+        <a
+          class="inline-flex w-fit items-center gap-1 font-sans text-xs font-semibold text-primary hover:underline"
+          href="https://doi.org/10.1/x"
+          rel="noreferrer"
+          target="_blank"
+        >
+          Ver fuente 
+          <svg
+            class="lucide lucide-external-link"
+            fill="none"
+            height="12"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.75"
+            viewBox="0 0 24 24"
+            width="12"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 3h6v6"
+            />
+            <path
+              d="M10 14 21 3"
+            />
+            <path
+              d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+            />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > BlockRenderer · evidence · hero_stat explícito 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p1) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p1);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <path
+          d="M60 16c12 15 12 45 0 60-12-15-12-45 0-60Z"
+        />
+        <circle
+          cx="60"
+          cy="42"
+          r="7"
+        />
+        <path
+          d="M48 62 38 82l14-8M72 62l10 20-14-8"
+        />
+        <path
+          d="M55 80q5 14 10 0"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-3"
+    >
+      <div
+        class="flex items-center gap-1.5 text-hg-amber"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-book-open"
+          fill="none"
+          height="14"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="14"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 7v14"
+          />
+          <path
+            d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+          />
+        </svg>
+        <span
+          class="font-sans text-micro font-semibold uppercase tracking-meta"
+        >
+          LA EVIDENCIA
+        </span>
+      </div>
+      <div
+        class="flex flex-col gap-1 py-2"
+      >
+        <span
+          aria-label="23% — de los casos"
+          class="font-display text-6xl leading-none sm:text-7xl"
+          style="color: var(--dimension-p1);"
+        >
+          23%
+        </span>
+        <span
+          class="font-heading text-sm font-medium text-fg-muted"
+        >
+          de los casos
+        </span>
+      </div>
+      <div
+        class="font-sans text-lg sm:text-xl"
+      >
+        <p
+          class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+        >
+          El cuerpo con el dato.
+        </p>
+      </div>
+      <div
+        class="mt-2 flex flex-col gap-2 rounded-md border border-border bg-bg-sunken p-4"
+      >
+        <div
+          class="flex flex-wrap items-center gap-2"
+        >
+          <span
+            class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-sans text-xs font-semibold whitespace-nowrap glass-fill-strong bg-bg-sunken text-fg-muted"
+          >
+            Estudio controlado
+          </span>
+          <span
+            class="text-xs text-fg-muted"
+          >
+            Journal X
+          </span>
+        </div>
+        <p
+          class="text-sm text-fg-muted"
+        >
+          Estudio
+        </p>
+        <a
+          class="inline-flex w-fit items-center gap-1 font-sans text-xs font-semibold text-primary hover:underline"
+          href="https://doi.org/10.1/x"
+          rel="noreferrer"
+          target="_blank"
+        >
+          Ver fuente 
+          <svg
+            class="lucide lucide-external-link"
+            fill="none"
+            height="12"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.75"
+            viewBox="0 0 24 24"
+            width="12"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 3h6v6"
+            />
+            <path
+              d="M10 14 21 3"
+            />
+            <path
+              d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+            />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > BlockRenderer · evidence · sin número 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p1) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p1);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <path
+          d="M60 16c12 15 12 45 0 60-12-15-12-45 0-60Z"
+        />
+        <circle
+          cx="60"
+          cy="42"
+          r="7"
+        />
+        <path
+          d="M48 62 38 82l14-8M72 62l10 20-14-8"
+        />
+        <path
+          d="M55 80q5 14 10 0"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-3"
+    >
+      <div
+        class="flex items-center gap-1.5 text-hg-amber"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-book-open"
+          fill="none"
+          height="14"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="14"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 7v14"
+          />
+          <path
+            d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+          />
+        </svg>
+        <span
+          class="font-sans text-micro font-semibold uppercase tracking-meta"
+        >
+          LA EVIDENCIA
+        </span>
+      </div>
+      <div
+        class="font-sans text-lg sm:text-xl"
+      >
+        <p
+          class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+        >
+          Sin datos numéricos, sólo prosa.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > BlockRenderer · quiz · single_choice 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p1) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p1);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <path
+          d="M60 16c12 15 12 45 0 60-12-15-12-45 0-60Z"
+        />
+        <circle
+          cx="60"
+          cy="42"
+          r="7"
+        />
+        <path
+          d="M48 62 38 82l14-8M72 62l10 20-14-8"
+        />
+        <path
+          d="M55 80q5 14 10 0"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-3"
+    >
+      <p
+        class="font-sans font-semibold uppercase tracking-meta text-hg-orange"
+      >
+        COMPROBÁ TU COMPRENSIÓN
+      </p>
+      <div
+        class="flex items-center gap-2 font-sans text-sm font-semibold text-success"
+      >
+        <svg
+          class="lucide lucide-check"
+          fill="none"
+          height="18"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M20 6 9 17l-5-5"
+          />
+        </svg>
+         Ya completaste este quiz
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > BlockRenderer · reflection 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p1) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p1);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <path
+          d="M60 16c12 15 12 45 0 60-12-15-12-45 0-60Z"
+        />
+        <circle
+          cx="60"
+          cy="42"
+          r="7"
+        />
+        <path
+          d="M48 62 38 82l14-8M72 62l10 20-14-8"
+        />
+        <path
+          d="M55 80q5 14 10 0"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-3"
+    >
+      <p
+        class="font-sans font-semibold uppercase tracking-meta text-hg-orange"
+      >
+        APLICALO ESTA SEMANA
+      </p>
+      <p
+        class="font-heading text-base text-fg"
+      >
+        ¿Qué vas a hacer distinto?
+      </p>
+      <button
+        class="flex items-center gap-2 self-start rounded-md border-2 border-success px-4 py-2 font-heading text-sm font-bold uppercase tracking-wide text-success transition-colors hover:bg-success-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success"
+        style="--glow-color: color-mix(in srgb, var(--color-success) 55%, transparent);"
+        type="button"
+      >
+        <svg
+          class="lucide lucide-check"
+          fill="none"
+          height="16"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="3"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M20 6 9 17l-5-5"
+          />
+        </svg>
+         Finalizar
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > BlockRenderer · solution · checklist explícito 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p1) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p1);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <path
+          d="M60 16c12 15 12 45 0 60-12-15-12-45 0-60Z"
+        />
+        <circle
+          cx="60"
+          cy="42"
+          r="7"
+        />
+        <path
+          d="M48 62 38 82l14-8M72 62l10 20-14-8"
+        />
+        <path
+          d="M55 80q5 14 10 0"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-4"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <span
+          aria-hidden="true"
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-bg-raised text-success"
+          style="--glow-color: color-mix(in srgb, var(--color-success) 55%, transparent);"
+        >
+          <svg
+            class="lucide lucide-lightbulb"
+            fill="none"
+            height="18"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"
+            />
+            <path
+              d="M9 18h6"
+            />
+            <path
+              d="M10 22h4"
+            />
+          </svg>
+        </span>
+        <span
+          class="font-sans text-micro font-semibold uppercase tracking-meta text-primary"
+        >
+          PROBÁ ESTO
+        </span>
+      </div>
+      <div
+        class="font-sans text-lg sm:text-xl"
+      >
+        <p
+          class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+        >
+          Intro de la técnica.
+        </p>
+      </div>
+      <div
+        class="flex flex-col gap-2"
+      >
+        <ul
+          class="flex flex-col gap-2"
+        >
+          <li
+            class="glass-fill-strong rounded-md border border-border bg-bg-raised"
+          >
+            <div
+              class="flex items-start gap-3 p-3"
+            >
+              <button
+                aria-checked="false"
+                aria-label="Frená"
+                class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors border-border-strong text-transparent"
+                role="checkbox"
+                type="button"
+              >
+                <svg
+                  class="lucide lucide-check"
+                  fill="none"
+                  height="13"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                  viewBox="0 0 24 24"
+                  width="13"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20 6 9 17l-5-5"
+                  />
+                </svg>
+              </button>
+              <div
+                class="min-w-0 flex-1"
+              >
+                <button
+                  class="flex w-full items-center justify-between gap-2 text-left font-sans text-sm text-fg"
+                  type="button"
+                >
+                  <span>
+                    Frená
+                  </span>
+                  <svg
+                    class="lucide lucide-chevron-down shrink-0 text-fg-subtle transition-transform"
+                    fill="none"
+                    height="16"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </li>
+          <li
+            class="glass-fill-strong rounded-md border border-border bg-bg-raised"
+          >
+            <div
+              class="flex items-start gap-3 p-3"
+            >
+              <button
+                aria-checked="false"
+                aria-label="Respirá"
+                class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors border-border-strong text-transparent"
+                role="checkbox"
+                type="button"
+              >
+                <svg
+                  class="lucide lucide-check"
+                  fill="none"
+                  height="13"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                  viewBox="0 0 24 24"
+                  width="13"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20 6 9 17l-5-5"
+                  />
+                </svg>
+              </button>
+              <div
+                class="min-w-0 flex-1"
+              >
+                <button
+                  class="flex w-full items-center justify-between gap-2 text-left font-sans text-sm text-fg"
+                  disabled=""
+                  type="button"
+                >
+                  <span>
+                    Respirá
+                  </span>
+                </button>
+              </div>
+            </div>
+          </li>
+        </ul>
+        <button
+          class="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-raised px-3 py-1.5 font-sans text-sm font-medium text-fg hover:border-primary hover:text-primary self-start"
+          type="button"
+        >
+          <svg
+            class="lucide lucide-bookmark-plus"
+            fill="none"
+            height="15"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.75"
+            viewBox="0 0 24 24"
+            width="15"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"
+            />
+            <line
+              x1="12"
+              x2="12"
+              y1="7"
+              y2="13"
+            />
+            <line
+              x1="15"
+              x2="9"
+              y1="10"
+              y2="10"
+            />
+          </svg>
+           
+          Guardar en mi cuaderno
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > BlockRenderer · solution · lista 1.2.3. auto-detectada 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p1) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p1);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <path
+          d="M60 16c12 15 12 45 0 60-12-15-12-45 0-60Z"
+        />
+        <circle
+          cx="60"
+          cy="42"
+          r="7"
+        />
+        <path
+          d="M48 62 38 82l14-8M72 62l10 20-14-8"
+        />
+        <path
+          d="M55 80q5 14 10 0"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-4"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <span
+          aria-hidden="true"
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-bg-raised text-success"
+          style="--glow-color: color-mix(in srgb, var(--color-success) 55%, transparent);"
+        >
+          <svg
+            class="lucide lucide-lightbulb"
+            fill="none"
+            height="18"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"
+            />
+            <path
+              d="M9 18h6"
+            />
+            <path
+              d="M10 22h4"
+            />
+          </svg>
+        </span>
+        <span
+          class="font-sans text-micro font-semibold uppercase tracking-meta text-primary"
+        >
+          PROBÁ ESTO
+        </span>
+      </div>
+      <div
+        class="font-sans text-lg sm:text-xl"
+      >
+        <p
+          class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+        >
+          Antes de reaccionar:
+        </p>
+      </div>
+      <div
+        class="flex flex-col gap-2"
+      >
+        <ul
+          class="flex flex-col gap-2"
+        >
+          <li
+            class="glass-fill-strong rounded-md border border-border bg-bg-raised"
+          >
+            <div
+              class="flex items-start gap-3 p-3"
+            >
+              <button
+                aria-checked="false"
+                aria-label="Frená"
+                class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors border-border-strong text-transparent"
+                role="checkbox"
+                type="button"
+              >
+                <svg
+                  class="lucide lucide-check"
+                  fill="none"
+                  height="13"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                  viewBox="0 0 24 24"
+                  width="13"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20 6 9 17l-5-5"
+                  />
+                </svg>
+              </button>
+              <div
+                class="min-w-0 flex-1"
+              >
+                <button
+                  class="flex w-full items-center justify-between gap-2 text-left font-sans text-sm text-fg"
+                  disabled=""
+                  type="button"
+                >
+                  <span>
+                    Frená
+                  </span>
+                </button>
+              </div>
+            </div>
+          </li>
+          <li
+            class="glass-fill-strong rounded-md border border-border bg-bg-raised"
+          >
+            <div
+              class="flex items-start gap-3 p-3"
+            >
+              <button
+                aria-checked="false"
+                aria-label="Respirá"
+                class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors border-border-strong text-transparent"
+                role="checkbox"
+                type="button"
+              >
+                <svg
+                  class="lucide lucide-check"
+                  fill="none"
+                  height="13"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                  viewBox="0 0 24 24"
+                  width="13"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20 6 9 17l-5-5"
+                  />
+                </svg>
+              </button>
+              <div
+                class="min-w-0 flex-1"
+              >
+                <button
+                  class="flex w-full items-center justify-between gap-2 text-left font-sans text-sm text-fg"
+                  disabled=""
+                  type="button"
+                >
+                  <span>
+                    Respirá
+                  </span>
+                </button>
+              </div>
+            </div>
+          </li>
+          <li
+            class="glass-fill-strong rounded-md border border-border bg-bg-raised"
+          >
+            <div
+              class="flex items-start gap-3 p-3"
+            >
+              <button
+                aria-checked="false"
+                aria-label="Elegí"
+                class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors border-border-strong text-transparent"
+                role="checkbox"
+                type="button"
+              >
+                <svg
+                  class="lucide lucide-check"
+                  fill="none"
+                  height="13"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                  viewBox="0 0 24 24"
+                  width="13"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20 6 9 17l-5-5"
+                  />
+                </svg>
+              </button>
+              <div
+                class="min-w-0 flex-1"
+              >
+                <button
+                  class="flex w-full items-center justify-between gap-2 text-left font-sans text-sm text-fg"
+                  disabled=""
+                  type="button"
+                >
+                  <span>
+                    Elegí
+                  </span>
+                </button>
+              </div>
+            </div>
+          </li>
+        </ul>
+        <button
+          class="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-raised px-3 py-1.5 font-sans text-sm font-medium text-fg hover:border-primary hover:text-primary self-start"
+          type="button"
+        >
+          <svg
+            class="lucide lucide-bookmark-plus"
+            fill="none"
+            height="15"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.75"
+            viewBox="0 0 24 24"
+            width="15"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"
+            />
+            <line
+              x1="12"
+              x2="12"
+              y1="7"
+              y2="13"
+            />
+            <line
+              x1="15"
+              x2="9"
+              y1="10"
+              y2="10"
+            />
+          </svg>
+           
+          Guardar en mi cuaderno
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > BlockRenderer · solution · prosa 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p1) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p1);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <path
+          d="M60 16c12 15 12 45 0 60-12-15-12-45 0-60Z"
+        />
+        <circle
+          cx="60"
+          cy="42"
+          r="7"
+        />
+        <path
+          d="M48 62 38 82l14-8M72 62l10 20-14-8"
+        />
+        <path
+          d="M55 80q5 14 10 0"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-4"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <span
+          aria-hidden="true"
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-bg-raised text-success"
+          style="--glow-color: color-mix(in srgb, var(--color-success) 55%, transparent);"
+        >
+          <svg
+            class="lucide lucide-lightbulb"
+            fill="none"
+            height="18"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"
+            />
+            <path
+              d="M9 18h6"
+            />
+            <path
+              d="M10 22h4"
+            />
+          </svg>
+        </span>
+        <span
+          class="font-sans text-micro font-semibold uppercase tracking-meta text-primary"
+        >
+          PROBÁ ESTO
+        </span>
+      </div>
+      <div
+        class="font-sans text-lg sm:text-xl"
+      >
+        <p
+          class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+        >
+          Un consejo corto sin lista.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > HeroDataPoint 1`] = `
+<div
+  class="flex flex-col gap-1 py-2"
+>
+  <span
+    aria-label="79% — de las renuncias"
+    class="font-display text-6xl leading-none sm:text-7xl"
+    style="color: var(--dimension-p1);"
+  >
+    79%
+  </span>
+  <span
+    class="font-heading text-sm font-medium text-fg-muted"
+  >
+    de las renuncias
+  </span>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > InteractiveChecklist 1`] = `
+<div
+  class="flex flex-col gap-2"
+>
+  <ul
+    class="flex flex-col gap-2"
+  >
+    <li
+      class="glass-fill-strong rounded-md border border-border bg-bg-raised"
+    >
+      <div
+        class="flex items-start gap-3 p-3"
+      >
+        <button
+          aria-checked="false"
+          aria-label="Uno"
+          class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors border-border-strong text-transparent"
+          role="checkbox"
+          type="button"
+        >
+          <svg
+            class="lucide lucide-check"
+            fill="none"
+            height="13"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="3"
+            viewBox="0 0 24 24"
+            width="13"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M20 6 9 17l-5-5"
+            />
+          </svg>
+        </button>
+        <div
+          class="min-w-0 flex-1"
+        >
+          <button
+            class="flex w-full items-center justify-between gap-2 text-left font-sans text-sm text-fg"
+            type="button"
+          >
+            <span>
+              Uno
+            </span>
+            <svg
+              class="lucide lucide-chevron-down shrink-0 text-fg-subtle transition-transform"
+              fill="none"
+              height="16"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="16"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </li>
+    <li
+      class="glass-fill-strong rounded-md border border-border bg-bg-raised"
+    >
+      <div
+        class="flex items-start gap-3 p-3"
+      >
+        <button
+          aria-checked="false"
+          aria-label="Dos"
+          class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors border-border-strong text-transparent"
+          role="checkbox"
+          type="button"
+        >
+          <svg
+            class="lucide lucide-check"
+            fill="none"
+            height="13"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="3"
+            viewBox="0 0 24 24"
+            width="13"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M20 6 9 17l-5-5"
+            />
+          </svg>
+        </button>
+        <div
+          class="min-w-0 flex-1"
+        >
+          <button
+            class="flex w-full items-center justify-between gap-2 text-left font-sans text-sm text-fg"
+            disabled=""
+            type="button"
+          >
+            <span>
+              Dos
+            </span>
+          </button>
+        </div>
+      </div>
+    </li>
+  </ul>
+  <button
+    class="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-raised px-3 py-1.5 font-sans text-sm font-medium text-fg hover:border-primary hover:text-primary self-start"
+    type="button"
+  >
+    <svg
+      class="lucide lucide-bookmark-plus"
+      fill="none"
+      height="15"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="1.75"
+      viewBox="0 0 24 24"
+      width="15"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"
+      />
+      <line
+        x1="12"
+        x2="12"
+        y1="7"
+        y2="13"
+      />
+      <line
+        x1="15"
+        x2="9"
+        y1="10"
+        y2="10"
+      />
+    </svg>
+     
+    Guardar en mi cuaderno
+  </button>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > TextBlockView · context · blockquote 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p3) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p3);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <circle
+          cx="46"
+          cy="60"
+          r="20"
+        />
+        <circle
+          cx="74"
+          cy="60"
+          r="20"
+        />
+      </svg>
+    </span>
+    <div
+      class="relative overflow-hidden pl-5"
+    >
+      <span
+        aria-hidden="true"
+        class="absolute inset-y-0 left-0 w-1 rounded-full"
+        style="background-color: var(--dimension-p3);"
+      />
+      <div
+        class="relative flex flex-col gap-3"
+      >
+        <div
+          class="flex items-center gap-1.5 text-fg-muted"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-message-circle"
+            fill="none"
+            height="14"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="14"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"
+            />
+          </svg>
+          <span
+            class="font-sans text-micro font-semibold uppercase tracking-meta"
+          >
+            LA SITUACIÓN
+          </span>
+        </div>
+        <span
+          aria-hidden="true"
+          class="font-display text-6xl leading-[0.5]"
+          style="color: var(--dimension-p3); opacity: 0.5;"
+        >
+          “
+        </span>
+        <div
+          class="text-lg italic text-fg"
+        >
+          <div
+            class="font-sans text-lg sm:text-xl"
+          >
+            <p
+              class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+            >
+              Lo que se mide, se mejora.
+            </p>
+            
+
+            <p
+              class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+            >
+              Drucker
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > TextBlockView · context · plain 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p3) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p3);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <circle
+          cx="46"
+          cy="60"
+          r="20"
+        />
+        <circle
+          cx="74"
+          cy="60"
+          r="20"
+        />
+      </svg>
+    </span>
+    <div
+      class="relative overflow-hidden pl-5"
+    >
+      <span
+        aria-hidden="true"
+        class="absolute inset-y-0 left-0 w-1 rounded-full"
+        style="background-color: var(--dimension-p3);"
+      />
+      <div
+        class="relative flex flex-col gap-3"
+      >
+        <div
+          class="flex items-center gap-1.5 text-fg-muted"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-message-circle"
+            fill="none"
+            height="14"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="14"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"
+            />
+          </svg>
+          <span
+            class="font-sans text-micro font-semibold uppercase tracking-meta"
+          >
+            LA SITUACIÓN
+          </span>
+        </div>
+        <div
+          class=""
+        >
+          <div
+            class="font-sans text-lg sm:text-xl"
+          >
+            <p
+              class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+            >
+              Un texto de contexto con 
+              <strong
+                class="font-semibold text-fg"
+              >
+                negrita
+              </strong>
+              , 
+              <em
+                class="italic text-primary"
+              >
+                énfasis
+              </em>
+               y 
+              <mark
+                class="rounded bg-hg-amber/20 px-1 py-0.5 text-fg"
+              >
+                la frase clave
+              </mark>
+              .
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > TextBlockView · evidence · hero_stat auto-detectado 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p3) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p3);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <circle
+          cx="46"
+          cy="60"
+          r="20"
+        />
+        <circle
+          cx="74"
+          cy="60"
+          r="20"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-3"
+    >
+      <div
+        class="flex items-center gap-1.5 text-hg-amber"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-book-open"
+          fill="none"
+          height="14"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="14"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 7v14"
+          />
+          <path
+            d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+          />
+        </svg>
+        <span
+          class="font-sans text-micro font-semibold uppercase tracking-meta"
+        >
+          LA EVIDENCIA
+        </span>
+      </div>
+      <div
+        class="flex flex-col gap-1 py-2"
+      >
+        <span
+          aria-label="79% — las renuncias eran evitables según el estudio"
+          class="font-display text-6xl leading-none sm:text-7xl"
+          style="color: var(--dimension-p3);"
+        >
+          79%
+        </span>
+        <span
+          class="font-heading text-sm font-medium text-fg-muted"
+        >
+          las renuncias eran evitables según el estudio
+        </span>
+      </div>
+      <div
+        class="font-sans text-lg sm:text-xl"
+      >
+        <p
+          class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+        >
+          El 79% de las renuncias eran evitables según el estudio.
+        </p>
+      </div>
+      <div
+        class="mt-2 flex flex-col gap-2 rounded-md border border-border bg-bg-sunken p-4"
+      >
+        <div
+          class="flex flex-wrap items-center gap-2"
+        >
+          <span
+            class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-sans text-xs font-semibold whitespace-nowrap glass-fill-strong bg-bg-sunken text-fg-muted"
+          >
+            Estudio controlado
+          </span>
+          <span
+            class="text-xs text-fg-muted"
+          >
+            Journal X
+          </span>
+        </div>
+        <p
+          class="text-sm text-fg-muted"
+        >
+          Estudio
+        </p>
+        <a
+          class="inline-flex w-fit items-center gap-1 font-sans text-xs font-semibold text-primary hover:underline"
+          href="https://doi.org/10.1/x"
+          rel="noreferrer"
+          target="_blank"
+        >
+          Ver fuente 
+          <svg
+            class="lucide lucide-external-link"
+            fill="none"
+            height="12"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.75"
+            viewBox="0 0 24 24"
+            width="12"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 3h6v6"
+            />
+            <path
+              d="M10 14 21 3"
+            />
+            <path
+              d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+            />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > TextBlockView · evidence · hero_stat explícito 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p3) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p3);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <circle
+          cx="46"
+          cy="60"
+          r="20"
+        />
+        <circle
+          cx="74"
+          cy="60"
+          r="20"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-3"
+    >
+      <div
+        class="flex items-center gap-1.5 text-hg-amber"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-book-open"
+          fill="none"
+          height="14"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="14"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 7v14"
+          />
+          <path
+            d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+          />
+        </svg>
+        <span
+          class="font-sans text-micro font-semibold uppercase tracking-meta"
+        >
+          LA EVIDENCIA
+        </span>
+      </div>
+      <div
+        class="flex flex-col gap-1 py-2"
+      >
+        <span
+          aria-label="23% — de los casos"
+          class="font-display text-6xl leading-none sm:text-7xl"
+          style="color: var(--dimension-p3);"
+        >
+          23%
+        </span>
+        <span
+          class="font-heading text-sm font-medium text-fg-muted"
+        >
+          de los casos
+        </span>
+      </div>
+      <div
+        class="font-sans text-lg sm:text-xl"
+      >
+        <p
+          class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+        >
+          El cuerpo con el dato.
+        </p>
+      </div>
+      <div
+        class="mt-2 flex flex-col gap-2 rounded-md border border-border bg-bg-sunken p-4"
+      >
+        <div
+          class="flex flex-wrap items-center gap-2"
+        >
+          <span
+            class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-sans text-xs font-semibold whitespace-nowrap glass-fill-strong bg-bg-sunken text-fg-muted"
+          >
+            Estudio controlado
+          </span>
+          <span
+            class="text-xs text-fg-muted"
+          >
+            Journal X
+          </span>
+        </div>
+        <p
+          class="text-sm text-fg-muted"
+        >
+          Estudio
+        </p>
+        <a
+          class="inline-flex w-fit items-center gap-1 font-sans text-xs font-semibold text-primary hover:underline"
+          href="https://doi.org/10.1/x"
+          rel="noreferrer"
+          target="_blank"
+        >
+          Ver fuente 
+          <svg
+            class="lucide lucide-external-link"
+            fill="none"
+            height="12"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.75"
+            viewBox="0 0 24 24"
+            width="12"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 3h6v6"
+            />
+            <path
+              d="M10 14 21 3"
+            />
+            <path
+              d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+            />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > TextBlockView · evidence · sin número 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p3) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p3);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <circle
+          cx="46"
+          cy="60"
+          r="20"
+        />
+        <circle
+          cx="74"
+          cy="60"
+          r="20"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-3"
+    >
+      <div
+        class="flex items-center gap-1.5 text-hg-amber"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-book-open"
+          fill="none"
+          height="14"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="14"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 7v14"
+          />
+          <path
+            d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+          />
+        </svg>
+        <span
+          class="font-sans text-micro font-semibold uppercase tracking-meta"
+        >
+          LA EVIDENCIA
+        </span>
+      </div>
+      <div
+        class="font-sans text-lg sm:text-xl"
+      >
+        <p
+          class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+        >
+          Sin datos numéricos, sólo prosa.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > TextBlockView · solution · checklist explícito 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p3) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p3);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <circle
+          cx="46"
+          cy="60"
+          r="20"
+        />
+        <circle
+          cx="74"
+          cy="60"
+          r="20"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-4"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <span
+          aria-hidden="true"
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-bg-raised text-success"
+          style="--glow-color: color-mix(in srgb, var(--color-success) 55%, transparent);"
+        >
+          <svg
+            class="lucide lucide-lightbulb"
+            fill="none"
+            height="18"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"
+            />
+            <path
+              d="M9 18h6"
+            />
+            <path
+              d="M10 22h4"
+            />
+          </svg>
+        </span>
+        <span
+          class="font-sans text-micro font-semibold uppercase tracking-meta text-primary"
+        >
+          PROBÁ ESTO
+        </span>
+      </div>
+      <div
+        class="font-sans text-lg sm:text-xl"
+      >
+        <p
+          class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+        >
+          Intro de la técnica.
+        </p>
+      </div>
+      <div
+        class="flex flex-col gap-2"
+      >
+        <ul
+          class="flex flex-col gap-2"
+        >
+          <li
+            class="glass-fill-strong rounded-md border border-border bg-bg-raised"
+          >
+            <div
+              class="flex items-start gap-3 p-3"
+            >
+              <button
+                aria-checked="false"
+                aria-label="Frená"
+                class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors border-border-strong text-transparent"
+                role="checkbox"
+                type="button"
+              >
+                <svg
+                  class="lucide lucide-check"
+                  fill="none"
+                  height="13"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                  viewBox="0 0 24 24"
+                  width="13"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20 6 9 17l-5-5"
+                  />
+                </svg>
+              </button>
+              <div
+                class="min-w-0 flex-1"
+              >
+                <button
+                  class="flex w-full items-center justify-between gap-2 text-left font-sans text-sm text-fg"
+                  type="button"
+                >
+                  <span>
+                    Frená
+                  </span>
+                  <svg
+                    class="lucide lucide-chevron-down shrink-0 text-fg-subtle transition-transform"
+                    fill="none"
+                    height="16"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </li>
+          <li
+            class="glass-fill-strong rounded-md border border-border bg-bg-raised"
+          >
+            <div
+              class="flex items-start gap-3 p-3"
+            >
+              <button
+                aria-checked="false"
+                aria-label="Respirá"
+                class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors border-border-strong text-transparent"
+                role="checkbox"
+                type="button"
+              >
+                <svg
+                  class="lucide lucide-check"
+                  fill="none"
+                  height="13"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                  viewBox="0 0 24 24"
+                  width="13"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20 6 9 17l-5-5"
+                  />
+                </svg>
+              </button>
+              <div
+                class="min-w-0 flex-1"
+              >
+                <button
+                  class="flex w-full items-center justify-between gap-2 text-left font-sans text-sm text-fg"
+                  disabled=""
+                  type="button"
+                >
+                  <span>
+                    Respirá
+                  </span>
+                </button>
+              </div>
+            </div>
+          </li>
+        </ul>
+        <button
+          class="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-raised px-3 py-1.5 font-sans text-sm font-medium text-fg hover:border-primary hover:text-primary self-start"
+          type="button"
+        >
+          <svg
+            class="lucide lucide-bookmark-plus"
+            fill="none"
+            height="15"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.75"
+            viewBox="0 0 24 24"
+            width="15"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"
+            />
+            <line
+              x1="12"
+              x2="12"
+              y1="7"
+              y2="13"
+            />
+            <line
+              x1="15"
+              x2="9"
+              y1="10"
+              y2="10"
+            />
+          </svg>
+           
+          Guardar en mi cuaderno
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > TextBlockView · solution · lista 1.2.3. auto-detectada 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p3) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p3);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <circle
+          cx="46"
+          cy="60"
+          r="20"
+        />
+        <circle
+          cx="74"
+          cy="60"
+          r="20"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-4"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <span
+          aria-hidden="true"
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-bg-raised text-success"
+          style="--glow-color: color-mix(in srgb, var(--color-success) 55%, transparent);"
+        >
+          <svg
+            class="lucide lucide-lightbulb"
+            fill="none"
+            height="18"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"
+            />
+            <path
+              d="M9 18h6"
+            />
+            <path
+              d="M10 22h4"
+            />
+          </svg>
+        </span>
+        <span
+          class="font-sans text-micro font-semibold uppercase tracking-meta text-primary"
+        >
+          PROBÁ ESTO
+        </span>
+      </div>
+      <div
+        class="font-sans text-lg sm:text-xl"
+      >
+        <p
+          class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+        >
+          Antes de reaccionar:
+        </p>
+      </div>
+      <div
+        class="flex flex-col gap-2"
+      >
+        <ul
+          class="flex flex-col gap-2"
+        >
+          <li
+            class="glass-fill-strong rounded-md border border-border bg-bg-raised"
+          >
+            <div
+              class="flex items-start gap-3 p-3"
+            >
+              <button
+                aria-checked="false"
+                aria-label="Frená"
+                class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors border-border-strong text-transparent"
+                role="checkbox"
+                type="button"
+              >
+                <svg
+                  class="lucide lucide-check"
+                  fill="none"
+                  height="13"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                  viewBox="0 0 24 24"
+                  width="13"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20 6 9 17l-5-5"
+                  />
+                </svg>
+              </button>
+              <div
+                class="min-w-0 flex-1"
+              >
+                <button
+                  class="flex w-full items-center justify-between gap-2 text-left font-sans text-sm text-fg"
+                  disabled=""
+                  type="button"
+                >
+                  <span>
+                    Frená
+                  </span>
+                </button>
+              </div>
+            </div>
+          </li>
+          <li
+            class="glass-fill-strong rounded-md border border-border bg-bg-raised"
+          >
+            <div
+              class="flex items-start gap-3 p-3"
+            >
+              <button
+                aria-checked="false"
+                aria-label="Respirá"
+                class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors border-border-strong text-transparent"
+                role="checkbox"
+                type="button"
+              >
+                <svg
+                  class="lucide lucide-check"
+                  fill="none"
+                  height="13"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                  viewBox="0 0 24 24"
+                  width="13"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20 6 9 17l-5-5"
+                  />
+                </svg>
+              </button>
+              <div
+                class="min-w-0 flex-1"
+              >
+                <button
+                  class="flex w-full items-center justify-between gap-2 text-left font-sans text-sm text-fg"
+                  disabled=""
+                  type="button"
+                >
+                  <span>
+                    Respirá
+                  </span>
+                </button>
+              </div>
+            </div>
+          </li>
+          <li
+            class="glass-fill-strong rounded-md border border-border bg-bg-raised"
+          >
+            <div
+              class="flex items-start gap-3 p-3"
+            >
+              <button
+                aria-checked="false"
+                aria-label="Elegí"
+                class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors border-border-strong text-transparent"
+                role="checkbox"
+                type="button"
+              >
+                <svg
+                  class="lucide lucide-check"
+                  fill="none"
+                  height="13"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                  viewBox="0 0 24 24"
+                  width="13"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20 6 9 17l-5-5"
+                  />
+                </svg>
+              </button>
+              <div
+                class="min-w-0 flex-1"
+              >
+                <button
+                  class="flex w-full items-center justify-between gap-2 text-left font-sans text-sm text-fg"
+                  disabled=""
+                  type="button"
+                >
+                  <span>
+                    Elegí
+                  </span>
+                </button>
+              </div>
+            </div>
+          </li>
+        </ul>
+        <button
+          class="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-raised px-3 py-1.5 font-sans text-sm font-medium text-fg hover:border-primary hover:text-primary self-start"
+          type="button"
+        >
+          <svg
+            class="lucide lucide-bookmark-plus"
+            fill="none"
+            height="15"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.75"
+            viewBox="0 0 24 24"
+            width="15"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"
+            />
+            <line
+              x1="12"
+              x2="12"
+              y1="7"
+              y2="13"
+            />
+            <line
+              x1="15"
+              x2="9"
+              y1="10"
+              y2="10"
+            />
+          </svg>
+           
+          Guardar en mi cuaderno
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`regresión: bloques sin presentation renderizan como antes > TextBlockView · solution · prosa 1`] = `
+<div
+  class="relative flex h-full min-h-full w-full flex-col justify-center overflow-y-auto"
+  style="background: linear-gradient(180deg, color-mix(in srgb, var(--dimension-p3) 13%, var(--bg)) 0%, var(--bg) 52%);"
+>
+  <div
+    class="mx-auto flex w-full max-w-xl flex-col gap-6 px-6 py-10 sm:px-8 sm:py-14"
+  >
+    <span
+      aria-hidden="true"
+      class="shrink-0"
+      style="color: var(--dimension-p3);"
+    >
+      <svg
+        aria-hidden="true"
+        class="h-16 w-16 sm:h-20 sm:w-20"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="3"
+        viewBox="0 0 120 120"
+      >
+        <circle
+          cx="46"
+          cy="60"
+          r="20"
+        />
+        <circle
+          cx="74"
+          cy="60"
+          r="20"
+        />
+      </svg>
+    </span>
+    <div
+      class="flex flex-col gap-4"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <span
+          aria-hidden="true"
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-bg-raised text-success"
+          style="--glow-color: color-mix(in srgb, var(--color-success) 55%, transparent);"
+        >
+          <svg
+            class="lucide lucide-lightbulb"
+            fill="none"
+            height="18"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"
+            />
+            <path
+              d="M9 18h6"
+            />
+            <path
+              d="M10 22h4"
+            />
+          </svg>
+        </span>
+        <span
+          class="font-sans text-micro font-semibold uppercase tracking-meta text-primary"
+        >
+          PROBÁ ESTO
+        </span>
+      </div>
+      <div
+        class="font-sans text-lg sm:text-xl"
+      >
+        <p
+          class="leading-relaxed text-fg [&:not(:first-child)]:mt-3"
+        >
+          Un consejo corto sin lista.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+`;

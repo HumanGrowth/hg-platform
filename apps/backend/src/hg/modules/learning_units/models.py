@@ -221,6 +221,10 @@ class TextBlock(Base):
     hero_stat: Mapped[dict | None] = mapped_column(JSONB)
     # checklist_items: [{title, detail?}] para el checklist de variant=solution.
     checklist_items: Mapped[list[dict] | None] = mapped_column(JSONB)
+    # Tags de presentación SIN columna propia (plantillas sociales): {template,
+    # tone, accent, motif, format, emphasis_level, pull_quote, cta}. NULL = el
+    # frontend auto-detecta la plantilla (backward compat, look actual).
+    presentation: Mapped[dict | None] = mapped_column(JSONB)
 
 
 class QuizBlock(Base):

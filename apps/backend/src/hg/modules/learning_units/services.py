@@ -47,6 +47,7 @@ import logging
 import uuid
 from typing import Any, cast
 
+from pydantic import TypeAdapter, ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -54,6 +55,7 @@ from hg.modules.identity.models import User
 from hg.modules.learning_units.admin_router import create_block, create_unit, publish_unit
 from hg.modules.learning_units.models import LearningUnit
 from hg.modules.learning_units.schemas import (
+    BlockPresentation,
     CitationOut,
     FillBlankAnswerCreate,
     LearningUnitCreate,
@@ -93,6 +95,47 @@ _TEXT_VARIANT_AND_EYEBROW: dict[str, tuple[str, str]] = {
     "text_evidence": ("evidence", "EVIDENCIA"),
     "text_solution": ("solution", "PROBÁ ESTO"),
 }
+
+
+# Tags de presentación que el JSON de la unit trae PLANOS a nivel bloque (spec
+# §4.A/C) y que se agrupan en ``text_blocks.presentation``. eyebrow / hero_stat /
+# checklist_items / keywords NO están acá: ya tienen columna propia.
+PRESENTATION_TAGS = tuple(BlockPresentation.model_fields)
+_PRESENTATION_FIELD_ADAPTERS: dict[str, TypeAdapter[Any]] = {
+    name: TypeAdapter(field.annotation) for name, field in BlockPresentation.model_fields.items()
+}
+
+
+def sanitize_presentation(block: dict[str, Any], slug: str = "?") -> dict[str, Any] | None:
+    """Extrae y valida los tags de presentación de un bloque del dict de la unit.
+
+    Acepta los tags planos (``{"template": "stat", "tone": "green", ...}``, como
+    en el spec) y/o anidados bajo ``presentation``. Un valor inválido (fuera del
+    enum o mal formado) se **ignora con un warning** — nunca rompe la ingesta.
+    Devuelve ``None`` si no queda ningún tag válido (columna NULL = auto-detect)."""
+    raw: dict[str, Any] = {}
+    nested = block.get("presentation")
+    if isinstance(nested, dict):
+        raw.update(nested)
+    for tag in PRESENTATION_TAGS:
+        if tag in block:
+            raw[tag] = block[tag]
+
+    out: dict[str, Any] = {}
+    for tag, value in raw.items():
+        adapter = _PRESENTATION_FIELD_ADAPTERS.get(tag)
+        if adapter is None or value is None:
+            continue  # tag desconocido / vacío: se ignora en silencio (extensible)
+        try:
+            validated = adapter.validate_python(value)
+        except ValidationError:
+            log.warning(
+                "  %s: tag de presentación %s=%r inválido — se ignora (corregir en el Doc)",
+                slug, tag, value,
+            )
+            continue
+        out[tag] = validated.model_dump(exclude_none=True) if hasattr(validated, "model_dump") else validated
+    return out or None
 
 
 class UnitDictError(ValueError):
@@ -196,6 +239,11 @@ def _block_to_create(
             citation=CitationOut(**citation) if citation else None,
             applies_to=block.get("applies_to"),
             requires_evidence_block_id=evidence_id,
+            hero_stat=block.get("hero_stat"),
+            checklist_items=block.get("checklist_items"),
+            # Ya saneado por `sanitize_presentation` en el sync; se re-valida
+            # (estricto) acá para que cualquier otro caller también quede cubierto.
+            presentation=block.get("presentation"),
         )
 
     if btype == "quiz_recall":

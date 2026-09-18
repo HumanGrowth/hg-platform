@@ -207,6 +207,7 @@ export function UnitStoriesPlayer({ unit, attempt, onClose }: UnitStoriesPlayerP
             <BlockRenderer
               block={currentBlock}
               dimensionCode={unit.dimension_code}
+              narrativeTone={unit.narrative_tone}
               isCompleted={isCurrentCompleted}
               onCompleteBlock={onCompleteBlock}
               onSubmitQuiz={onSubmitQuiz}

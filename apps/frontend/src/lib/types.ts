@@ -495,6 +495,35 @@ export interface ChecklistItem {
 }
 export type NarrativeTone = "active" | "contemplative" | "analytical" | "warm";
 
+// Tags de presentación por bloque (plantillas sociales). Espejo de
+// `BlockPresentation` del backend; todo opcional — sin tags el bloque se ve como
+// siempre (backward compat).
+export type TemplateKind =
+  | "editorial"
+  | "stat"
+  | "quote"
+  | "tip"
+  | "steps"
+  | "interactive"
+  | "video"
+  | "announce"
+  | "data";
+export type PresentationFormat = "story" | "feed" | "wide" | "portrait" | "li-infographic";
+export type PresentationTone = "cream" | "green" | "charcoal" | "dimension";
+export type PresentationAccent = "auto" | "green" | "amber" | "orange";
+export type PresentationMotif = "mosaic" | "pencil" | "quote" | "none";
+export type EmphasisLevel = "calm" | "bold";
+export interface BlockPresentation {
+  template?: TemplateKind | null;
+  format?: PresentationFormat | null;
+  tone?: PresentationTone | null;
+  accent?: PresentationAccent | null;
+  motif?: PresentationMotif | null;
+  emphasis_level?: EmphasisLevel | null;
+  pull_quote?: { text: string; attribution?: string | null } | null;
+  cta?: { label: string; href?: string | null } | null;
+}
+
 export interface VideoBlock extends BlockBase {
   block_type: "video_intro" | "video_teaching" | "video_closing";
   video_url: string;
@@ -516,6 +545,8 @@ export interface TextBlock extends BlockBase {
   requires_evidence_block_id: string | null;
   hero_stat: HeroStat | null;
   checklist_items: ChecklistItem[] | null;
+  /** Tags de presentación (plantillas sociales). Ausente/null = look clásico. */
+  presentation?: BlockPresentation | null;
 }
 
 export interface QuizOptionOut {

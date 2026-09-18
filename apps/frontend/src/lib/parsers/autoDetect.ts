@@ -130,3 +130,9 @@ function detectLetterList(text: string): ChecklistItemDetection[] | null {
   }
   return items.length >= 2 ? items.slice(0, 5) : null;
 }
+
+/** Índice (0-based) del inicio de la lista de pasos (`1.`/`1)`/`(1)` o `(S)`…), o -1. */
+export function numberedListStart(body: string): number {
+  const m = /(^|\n|\s)(?:\(?1[.)]|\([A-Za-z]\))\s/.exec(body);
+  return m ? m.index + (m[1] ? m[1].length : 0) : -1;
+}

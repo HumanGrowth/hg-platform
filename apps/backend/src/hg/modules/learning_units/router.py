@@ -205,6 +205,7 @@ def _build_block_union(db: Session, unit_block: UnitBlock):  # union de 4 tipos
             citation=content.citation, applies_to=content.applies_to,
             requires_evidence_block_id=content.requires_evidence_block_id,
             hero_stat=content.hero_stat, checklist_items=content.checklist_items,
+            presentation=content.presentation,
         )
     if isinstance(content, QuizBlock):
         questions = sorted(content.questions, key=lambda q: q.position)
