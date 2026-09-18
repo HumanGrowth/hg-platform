@@ -1,13 +1,19 @@
 "use client";
 
+import { Lock } from "lucide-react";
 import * as React from "react";
 
 import { UnitCardCompact } from "@/components/modulos/UnitCardCompact";
 import { HexIcon } from "@/components/ui/hex-icon";
+import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiListModulosByDimension } from "@/lib/api";
 import { DIMENSIONS, type DimensionMeta } from "@/lib/modulos";
-import { subPillarName } from "@/lib/dimension-styles";
+import {
+  DIMENSIONS_META,
+  dimensionShortName,
+  subPillarName,
+} from "@/lib/dimension-styles";
 import type { LearningUnitFeedItem, PathDimensionProgress } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -49,9 +55,10 @@ function groupBySkill(units: LearningUnitFeedItem[]): Map<string, LearningUnitFe
 
 /**
  * Catálogo por Dimensión → Pilar → Unidades (TASK 1 · pulido). Master-detail:
- * las dimensiones en una columna a la izquierda; al elegir uno, sus módulos se
- * muestran a la derecha (en mobile: pilares como fila arriba, módulos debajo).
- * Es extensible vía el registro DIMENSIONS.
+ * un grid de cards con las 6 dimensiones (las que aún no tienen contenido
+ * aparecen bloqueadas, "Próximamente"); al elegir una, sus pilares y módulos se
+ * muestran debajo (en mobile: pilares como fila arriba, módulos debajo).
+ * El contenido disponible sale del registro DIMENSIONS (extensible).
  *
  * Vive en Mi Ruta ("Explorá por dimensión"): Módulos dejó de ser un catálogo y
  * ahora arranca directo el siguiente módulo de tu ruta, así que esta es también
@@ -85,7 +92,9 @@ export function DimensionCatalog({
     };
   }, []);
 
-  if (status === "loading") return null; // el hero/feed ya muestra su propio loading
+  if (status === "loading") {
+    return <div className="h-24 animate-pulse rounded-2xl bg-bg-sunken" aria-hidden />;
+  }
 
   const dimensionsWithUnits = DIMENSIONS.filter((d) => (byDimension[d.code]?.length ?? 0) > 0);
   if (dimensionsWithUnits.length === 0) return null;
@@ -93,6 +102,8 @@ export function DimensionCatalog({
   const progressByPillar = new Map(
     (progressByCareerPath ?? []).map((p) => [p.career_path_code, p]),
   );
+
+  const unitsByPillar = new Map(DIMENSIONS.map((d) => [d.pillar, byDimension[d.code] ?? []]));
 
   const allUnits = Object.values(byDimension).flat();
   const skillGroups = groupBySkill(allUnits);
@@ -129,23 +140,21 @@ export function DimensionCatalog({
       </div>
 
       {mode === "dimension" ? (
-        <Tabs defaultValue={dimensionsWithUnits[0].code}>
-          {/* Tabs horizontales — una dimensión por tab; scrollean en mobile. */}
-          {/* Cada tab se ve como el título de una dimensión: badge (HexIcon) + nombre. */}
-          <TabsList aria-label="Dimensiones" className="gap-4 overflow-x-auto">
-            {dimensionsWithUnits.map((dim) => (
-              <TabsTrigger
-                key={dim.code}
-                value={dim.code}
-                className="flex shrink-0 items-center gap-2 whitespace-nowrap"
-              >
-                <HexIcon pillar={dim.pillar} size={22} />
-                {dim.name}
-              </TabsTrigger>
-            ))}
+        <Tabs defaultValue={dimensionsWithUnits[0].pillar}>
+          {/* Una card por dimensión — HexIcon + nombre + cantidad de módulos. Las
+              que todavía no tienen contenido quedan deshabilitadas (bloqueadas). */}
+          <TabsList
+            variant="bare"
+            aria-label="Dimensiones"
+            className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"
+          >
+            {DIMENSIONS_META.map((meta) => {
+              const count = unitsByPillar.get(meta.id)?.length ?? 0;
+              return <DimensionCard key={meta.id} pillar={meta.id} count={count} />;
+            })}
           </TabsList>
           {dimensionsWithUnits.map((dim) => (
-            <TabsContent key={dim.code} value={dim.code}>
+            <TabsContent key={dim.code} value={dim.pillar}>
               <DimensionSection
                 units={byDimension[dim.code]}
                 progress={progressByPillar.get(dim.pillar)}
@@ -179,6 +188,42 @@ export function DimensionCatalog({
   );
 }
 
+/**
+ * Card de una dimensión dentro de la TabsList: HexIcon, nombre corto, cantidad de
+ * módulos y estado (activa / bloqueada). `count === 0` = todavía sin contenido.
+ */
+function DimensionCard({ pillar, count }: { pillar: string; count: number }) {
+  const locked = count === 0;
+  return (
+    <TabsTrigger
+      value={pillar}
+      variant="bare"
+      disabled={locked}
+      title={DIMENSIONS_META.find((d) => d.id === pillar)?.name}
+      className={cn(
+        "glass-fill-strong flex items-center gap-3 rounded-2xl border p-3 text-left transition-[box-shadow,transform] duration-fast ease-out",
+        locked
+          ? "cursor-not-allowed opacity-60"
+          : "hover:-translate-y-0.5 aria-selected:ring-2 aria-selected:ring-primary",
+      )}
+    >
+      {/* El nombre va en texto al lado: el ícono es decorativo acá. */}
+      <span aria-hidden>
+        <HexIcon pillar={pillar} size={36} className={locked ? "grayscale" : undefined} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-heading text-sm font-medium text-fg">
+          {dimensionShortName(pillar)}
+        </span>
+        <span className="block text-xs text-fg-muted">
+          {locked ? "Próximamente" : `${count} ${count === 1 ? "módulo" : "módulos"}`}
+        </span>
+      </span>
+      {locked && <Lock size={14} strokeWidth={2} className="shrink-0 text-fg-subtle" aria-hidden />}
+    </TabsTrigger>
+  );
+}
+
 function DimensionSection({
   units,
   progress,
@@ -206,9 +251,12 @@ function DimensionSection({
               {progress.completed} / {progress.total} completadas
             </span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-bg-sunken">
-            <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
-          </div>
+          <Progress
+            value={pct}
+            label={`Tu progreso: ${progress.completed} de ${progress.total} completadas`}
+            className="h-2 rounded-full"
+            indicatorClassName="rounded-full bg-hg-orange"
+          />
         </div>
       )}
       {/* Sin header de dimensión: el tab ya muestra su badge + nombre. Acá solo
@@ -230,14 +278,21 @@ function DimensionSection({
                 aria-selected={active}
                 onClick={() => setSelected(p)}
                 className={cn(
-                  "flex shrink-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-left font-sans text-sm transition-colors",
+                  "flex shrink-0 items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left font-sans text-sm transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
+                  // hg-orange-700: el naranja de marca (#e8530a) no llega a 4.5:1 con texto blanco.
                   active
-                    ? "border-primary bg-hg-green-100 font-semibold text-primary"
+                    ? "border-hg-orange-700 bg-hg-orange-700 font-semibold text-white"
                     : "border-border text-fg-muted hover:bg-bg-sunken",
                 )}
               >
                 <span>{subPillarName(groups.get(p)?.[0]?.dimension_code, p)}</span>
-                <span className="rounded-full bg-bg-sunken px-1.5 text-xs tabular-nums text-fg-subtle">
+                <span
+                  className={cn(
+                    "rounded-full px-1.5 text-xs tabular-nums",
+                    active ? "bg-white/20 text-white" : "bg-bg-sunken text-fg-subtle",
+                  )}
+                >
                   {groups.get(p)?.length ?? 0}
                 </span>
               </button>
@@ -246,7 +301,7 @@ function DimensionSection({
         </div>
 
         {/* Módulos del pilar seleccionado. */}
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="grid min-w-0 flex-1 content-start gap-3 md:grid-cols-2">
           {current.map((u) => (
             <UnitCardCompact key={u.id} unit={u} />
           ))}
