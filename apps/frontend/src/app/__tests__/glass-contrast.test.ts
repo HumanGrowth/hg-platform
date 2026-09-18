@@ -58,6 +58,9 @@ interface ThemeSpec {
   fillStrongAlpha: number;
   fillDeepBase: Rgb;
   fillDeepAlpha: number;
+  /** Tarjeta dentro de tarjeta (.glass-inset) — se compone SOBRE la card strong. */
+  insetBase: Rgb;
+  insetAlpha: number;
   textStrong: Rgb; // título (--fg)
   textMuted: Rgb; // body/muted (--fg-muted)
   focusRing: Rgb; // --glass-focus-ring
@@ -73,9 +76,11 @@ const LIGHT: ThemeSpec = {
     ["#e8530a", 0.1],
   ],
   fillStrongBase: [255, 255, 255],
-  fillStrongAlpha: 0.88,
+  fillStrongAlpha: 0.74,
   fillDeepBase: [253, 250, 246],
-  fillDeepAlpha: 0.88,
+  fillDeepAlpha: 0.84,
+  insetBase: [255, 255, 255],
+  insetAlpha: 0.55,
   textStrong: hexToRgb("#1a1a1a"), // --hg-ink
   textMuted: hexToRgb("#6b7061"), // --hg-olive-gray
   focusRing: hexToRgb("#2a2826"), // --hg-charcoal
@@ -91,9 +96,11 @@ const DARK: ThemeSpec = {
     ["#e8530a", 0.16],
   ],
   fillStrongBase: [30, 28, 26],
-  fillStrongAlpha: 0.82,
+  fillStrongAlpha: 0.58,
   fillDeepBase: [18, 17, 16],
-  fillDeepAlpha: 0.88,
+  fillDeepAlpha: 0.8,
+  insetBase: [255, 255, 255],
+  insetAlpha: 0.06,
   textStrong: hexToRgb("#faf3e8"), // --fg / --hg-cream
   textMuted: hexToRgb("#b3b0a8"), // --fg-muted
   focusRing: hexToRgb("#faf3e8"), // --hg-cream
@@ -128,6 +135,18 @@ describe.each([LIGHT, DARK])("tema glass $name · WCAG contrast gate", (spec) =>
   it("texto muted sobre glass-modal (fill-deep) cumple 4.5:1", () => {
     const ratio = worstContrast(spec, spec.fillDeepBase, spec.fillDeepAlpha, spec.textMuted);
     expect(ratio).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("texto muted dentro de una tarjeta inset (card dentro de card) cumple 4.5:1", () => {
+    // Peor caso: inset compuesto sobre la card strong compuesta sobre cada backdrop.
+    const worst = Math.min(
+      ...backdropCandidates(spec).map((bg) => {
+        const card = composite(spec.fillStrongBase, spec.fillStrongAlpha, bg);
+        const inset = composite(spec.insetBase, spec.insetAlpha, card);
+        return contrastRatio(inset, spec.textMuted);
+      }),
+    );
+    expect(worst).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
   it("anillo de foco sobre glass-surface-strong cumple 3:1 (UI)", () => {

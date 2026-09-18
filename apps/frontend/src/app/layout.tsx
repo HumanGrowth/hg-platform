@@ -93,6 +93,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#4A7A54",
+  // Sin viewport-fit=cover, env(safe-area-inset-*) vale 0 y el dock/player
+  // quedan bajo el home indicator / barra de URL inferior en móvil.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

@@ -1,19 +1,47 @@
 "use client";
 
-import { LogOut, ShieldCheck, Sparkles, UserCog } from "lucide-react";
+import { LogOut, ShieldCheck, Sparkles, UserCog, Users } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
-import { isActive, sideNavItemsForRole } from "@/components/nav/items";
+import { isActive, sideNavItemsForRole, type NavItem } from "@/components/nav/items";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { Avatar } from "@/components/ui/avatar";
 import { apiLogout } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
-import { getPageHeader } from "@/lib/glass/page-headers";
+import { getPageHeader, isModulePlayback } from "@/lib/glass/page-headers";
 import { cn } from "@/lib/utils";
+
+// Perfil, equipo y modo admin se agrupan en UN botón del dock que despliega
+// una lista (el dock completo con 8 íconos era demasiado ancho). "Modo admin"
+// se identifica por label: su href cambia según el rol.
+const GROUP_HREFS = new Set(["/perfil", "/team"]);
+function isGroupItem(item: NavItem): boolean {
+  return GROUP_HREFS.has(item.href) || item.label === "Modo admin";
+}
+
+function DockLink({ item, pathname }: { item: NavItem; pathname: string }) {
+  const active = isActive(pathname, item.href);
+  const Icon = item.icon;
+  return (
+    <Link
+      href={item.href as Route}
+      title={item.label}
+      aria-label={item.label}
+      aria-current={active ? "page" : undefined}
+      data-tour-id={`nav-${item.href.slice(1)}`}
+      className={cn(
+        "relative inline-flex h-[46px] w-[46px] items-center justify-center rounded-2xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
+        active ? "bg-hg-green-100/90 shadow-[inset_0_0_0_1px_rgba(74,122,84,0.35)]" : "glass-hover-bg",
+      )}
+    >
+      <Icon size={19} strokeWidth={1.8} className={cn(active ? "text-primary" : "text-fg-muted")} />
+    </Link>
+  );
+}
 
 /**
  * SpatialCanvas — shell REAL que reemplaza SideNav + TopBar + BottomNav
@@ -39,10 +67,27 @@ export function SpatialCanvas({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const clear = useAuthStore((s) => s.clear);
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const [groupOpen, setGroupOpen] = React.useState(false);
 
   const navItems = React.useMemo(() => sideNavItemsForRole(user), [user]);
   const isOrgAdmin = user?.role === "admin" || user?.role === "superadmin";
+  const primaryItems = navItems.filter((i) => !isGroupItem(i));
+  const groupItems = navItems.filter(isGroupItem);
+  const groupActive = groupItems.some((i) => isActive(pathname, i.href));
+  const hasAdminEntry = groupItems.some((i) => i.label === "Modo admin");
+
+  // Cerrar el desplegable al navegar y con Esc.
+  React.useEffect(() => {
+    setGroupOpen(false);
+  }, [pathname]);
+  React.useEffect(() => {
+    if (!groupOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setGroupOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [groupOpen]);
   const header = getPageHeader(pathname);
+  const playing = isModulePlayback(pathname);
 
   async function logout() {
     try {
@@ -56,7 +101,10 @@ export function SpatialCanvas({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
       {/* Top floating bar — reemplaza TopBar. Título + descripción reales de
-          la página activa (no un mode-switcher). */}
+          la página activa (no un mode-switcher). Se oculta durante la
+          reproducción de un módulo: pisaba el header/botón de cierre del
+          player. */}
+      {!playing && (
       <div className="pointer-events-none absolute inset-x-3 top-3 z-20 flex flex-wrap items-center justify-between gap-2.5 md:inset-x-6 md:top-5">
         <div className="glass-fill-strong pointer-events-auto flex min-w-0 items-center gap-3 rounded-2xl glass-edge border px-3 py-2 shadow-md">
           <Link href="/home" aria-label="Human Growth — inicio" className="flex shrink-0 items-center">
@@ -134,55 +182,103 @@ export function SpatialCanvas({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </div>
+      )}
 
       {/* Canvas — el contenido REAL de cada page (mismo children que antes). */}
-      <main className="relative z-0 flex-1 overflow-y-auto px-3 pb-28 pt-24 md:px-8 md:pt-28">{children}</main>
+      <main
+        className={cn(
+          "relative z-0 flex-1 overflow-y-auto px-3 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:px-8",
+          playing ? "pt-3 md:pt-4" : "pt-24 md:pt-28",
+        )}
+      >
+        {children}
+      </main>
 
       {/* Floating dock — reemplaza SideNav + BottomNav, misma navegación real.
-          "Modo admin" queda resaltado: acá vivirá el asistente de IA. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-5 z-20 flex justify-center px-3">
-        {/* Dock solo íconos (sin texto) — puede usar el tier translúcido
-            liviano (.glass-fill) para un look más "vidrio" auténtico; el
-            contraste ya está garantizado por el color del ícono, no por
-            texto sobre el fill (ver gate de contraste, no aplica acá). */}
-        <div className="glass-fill pointer-events-auto flex items-center gap-1.5 rounded-2xl glass-edge border p-2 shadow-lg">
-          {navItems.map((item) => {
-            const active = isActive(pathname, item.href);
-            const isAdminEntry = item.label === "Modo admin";
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href as Route}
-                title={isAdminEntry ? `${item.label} · próximamente: asistente de IA` : item.label}
-                aria-label={item.label}
-                aria-current={active ? "page" : undefined}
-                data-tour-id={`nav-${item.href.slice(1)}`}
+          Los ítems de gestión personal (perfil / equipo / modo admin) viven en
+          un solo botón que despliega una lista. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[max(1.25rem,calc(env(safe-area-inset-bottom)+0.5rem))] z-20 flex justify-center px-3">
+        <div className="pointer-events-auto relative">
+          {/* La lista es HERMANA del dock (no hija): un backdrop-filter dentro
+              de otro backdrop-filter no ve el fondo de la página (backdrop
+              root) — ver "one backdrop-filter per stack" en glass.css. */}
+          {groupOpen && groupItems.length > 1 && (
+            <>
+              <div className="fixed inset-0 -z-10" onClick={() => setGroupOpen(false)} aria-hidden />
+              <div
+                id="dock-group-menu"
+                role="menu"
+                className="glass-modal absolute bottom-full right-0 z-10 mb-3 w-60 max-w-[calc(100vw-1.5rem)] p-2"
+              >
+                {groupItems.map((item) => {
+                  const active = isActive(pathname, item.href);
+                  const isAdminEntry = item.label === "Modo admin";
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href as Route}
+                      role="menuitem"
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl px-3 py-2.5 font-sans text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
+                        isAdminEntry
+                          ? "bg-hg-amber/15 text-fg shadow-[inset_0_0_0_1px_rgba(232,160,48,0.45)]"
+                          : active
+                            ? "bg-hg-green-100/90 text-primary shadow-[inset_0_0_0_1px_rgba(74,122,84,0.35)]"
+                            : "glass-hover-bg text-fg",
+                      )}
+                    >
+                      <Icon size={17} strokeWidth={1.8} className={isAdminEntry ? "text-hg-amber" : active ? "text-primary" : "text-fg-muted"} />
+                      <span className="flex-1">{item.label}</span>
+                      {isAdminEntry && <Sparkles size={13} strokeWidth={2} className="text-hg-amber" aria-hidden />}
+                    </Link>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* Dock solo íconos (sin texto) — tier translúcido liviano
+              (.glass-fill); el contraste lo da el color del ícono. */}
+          <div className="glass-fill flex items-center gap-1.5 rounded-2xl glass-edge border p-2 shadow-lg">
+            {primaryItems.map((item) => (
+              <DockLink key={item.href} item={item} pathname={pathname} />
+            ))}
+            {groupItems.length === 1 && <DockLink item={groupItems[0]} pathname={pathname} />}
+            {groupItems.length > 1 && (
+              <button
+                type="button"
+                title="Perfil, equipo y administración"
+                aria-label="Perfil, equipo y administración"
+                aria-haspopup="menu"
+                aria-expanded={groupOpen}
+                aria-controls="dock-group-menu"
+                data-tour-id="nav-perfil"
+                onClick={() => setGroupOpen((v) => !v)}
                 className={cn(
                   "relative inline-flex h-[46px] w-[46px] items-center justify-center rounded-2xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
-                  isAdminEntry
-                    ? "bg-hg-amber/20 shadow-[inset_0_0_0_1px_rgba(232,160,48,0.5)] hover:bg-hg-amber/28"
-                    : active
-                      ? "bg-hg-green-100/90 shadow-[inset_0_0_0_1px_rgba(74,122,84,0.35)]"
-                      : "glass-hover-bg",
+                  groupOpen || groupActive
+                    ? "bg-hg-green-100/90 shadow-[inset_0_0_0_1px_rgba(74,122,84,0.35)]"
+                    : "glass-hover-bg",
                 )}
               >
-                <Icon
+                <Users
                   size={19}
                   strokeWidth={1.8}
-                  className={cn(isAdminEntry ? "text-hg-amber" : active ? "text-primary" : "text-fg-muted")}
+                  className={groupOpen || groupActive ? "text-primary" : "text-fg-muted"}
                 />
-                {isAdminEntry && (
+                {hasAdminEntry && (
                   <span
-                    className="absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-hg-amber text-[8px] text-hg-ink"
+                    className="absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-hg-amber text-hg-ink"
                     aria-hidden
                   >
                     <Sparkles size={9} strokeWidth={2.2} />
                   </span>
                 )}
-              </Link>
-            );
-          })}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

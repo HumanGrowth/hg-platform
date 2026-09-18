@@ -171,7 +171,7 @@ function PillarTable({
       <p className="mb-2 font-sans text-sm font-semibold text-fg">{pillar.pillar_name}</p>
       <ul className="flex flex-col gap-3">
         {pillar.behaviors.map((b) => (
-          <li key={b.behavior_id} className="glass-fill-strong rounded-md border border-border bg-surface-card p-3">
+          <li key={b.behavior_id} className="glass-inset rounded-md p-3">
             <p className="text-sm text-fg">{b.text}</p>
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <div

@@ -67,12 +67,16 @@
    --------------------------------------------------------------------------- */
 [data-theme="light"] {
   --glass-fill: rgba(255, 255, 255, 0.55);
-  --glass-fill-strong: rgba(255, 255, 255, 0.88); /* superficies con texto/datos (a11y) */
+  /* Superficies con texto/datos. Investigación (NN/g, Figr, UX Pilot): cards
+     con texto denso → alpha 0.40–0.55; el límite acá lo pone el texto muted
+     (#6b7061), que recién cumple 4.5:1 en el peor blob a partir de ~0.66
+     (medido). 0.74 = mínimo seguro con margen. Antes 0.88 → se veía sólido. */
+  --glass-fill-strong: rgba(255, 255, 255, 0.74);
   /* Modales: base casi-blanca con un toque cálido (no cream puro) — al 62%
      el cream puro compuesto sobre los blobs de fondo cae bajo 4.5:1 con
      texto muted (medido). 0.88 sobre (253,250,246) mantiene el look
      "crema cálido" con margen de a11y. */
-  --glass-fill-deep: rgba(253, 250, 246, 0.88);
+  --glass-fill-deep: rgba(253, 250, 246, 0.84);
   --glass-blur: blur(18px) saturate(150%);
   --glass-blur-deep: blur(26px) saturate(160%);
   --glass-stroke: 1px solid rgba(255, 255, 255, 0.65);
@@ -96,15 +100,21 @@
      opaca (ej. dropdown del avatar) — mismo bug que --glass-edge-color:
      un hover:bg-white/10 fijo es invisible sobre un panel casi blanco. */
   --glass-hover-overlay: rgba(42, 40, 38, 0.06);
+  /* Superficie "inset" para tarjetas DENTRO de tarjetas: más clara que la
+     card + borde fino oscuro — se distingue sin oscurecer (el texto muted
+     de adentro sigue cumpliendo 4.5:1). */
+  --glass-inset-fill: rgba(255, 255, 255, 0.55);
+  --glass-inset-edge: rgba(42, 40, 38, 0.1);
 }
 
 [data-theme="dark"] {
   /* Chrome liviano (nav, dock, chips) — frost claro y sutil sobre fondo oscuro. */
   --glass-fill: rgba(255, 255, 255, 0.08);
-  /* Superficies con texto/datos — panel oscuro casi opaco (scrim), texto
-     claro encima. 82% opaco: 6.7:1+ contra --fg (medido). */
-  --glass-fill-strong: rgba(30, 28, 26, 0.82);
-  --glass-fill-deep: rgba(18, 17, 16, 0.88); /* modales */
+  /* Superficies con texto/datos — scrim oscuro, texto claro encima. En dark
+     hay mucho margen (muted ≥6.4:1 incluso al 40%, medido): 0.58 deja pasar
+     el fondo de blobs/tiles → se lee como vidrio, no como caja sólida. */
+  --glass-fill-strong: rgba(30, 28, 26, 0.58);
+  --glass-fill-deep: rgba(18, 17, 16, 0.8); /* modales */
   --glass-blur: blur(18px) saturate(160%);
   --glass-blur-deep: blur(26px) saturate(170%);
   --glass-stroke: 1px solid rgba(255, 255, 255, 0.14);
@@ -124,6 +134,8 @@
   --glass-focus-halo: rgba(0, 0, 0, 0.55);
   --glass-edge-color: rgba(255, 255, 255, 0.14);
   --glass-hover-overlay: rgba(255, 255, 255, 0.1);
+  --glass-inset-fill: rgba(255, 255, 255, 0.06);
+  --glass-inset-edge: rgba(255, 255, 255, 0.12);
 }
 
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
@@ -253,6 +265,14 @@
    quedaban calibrados para un solo tema y casi invisibles en el otro. */
 [data-theme] .glass-edge {
   border-color: var(--glass-edge-color);
+}
+
+/* Tarjeta dentro de tarjeta (ej. stats de cada persona en /team): sin
+   backdrop-filter (ya vive dentro de una superficie con blur), con fill y
+   borde propios para separarse del contenedor en ambos temas. */
+[data-theme] .glass-inset {
+  background: var(--glass-inset-fill);
+  border: 1px solid var(--glass-inset-edge);
 }
 
 /* Hover/feedback para filas de menú dentro de una superficie glass —

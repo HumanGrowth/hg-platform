@@ -52,10 +52,22 @@ describe("resolveLevelBadge — badges de nivel del catálogo (code = level-<dim
     const resolved = resolveLevelBadge("level-cp-l2", "CP · Sólido");
     expect(resolved).toEqual({
       dimensionCode: "CP",
+      dimensionName: "Carrera e impacto",
       levelCode: "L2",
       levelTitle: "Sólido",
       rank: 2,
+      displayName: "Carrera e impacto · Sólido",
+      displayDescription:
+        'Reconoce que alcanzaste el nivel "Sólido" en tu dimensión de Carrera e impacto.',
+      displayUnlockHint: "Se desbloquea al alcanzar el nivel Sólido en Carrera e impacto.",
     });
+  });
+
+  it("displayName nunca incluye la sigla Drive cruda (CP/PR/RE/SA/PI/ES)", () => {
+    const resolved = resolveLevelBadge("level-sa-l1", "SA · En crecimiento");
+    expect(resolved?.displayName).not.toMatch(/\bSA\b/);
+    expect(resolved?.displayDescription).not.toMatch(/\bSA\b/);
+    expect(resolved?.displayUnlockHint).not.toMatch(/\bSA\b/);
   });
 
   it("cae al fallback si no hay nombre legible", () => {

@@ -138,7 +138,7 @@ export function UnitStoriesPlayer({ unit, attempt, onClose }: UnitStoriesPlayerP
   }
 
   const content = (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]">
       {/* Header: progress marker + X — en flujo, arriba de todo. El video 9:16
           se ubica DEBAJO de este marcador (no lo tapa). */}
       <div className="flex items-center gap-3 px-4 pt-4">
@@ -230,7 +230,7 @@ export function UnitStoriesPlayer({ unit, attempt, onClose }: UnitStoriesPlayerP
     <>
       {shouldAnimate ? (
         <motion.div
-          className="fixed inset-0 z-50 bg-bg"
+          className="fixed inset-x-0 top-0 z-50 h-dvh bg-bg"
           drag="y"
           dragConstraints={{ top: 0, bottom: 0 }}
           dragElastic={{ top: 0, bottom: 0.5 }}
@@ -241,7 +241,7 @@ export function UnitStoriesPlayer({ unit, attempt, onClose }: UnitStoriesPlayerP
           {content}
         </motion.div>
       ) : (
-        <div className="fixed inset-0 z-50 bg-bg">{content}</div>
+        <div className="fixed inset-x-0 top-0 z-50 h-dvh bg-bg">{content}</div>
       )}
 
       <Dialog

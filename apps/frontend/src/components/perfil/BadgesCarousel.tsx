@@ -17,6 +17,14 @@ import { cn } from "@/lib/utils";
  * modal con el detalle. Esquema genérico: el catálogo lo define Andy después
  * (hoy el endpoint puede devolver []), por eso el estado vacío es de primera clase.
  */
+// Catálogo viejo/placeholder (seed_badges.py, `dimension-*`): un badge
+// genérico por dimensión con arte hex estático — superado por los badges de
+// nivel (`level-*`, HgBadge dinámico). Se filtra acá, a la hora de
+// presentar — no se toca el catálogo en la base de datos.
+function isPlaceholderBadge(code: string): boolean {
+  return code.startsWith("dimension-");
+}
+
 export function BadgesCarousel() {
   const [badges, setBadges] = React.useState<MyBadge[] | null>(null);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
@@ -28,7 +36,7 @@ export function BadgesCarousel() {
     (async () => {
       try {
         const b = await apiGetMyBadges();
-        if (alive) setBadges(b);
+        if (alive) setBadges(b.filter((badge) => !isPlaceholderBadge(badge.code)));
       } catch {
         // Sin catálogo/endpoint todavía → tratamos como "sin badges" (vacío).
         if (alive) setBadges([]);
@@ -92,7 +100,7 @@ export function BadgesCarousel() {
                 <BadgeArt badge={badge} size={64} />
               </div>
               <span className="line-clamp-2 text-center text-xs font-medium text-fg">
-                {badge.name}
+                {displayName(badge)}
               </span>
             </button>
           ))}
@@ -110,6 +118,23 @@ export function BadgesCarousel() {
       {selected && <BadgeModal badge={selected} onClose={() => setSelected(null)} />}
     </>
   );
+}
+
+/**
+ * Nombre/descripción/hint explícitos para mostrar — para badges de nivel,
+ * SIEMPRE los resueltos por dimension-adapter (nunca la sigla cruda de
+ * `MyBadge.name/description/unlock_hint`, ver comentario ahí). Para badges
+ * que no matchean la convención (ej. `pillar-*`, que ya vienen con nombre
+ * explícito desde el backend), se usa el campo de la API tal cual.
+ */
+function displayName(badge: MyBadge): string {
+  return resolveLevelBadge(badge.code, badge.name)?.displayName ?? badge.name;
+}
+function displayDescription(badge: MyBadge): string {
+  return resolveLevelBadge(badge.code, badge.name)?.displayDescription ?? badge.description;
+}
+function displayUnlockHint(badge: MyBadge): string {
+  return resolveLevelBadge(badge.code, badge.name)?.displayUnlockHint ?? badge.unlock_hint;
 }
 
 /**
@@ -152,7 +177,7 @@ function BadgeModal({ badge, onClose }: { badge: MyBadge; onClose: () => void })
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={badge.name}
+      aria-label={displayName(badge)}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6"
       onClick={onClose}
     >
@@ -168,8 +193,8 @@ function BadgeModal({ badge, onClose }: { badge: MyBadge; onClose: () => void })
         >
           <BadgeArt badge={badge} size={64} />
         </div>
-        <h3 className="font-sans text-lg font-semibold text-fg">{badge.name}</h3>
-        <p className="text-sm text-fg-muted">{badge.description}</p>
+        <h3 className="font-sans text-lg font-semibold text-fg">{displayName(badge)}</h3>
+        <p className="text-sm text-fg-muted">{displayDescription(badge)}</p>
         {badge.unlocked ? (
           <p className="text-xs font-semibold text-success">
             Desbloqueado
@@ -182,7 +207,7 @@ function BadgeModal({ badge, onClose }: { badge: MyBadge; onClose: () => void })
               : ""}
           </p>
         ) : (
-          <p className="text-xs text-fg-subtle">{badge.unlock_hint}</p>
+          <p className="text-xs text-fg-subtle">{displayUnlockHint(badge)}</p>
         )}
       </Card>
     </div>

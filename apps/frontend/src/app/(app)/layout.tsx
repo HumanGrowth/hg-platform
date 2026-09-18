@@ -8,7 +8,7 @@ import { SessionGate } from "@/components/SessionGate";
 // interno scrollea (ni body ni html).
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="flex h-dvh flex-col overflow-hidden">
       <BetaBanner />
       <SessionGate requireOnboarding>
         <AppShell>{children}</AppShell>

@@ -114,9 +114,19 @@ export function levelBadgeMeta(levelCode: string | undefined): LevelBadgeMeta {
 
 export interface ResolvedLevelBadge {
   dimensionCode: string;
+  /** Full dimension name (ej. "Carrera") — nunca la sigla de 2 letras. */
+  dimensionName: string;
   levelCode: string;
   levelTitle: string;
   rank: number;
+  /** Texto explícito para mostrar — nunca la sigla cruda del backend
+   * (CE-04_dimension_progression.py seedea name/description/unlock_hint
+   * con la sigla Drive de 2 letras tal cual, ej. "CP · Sólido" — provisional
+   * por diseño, ver comentario de archivo). Preferir SIEMPRE estos sobre
+   * `MyBadge.name/description/unlock_hint` para badges de nivel. */
+  displayName: string;
+  displayDescription: string;
+  displayUnlockHint: string;
 }
 
 // Backend seeds level badges as `level-<drive-code>-<level-code>`, e.g.
@@ -131,13 +141,20 @@ const LEVEL_BADGE_CODE_RE = /^level-([a-z]{2})-(l\d+)$/i;
 export function resolveLevelBadge(code: string, name?: string): ResolvedLevelBadge | null {
   const match = LEVEL_BADGE_CODE_RE.exec(code);
   if (!match) return null;
-  const [, dimensionCode, levelCode] = match;
+  const [, dimensionDriveCode, levelCode] = match;
   const meta = levelBadgeMeta(levelCode);
   const nameAfterDot = name?.split("·")[1]?.trim();
+  const levelTitle = nameAfterDot || meta.title || levelCode.toUpperCase();
+  const dimensionName = badgeConfigForDimension(dimensionDriveCode).name;
+
   return {
-    dimensionCode: dimensionCode.toUpperCase(),
+    dimensionCode: dimensionDriveCode.toUpperCase(),
+    dimensionName,
     levelCode: levelCode.toUpperCase(),
-    levelTitle: nameAfterDot || meta.title || levelCode.toUpperCase(),
+    levelTitle,
     rank: meta.rank ?? 0,
+    displayName: `${dimensionName} · ${levelTitle}`,
+    displayDescription: `Reconoce que alcanzaste el nivel "${levelTitle}" en tu dimensión de ${dimensionName}.`,
+    displayUnlockHint: `Se desbloquea al alcanzar el nivel ${levelTitle} en ${dimensionName}.`,
   };
 }

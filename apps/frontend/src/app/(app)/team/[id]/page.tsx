@@ -186,7 +186,7 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
             <Eyebrow className="mb-4">Estados por dimensión</Eyebrow>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {Object.entries(data.assessment_states).map(([code, st]) => (
-                <div key={code} className="glass-fill-strong rounded-md border border-border bg-surface-card p-3">
+                <div key={code} className="glass-inset rounded-md p-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-fg">{dimensionShortName(code)}</span>
                     <span

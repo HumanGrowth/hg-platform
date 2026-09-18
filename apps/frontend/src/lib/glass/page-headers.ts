@@ -55,3 +55,14 @@ const DEFAULT_HEADER: PageHeader = { title: "Human Growth", description: "" };
 export function getPageHeader(pathname: string): PageHeader {
   return RULES.find((r) => r.test(pathname))?.header ?? DEFAULT_HEADER;
 }
+
+/**
+ * Reproducción de módulo (player / pantalla de inicio de un módulo):
+ * `/modulos/<slug>` o `/modulos/<DIM>/<Ln>/P<n>/<seq>`. NO incluye el
+ * catálogo (`/modulos`) ni la bienvenida (`/modulos/intro`). En estas rutas
+ * el chrome superior se oculta para no pisar el header del player.
+ */
+export function isModulePlayback(pathname: string): boolean {
+  if (!pathname.startsWith("/modulos/")) return false;
+  return pathname !== "/modulos/intro" && !pathname.startsWith("/modulos/intro/");
+}
