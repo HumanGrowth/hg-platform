@@ -41,7 +41,15 @@ export function Tabs({ value, defaultValue, onValueChange, children, className }
   );
 }
 
-export function TabsList({ className, onKeyDown, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+/** `underline` (default): tira con borde inferior. `bare`: sin estilos propios — el
+ * consumidor maneja layout/estética (ej. grid de cards de dimensión). */
+type TabsVariant = "underline" | "bare";
+
+export interface TabsListProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: TabsVariant;
+}
+
+export function TabsList({ className, onKeyDown, variant = "underline", ...props }: TabsListProps) {
   const ref = React.useRef<HTMLDivElement>(null);
   // Navegación por teclado ←/→ entre tabs (activación automática, patrón WAI-ARIA).
   const handleKeyDown = React.useCallback(
@@ -68,7 +76,10 @@ export function TabsList({ className, onKeyDown, ...props }: React.HTMLAttribute
       ref={ref}
       role="tablist"
       onKeyDown={handleKeyDown}
-      className={cn("glass-fill-strong flex gap-6 border-b border-border", className)}
+      className={cn(
+        variant === "underline" && "glass-fill-strong flex gap-6 border-b border-border",
+        className,
+      )}
       {...props}
     />
   );
@@ -76,9 +87,10 @@ export function TabsList({ className, onKeyDown, ...props }: React.HTMLAttribute
 
 export interface TabsTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   value: string;
+  variant?: TabsVariant;
 }
 
-export function TabsTrigger({ value, className, ...props }: TabsTriggerProps) {
+export function TabsTrigger({ value, className, variant = "underline", ...props }: TabsTriggerProps) {
   const { value: active, setValue } = useTabs();
   const selected = active === value;
   return (
@@ -88,11 +100,13 @@ export function TabsTrigger({ value, className, ...props }: TabsTriggerProps) {
       aria-selected={selected}
       onClick={() => setValue(value)}
       className={cn(
-        "-mb-px border-b-2 px-1 pb-3 font-sans text-sm font-semibold transition-colors duration-fast ease-state",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
-        selected
-          ? "border-primary text-fg"
-          : "border-transparent text-fg-muted hover:text-fg",
+        variant === "underline" && [
+          "-mb-px border-b-2 px-1 pb-3 font-sans text-sm font-semibold transition-colors duration-fast ease-state",
+          selected
+            ? "border-primary text-fg"
+            : "border-transparent text-fg-muted hover:text-fg",
+        ],
         className,
       )}
       {...props}
