@@ -25,19 +25,6 @@ import { resolveTextTemplate, type TextTemplate } from "./registry";
 export type QuoteMarkTone = "orange" | "amber" | "green" | "gold";
 export type PencilTone = "sage" | "green" | "orange" | "amber" | "gold";
 
-// ─────────────────────────── format → aspect ratio ───────────────────────────
-
-/** `story` (9:16) es el default in-app. Alto-driven salvo `wide` (ancho-driven);
- * `max-*-full` mantiene la pieza dentro del área del player (si no entra, el
- * contenido scrollea adentro del marco). */
-export const FORMAT_CLASS: Record<PresentationFormat, string> = {
-  story: "aspect-[9/16] h-full max-h-full max-w-full",
-  feed: "aspect-square h-full max-h-full max-w-full",
-  portrait: "aspect-[4/5] h-full max-h-full max-w-full",
-  "li-infographic": "aspect-[4/5] h-full max-h-full max-w-full",
-  wide: "aspect-video w-full max-h-full",
-};
-
 // ─────────────────────────── tone → fondo/tinta ───────────────────────────
 
 export interface ToneClasses {
@@ -154,31 +141,42 @@ const DEFAULT_MOTIF: Record<TextTemplate, PresentationMotif> = {
   steps: "none", // `pencil` es opt-in: el aro con el mismo hue del badge se lee como mancha
 };
 
-/** Escalas de tipografía por énfasis — clases estáticas. */
+/**
+ * Escalas por énfasis — FLUIDAS: se miden contra el MARCO (`cqmin` = 1% de su lado
+ * menor, el marco es `container-type: size`), no contra el viewport. Así un mismo
+ * bloque se ve bien en un teléfono, en una columna de desktop con sidebar o a
+ * pantalla completa, y el tamaño lo dicta el display, no el JSON.
+ *
+ * `length:` desambigua el tamaño de fuente para tailwind-merge (sin él, un
+ * `text-[clamp(...)]` se confunde con un color y pisa a `text-hg-cream`).
+ * Clases estáticas: cada string completo está literal acá (purge de Tailwind).
+ */
 export const EMPHASIS = {
   calm: {
-    stat: "text-7xl sm:text-8xl",
-    quote: "text-3xl sm:text-4xl",
-    quoteMark: 72,
-    body: "font-sans text-lg sm:text-xl",
-    hex: 96,
+    stat: "text-[length:clamp(3.5rem,min(19cqmin,14cqh),7rem)]",
+    headline: "text-[length:clamp(1.6rem,min(9.5cqmin,7.2cqh),3.5rem)]",
+    body: "font-sans text-[length:clamp(1rem,min(4.6cqmin,3.4cqh),1.5rem)]",
+    quoteMark: "w-[clamp(3rem,min(17cqmin,12cqh),6rem)]",
+    hex: "w-[clamp(4.5rem,min(21cqmin,15cqh),7.5rem)]",
   },
   bold: {
-    stat: "text-8xl sm:text-9xl",
-    quote: "text-4xl sm:text-5xl",
-    quoteMark: 104,
-    body: "font-sans text-xl sm:text-2xl",
-    hex: 128,
+    stat: "text-[length:clamp(4rem,min(23cqmin,17cqh),8.5rem)]",
+    headline: "text-[length:clamp(1.9rem,min(11.5cqmin,8.6cqh),4.25rem)]",
+    body: "font-sans text-[length:clamp(1.05rem,min(5cqmin,3.7cqh),1.75rem)]",
+    quoteMark: "w-[clamp(3.5rem,min(21cqmin,15cqh),7.5rem)]",
+    hex: "w-[clamp(5.5rem,min(26cqmin,19cqh),9rem)]",
   },
 } satisfies Record<
   EmphasisLevel,
-  { stat: string; quote: string; quoteMark: number; body: string; hex: number }
+  { stat: string; headline: string; body: string; quoteMark: string; hex: string }
 >;
 
 // ─────────────────────────── resolución ───────────────────────────
 
 export interface ResolvedPresentation {
   template: TextTemplate;
+  /** Tag del autor. En la app NO define el marco (lo define el display); se
+   * conserva para la exportación a tamaño social (post 1:1 / story 9:16). */
   format: PresentationFormat;
   tone: PresentationTone;
   motif: PresentationMotif;

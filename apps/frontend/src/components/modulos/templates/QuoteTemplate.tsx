@@ -2,7 +2,7 @@ import { MarkdownBody } from "@/components/modulos/blocks/MarkdownBody";
 import { QuoteMark } from "@/components/ui/brand";
 import { cn } from "@/lib/utils";
 
-import { SourceLine, TemplateEyebrow, type TemplateProps } from "./parts";
+import { SourceLine, STACK, TemplateEyebrow, type TemplateProps } from "./parts";
 import { EMPHASIS } from "./style";
 
 /** Separa las líneas `> cita` (no `>>`) del resto del cuerpo. */
@@ -34,23 +34,25 @@ export function QuoteTemplate({ block, body, p }: TemplateProps) {
   const showMark = p.motif === "quote";
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className={STACK}>
       <TemplateEyebrow label={block.eyebrow} p={p} />
-      {showMark && <QuoteMark size={size.quoteMark} tone={p.accent.quote} />}
+      {showMark && <QuoteMark size={72} tone={p.accent.quote} className={cn("h-auto", size.quoteMark)} />}
       {quoteText ? (
-        <MarkdownBody variant={p.t.md} emphasis={p.emphasis} className={size.quote}>
+        <MarkdownBody variant={p.t.md} emphasis={p.emphasis} fluid className={size.body}>
           {`>> ${quoteText.replace(/\s*\n+\s*/g, " ")}`}
         </MarkdownBody>
       ) : (
-        <MarkdownBody variant={p.t.md} emphasis={p.emphasis} className={size.body}>
+        <MarkdownBody variant={p.t.md} emphasis={p.emphasis} fluid className={size.body}>
           {body}
         </MarkdownBody>
       )}
       {pull?.attribution && (
-        <p className={cn("font-heading text-base font-semibold", p.accent.text)}>— {pull.attribution}</p>
+        <p className={cn("font-heading text-[length:clamp(0.95rem,4cqmin,1.4rem)] font-semibold", p.accent.text)}>
+          — {pull.attribution}
+        </p>
       )}
       {rest && (
-        <MarkdownBody variant={p.t.md} emphasis={p.emphasis} className={size.body}>
+        <MarkdownBody variant={p.t.md} emphasis={p.emphasis} fluid className={size.body}>
           {rest}
         </MarkdownBody>
       )}

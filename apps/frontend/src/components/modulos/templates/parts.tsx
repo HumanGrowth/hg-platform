@@ -6,6 +6,9 @@ import { cn } from "@/lib/utils";
 
 import type { ResolvedPresentation } from "./style";
 
+/** Apilado vertical con espaciado fluido (escala con el marco, no con el viewport). */
+export const STACK = "flex flex-col gap-[clamp(0.75rem,min(3.5cqmin,2.6cqh),1.5rem)]";
+
 /** Props comunes de todas las plantillas de texto. */
 export interface TemplateProps {
   block: TextBlock;

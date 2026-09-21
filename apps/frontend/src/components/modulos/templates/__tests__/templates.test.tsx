@@ -44,7 +44,7 @@ function frame(container: HTMLElement) {
 afterEach(() => vi.clearAllMocks());
 
 describe("BlockRenderer · bloques CON presentation → plantilla social", () => {
-  it("stat verde: fondo green, aspect 9:16, número gigante, eyebrow y fuente", () => {
+  it("stat verde: fondo green, marco fluido, número gigante, eyebrow y fuente", () => {
     const block = text(
       {
         block_type: "text_evidence",
@@ -59,7 +59,10 @@ describe("BlockRenderer · bloques CON presentation → plantilla social", () =>
     expect(f.dataset.template).toBe("stat");
     expect(f.dataset.tone).toBe("green");
     expect(f.className).toContain("bg-hg-green");
-    expect(f.className).toContain("aspect-[9/16]");
+    // el display decide: el marco NO fija aspect-ratio, es un contenedor de tamaño
+    expect(f.className).toContain("[container-type:size]");
+    expect(f.className).not.toMatch(/aspect-/);
+    expect(f.dataset.format).toBe("story"); // el tag del autor se conserva (exportación)
     expect(screen.getByLabelText("79% — de las renuncias evitables").className).toContain("font-display");
     expect(screen.getByText("EL DATO")).toBeTruthy();
     const headline = container.querySelector("p.font-display.uppercase"); // >> headline
@@ -127,12 +130,13 @@ describe("BlockRenderer · bloques CON presentation → plantilla social", () =>
     expect(img.getAttribute("src")).toContain("hex-bulb-128");
   });
 
-  it("editorial: eyebrow + cuerpo y MosaicBand por defecto", () => {
+  it("editorial: eyebrow + cuerpo y MosaicBand por defecto; `format` no fija el marco en la app", () => {
     const block = text({}, { format: "feed" });
     const { container } = render(<BlockRenderer block={block} dimensionCode="CP" {...handlers} />);
     const f = frame(container);
     expect(f.dataset.template).toBe("editorial");
-    expect(f.className).toContain("aspect-square");
+    expect(f.dataset.format).toBe("feed");
+    expect(f.className).not.toMatch(/aspect-/);
     expect(f.className).toContain("bg-hg-cream"); // tone default
     expect(container.querySelector("[aria-hidden].flex.w-full.overflow-hidden")).not.toBeNull(); // MosaicBand
   });
@@ -144,9 +148,14 @@ describe("BlockRenderer · bloques CON presentation → plantilla social", () =>
     expect(container.querySelector("[aria-hidden].flex.w-full.overflow-hidden")).toBeNull();
   });
 
-  it("format wide → 16:9", () => {
-    const { container } = render(<BlockRenderer block={text({}, { format: "wide" })} dimensionCode="CP" {...handlers} />);
-    expect(frame(container).className).toContain("aspect-video");
+  it("format wide/story no cambia el marco: lo dicta el display", () => {
+    for (const format of ["wide", "story", "portrait", "li-infographic"] as const) {
+      const { container, unmount } = render(
+        <BlockRenderer block={text({}, { format })} dimensionCode="CP" {...handlers} />,
+      );
+      expect(frame(container).className).not.toMatch(/aspect-/);
+      unmount();
+    }
   });
 
   it("template explícito que no aplica degrada sin romper (stat sin dato)", () => {
@@ -210,7 +219,87 @@ describe("BlockRenderer · bloques SIN tags siguen por la vista clásica", () =>
   it("narrative_tone bold: el emphasis llega a la plantilla", () => {
     const block = text({ block_type: "text_evidence", variant: "evidence", body: ">> Titular", hero_stat: { value: "9%", label: "x", source: null } }, { template: "stat" });
     render(<BlockRenderer block={block} dimensionCode="CP" narrativeTone="active" {...handlers} />);
-    expect(screen.getByText("Titular").className).toContain("text-5xl");
-    expect(screen.getByLabelText("9% — x").className).toContain("text-8xl");
+    expect(screen.getByText("Titular").className).toContain("11.5cqmin");
+    expect(screen.getByLabelText("9% — x").className).toContain("23cqmin");
+  });
+});
+
+describe("tipografía fluida: escala con el marco (cqmin), no con el viewport", () => {
+  it("el tamaño no depende de breakpoints y no pisa al color (tailwind-merge)", () => {
+    const block = text(
+      { block_type: "text_evidence", variant: "evidence", body: ">> Titular", hero_stat: { value: "9%", label: "x", source: null } },
+      { template: "stat", tone: "green" },
+    );
+    render(<BlockRenderer block={block} dimensionCode="CP" {...handlers} />);
+    const headline = screen.getByText("Titular");
+    expect(headline.className).toMatch(/text-\[length:clamp\(.*cqmin.*\)\]/);
+    expect(headline.className).toContain("text-hg-cream"); // el color sobrevive junto al tamaño
+    expect(headline.className).not.toMatch(/\bsm:text-/);
+    const stat = screen.getByLabelText("9% — x");
+    expect(stat.className).toMatch(/cqmin/);
+    expect(stat.className).toContain("text-hg-amber");
+    expect(stat.className).not.toMatch(/\bsm:text-/);
+  });
+});
+
+describe("orientación del marco (el display decide el layout)", () => {
+  const RealRO = globalThis.ResizeObserver;
+  afterEach(() => {
+    globalThis.ResizeObserver = RealRO;
+  });
+
+  /** ResizeObserver que reporta un tamaño fijo apenas se observa. */
+  function fakeBox(width: number, height: number) {
+    globalThis.ResizeObserver = class {
+      cb: ResizeObserverCallback;
+      constructor(cb: ResizeObserverCallback) {
+        this.cb = cb;
+      }
+      observe() {
+        this.cb([{ contentRect: { width, height } } as ResizeObserverEntry], this as unknown as ResizeObserver);
+      }
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+  }
+
+  const statBlock = () =>
+    text(
+      { block_type: "text_evidence", variant: "evidence", body: "Texto del dato.", hero_stat: { value: "79%", label: "x", source: null } },
+      { template: "stat" },
+    );
+
+  it("sin medida (SSR / jsdom) → retrato, apilado", () => {
+    const { container } = render(<BlockRenderer block={statBlock()} dimensionCode="CP" {...handlers} />);
+    expect(frame(container).dataset.orientation).toBe("portrait");
+    expect(container.querySelector(".grid-cols-\\[minmax\\(0\\,5fr\\)_minmax\\(0\\,7fr\\)\\]")).toBeNull();
+  });
+
+  it("marco apaisado (columna de desktop) → stat en dos columnas", () => {
+    fakeBox(1000, 600);
+    const { container } = render(<BlockRenderer block={statBlock()} dimensionCode="CP" {...handlers} />);
+    expect(frame(container).dataset.orientation).toBe("landscape");
+    expect(container.querySelector("[class*='grid-cols-[minmax(0,5fr)_minmax(0,7fr)]']")).not.toBeNull();
+  });
+
+  it("marco retrato (teléfono / tablet vertical) → apilado", () => {
+    fakeBox(390, 760);
+    const { container } = render(<BlockRenderer block={statBlock()} dimensionCode="CP" {...handlers} />);
+    expect(frame(container).dataset.orientation).toBe("portrait");
+    expect(container.querySelector("[class*='grid-cols-[minmax(0,5fr)']")).toBeNull();
+  });
+
+  it("steps apaisado → grilla de 2 columnas; tip apaisado → ícono al costado", () => {
+    fakeBox(1000, 600);
+    const steps = text(
+      { block_type: "text_solution", variant: "solution", checklist_items: [{ title: "a", detail: null }, { title: "b", detail: null }] },
+      { template: "steps" },
+    );
+    const r1 = render(<BlockRenderer block={steps} dimensionCode="CP" {...handlers} />);
+    expect(r1.container.querySelector("ol")?.className).toContain("grid-cols-2");
+    r1.unmount();
+    const tip = text({ block_type: "text_solution", variant: "solution", body: "Una acción corta." }, { template: "tip" });
+    const r2 = render(<BlockRenderer block={tip} dimensionCode="CP" {...handlers} />);
+    expect(r2.container.querySelector("img")?.closest("div.flex.items-center")).not.toBeNull();
   });
 });

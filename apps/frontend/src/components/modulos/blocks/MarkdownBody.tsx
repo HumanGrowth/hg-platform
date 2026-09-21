@@ -84,11 +84,21 @@ const STAT_SIZE: Record<EmphasisLevel, string> = {
   calm: "text-6xl",
   bold: "text-7xl",
 };
+// Modo `fluid` (plantillas sociales): escala con el marco contenedor (`cqmin`),
+// no con el viewport. Mismos valores que `EMPHASIS` de templates/style.ts.
+const HEADLINE_FLUID: Record<EmphasisLevel, string> = {
+  calm: "text-[length:clamp(1.6rem,min(9.5cqmin,7.2cqh),3.5rem)]",
+  bold: "text-[length:clamp(1.9rem,min(11.5cqmin,8.6cqh),4.25rem)]",
+};
+const STAT_FLUID: Record<EmphasisLevel, string> = {
+  calm: "text-[length:clamp(3.5rem,min(19cqmin,14cqh),7rem)]",
+  bold: "text-[length:clamp(4rem,min(23cqmin,17cqh),8.5rem)]",
+};
 
 const hasClass = (className: unknown, name: string): boolean =>
   typeof className === "string" && className.split(" ").includes(name);
 
-function buildComponents(t: Tokens, emphasis: EmphasisLevel): Components {
+function buildComponents(t: Tokens, emphasis: EmphasisLevel, fluid: boolean): Components {
   return {
     p: ({ node: _n, className, ...props }) =>
       hasClass(className, "hg-headline") ? (
@@ -97,7 +107,7 @@ function buildComponents(t: Tokens, emphasis: EmphasisLevel): Components {
             "font-display uppercase leading-[1.02] tracking-tight [&:not(:first-child)]:mt-4",
             "[&_mark]:bg-transparent [&_mark]:p-0",
             t.headlineMark,
-            HEADLINE_SIZE[emphasis],
+            fluid ? HEADLINE_FLUID[emphasis] : HEADLINE_SIZE[emphasis],
             t.fg,
           )}
           {...props}
@@ -131,7 +141,7 @@ function buildComponents(t: Tokens, emphasis: EmphasisLevel): Components {
     span: ({ node: _n, className, ...props }) => {
       if (hasClass(className, "hg-stat")) return <span className="my-3 flex flex-col gap-1" {...props} />;
       if (hasClass(className, "hg-stat-value")) {
-        return <span className={cn("font-display leading-none", STAT_SIZE[emphasis], t.stat)} {...props} />;
+        return <span className={cn("font-display leading-none", fluid ? STAT_FLUID[emphasis] : STAT_SIZE[emphasis], t.stat)} {...props} />;
       }
       if (hasClass(className, "hg-stat-label")) {
         return <span className={cn("font-heading text-sm font-medium", t.muted)} {...props} />;
@@ -160,11 +170,11 @@ function buildComponents(t: Tokens, emphasis: EmphasisLevel): Components {
 }
 
 const componentsCache = new Map<string, Components>();
-function componentsFor(variant: MarkdownVariant | undefined, emphasis: EmphasisLevel): Components {
-  const key = `${variant ?? "default"}:${emphasis}`;
+function componentsFor(variant: MarkdownVariant | undefined, emphasis: EmphasisLevel, fluid: boolean): Components {
+  const key = `${variant ?? "default"}:${emphasis}:${fluid}`;
   let c = componentsCache.get(key);
   if (!c) {
-    c = buildComponents(TOKENS[variant ?? "default"], emphasis);
+    c = buildComponents(TOKENS[variant ?? "default"], emphasis, fluid);
     componentsCache.set(key, c);
   }
   return c;
@@ -174,11 +184,15 @@ export function MarkdownBody({
   children,
   variant,
   emphasis = "calm",
+  fluid = false,
   className,
 }: {
   children: string;
   variant?: MarkdownVariant;
   emphasis?: EmphasisLevel;
+  /** Headline / stat inline escalan con el marco contenedor (`cqmin`) en vez de
+   * con el viewport. Sólo las plantillas sociales (el marco es `container-type: size`). */
+  fluid?: boolean;
   /** Reemplaza la escala de texto por defecto (18px mobile → 20px desktop). */
   className?: string;
 }) {
@@ -187,7 +201,7 @@ export function MarkdownBody({
     <div className={className ?? "font-sans text-lg sm:text-xl"}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkHighlight, remarkSocialMarkers]}
-        components={componentsFor(variant, emphasis)}
+        components={componentsFor(variant, emphasis, fluid)}
       >
         {children}
       </ReactMarkdown>

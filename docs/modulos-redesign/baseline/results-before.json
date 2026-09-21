@@ -1,0 +1,285 @@
+[
+ {
+  "name": "tagged-stat_360",
+  "vw": 360,
+  "vh": 640,
+  "player": "stories",
+  "templated": true,
+  "frame": {
+   "x": 25,
+   "y": 50,
+   "w": 309,
+   "h": 550
+  },
+  "ratio": 0.563,
+  "nav": null,
+  "scroll": {
+   "client": 550,
+   "scroll": 550,
+   "overflows": false
+  },
+  "fontHeadline": 40,
+  "fontStat": 72,
+  "fontBody": 20,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-stat_768",
+  "vw": 768,
+  "vh": 1024,
+  "player": "stories",
+  "templated": true,
+  "frame": {
+   "x": 121,
+   "y": 50,
+   "w": 525,
+   "h": 934
+  },
+  "ratio": 0.563,
+  "nav": null,
+  "scroll": {
+   "client": 934,
+   "scroll": 934,
+   "overflows": false
+  },
+  "fontHeadline": 48,
+  "fontStat": 96,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-stat_820",
+  "vw": 820,
+  "vh": 1180,
+  "player": "btb",
+  "templated": true,
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 404,
+   "h": 934
+  },
+  "ratio": 0.433,
+  "nav": {
+   "x": 484,
+   "y": 62,
+   "w": 280,
+   "h": 934
+  },
+  "scroll": {
+   "client": 934,
+   "scroll": 934,
+   "overflows": false
+  },
+  "fontHeadline": 48,
+  "fontStat": 96,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-stat_820_focus",
+  "vw": 820,
+  "vh": 1180,
+  "player": "btb-focus",
+  "templated": true,
+  "frame": {
+   "x": 107,
+   "y": 32,
+   "w": 605,
+   "h": 1076
+  },
+  "ratio": 0.563,
+  "nav": null,
+  "scroll": {
+   "client": 1076,
+   "scroll": 1076,
+   "overflows": false
+  },
+  "fontHeadline": 48,
+  "fontStat": 96,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_360",
+  "vw": 360,
+  "vh": 640,
+  "player": "stories",
+  "templated": true,
+  "frame": {
+   "x": 25,
+   "y": 50,
+   "w": 309,
+   "h": 550
+  },
+  "ratio": 0.563,
+  "nav": null,
+  "scroll": {
+   "client": 522,
+   "scroll": 1277,
+   "overflows": true
+  },
+  "fontHeadline": 40,
+  "fontStat": null,
+  "fontBody": 20,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_768",
+  "vw": 768,
+  "vh": 1024,
+  "player": "stories",
+  "templated": true,
+  "frame": {
+   "x": 121,
+   "y": 50,
+   "w": 525,
+   "h": 934
+  },
+  "ratio": 0.563,
+  "nav": null,
+  "scroll": {
+   "client": 906,
+   "scroll": 1100,
+   "overflows": true
+  },
+  "fontHeadline": 48,
+  "fontStat": null,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_820",
+  "vw": 820,
+  "vh": 1180,
+  "player": "btb",
+  "templated": true,
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 404,
+   "h": 934
+  },
+  "ratio": 0.433,
+  "nav": {
+   "x": 484,
+   "y": 62,
+   "w": 280,
+   "h": 934
+  },
+  "scroll": {
+   "client": 906,
+   "scroll": 1490,
+   "overflows": true
+  },
+  "fontHeadline": 48,
+  "fontStat": null,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_820_focus",
+  "vw": 820,
+  "vh": 1180,
+  "player": "btb-focus",
+  "templated": true,
+  "frame": {
+   "x": 107,
+   "y": 32,
+   "w": 605,
+   "h": 1076
+  },
+  "ratio": 0.563,
+  "nav": null,
+  "scroll": {
+   "client": 1048,
+   "scroll": 1048,
+   "overflows": false
+  },
+  "fontHeadline": 48,
+  "fontStat": null,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "old-evidence_360",
+  "vw": 360,
+  "vh": 640,
+  "player": "stories",
+  "templated": false,
+  "frame": null,
+  "ratio": null,
+  "nav": null,
+  "scroll": {
+   "client": 550,
+   "scroll": 554,
+   "overflows": true
+  },
+  "fontHeadline": null,
+  "fontStat": 88,
+  "fontBody": 20,
+  "docOverflowX": false
+ },
+ {
+  "name": "old-evidence_768",
+  "vw": 768,
+  "vh": 1024,
+  "player": "stories",
+  "templated": false,
+  "frame": null,
+  "ratio": null,
+  "nav": null,
+  "scroll": {
+   "client": 934,
+   "scroll": 934,
+   "overflows": false
+  },
+  "fontHeadline": null,
+  "fontStat": 72,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "old-evidence_820",
+  "vw": 820,
+  "vh": 1180,
+  "player": "btb",
+  "templated": false,
+  "frame": null,
+  "ratio": null,
+  "nav": {
+   "x": 484,
+   "y": 62,
+   "w": 280,
+   "h": 934
+  },
+  "scroll": {
+   "client": 934,
+   "scroll": 934,
+   "overflows": false
+  },
+  "fontHeadline": null,
+  "fontStat": 72,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "old-evidence_820_focus",
+  "vw": 820,
+  "vh": 1180,
+  "player": "btb-focus",
+  "templated": false,
+  "frame": null,
+  "ratio": null,
+  "nav": null,
+  "scroll": {
+   "client": 1076,
+   "scroll": 1076,
+   "overflows": false
+  },
+  "fontHeadline": null,
+  "fontStat": 72,
+  "fontBody": 24,
+  "docOverflowX": false
+ }
+]

@@ -1,0 +1,1622 @@
+[
+ {
+  "name": "tagged-stat_375",
+  "vw": 375,
+  "vh": 812,
+  "player": "stories",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 0,
+   "y": 50,
+   "w": 375,
+   "h": 722
+  },
+  "ratio": 0.519,
+  "nav": null,
+  "scroll": {
+   "client": 722,
+   "scroll": 722,
+   "overflows": false
+  },
+  "fontHeadline": 35.625,
+  "fontStat": 71.25,
+  "fontBody": 17.25,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-stat_414",
+  "vw": 414,
+  "vh": 896,
+  "player": "stories",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 0,
+   "y": 50,
+   "w": 414,
+   "h": 806
+  },
+  "ratio": 0.514,
+  "nav": null,
+  "scroll": {
+   "client": 806,
+   "scroll": 806,
+   "overflows": false
+  },
+  "fontHeadline": 39.33,
+  "fontStat": 78.66,
+  "fontBody": 19.044,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-stat_769",
+  "vw": 769,
+  "vh": 1024,
+  "player": "btb",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 353,
+   "h": 778
+  },
+  "ratio": 0.454,
+  "nav": {
+   "x": 433,
+   "y": 62,
+   "w": 280,
+   "h": 778
+  },
+  "scroll": {
+   "client": 778,
+   "scroll": 778,
+   "overflows": false
+  },
+  "fontHeadline": 33.535,
+  "fontStat": 67.07,
+  "fontBody": 16.238,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-stat_769_focus",
+  "vw": 769,
+  "vh": 1024,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 49,
+   "y": 32,
+   "w": 672,
+   "h": 920
+  },
+  "ratio": 0.73,
+  "nav": null,
+  "scroll": {
+   "client": 920,
+   "scroll": 920,
+   "overflows": false
+  },
+  "fontHeadline": 56,
+  "fontStat": 112,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-stat_900",
+  "vw": 900,
+  "vh": 800,
+  "player": "btb",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 484,
+   "h": 554
+  },
+  "ratio": 0.874,
+  "nav": {
+   "x": 564,
+   "y": 62,
+   "w": 280,
+   "h": 554
+  },
+  "scroll": {
+   "client": 554,
+   "scroll": 554,
+   "overflows": false
+  },
+  "fontHeadline": 39.888,
+  "fontStat": 77.56,
+  "fontBody": 18.836,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-stat_900_focus",
+  "vw": 900,
+  "vh": 800,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 114,
+   "y": 32,
+   "w": 672,
+   "h": 696
+  },
+  "ratio": 0.966,
+  "nav": null,
+  "scroll": {
+   "client": 696,
+   "scroll": 696,
+   "overflows": false
+  },
+  "fontHeadline": 50.112,
+  "fontStat": 97.44,
+  "fontBody": 23.664,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-stat_1024",
+  "vw": 1024,
+  "vh": 768,
+  "player": "btb",
+  "templated": true,
+  "orient": "landscape",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 608,
+   "h": 522
+  },
+  "ratio": 1.165,
+  "nav": {
+   "x": 688,
+   "y": 62,
+   "w": 280,
+   "h": 522
+  },
+  "scroll": {
+   "client": 522,
+   "scroll": 522,
+   "overflows": false
+  },
+  "fontHeadline": 37.584,
+  "fontStat": 73.08,
+  "fontBody": 17.748,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-stat_1024_focus",
+  "vw": 1024,
+  "vh": 768,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 176,
+   "y": 32,
+   "w": 672,
+   "h": 664
+  },
+  "ratio": 1.012,
+  "nav": null,
+  "scroll": {
+   "client": 664,
+   "scroll": 664,
+   "overflows": false
+  },
+  "fontHeadline": 47.808,
+  "fontStat": 92.96,
+  "fontBody": 22.576,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-stat_1440",
+  "vw": 1440,
+  "vh": 900,
+  "player": "btb",
+  "templated": true,
+  "orient": "landscape",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 1024,
+   "h": 654
+  },
+  "ratio": 1.566,
+  "nav": {
+   "x": 1104,
+   "y": 62,
+   "w": 280,
+   "h": 654
+  },
+  "scroll": {
+   "client": 654,
+   "scroll": 654,
+   "overflows": false
+  },
+  "fontHeadline": 47.088,
+  "fontStat": 91.56,
+  "fontBody": 22.236,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-stat_1440_focus",
+  "vw": 1440,
+  "vh": 900,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 384,
+   "y": 32,
+   "w": 672,
+   "h": 796
+  },
+  "ratio": 0.844,
+  "nav": null,
+  "scroll": {
+   "client": 796,
+   "scroll": 796,
+   "overflows": false
+  },
+  "fontHeadline": 56,
+  "fontStat": 111.44,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-quote_375",
+  "vw": 375,
+  "vh": 812,
+  "player": "stories",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 0,
+   "y": 50,
+   "w": 375,
+   "h": 722
+  },
+  "ratio": 0.519,
+  "nav": null,
+  "scroll": {
+   "client": 722,
+   "scroll": 722,
+   "overflows": false
+  },
+  "fontHeadline": 35.625,
+  "fontStat": null,
+  "fontBody": 17.25,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-quote_414",
+  "vw": 414,
+  "vh": 896,
+  "player": "stories",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 0,
+   "y": 50,
+   "w": 414,
+   "h": 806
+  },
+  "ratio": 0.514,
+  "nav": null,
+  "scroll": {
+   "client": 806,
+   "scroll": 806,
+   "overflows": false
+  },
+  "fontHeadline": 39.33,
+  "fontStat": null,
+  "fontBody": 19.044,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-quote_769",
+  "vw": 769,
+  "vh": 1024,
+  "player": "btb",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 353,
+   "h": 778
+  },
+  "ratio": 0.454,
+  "nav": {
+   "x": 433,
+   "y": 62,
+   "w": 280,
+   "h": 778
+  },
+  "scroll": {
+   "client": 778,
+   "scroll": 778,
+   "overflows": false
+  },
+  "fontHeadline": 33.535,
+  "fontStat": null,
+  "fontBody": 16.238,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-quote_769_focus",
+  "vw": 769,
+  "vh": 1024,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 49,
+   "y": 32,
+   "w": 672,
+   "h": 920
+  },
+  "ratio": 0.73,
+  "nav": null,
+  "scroll": {
+   "client": 920,
+   "scroll": 920,
+   "overflows": false
+  },
+  "fontHeadline": 56,
+  "fontStat": null,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-quote_900",
+  "vw": 900,
+  "vh": 800,
+  "player": "btb",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 484,
+   "h": 554
+  },
+  "ratio": 0.874,
+  "nav": {
+   "x": 564,
+   "y": 62,
+   "w": 280,
+   "h": 554
+  },
+  "scroll": {
+   "client": 554,
+   "scroll": 554,
+   "overflows": false
+  },
+  "fontHeadline": 39.888,
+  "fontStat": null,
+  "fontBody": 18.836,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-quote_900_focus",
+  "vw": 900,
+  "vh": 800,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 114,
+   "y": 32,
+   "w": 672,
+   "h": 696
+  },
+  "ratio": 0.966,
+  "nav": null,
+  "scroll": {
+   "client": 696,
+   "scroll": 696,
+   "overflows": false
+  },
+  "fontHeadline": 50.112,
+  "fontStat": null,
+  "fontBody": 23.664,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-quote_1024",
+  "vw": 1024,
+  "vh": 768,
+  "player": "btb",
+  "templated": true,
+  "orient": "landscape",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 608,
+   "h": 522
+  },
+  "ratio": 1.165,
+  "nav": {
+   "x": 688,
+   "y": 62,
+   "w": 280,
+   "h": 522
+  },
+  "scroll": {
+   "client": 522,
+   "scroll": 522,
+   "overflows": false
+  },
+  "fontHeadline": 37.584,
+  "fontStat": null,
+  "fontBody": 17.748,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-quote_1024_focus",
+  "vw": 1024,
+  "vh": 768,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 176,
+   "y": 32,
+   "w": 672,
+   "h": 664
+  },
+  "ratio": 1.012,
+  "nav": null,
+  "scroll": {
+   "client": 664,
+   "scroll": 664,
+   "overflows": false
+  },
+  "fontHeadline": 47.808,
+  "fontStat": null,
+  "fontBody": 22.576,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-quote_1440",
+  "vw": 1440,
+  "vh": 900,
+  "player": "btb",
+  "templated": true,
+  "orient": "landscape",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 1024,
+   "h": 654
+  },
+  "ratio": 1.566,
+  "nav": {
+   "x": 1104,
+   "y": 62,
+   "w": 280,
+   "h": 654
+  },
+  "scroll": {
+   "client": 654,
+   "scroll": 654,
+   "overflows": false
+  },
+  "fontHeadline": 47.088,
+  "fontStat": null,
+  "fontBody": 22.236,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-quote_1440_focus",
+  "vw": 1440,
+  "vh": 900,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 384,
+   "y": 32,
+   "w": 672,
+   "h": 796
+  },
+  "ratio": 0.844,
+  "nav": null,
+  "scroll": {
+   "client": 796,
+   "scroll": 796,
+   "overflows": false
+  },
+  "fontHeadline": 56,
+  "fontStat": null,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-steps_375",
+  "vw": 375,
+  "vh": 812,
+  "player": "stories",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 0,
+   "y": 50,
+   "w": 375,
+   "h": 722
+  },
+  "ratio": 0.519,
+  "nav": null,
+  "scroll": {
+   "client": 722,
+   "scroll": 722,
+   "overflows": false
+  },
+  "fontHeadline": null,
+  "fontStat": null,
+  "fontBody": 17.25,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-steps_414",
+  "vw": 414,
+  "vh": 896,
+  "player": "stories",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 0,
+   "y": 50,
+   "w": 414,
+   "h": 806
+  },
+  "ratio": 0.514,
+  "nav": null,
+  "scroll": {
+   "client": 806,
+   "scroll": 806,
+   "overflows": false
+  },
+  "fontHeadline": null,
+  "fontStat": null,
+  "fontBody": 19.044,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-steps_769",
+  "vw": 769,
+  "vh": 1024,
+  "player": "btb",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 353,
+   "h": 778
+  },
+  "ratio": 0.454,
+  "nav": {
+   "x": 433,
+   "y": 62,
+   "w": 280,
+   "h": 778
+  },
+  "scroll": {
+   "client": 778,
+   "scroll": 778,
+   "overflows": false
+  },
+  "fontHeadline": null,
+  "fontStat": null,
+  "fontBody": 16.238,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-steps_769_focus",
+  "vw": 769,
+  "vh": 1024,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 49,
+   "y": 32,
+   "w": 672,
+   "h": 920
+  },
+  "ratio": 0.73,
+  "nav": null,
+  "scroll": {
+   "client": 920,
+   "scroll": 920,
+   "overflows": false
+  },
+  "fontHeadline": null,
+  "fontStat": null,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-steps_900",
+  "vw": 900,
+  "vh": 800,
+  "player": "btb",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 484,
+   "h": 554
+  },
+  "ratio": 0.874,
+  "nav": {
+   "x": 564,
+   "y": 62,
+   "w": 280,
+   "h": 554
+  },
+  "scroll": {
+   "client": 554,
+   "scroll": 554,
+   "overflows": false
+  },
+  "fontHeadline": null,
+  "fontStat": null,
+  "fontBody": 18.836,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-steps_900_focus",
+  "vw": 900,
+  "vh": 800,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 114,
+   "y": 32,
+   "w": 672,
+   "h": 696
+  },
+  "ratio": 0.966,
+  "nav": null,
+  "scroll": {
+   "client": 696,
+   "scroll": 696,
+   "overflows": false
+  },
+  "fontHeadline": null,
+  "fontStat": null,
+  "fontBody": 23.664,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-steps_1024",
+  "vw": 1024,
+  "vh": 768,
+  "player": "btb",
+  "templated": true,
+  "orient": "landscape",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 608,
+   "h": 522
+  },
+  "ratio": 1.165,
+  "nav": {
+   "x": 688,
+   "y": 62,
+   "w": 280,
+   "h": 522
+  },
+  "scroll": {
+   "client": 522,
+   "scroll": 522,
+   "overflows": false
+  },
+  "fontHeadline": null,
+  "fontStat": null,
+  "fontBody": 17.748,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-steps_1024_focus",
+  "vw": 1024,
+  "vh": 768,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 176,
+   "y": 32,
+   "w": 672,
+   "h": 664
+  },
+  "ratio": 1.012,
+  "nav": null,
+  "scroll": {
+   "client": 664,
+   "scroll": 664,
+   "overflows": false
+  },
+  "fontHeadline": null,
+  "fontStat": null,
+  "fontBody": 22.576,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-steps_1440",
+  "vw": 1440,
+  "vh": 900,
+  "player": "btb",
+  "templated": true,
+  "orient": "landscape",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 1024,
+   "h": 654
+  },
+  "ratio": 1.566,
+  "nav": {
+   "x": 1104,
+   "y": 62,
+   "w": 280,
+   "h": 654
+  },
+  "scroll": {
+   "client": 654,
+   "scroll": 654,
+   "overflows": false
+  },
+  "fontHeadline": null,
+  "fontStat": null,
+  "fontBody": 22.236,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-steps_1440_focus",
+  "vw": 1440,
+  "vh": 900,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 384,
+   "y": 32,
+   "w": 672,
+   "h": 796
+  },
+  "ratio": 0.844,
+  "nav": null,
+  "scroll": {
+   "client": 796,
+   "scroll": 796,
+   "overflows": false
+  },
+  "fontHeadline": null,
+  "fontStat": null,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-tip_375",
+  "vw": 375,
+  "vh": 812,
+  "player": "stories",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 0,
+   "y": 50,
+   "w": 375,
+   "h": 722
+  },
+  "ratio": 0.519,
+  "nav": null,
+  "scroll": {
+   "client": 722,
+   "scroll": 722,
+   "overflows": false
+  },
+  "fontHeadline": 35.625,
+  "fontStat": null,
+  "fontBody": 17.25,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-tip_414",
+  "vw": 414,
+  "vh": 896,
+  "player": "stories",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 0,
+   "y": 50,
+   "w": 414,
+   "h": 806
+  },
+  "ratio": 0.514,
+  "nav": null,
+  "scroll": {
+   "client": 806,
+   "scroll": 806,
+   "overflows": false
+  },
+  "fontHeadline": 39.33,
+  "fontStat": null,
+  "fontBody": 19.044,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-tip_769",
+  "vw": 769,
+  "vh": 1024,
+  "player": "btb",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 353,
+   "h": 778
+  },
+  "ratio": 0.454,
+  "nav": {
+   "x": 433,
+   "y": 62,
+   "w": 280,
+   "h": 778
+  },
+  "scroll": {
+   "client": 778,
+   "scroll": 778,
+   "overflows": false
+  },
+  "fontHeadline": 33.535,
+  "fontStat": null,
+  "fontBody": 16.238,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-tip_769_focus",
+  "vw": 769,
+  "vh": 1024,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 49,
+   "y": 32,
+   "w": 672,
+   "h": 920
+  },
+  "ratio": 0.73,
+  "nav": null,
+  "scroll": {
+   "client": 920,
+   "scroll": 920,
+   "overflows": false
+  },
+  "fontHeadline": 56,
+  "fontStat": null,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-tip_900",
+  "vw": 900,
+  "vh": 800,
+  "player": "btb",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 484,
+   "h": 554
+  },
+  "ratio": 0.874,
+  "nav": {
+   "x": 564,
+   "y": 62,
+   "w": 280,
+   "h": 554
+  },
+  "scroll": {
+   "client": 554,
+   "scroll": 554,
+   "overflows": false
+  },
+  "fontHeadline": 39.888,
+  "fontStat": null,
+  "fontBody": 18.836,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-tip_900_focus",
+  "vw": 900,
+  "vh": 800,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 114,
+   "y": 32,
+   "w": 672,
+   "h": 696
+  },
+  "ratio": 0.966,
+  "nav": null,
+  "scroll": {
+   "client": 696,
+   "scroll": 696,
+   "overflows": false
+  },
+  "fontHeadline": 50.112,
+  "fontStat": null,
+  "fontBody": 23.664,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-tip_1024",
+  "vw": 1024,
+  "vh": 768,
+  "player": "btb",
+  "templated": true,
+  "orient": "landscape",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 608,
+   "h": 522
+  },
+  "ratio": 1.165,
+  "nav": {
+   "x": 688,
+   "y": 62,
+   "w": 280,
+   "h": 522
+  },
+  "scroll": {
+   "client": 522,
+   "scroll": 522,
+   "overflows": false
+  },
+  "fontHeadline": 37.584,
+  "fontStat": null,
+  "fontBody": 17.748,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-tip_1024_focus",
+  "vw": 1024,
+  "vh": 768,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 176,
+   "y": 32,
+   "w": 672,
+   "h": 664
+  },
+  "ratio": 1.012,
+  "nav": null,
+  "scroll": {
+   "client": 664,
+   "scroll": 664,
+   "overflows": false
+  },
+  "fontHeadline": 47.808,
+  "fontStat": null,
+  "fontBody": 22.576,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-tip_1440",
+  "vw": 1440,
+  "vh": 900,
+  "player": "btb",
+  "templated": true,
+  "orient": "landscape",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 1024,
+   "h": 654
+  },
+  "ratio": 1.566,
+  "nav": {
+   "x": 1104,
+   "y": 62,
+   "w": 280,
+   "h": 654
+  },
+  "scroll": {
+   "client": 654,
+   "scroll": 654,
+   "overflows": false
+  },
+  "fontHeadline": 47.088,
+  "fontStat": null,
+  "fontBody": 22.236,
+  "docOverflowX": false
+ },
+ {
+  "name": "tagged-tip_1440_focus",
+  "vw": 1440,
+  "vh": 900,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 384,
+   "y": 32,
+   "w": 672,
+   "h": 796
+  },
+  "ratio": 0.844,
+  "nav": null,
+  "scroll": {
+   "client": 796,
+   "scroll": 796,
+   "overflows": false
+  },
+  "fontHeadline": 56,
+  "fontStat": null,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_375",
+  "vw": 375,
+  "vh": 812,
+  "player": "stories",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 0,
+   "y": 50,
+   "w": 375,
+   "h": 722
+  },
+  "ratio": 0.519,
+  "nav": null,
+  "scroll": {
+   "client": 694,
+   "scroll": 837,
+   "overflows": true
+  },
+  "fontHeadline": 35.625,
+  "fontStat": null,
+  "fontBody": 17.25,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_414",
+  "vw": 414,
+  "vh": 896,
+  "player": "stories",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 0,
+   "y": 50,
+   "w": 414,
+   "h": 806
+  },
+  "ratio": 0.514,
+  "nav": null,
+  "scroll": {
+   "client": 778,
+   "scroll": 919,
+   "overflows": true
+  },
+  "fontHeadline": 39.33,
+  "fontStat": null,
+  "fontBody": 19.044,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_769",
+  "vw": 769,
+  "vh": 1024,
+  "player": "btb",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 353,
+   "h": 778
+  },
+  "ratio": 0.454,
+  "nav": {
+   "x": 433,
+   "y": 62,
+   "w": 280,
+   "h": 778
+  },
+  "scroll": {
+   "client": 750,
+   "scroll": 791,
+   "overflows": true
+  },
+  "fontHeadline": 33.535,
+  "fontStat": null,
+  "fontBody": 16.238,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_769_focus",
+  "vw": 769,
+  "vh": 1024,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 49,
+   "y": 32,
+   "w": 672,
+   "h": 920
+  },
+  "ratio": 0.73,
+  "nav": null,
+  "scroll": {
+   "client": 892,
+   "scroll": 995,
+   "overflows": true
+  },
+  "fontHeadline": 56,
+  "fontStat": null,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_900",
+  "vw": 900,
+  "vh": 800,
+  "player": "btb",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 484,
+   "h": 554
+  },
+  "ratio": 0.874,
+  "nav": {
+   "x": 564,
+   "y": 62,
+   "w": 280,
+   "h": 554
+  },
+  "scroll": {
+   "client": 526,
+   "scroll": 758,
+   "overflows": true
+  },
+  "fontHeadline": 39.888,
+  "fontStat": null,
+  "fontBody": 18.836,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_900_focus",
+  "vw": 900,
+  "vh": 800,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 114,
+   "y": 32,
+   "w": 672,
+   "h": 696
+  },
+  "ratio": 0.966,
+  "nav": null,
+  "scroll": {
+   "client": 668,
+   "scroll": 826,
+   "overflows": true
+  },
+  "fontHeadline": 50.112,
+  "fontStat": null,
+  "fontBody": 23.664,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_1024",
+  "vw": 1024,
+  "vh": 768,
+  "player": "btb",
+  "templated": true,
+  "orient": "landscape",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 608,
+   "h": 522
+  },
+  "ratio": 1.165,
+  "nav": {
+   "x": 688,
+   "y": 62,
+   "w": 280,
+   "h": 522
+  },
+  "scroll": {
+   "client": 494,
+   "scroll": 545,
+   "overflows": true
+  },
+  "fontHeadline": 37.584,
+  "fontStat": null,
+  "fontBody": 17.748,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_1024_focus",
+  "vw": 1024,
+  "vh": 768,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 176,
+   "y": 32,
+   "w": 672,
+   "h": 664
+  },
+  "ratio": 1.012,
+  "nav": null,
+  "scroll": {
+   "client": 636,
+   "scroll": 790,
+   "overflows": true
+  },
+  "fontHeadline": 47.808,
+  "fontStat": null,
+  "fontBody": 22.576,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_1440",
+  "vw": 1440,
+  "vh": 900,
+  "player": "btb",
+  "templated": true,
+  "orient": "landscape",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 1024,
+   "h": 654
+  },
+  "ratio": 1.566,
+  "nav": {
+   "x": 1104,
+   "y": 62,
+   "w": 280,
+   "h": 654
+  },
+  "scroll": {
+   "client": 626,
+   "scroll": 626,
+   "overflows": false
+  },
+  "fontHeadline": 47.088,
+  "fontStat": null,
+  "fontBody": 22.236,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-editorial_1440_focus",
+  "vw": 1440,
+  "vh": 900,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 384,
+   "y": 32,
+   "w": 672,
+   "h": 796
+  },
+  "ratio": 0.844,
+  "nav": null,
+  "scroll": {
+   "client": 768,
+   "scroll": 979,
+   "overflows": true
+  },
+  "fontHeadline": 56,
+  "fontStat": null,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-stat_375",
+  "vw": 375,
+  "vh": 812,
+  "player": "stories",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 0,
+   "y": 50,
+   "w": 375,
+   "h": 722
+  },
+  "ratio": 0.519,
+  "nav": null,
+  "scroll": {
+   "client": 722,
+   "scroll": 1023,
+   "overflows": true
+  },
+  "fontHeadline": 35.625,
+  "fontStat": 71.25,
+  "fontBody": 17.25,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-stat_414",
+  "vw": 414,
+  "vh": 896,
+  "player": "stories",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 0,
+   "y": 50,
+   "w": 414,
+   "h": 806
+  },
+  "ratio": 0.514,
+  "nav": null,
+  "scroll": {
+   "client": 806,
+   "scroll": 1121,
+   "overflows": true
+  },
+  "fontHeadline": 39.33,
+  "fontStat": 78.66,
+  "fontBody": 19.044,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-stat_769",
+  "vw": 769,
+  "vh": 1024,
+  "player": "btb",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 353,
+   "h": 778
+  },
+  "ratio": 0.454,
+  "nav": {
+   "x": 433,
+   "y": 62,
+   "w": 280,
+   "h": 778
+  },
+  "scroll": {
+   "client": 778,
+   "scroll": 969,
+   "overflows": true
+  },
+  "fontHeadline": 33.535,
+  "fontStat": 67.07,
+  "fontBody": 16.238,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-stat_769_focus",
+  "vw": 769,
+  "vh": 1024,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 49,
+   "y": 32,
+   "w": 672,
+   "h": 920
+  },
+  "ratio": 0.73,
+  "nav": null,
+  "scroll": {
+   "client": 920,
+   "scroll": 1189,
+   "overflows": true
+  },
+  "fontHeadline": 56,
+  "fontStat": 112,
+  "fontBody": 24,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-stat_900",
+  "vw": 900,
+  "vh": 800,
+  "player": "btb",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 484,
+   "h": 554
+  },
+  "ratio": 0.874,
+  "nav": {
+   "x": 564,
+   "y": 62,
+   "w": 280,
+   "h": 554
+  },
+  "scroll": {
+   "client": 554,
+   "scroll": 902,
+   "overflows": true
+  },
+  "fontHeadline": 39.888,
+  "fontStat": 77.56,
+  "fontBody": 18.836,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-stat_900_focus",
+  "vw": 900,
+  "vh": 800,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 114,
+   "y": 32,
+   "w": 672,
+   "h": 696
+  },
+  "ratio": 0.966,
+  "nav": null,
+  "scroll": {
+   "client": 696,
+   "scroll": 1072,
+   "overflows": true
+  },
+  "fontHeadline": 50.112,
+  "fontStat": 97.44,
+  "fontBody": 23.664,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-stat_1024",
+  "vw": 1024,
+  "vh": 768,
+  "player": "btb",
+  "templated": true,
+  "orient": "landscape",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 608,
+   "h": 522
+  },
+  "ratio": 1.165,
+  "nav": {
+   "x": 688,
+   "y": 62,
+   "w": 280,
+   "h": 522
+  },
+  "scroll": {
+   "client": 522,
+   "scroll": 913,
+   "overflows": true
+  },
+  "fontHeadline": 37.584,
+  "fontStat": 73.08,
+  "fontBody": 17.748,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-stat_1024_focus",
+  "vw": 1024,
+  "vh": 768,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 176,
+   "y": 32,
+   "w": 672,
+   "h": 664
+  },
+  "ratio": 1.012,
+  "nav": null,
+  "scroll": {
+   "client": 664,
+   "scroll": 1028,
+   "overflows": true
+  },
+  "fontHeadline": 47.808,
+  "fontStat": 92.96,
+  "fontBody": 22.576,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-stat_1440",
+  "vw": 1440,
+  "vh": 900,
+  "player": "btb",
+  "templated": true,
+  "orient": "landscape",
+  "frame": {
+   "x": 56,
+   "y": 62,
+   "w": 1024,
+   "h": 654
+  },
+  "ratio": 1.566,
+  "nav": {
+   "x": 1104,
+   "y": 62,
+   "w": 280,
+   "h": 654
+  },
+  "scroll": {
+   "client": 654,
+   "scroll": 842,
+   "overflows": true
+  },
+  "fontHeadline": 47.088,
+  "fontStat": 91.56,
+  "fontBody": 22.236,
+  "docOverflowX": false
+ },
+ {
+  "name": "long-stat_1440_focus",
+  "vw": 1440,
+  "vh": 900,
+  "player": "btb-focus",
+  "templated": true,
+  "orient": "portrait",
+  "frame": {
+   "x": 384,
+   "y": 32,
+   "w": 672,
+   "h": 796
+  },
+  "ratio": 0.844,
+  "nav": null,
+  "scroll": {
+   "client": 796,
+   "scroll": 1167,
+   "overflows": true
+  },
+  "fontHeadline": 56,
+  "fontStat": 111.44,
+  "fontBody": 24,
+  "docOverflowX": false
+ }
+]
