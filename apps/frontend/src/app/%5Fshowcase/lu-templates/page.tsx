@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import * as React from "react";
 
+import { UnitBackToBackPlayer } from "@/components/modulos/UnitBackToBackPlayer";
 import { UnitStoriesPlayer } from "@/components/modulos/UnitStoriesPlayer";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import type { Block, LearningUnitAttempt, LearningUnitDetail, TextBlock } from "@/lib/types";
 
 /**
@@ -12,7 +14,12 @@ import type { Block, LearningUnitAttempt, LearningUnitDetail, TextBlock } from "
  * Monta el `UnitStoriesPlayer` REAL (9:16) con fixtures: una unit "vieja" sin
  * tags (se ve como siempre) y una "taggeada" (stat verde, quote, steps, tip).
  *
- *   /_showcase/lu-templates?unit=old|tagged&block=0..N
+ *   /_showcase/lu-templates?unit=old|tagged|long&block=0..N&player=stories|btb|auto
+ *
+ * `player=auto` replica el switch de `ModuloDetailView` (breakpoint 769px) y, en
+ * desktop, la cadena de alturas del shell glass (`SpatialCanvas`: main con
+ * `pt-4 pb-[6.5rem] md:px-8`) para medir el layout real; `stories`/`btb` fuerzan
+ * uno. Sirve para verificar la adaptación por tamaño de pantalla.
  *
  * No está linkeado en la app (carpeta `%5Fshowcase`: Next ignora las carpetas
  * con `_` literal, igual que `%5Fkit`). Todos los bloques vienen como completados
@@ -103,7 +110,25 @@ const TAGGED: Block[] = [
   }),
 ];
 
-const UNITS: Record<string, Block[]> = { old: OLD, tagged: TAGGED };
+const LONG_BODY =
+  "Llevás semanas con la sensación de que **hacés mucho** y avanzás poco. No es falta de esfuerzo: es falta de *foco*. " +
+  "Cuando todo parece urgente, lo importante se diluye y terminás el día agotado sin saber qué lograste. ".repeat(4) +
+  "\n\n" +
+  "Elegí una sola prioridad por día y protegela. ==Lo demás puede esperar==. ".repeat(4);
+
+// ── Unit LARGA: mismo contenido con y sin tags, para ver overflow/scroll ──
+const LONG: Block[] = [
+  text("l1", "text_context", { eyebrow: "LA SITUACIÓN", body: LONG_BODY }),
+  text("l2", "text_context", { eyebrow: "La situación", body: `>> Hacés mucho y avanzás poco.\n\n${LONG_BODY}`, presentation: { tone: "cream" } }),
+  text("l3", "text_evidence", {
+    eyebrow: "El dato",
+    body: `>> No se van por el sueldo.\n\n${LONG_BODY}`,
+    hero_stat: { value: "79%", label: "de las renuncias evitables", source: null },
+    presentation: { template: "stat", tone: "green" },
+  }),
+];
+
+const UNITS: Record<string, Block[]> = { old: OLD, tagged: TAGGED, long: LONG };
 
 function makeUnit(blocks: Block[], dimension_code: string): LearningUnitDetail {
   return {
@@ -162,7 +187,33 @@ function Player() {
       </main>
     );
   }
-  return <UnitStoriesPlayer unit={unit} attempt={makeAttempt(unit.blocks)} onClose={() => {}} />;
+  const attempt = makeAttempt(unit.blocks);
+  const mode = params.get("player") ?? "stories";
+  if (mode === "btb" || mode === "auto") return <DesktopOrStories unit={unit} attempt={attempt} force={mode === "btb"} />;
+  return <UnitStoriesPlayer unit={unit} attempt={attempt} onClose={() => {}} />;
+}
+
+/** Mismo switch que `ModuloDetailView` + cadena de alturas del shell glass. */
+function DesktopOrStories({
+  unit,
+  attempt,
+  force,
+}: {
+  unit: LearningUnitDetail;
+  attempt: LearningUnitAttempt;
+  force: boolean;
+}) {
+  const isDesktop = useMediaQuery("(min-width: 769px)");
+  if (!force && !isDesktop) return <UnitStoriesPlayer unit={unit} attempt={attempt} onClose={() => {}} />;
+  return (
+    <div className="flex h-dvh flex-col overflow-hidden">
+      <div className="relative z-0 flex-1 overflow-y-auto px-3 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 md:px-8 md:pt-4">
+        <main className="mx-auto flex h-full w-full max-w-app flex-col px-6 py-6">
+          <UnitBackToBackPlayer unit={unit} attempt={attempt} onClose={() => {}} />
+        </main>
+      </div>
+    </div>
+  );
 }
 
 export default function LuTemplatesShowcasePage() {
