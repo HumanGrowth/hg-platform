@@ -1,4 +1,4 @@
-import { ArrowRight, MessageSquareText } from "lucide-react";
+import { ArrowRight, Lock, MessageSquareText } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
@@ -11,7 +11,7 @@ import { HexIcon } from "@/components/ui/hex-icon";
 import { Progress } from "@/components/ui/progress";
 import { levelBadgeMeta } from "@/lib/badge-kit/dimension-adapter";
 import { DIMENSIONS_META, subPillarName } from "@/lib/dimension-styles";
-import { unitCanonicalPath } from "@/lib/modulos";
+import { lockCopy, unitCanonicalPath } from "@/lib/modulos";
 import type {
   LearningUnitAttemptStatus,
   LearningUnitFeedItem,
@@ -265,6 +265,25 @@ function NextStepCard({ step, unit }: { step: PathStep; unit: LearningUnitFeedIt
 }
 
 function UpcomingStep({ step }: { step: PathStep }) {
+  if (step.locked) {
+    const lock = lockCopy(step.lock_reason, step.level_code);
+    return (
+      <div
+        aria-disabled
+        title={lock.hint}
+        className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-2xl border border-dashed border-border px-4 py-3 opacity-60"
+      >
+        <span className="min-w-0">
+          <span className="line-clamp-1 block font-heading text-sm font-medium text-fg">{step.title}</span>
+          <span className="mt-0.5 block text-xs text-fg-muted">{stepMeta(step)}</span>
+        </span>
+        <span className="inline-flex items-center gap-1 text-xs text-fg-muted">
+          <Lock size={12} strokeWidth={2} aria-hidden />
+          {lock.hint}
+        </span>
+      </div>
+    );
+  }
   return (
     <Link
       href={stepHref(step)}
