@@ -232,6 +232,18 @@ def _validate_for_publish(db: Session, unit: LearningUnit) -> list[str]:
     return errors
 
 
+def _refresh_dimension_progress(db: Session, unit: LearningUnit, actor: User | None) -> None:
+    """Publicar/despublicar cambia el denominador del % por nivel: recalcula a los
+    usuarios con progreso en esa dimensión. ``actor is None`` = llamada interna
+    (``services`` invoca estas funciones directo desde el sync/ingesta masivos con
+    ``_SEED_ACTOR``): ahí se omite, para no recalcular una vez por unit."""
+    if actor is None:
+        return
+    from hg.modules.badges import progression
+
+    progression.recompute_tracked_users(db, unit.dimension_code)
+
+
 @router.post("/learning-units/{unit_id}/publish", response_model=LearningUnitDetail)
 def publish_unit(
     unit_id: uuid.UUID,
@@ -244,6 +256,7 @@ def publish_unit(
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail={"errors": errors})
     unit.published_at = datetime.now(UTC)
     db.flush()
+    _refresh_dimension_progress(db, unit, _)
     db.refresh(unit)
     return _load_unit_detail(db, unit)
 
@@ -257,6 +270,7 @@ def unpublish_unit(
     unit = _unit_or_404(db, unit_id)
     unit.published_at = None
     db.flush()
+    _refresh_dimension_progress(db, unit, _)
     db.refresh(unit)
     return _load_unit_detail(db, unit)
 

@@ -1,6 +1,6 @@
 import type { Route } from "next";
 
-import type { LearningUnitDetail, LearningUnitFeedItem } from "@/lib/types";
+import type { LearningUnitDetail, LearningUnitFeedItem, LockReason } from "@/lib/types";
 
 /**
  * Dimensiones del Drive para el indexing de /modulos (TASK 1). Hoy solo existe
@@ -26,20 +26,26 @@ export function levelNum(code: string | null | undefined): number | null {
 }
 
 /**
- * ¿La unit está bloqueada para el colaborador por progresión de nivel? Solo
- * aplica a dimensiones con niveles L (hoy Carrera). Regla (acordada): accesible
- * = nivel de la unit ≤ nivel del colaborador (su nivel y anteriores); superiores
- * bloqueados. Sin nivel del colaborador (no hizo el assessment) → todo bloqueado.
+ * Textos de una unit bloqueada. La regla la decide el servidor
+ * (`sequencing.py` en el backend: orden de convención + nivel según el score);
+ * acá solo se explica al usuario por qué.
  */
-export function isUnitLevelLocked(
-  unitLevelCode: string,
-  collaboratorLevelCode: string | null | undefined,
-): boolean {
-  const unitLvl = levelNum(unitLevelCode);
-  if (unitLvl == null) return false; // contenido sin nivel L parseable → no bloquear
-  const userLvl = levelNum(collaboratorLevelCode);
-  if (userLvl == null) return true; // sin evaluación → bloqueado
-  return unitLvl > userLvl;
+export function lockCopy(
+  reason: LockReason | null | undefined,
+  unitLevelCode?: string,
+): { badge: string; hint: string } {
+  const lvl = levelNum(unitLevelCode);
+  switch (reason) {
+    case "level":
+      return {
+        badge: lvl != null ? `Nivel ${lvl}` : "Nivel superior",
+        hint: "Se abre cuando tu nivel suba al reevaluarte.",
+      };
+    case "scope":
+      return { badge: "Fuera de tu ruta", hint: "Esta dimensión no está en tu ruta." };
+    default:
+      return { badge: "En orden", hint: "Se desbloquea al completar el módulo anterior." };
+  }
 }
 
 function pad3(n: number): string {

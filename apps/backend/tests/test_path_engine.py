@@ -115,7 +115,9 @@ def test_prioritizes_cp_then_lowest_scoring(client, factory, auth_headers) -> No
         _clear_all()
 
 
-def test_advances_to_next_level_when_current_complete(client, factory, auth_headers) -> None:
+def test_does_not_advance_past_the_users_level_until_the_score_rises(client, factory, auth_headers) -> None:
+    """Piso y tope: completar el contenido de su nivel NO abre el siguiente; el
+    nivel siguiente llega cuando el score sube al reevaluarse."""
     _clear_all()
     _ensure_paths()
     user = factory.make_user(org=factory.make_org(), role=UserRole.collaborator)
@@ -123,7 +125,12 @@ def test_advances_to_next_level_when_current_complete(client, factory, auth_head
     l2 = _make_unit("CP", "L2", "P1", 1)
     _complete(user, l1)
     try:
-        body = client.get("/api/v1/me/path", headers=auth_headers(user)).json()
+        h = auth_headers(user)
+        body = client.get("/api/v1/me/path", headers=h).json()
+        assert body["next_step"] is None  # al día en su nivel (L1) hasta reevaluar
+
+        _assessment(user, DimensionCode.P1, "L3")  # L3 del assessment = contenido L2
+        body = client.get("/api/v1/me/path", headers=h).json()
         assert body["current_level"] == "L2"
         assert body["next_step"]["unit_id"] == str(l2)
     finally:

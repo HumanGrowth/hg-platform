@@ -15,6 +15,7 @@ from hg.modules.assessment.scoring import dimension_value_from_states, state_to_
 from hg.modules.badges import progression
 from hg.modules.badges.models import Badge, DimensionLevelProgress, UserBadge
 from hg.modules.feedback.models import BehaviorEvaluation, PillarBehavior
+from hg.modules.identity.models import UserRole
 
 from ._lu_helpers import cleanup_units, make_unit, seed_attempt
 
@@ -205,3 +206,41 @@ def test_pillar_subbadge_awarded_when_pillar_completed(factory) -> None:
         s.query(UserBadge).filter(UserBadge.user_id == user.id).delete()
         s.query(Badge).filter(Badge.code == code).delete()
         cleanup_units(s, [u1.id, u2.id])
+
+
+def test_unpublishing_a_unit_recomputes_stored_level_progress(client, factory, auth_headers) -> None:
+    """H4/publicar: despublicar una unit cambia el denominador del % por nivel; el
+    ``dimension_level_progress`` de quien ya tenía progreso se actualiza en el acto,
+    no cuando el usuario haga otra cosa."""
+    s = factory.session
+    org = factory.make_org()
+    user = factory.make_user(org=org)
+    admin = factory.make_user(org=factory.make_org(), role=UserRole.superadmin)
+    done = make_unit(s, dimension_code="CP", level_code="L1", n_blocks=1)
+    # Sin bloques para que el endpoint pueda serializar la unit en la respuesta.
+    extra = make_unit(s, dimension_code="CP", level_code="L1", n_blocks=0)  # publicada, sin completar
+    seed_attempt(s, org_id=org.id, user_id=user.id, unit=done, when=datetime.now(UTC), completed=True)
+
+    def l1_learning_pct() -> float:
+        s.expire_all()
+        return s.scalar(
+            select(DimensionLevelProgress.learning_pct).where(
+                DimensionLevelProgress.user_id == user.id,
+                DimensionLevelProgress.dimension_code == "CP",
+                DimensionLevelProgress.level_code == "L1",
+            )
+        )
+
+    try:
+        progression.recompute_dimension(s, user, "CP")
+        s.commit()
+        before = l1_learning_pct()
+
+        res = client.post(
+            f"/api/v1/admin/learning-units/{extra.id}/unpublish", headers=auth_headers(admin)
+        )
+        assert res.status_code == 200, res.text
+        # Menos units publicadas en el nivel → la misma unit completada pesa más.
+        assert l1_learning_pct() > before
+    finally:
+        cleanup_units(s, [done.id, extra.id])

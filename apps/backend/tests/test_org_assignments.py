@@ -187,3 +187,35 @@ def test_org_assign_rejects_non_cp_units(client, factory, auth_headers) -> None:
         assert "Carrera Profesional" in res.json()["detail"]
     finally:
         _cleanup([non_cp])
+
+
+def test_org_assignments_summary_counts_completed_from_attempts(client, factory, auth_headers) -> None:
+    """H1: ``completed_count`` sale de los attempts completados, no de
+    ``ModuleAssignment.status`` (que nadie actualiza)."""
+    from ._lu_helpers import seed_attempt
+
+    org = factory.make_org()
+    admin = factory.make_user(org=org, role=UserRole.admin)
+    done = factory.make_user(org=org, role=UserRole.collaborator)
+    factory.make_user(org=org, role=UserRole.collaborator)
+    u1 = _make_unit()
+    try:
+        client.post(
+            f"/api/v1/admin/organizations/{org.id}/assignments",
+            headers=auth_headers(admin),
+            json={"unit_ids": [str(u1)]},
+        )
+        s = SessionLocal()
+        try:
+            unit = s.get(LearningUnit, u1)
+            seed_attempt(s, org_id=org.id, user_id=done.id, unit=unit, when=datetime.now(UTC), completed=True)
+        finally:
+            s.close()
+
+        rows = client.get(
+            f"/api/v1/admin/organizations/{org.id}/assignments-summary", headers=auth_headers(admin)
+        ).json()
+        assert rows[0]["assigned_count"] == 3
+        assert rows[0]["completed_count"] == 1
+    finally:
+        _cleanup([u1])

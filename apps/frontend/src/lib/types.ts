@@ -87,9 +87,7 @@ export interface Invitation {
   created_at: string;
 }
 
-// ─────────────── Catálogo PMM (B2-06 / B2-09) ───────────────
-// Nota: `CourseLevel` (L1..L6 del catálogo PMM) es distinto del `CareerLevel`
-// del usuario (L1..L4b), para no colisionar con el enum de identity.
+// ─────────────── Catálogo PMM (career paths) ───────────────
 
 export interface CareerPath {
   id: string;
@@ -97,59 +95,6 @@ export interface CareerPath {
   name: string;
   description: string | null;
   order_index: number;
-}
-
-export type CourseLevel = "L1" | "L2" | "L3" | "L4" | "L5" | "L6";
-export type CompetencyCode = "C1" | "C2" | "C3" | "C4" | "C5";
-export type CourseTrack =
-  | "competency"
-  | "foundation_ai"
-  | "foundation_eth"
-  | "foundation_specifics";
-
-export interface Course {
-  id: string;
-  career_path_id: string;
-  title: string;
-  slug: string;
-  description: string | null;
-  thumbnail_url: string | null;
-  hls_master_url: string | null;
-  duration_seconds: number;
-  career_level: CourseLevel;
-  competency_code: CompetencyCode | null;
-  track: CourseTrack;
-  is_active: boolean;
-}
-
-export interface CourseFilters {
-  level?: CourseLevel;
-  competency?: CompetencyCode;
-  track?: CourseTrack;
-  q?: string;
-  limit?: number;
-  offset?: number;
-}
-
-export interface CourseProgress {
-  last_position_seconds: number;
-  watch_pct: number;
-  is_completed: boolean;
-  completed_at: string | null;
-}
-
-export interface CourseDetail extends Course {
-  progress: CourseProgress | null;
-  dimension_code?: string | null;
-}
-
-export interface NextCourseResponse {
-  next: Course | null;
-}
-
-export interface CourseProgressPayload {
-  position_seconds: number;
-  watch_pct: number;
 }
 
 // ─────────────── Manager & RRHH (B4-B) ───────────────
@@ -225,7 +170,6 @@ export interface TeamMemberDetail extends TeamMember {
   enrollments: Enrollment[];
   courses_in_progress_list: CourseProgressDetail[];
   courses_completed_list: CourseProgressDetail[];
-  dimension_completion_rate: Record<DimensionCodeKey, number>;
   // Estados del assessment por dimensión (manager ve estados, NO respuestas).
   assessment_states: Record<string, TeamMemberDimensionState>;
 }
@@ -301,7 +245,6 @@ export interface HomeStats {
 export interface HomeDashboard {
   next_step: HomeNextStep | null;
   active_enrollments: Enrollment[];
-  dimension_completion_rates: Record<DimensionCodeKey, number>;
   recent_activity: HomeRecentActivity[];
   stats: HomeStats;
 }
@@ -665,7 +608,15 @@ export interface LearningUnitFeedItem {
   video_url: string | null;
   /** Skills de la unit (columna `keywords`) — fuente del toggle Dimensión/Skill. */
   keywords: string[] | null;
+  /** Orden estricto: todavía no se puede abrir (ver `lock_reason`). */
+  locked?: boolean;
+  lock_reason?: LockReason | null;
 }
+
+/** Por qué una unit está bloqueada: `order` = falta completar una anterior de tu
+ * nivel; `level` = es de un nivel superior al tuyo (sube al reevaluarte);
+ * `scope` = dimensión fuera de tu ruta (inscripciones). */
+export type LockReason = "order" | "level" | "scope";
 
 export interface LearningUnitFeed {
   hero: LearningUnitFeedItem | null;
@@ -800,7 +751,6 @@ export interface UserMetrics {
   badges_unlocked_count: number;
   /** {dimension_code: {state, state_label, source}} — derivado de DimensionResult. */
   assessment_states: Record<string, AssessmentStateSnapshot>;
-  dimension_completion_rate: Record<string, number>;
 }
 
 // ─────────────── Radar histórico (Sprint Tarde · TASK 6.3) ───────────────
@@ -978,6 +928,9 @@ export interface PathStep {
   level_code: string;
   pillar_code: string | null;
   estimated_minutes: number | null;
+  /** El `next_step` nunca viene bloqueado; los `upcoming` pueden estarlo. */
+  locked?: boolean;
+  lock_reason?: LockReason | null;
 }
 
 export interface PathDimensionProgress {
@@ -1200,5 +1153,7 @@ export interface DimensionProgression {
   current_level_name: string | null;
   current_completion_pct: number;
   current_unlock_threshold: number;
+  /** false = el % es solo aprendizaje (vista del manager sin consentimiento). */
+  includes_assessment?: boolean;
   levels: LevelProgress[];
 }

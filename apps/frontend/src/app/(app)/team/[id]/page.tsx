@@ -6,6 +6,7 @@ import * as React from "react";
 
 import { AssignPathDialog } from "@/components/team/AssignPathDialog";
 import { BehaviorMatrixCard } from "@/components/team/BehaviorMatrixCard";
+import { ProgressionList } from "@/components/perfil/ProgressionSection";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
@@ -16,6 +17,7 @@ import {
   apiDeleteAssignment,
   apiGetTeamMemberDetail,
   apiGetTeamMemberPath,
+  apiGetTeamMemberProgression,
   apiListUserAssignments,
   apiListUserCustomPathAssignments,
   apiUnassignCustomPathFromUser,
@@ -23,12 +25,14 @@ import {
 } from "@/lib/api";
 import { DIMENSIONS_META, dimensionShortName, subPillarName } from "@/lib/dimension-styles";
 import { toast } from "@/lib/toast-store";
-import type { ModuleAssignment, MyPath, TeamMemberDetail, UserCustomPath } from "@/lib/types";
+import type {
+  DimensionProgression,
+  ModuleAssignment,
+  MyPath,
+  TeamMemberDetail,
+  UserCustomPath,
+} from "@/lib/types";
 import { formatRelativeTime, formatShortDate } from "@/lib/utils";
-
-const PILLAR_NAME: Record<string, string> = Object.fromEntries(
-  DIMENSIONS_META.map((p) => [p.id, p.name]),
-);
 
 const PILLAR_DOT: Record<string, string> = Object.fromEntries(DIMENSIONS_META.map((p) => [p.id, p.dot]));
 
@@ -66,21 +70,24 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
   const [assignOpen, setAssignOpen] = React.useState(false);
   const [assignments, setAssignments] = React.useState<ModuleAssignment[]>([]);
   const [path, setPath] = React.useState<MyPath | null>(null);
+  const [progression, setProgression] = React.useState<DimensionProgression[]>([]);
   const [customPaths, setCustomPaths] = React.useState<UserCustomPath[]>([]);
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const [detail, assign, p, cps] = await Promise.all([
+      const [detail, assign, p, cps, prog] = await Promise.all([
         apiGetTeamMemberDetail(id),
         apiListUserAssignments(id).catch(() => [] as ModuleAssignment[]),
         apiGetTeamMemberPath(id).catch(() => null),
         apiListUserCustomPathAssignments(id).catch(() => [] as UserCustomPath[]),
+        apiGetTeamMemberProgression(id).catch(() => [] as DimensionProgression[]),
       ]);
       setData(detail);
       setAssignments(assign);
       setPath(p);
       setCustomPaths(cps);
+      setProgression(prog);
       setStatus("ok");
     } catch (e) {
       setStatus(e instanceof ApiError && e.status === 404 ? "notfound" : "error");
@@ -177,10 +184,8 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
 
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Estados por dimensión (assessment). Manager ve estados/vías, NO respuestas.
-            El progreso de CONTENIDO por dimensión vive más abajo, en "Progreso y
-            próximos pasos" (path_engine) — antes había una segunda barra acá
-            (dimension_completion_rate) con otra fuente, mostrando números
-            distintos para lo mismo. */}
+            El progreso por dimensión (% de nivel) vive más abajo, en "Progreso por
+            dimensión": una sola definición, la misma que ve el colaborador en /perfil. */}
         {Object.keys(data.assessment_states ?? {}).length > 0 && (
           <div className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-5 lg:col-span-2">
             <Eyebrow className="mb-4">Estados por dimensión</Eyebrow>
@@ -217,10 +222,9 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
         )}
 
         {/* Paths asignados: un solo listado — pilares/skills de CP (ModuleAssignment,
-            agrupados), rutas personalizadas (CustomPath) y pilares legacy
-            (Enrollment, ya no se pueden crear nuevos acá pero se conservan los
-            existentes). El botón "Asignar módulo" desapareció: "Asignar nuevo
-            path" cubre ambos casos ahora (ver AssignPathDialog). */}
+            agrupados), rutas personalizadas (CustomPath) y paths de carrera
+            (Enrollment: definen las dimensiones de la ruta del colaborador). "Asignar
+            nuevo path" cubre los tres casos (ver AssignPathDialog). */}
         <div className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-5 lg:col-span-2">
           <Eyebrow className="mb-4">Paths asignados</Eyebrow>
           {pillarGroups.length === 0 && activeEnrollments.length === 0 && customPaths.length === 0 ? (
@@ -316,35 +320,16 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
         </div>
       </div>
 
-      {/* Progreso por área — mismo motor que "Mi Ruta" del colaborador
-          (path_engine): completed/total reales por dimensión con contenido.
-          Cubre el seguimiento de los módulos asignados (ya no hay una
-          sección aparte de "Módulos asignados" — el detalle de due dates
-          vive en "Paths asignados" arriba). */}
-      {path && path.dimensions_progress.length > 0 && (
+      {/* Progreso por dimensión — la MISMA fuente que ve el colaborador en /perfil
+          ("Tu nivel por dimensión": dimension_level_progress). Sin consentimiento
+          del colaborador el % es solo de aprendizaje (lo indica ProgressionList).
+          Los hitos vienen del motor de Mi Ruta (path_engine). */}
+      {(progression.some((r) => r.current_completion_pct > 0) ||
+        (path && path.milestones.length > 0)) && (
         <section className="mt-8">
-          <Eyebrow className="mb-3">Progreso por dimensión</Eyebrow>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {path.dimensions_progress.map((d) => {
-              const dpct = d.total > 0 ? Math.round((d.completed / d.total) * 100) : 0;
-              return (
-                <div key={d.career_path_code} className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-fg">
-                      {PILLAR_NAME[d.career_path_code] ?? d.name}
-                    </span>
-                    <span className="font-mono text-fg-muted">
-                      {d.total === 0 ? "—" : `${d.completed}/${d.total}`}
-                    </span>
-                  </div>
-                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-bg-sunken">
-                    <div className="h-full rounded-full bg-primary" style={{ width: `${dpct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          {path.milestones.length > 0 && (
+          <Eyebrow className="mb-1">Progreso por dimensión</Eyebrow>
+          <ProgressionList rows={progression} perspective="manager" />
+          {path && path.milestones.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {path.milestones.map((m) => (
                 <span
@@ -492,8 +477,10 @@ export default function TeamMemberDetailPage({ params }: { params: { id: string 
         userName={data.full_name}
         alreadyAssignedUnitIds={new Set(assignments.map((a) => a.learning_unit_id))}
         alreadyAssignedCustomPathIds={customPaths.map((cp) => cp.id)}
+        alreadyEnrolledPathCodes={activeEnrollments.map((e) => e.career_path_code)}
         onModulesAssigned={() => void load()}
         onCustomPathAssigned={() => void load()}
+        onCareerPathAssigned={() => void load()}
       />
     </div>
   );

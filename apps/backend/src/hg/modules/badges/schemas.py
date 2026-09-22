@@ -38,6 +38,8 @@ class DimensionProgressionOut(BaseModel):
     current_level_name: str | None
     current_completion_pct: float
     current_unlock_threshold: int
+    # False = el % es solo aprendizaje (vista del manager sin consent_manager).
+    includes_assessment: bool = True
     levels: list[LevelProgressOut]
 
 

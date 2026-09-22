@@ -1,6 +1,7 @@
 "use client";
 
 import axios from "axios";
+import { Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
@@ -41,7 +42,8 @@ export function ModuloDetailView({
   resumeScreen?: boolean;
 }) {
   const router = useRouter();
-  const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
+  const [status, setStatus] = React.useState<"loading" | "error" | "locked" | "ok">("loading");
+  const [lockedMessage, setLockedMessage] = React.useState<string | null>(null);
   const [unit, setUnit] = React.useState<LearningUnitDetail | null>(null);
   const [attempt, setAttempt] = React.useState<LearningUnitAttempt | null>(null);
   // Pantalla de apertura (TASK 10) salvo cuando se retoma una unit con progreso.
@@ -66,15 +68,26 @@ export function ModuloDetailView({
         router.replace("/path");
         return;
       }
+      if (axios.isAxiosError(e) && e.response?.status === 403) {
+        // Orden estricto / nivel (sequencing.py): el servidor explica el motivo.
+        const detail = (e.response.data as { detail?: unknown } | undefined)?.detail;
+        setLockedMessage(typeof detail === "string" ? detail : null);
+        setStatus("locked");
+        return;
+      }
       setStatus("error");
     }
   }, [slug, router]);
 
-  /** Crea (o resetea, si estaba completada) el attempt y entra al player. */
+  /** Crea el attempt (si no existía) y entra al player. Si la unit ya estaba
+   * completada es un repaso: el servidor conserva el progreso y `completed_at`
+   * ("completado" no retrocede), pero el player arranca en limpio para que cada
+   * bloque se vuelva a recorrer — por eso se vacía `block_progress` solo acá. */
   const beginAttempt = React.useCallback(async () => {
     setStarting(true);
     try {
-      setAttempt(await apiStartAttempt(slug));
+      const next = await apiStartAttempt(slug);
+      setAttempt(next.completed_at ? { ...next, block_progress: [] } : next);
       setStarted(true);
     } catch {
       toast("No pudimos abrir este módulo. Probá de nuevo.", "danger");
@@ -104,6 +117,22 @@ export function ModuloDetailView({
     );
   }
 
+  if (status === "locked") {
+    return (
+      <div className="mx-auto max-w-app px-6 py-20">
+        <Card className="flex flex-col items-center gap-4 py-12 text-center">
+          <Lock size={22} strokeWidth={2} className="text-fg-subtle" aria-hidden />
+          <p className="max-w-prose text-sm text-fg-muted">
+            {lockedMessage ?? "Este módulo todavía no está disponible en tu ruta."}
+          </p>
+          <Button variant="secondary" size="sm" onClick={() => router.push("/path")}>
+            Volver a Mi Ruta
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   if (status === "error" || !unit) {
     return (
       <div className="mx-auto max-w-app px-6 py-20">
@@ -119,7 +148,7 @@ export function ModuloDetailView({
 
   // Progreso en curso = attempt sin terminar y con bloques ya hechos: se retoma
   // directo. El resto (sin attempt, sin progreso, o ya completada) pasa por la
-  // pantalla de apertura, que es donde se decide crear o resetear el attempt.
+  // pantalla de apertura, que es donde se decide crear el attempt o repasar.
   const inProgress =
     attempt !== null && attempt.completed_at === null && attempt.block_progress.length > 0;
   if (!started && (!inProgress || resumeScreen)) {
@@ -138,7 +167,7 @@ export function ModuloDetailView({
             : undefined
         }
         // Retomar no crea nada: el attempt ya existe, así que solo entramos al
-        // player. Crear/resetear es solo para empezar o repasar.
+        // player. Crear el attempt es solo para empezar o repasar.
         onStart={() => (inProgress ? setStarted(true) : void beginAttempt())}
       />
     );

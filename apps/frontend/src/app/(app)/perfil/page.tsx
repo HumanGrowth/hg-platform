@@ -7,6 +7,7 @@ import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
 import { BadgesCarousel } from "@/components/perfil/BadgesCarousel";
+import { ProgressionSection } from "@/components/perfil/ProgressionSection";
 import { StatCardsRow } from "@/components/shared/StatCardsRow";
 import { DimensionSummarySection } from "@/components/perfil/DimensionSummarySection";
 import {
@@ -157,7 +158,7 @@ export default function PerfilPage() {
               className="mt-8"
               modulesCompleted={stats.courses_completed}
               badgesUnlocked={badges.filter((b) => b.unlocked).length}
-              minutesOnPlatform={stats.month_watch_minutes}
+              blocksThisMonth={stats.month_watch_minutes}
               daysActive={stats.streak_days}
             />
           )}
@@ -222,6 +223,10 @@ export default function PerfilPage() {
           {results.length > 0 && (
             <DimensionSummarySection results={results} radar={radar} onChanged={load} />
           )}
+
+          {/* Nivel por dimensión — el % canónico (aprendizaje + evaluación) y lo que
+              falta para el próximo badge. */}
+          <ProgressionSection />
 
           {/* Tu historia — recorrido en horizontal: diagnósticos, dimensiones
               empezadas, módulos completados e insignias. */}

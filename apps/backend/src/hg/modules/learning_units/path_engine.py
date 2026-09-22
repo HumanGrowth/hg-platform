@@ -1,23 +1,24 @@
 """Motor de recomendación de "Mi Ruta" (cierre-beta TASK 1).
 
-Arma una secuencia recomendada de learning units para el usuario:
-- `current_level`: nivel más bajo con units pendientes (arranca L1, avanza al
-  completar todas las de ese nivel).
-- `next_step` + `upcoming`: units pendientes del nivel actual. Se prioriza CP
-  (Carrera) alternando 1:1 con el resto de dimensiones, tomando el resto en orden
-  de menor score (la que más necesita trabajo) primero; dentro de una dimensión,
-  por pilar y número (orden del Drive).
+Arma una secuencia recomendada de learning units para el usuario. La secuencia
+por dimensión (orden de convención del Drive, nivel de partida según el score,
+dimensiones según inscripciones) vive en ``sequencing``; acá:
+- `current_level`: nivel en curso. Es POR DIMENSIÓN y arranca en el nivel que
+  corresponde al score del assessment (no siempre L1); se reporta el de Carrera.
+- `next_step` + `upcoming`: pendientes del nivel en curso de cada dimensión. Se
+  prioriza CP (Carrera) alternando 1:1 con el resto de dimensiones, tomando el
+  resto en orden de menor score (la que más necesita trabajo) primero; dentro de
+  una dimensión, por nivel → pilar → número (orden del Drive). Solo `next_step`
+  (y la primera pendiente de cada dimensión) es abrible: el resto va `locked`.
 - `dimensions_progress`: completed/total por cada uno de los 6 pilares.
 - `milestones`: hitos intercalados en la secuencia — el fin de un ÁREA (todas las
   units de un `(dimensión, pilar)`) y el fin de un NIVEL de la dimensión, cada uno
   con la insignia que se gana al llegar. Se anclan a la unit de la secuencia que
   los desbloquea (`after_unit_id`), para que el front los intercale sin recalcular.
 
-Nota: hoy solo la dimensión CP (Carrera) tiene contenido, así que la priorización
-y la alternación cross-dimensión recién se notan cuando se suban las otras 5. El
-score por dimensión sale de `state_code`/`sub_scores` del assessment con un
-mapeo best-effort (escalas heterogéneas entre pilares) — sirve para ordenar, no
-como número exhibido.
+Nota: el score por dimensión sale de `state_code`/`sub_scores` del assessment con
+un mapeo best-effort (escalas heterogéneas entre pilares) — sirve para ordenar,
+no como número exhibido.
 """
 from __future__ import annotations
 
@@ -33,11 +34,10 @@ from hg.modules.assessment.service import latest_dimension_results
 from hg.modules.badges.models import Badge, DimensionScoringConfig
 from hg.modules.identity.models import User
 from hg.modules.learning.models import CareerPath
-from hg.modules.learning_units.area_access import visible_units_predicate
 from hg.modules.learning_units.dimensions import career_path_for_dimension
 from hg.modules.learning_units.models import LearningUnit, LearningUnitAttempt
-from hg.modules.learning_units.onboarding import ONBOARDING_DIMENSION_CODE
-from hg.modules.learning_units.pillars import pillar_display_name, pillar_rank
+from hg.modules.learning_units.pillars import pillar_display_name
+from hg.modules.learning_units.sequencing import LEVELED_DIMENSION, UnitSequence, build_sequence
 from hg.modules.paths.resolution import custom_path_unit_order, resolve_custom_path
 
 _LEVEL_RE = re.compile(r"L(\d+)")
@@ -53,6 +53,10 @@ class PathStep:
     level_code: str
     pillar_code: str | None
     estimated_minutes: int | None
+    # Orden estricto: True si el usuario todavía no puede abrirla (hay una unit
+    # anterior de su dimensión sin completar). `next_step` nunca viene bloqueado.
+    locked: bool = False
+    lock_reason: str | None = None  # "order" | "level" | "scope" (ver sequencing)
 
 
 @dataclass
@@ -104,11 +108,6 @@ class PathResult:
     # de esta secuencia (None = solo el algoritmo). El front la usa para el
     # badge "Ruta de tu empresa" (ver `custom_path_priority` más abajo).
     custom_path_name: str | None = None
-
-
-def _level_num(level_code: str) -> int:
-    m = _LEVEL_RE.search(level_code or "")
-    return int(m.group(1)) if m else 99
 
 
 def _dimension_score(result: DimensionResult | None) -> float:
@@ -266,28 +265,19 @@ def _build_milestones(
     return out
 
 
-def build_path(db: Session, user_id: uuid.UUID, upcoming_n: int = 8) -> PathResult:
+def build_path(
+    db: Session, user_id: uuid.UUID, upcoming_n: int = 8, plan: UnitSequence | None = None
+) -> PathResult:
+    """Ruta recomendada del usuario. La secuencia (orden de convención, nivel de
+    partida según el score, dimensiones según inscripciones) vive en
+    :mod:`hg.modules.learning_units.sequencing`; acá solo se arma la ruta
+    alternando dimensiones, se priorizan las CustomPath y se calculan los hitos."""
     user = db.get(User, user_id)
     if user is None:
         raise ValueError(f"user {user_id} not found")
-    units = list(
-        db.scalars(
-            select(LearningUnit).where(
-                LearningUnit.published_at.isnot(None),
-                LearningUnit.superseded_by_unit_id.is_(None),
-                LearningUnit.dimension_code != ONBOARDING_DIMENSION_CODE,  # track aparte, ver onboarding.py
-                visible_units_predicate(user),  # gating por Área de la Empresa (TASK 8)
-            )
-        ).all()
-    )
-    completed_ids = set(
-        db.scalars(
-            select(LearningUnitAttempt.unit_id).where(
-                LearningUnitAttempt.user_id == user_id,
-                LearningUnitAttempt.completed_at.isnot(None),
-            )
-        ).all()
-    )
+    plan = plan or build_sequence(db, user)
+    units = [u for lst in plan.ordered_by_dim.values() for u in lst]
+    completed_ids = plan.completed_ids
 
     # Nombres + orden de los 6 pilares.
     paths = {p.code: p for p in db.scalars(select(CareerPath)).all()}
@@ -299,7 +289,8 @@ def build_path(db: Session, user_id: uuid.UUID, upcoming_n: int = 8) -> PathResu
         pcp = _career_path_for_dimension(r.dimension_code.value)
         score_by_cp[pcp] = min(score_by_cp.get(pcp, 1.0), _dimension_score(r))
 
-    # dimensions_progress por career_path (dimensión Drive → career_path).
+    # dimensions_progress por career_path (dimensión Drive → career_path): catálogo
+    # completo, sirve para "Explorá por dimensión" aunque la ruta esté acotada.
     prog: dict[str, DimensionProgress] = {}
     for u in units:
         cp = career_path_for_dimension(u.dimension_code)
@@ -317,29 +308,25 @@ def build_path(db: Session, user_id: uuid.UUID, upcoming_n: int = 8) -> PathResu
         prog.values(), key=lambda d: paths[d.career_path_code].order_index if d.career_path_code in paths else 99
     )
 
-    # current_level: nivel más bajo con units pendientes.
-    pending = [u for u in units if u.id not in completed_ids]
-    if not pending:
+    # Nivel en curso POR DIMENSIÓN (arranca en el nivel que corresponde al score, no
+    # siempre en L1) y solo de las dimensiones de la ruta del usuario.
+    active_dims = [d for d in plan.ordered_by_dim if plan.in_scope(d) and plan.candidates(d)]
+    if not active_dims:
         return PathResult(None, None, [], 0, 0, dimensions_progress)
-    current_level_num = min(_level_num(u.level_code) for u in pending)
-    current_level = f"L{current_level_num}"
+    cp_dim = next((d for d in active_dims if d == LEVELED_DIMENSION), None)
+    level_nums = [plan.current_level(d) or 1 for d in active_dims]
+    current_level = f"L{plan.current_level(cp_dim) if cp_dim else min(level_nums)}"
 
-    level_units = [u for u in units if _level_num(u.level_code) == current_level_num]
+    level_units = [u for d in active_dims for u in plan.level_units(d)]
     completed_this_level = sum(1 for u in level_units if u.id in completed_ids)
     total_this_level = len(level_units)
 
-    level_pending = [u for u in level_units if u.id not in completed_ids]
-
-    # Agrupar pendientes por career_path, ordenar dentro por (pilar, número).
-    # "AI" (Foundation) siempre al final del pilar — sin `pillar_rank`, "AI"
-    # ordenaba primero (alfabéticamente antes que "P1") y el motor terminaba
-    # RECOMENDANDO módulos de IA antes que el resto de Carrera.
+    # Candidatas por career_path, ya en orden de convención (nivel → pilar con "AI"
+    # al final → número).
     by_cp: dict[str, list[LearningUnit]] = {}
-    for u in level_pending:
-        cp = career_path_for_dimension(u.dimension_code) or u.dimension_code
-        by_cp.setdefault(cp, []).append(u)
-    for lst in by_cp.values():
-        lst.sort(key=lambda u: (pillar_rank(u.pillar_code), u.pillar_code or "", u.unit_number or 0))
+    for d in active_dims:
+        cp = career_path_for_dimension(d) or d
+        by_cp.setdefault(cp, []).extend(plan.candidates(d))
 
     # Prioridad a CP (Carrera): se alterna 1:1 un curso de CP con uno del resto,
     # tomando el resto en orden de menor score primero (la dimensión que más
@@ -379,6 +366,11 @@ def build_path(db: Session, user_id: uuid.UUID, upcoming_n: int = 8) -> PathResu
     resume_idx = next((seq_by_unit[uid] for uid in in_progress_ids if uid in seq_by_unit), None)
     if resume_idx is not None and resume_idx != 0:
         sequence.insert(0, sequence.pop(resume_idx))
+
+    unit_by_id = {u.id: u for u in units}
+    for step in sequence:
+        step.lock_reason = plan.lock_reason(user, unit_by_id[step.unit_id])
+        step.locked = step.lock_reason is not None
 
     next_step = sequence[0] if sequence else None
     upcoming = sequence[1 : 1 + upcoming_n]

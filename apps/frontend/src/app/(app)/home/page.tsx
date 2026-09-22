@@ -38,7 +38,6 @@ function WidgetsSkeleton() {
   );
 }
 
-const pct = (rate: number) => Math.round(rate * 100);
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
@@ -107,15 +106,10 @@ export default function HomePage() {
     void load();
   }, [load]);
 
-  const rates = data?.dimension_completion_rates;
-  // El radar prioriza los estados reales del assessment; si aún no hay, cae a
-  // completion rates (compat pre-assessment).
-  const radarValues =
-    results.length > 0
-      ? radarValuesFromResults(results)
-      : rates
-        ? Object.fromEntries(Object.entries(rates).map(([k, v]) => [k, pct(v)]))
-        : {};
+  // El radar refleja el estado real del assessment. Sin assessment queda vacío:
+  // antes caía a un % de módulos completados, que es otra métrica en el mismo
+  // eje (el % de aprendizaje por nivel vive en "Tu nivel por dimensión", en /perfil).
+  const radarValues = results.length > 0 ? radarValuesFromResults(results) : {};
 
   return (
     <main className="mx-auto w-full max-w-app px-6 py-10">
@@ -173,7 +167,7 @@ export default function HomePage() {
             className="mt-8"
             modulesCompleted={data.stats.courses_completed}
             badgesUnlocked={badges.filter((b) => b.unlocked).length}
-            minutesOnPlatform={data.stats.month_watch_minutes}
+            blocksThisMonth={data.stats.month_watch_minutes}
             daysActive={data.stats.streak_days}
           />
 

@@ -1,11 +1,12 @@
 "use client";
 
-import { Check, Play } from "lucide-react";
+import { Check, Lock, Play } from "lucide-react";
 import * as React from "react";
 
 import { BadgeIcon } from "@/components/ui/badge-icon";
 import type { MyBadge } from "@/lib/types";
 import type { LearningUnitFeedItem } from "@/lib/types";
+import { lockCopy } from "@/lib/modulos";
 import { cn, formatApproxMinutes } from "@/lib/utils";
 
 /** Code del badge de área en el catálogo (espejo de `pillar_badge_code` del backend). */
@@ -73,17 +74,24 @@ export function AreaCard({
           {units.map((u) => {
             const done = u.attempt_status === "completed";
             const inProgress = u.attempt_status === "in_progress";
+            const locked = !done && !inProgress && (u.locked ?? false);
             return (
-              <li key={u.id} className="flex items-start gap-2.5 text-sm">
+              <li
+                key={u.id}
+                title={locked ? lockCopy(u.lock_reason, u.level_code).hint : undefined}
+                className={cn("flex items-start gap-2.5 text-sm", locked && "opacity-60")}
+              >
                 <span
                   className={cn(
                     "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full",
                     done && "bg-success text-white",
                     inProgress && "text-primary",
-                    !done && !inProgress && "border border-border",
+                    !done && !inProgress && !locked && "border border-border",
+                    locked && "text-fg-subtle",
                   )}
                   aria-hidden
                 >
+                  {locked && <Lock size={11} strokeWidth={2} />}
                   {done && <Check size={11} strokeWidth={3} />}
                   {inProgress && <Play size={10} strokeWidth={2.5} fill="currentColor" />}
                 </span>

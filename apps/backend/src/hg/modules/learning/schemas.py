@@ -1,15 +1,10 @@
-"""Pydantic v2 schemas para el catálogo (career paths + events + progress).
-
-``Event*`` reemplaza a ``Course*`` (TASK A-07). ``CourseProgressIn``/
-``CourseProgressOut`` quedan como están a propósito — ver
-``hg.modules.learning.models`` para el porqué.
-"""
+"""Pydantic v2 schemas para el catálogo (career paths + events)."""
 from __future__ import annotations
 
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 
 class CareerPathOut(BaseModel):
@@ -48,19 +43,9 @@ class EventListResponse(BaseModel):
     total: int
 
 
-class CourseProgressOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    last_position_seconds: int
-    watch_pct: float
-    is_completed: bool
-    completed_at: datetime | None
-
-
 class EventDetailOut(EventOut):
-    """Event + progreso del usuario actual (None si nunca lo abrió)."""
+    """Event + metadata del path para el player."""
 
-    progress: CourseProgressOut | None = None
     dimension_code: str | None = None  # código del path (P1..P6) para la metadata del player
 
 
@@ -68,11 +53,6 @@ class NextEventOut(BaseModel):
     """Siguiente event del path (o null si es el último)."""
 
     next: EventOut | None = None
-
-
-class CourseProgressIn(BaseModel):
-    position_seconds: int = Field(ge=0)
-    watch_pct: float = Field(ge=0.0, le=100.0)
 
 
 class EnrollmentOut(BaseModel):

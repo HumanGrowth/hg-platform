@@ -12,7 +12,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 
 from hg.modules.assessment.enums import DimensionCode, ResultSource
 from hg.modules.assessment.models import DimensionResult
@@ -166,3 +166,90 @@ def test_manager_detail_gate_uses_consent_manager(
         )
     )
     assert logged >= 1
+
+
+# ─────────────────────────── /manager/users/{id}/progression (H4) ───────────────────────────
+
+
+def _progression_fixture(factory):
+    """Manager + reporte con 1 unit L1 completada (learning=100) y assessment P1 L6
+    (=100): completion mezclado L1 = 100; solo aprendizaje L1 = lo que da learning_pct."""
+    from hg.modules.badges import progression
+
+    from ._lu_helpers import make_unit, seed_attempt
+
+    s = factory.session
+    org = factory.make_org()
+    mgr = factory.make_user(org=org, role=UserRole.manager)
+    report = factory.make_user(org=org, manager_id=mgr.id)
+    unit = make_unit(s, dimension_code="CP", level_code="L1", n_blocks=1)
+    seed_attempt(s, org_id=org.id, user_id=report.id, unit=unit, when=datetime.now(UTC), completed=True)
+    now = datetime.now(UTC)
+    s.add(
+        DimensionResult(
+            org_id=org.id, user_id=report.id, dimension_code=DimensionCode.P1,
+            source=ResultSource.preliminary, state_code="L1", state_label="L1",
+            sub_scores={}, derived_at=now, next_retake_eligible_at=now,
+        )
+    )
+    s.commit()
+    progression.recompute_dimension(s, report, "CP")
+    s.commit()
+    return mgr, report, unit
+
+
+def _cp(rows):
+    return next(r for r in rows if r["dimension_code"] == "CP")
+
+
+def test_manager_progression_without_consent_shows_learning_only(client, factory, auth_headers) -> None:
+    from ._lu_helpers import cleanup_units
+
+    mgr, report, unit = _progression_fixture(factory)
+    try:
+        res = client.get(f"/api/v1/manager/users/{report.id}/progression", headers=auth_headers(mgr))
+        assert res.status_code == 200, res.text
+        cp = _cp(res.json())
+        assert cp["includes_assessment"] is False
+        # El assessment (L1 = 17) NO entra: el % es el de aprendizaje puro.
+        db_row = factory.session.execute(
+            text("select learning_pct, completion_pct from dimension_level_progress "
+                 "where user_id = :u and dimension_code = 'CP' and level_code = 'L1'"),
+            {"u": report.id},
+        ).one()
+        assert cp["levels"][0]["completion_pct"] == round(db_row.learning_pct, 1)
+        assert db_row.completion_pct != db_row.learning_pct  # el mezclado sí difiere
+        # La consulta queda auditada.
+        assert factory.session.scalar(
+            select(func.count()).select_from(DataAccessLog).where(
+                DataAccessLog.target_user_id == report.id, DataAccessLog.resource == "progress"
+            )
+        ) == 1
+    finally:
+        cleanup_units(factory.session, [unit.id])
+
+
+def test_manager_progression_with_consent_matches_what_the_collaborator_sees(
+    client, factory, auth_headers
+) -> None:
+    from ._lu_helpers import cleanup_units
+
+    mgr, report, unit = _progression_fixture(factory)
+    _set_consent(factory, report, manager=True, hr=False)
+    try:
+        as_manager = client.get(f"/api/v1/manager/users/{report.id}/progression", headers=auth_headers(mgr))
+        as_self = client.get("/api/v1/me/progression", headers=auth_headers(report))
+        assert as_manager.status_code == 200 and as_self.status_code == 200
+        assert _cp(as_manager.json())["includes_assessment"] is True
+        # Misma fuente, mismo número para manager y colaborador.
+        assert _cp(as_manager.json())["levels"] == _cp(as_self.json())["levels"]
+    finally:
+        cleanup_units(factory.session, [unit.id])
+
+
+def test_manager_progression_forbidden_outside_team(client, factory, auth_headers) -> None:
+    org = factory.make_org()
+    mgr = factory.make_user(org=org, role=UserRole.manager)
+    stranger = factory.make_user(org=org)  # no es reporte de mgr
+    res = client.get(f"/api/v1/manager/users/{stranger.id}/progression", headers=auth_headers(mgr))
+    assert res.status_code in (403, 404)

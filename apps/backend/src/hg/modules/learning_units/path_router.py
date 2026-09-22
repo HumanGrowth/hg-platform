@@ -25,6 +25,8 @@ class PathStepOut(BaseModel):
     level_code: str
     pillar_code: str | None
     estimated_minutes: int | None
+    locked: bool = False
+    lock_reason: Literal["order", "level", "scope"] | None = None
 
 
 class PathMilestoneOut(BaseModel):

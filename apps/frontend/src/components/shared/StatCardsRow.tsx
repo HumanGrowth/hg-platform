@@ -1,4 +1,4 @@
-import { Award, Clock, Flame, Trophy } from "lucide-react";
+import { Award, Flame, Layers, Trophy } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -7,13 +7,15 @@ import { cn } from "@/lib/utils";
 /**
  * Las 4 tarjetas de datos del colaborador — mismo set y mismo orden en Inicio
  * y Mi Perfil (antes cada pantalla mostraba una mezcla distinta de 3). Orden
- * fijado por Andy: módulos completados, badges alcanzados, minutos en
- * plataforma, días activo.
+ * fijado por Andy: módulos completados, badges alcanzados, actividad del mes,
+ * días activo. La actividad se mide en BLOQUES completados (no hay minutos
+ * reales de uso: ADR-0011), así que la tarjeta lo dice.
  */
 export interface StatCardsRowProps {
   modulesCompleted: number;
   badgesUnlocked: number;
-  minutesOnPlatform: number;
+  /** Bloques completados en el mes (backend: `month_watch_minutes`, nombre heredado). */
+  blocksThisMonth: number;
   /** Racha de días activos — la métrica disponible más cercana a "días activo". */
   daysActive: number;
   className?: string;
@@ -45,7 +47,7 @@ function StatCard({
 export function StatCardsRow({
   modulesCompleted,
   badgesUnlocked,
-  minutesOnPlatform,
+  blocksThisMonth,
   daysActive,
   className,
 }: StatCardsRowProps) {
@@ -53,7 +55,11 @@ export function StatCardsRow({
     <div className={cn("grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4", className)}>
       <StatCard icon={Trophy} value={modulesCompleted} label="modulos completados" />
       <StatCard icon={Award} value={badgesUnlocked} label="badges alcanzados" />
-      <StatCard icon={Clock} value={minutesOnPlatform} label="min en plataforma" />
+      <StatCard
+        icon={Layers}
+        value={blocksThisMonth}
+        label={blocksThisMonth === 1 ? "bloque este mes" : "bloques este mes"}
+      />
       <StatCard
         icon={Flame}
         value={daysActive}

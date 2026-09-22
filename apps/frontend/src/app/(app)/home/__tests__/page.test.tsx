@@ -29,7 +29,6 @@ const base: HomeDashboard = {
     last_played_at: new Date().toISOString(),
   },
   active_enrollments: [],
-  dimension_completion_rates: { P1: 0.5, P2: 0.0, P3: 0.0, P4: 0.0, P5: 0.0, P6: 0.0 },
   recent_activity: [
     {
       course_id: "c1",
@@ -61,15 +60,15 @@ describe("HomePage", () => {
 
   // La card "Tu próximo paso" se movió a Mi Ruta (header); /home ya no la muestra.
 
-  it("renders stats (streak, month minutes, completed) and the CP dimension score", async () => {
+  it("renders stats (streak, month blocks, completed) and no invented dimension score", async () => {
     getHome.mockResolvedValue(base);
     render(<HomePage />);
     expect(await screen.findByText("4")).toBeTruthy(); // streak_days
     expect(screen.getByText("45")).toBeTruthy(); // month_watch_minutes
     expect(screen.getByText("3")).toBeTruthy(); // courses_completed
-    // Sin results del assessment, el score de la card cae al completion rate:
-    // P1 = 0.5 → la DimensionCard de Carrera muestra "50".
-    expect(screen.getByText("50")).toBeTruthy();
+    // Sin results del assessment la card NO cae a un % de módulos (H4: otra
+    // métrica en el mismo eje): no aparece ningún score inventado.
+    expect(screen.queryByText("50")).toBeNull();
   });
 
   it("renders all 6 pillar dimension cards", async () => {
