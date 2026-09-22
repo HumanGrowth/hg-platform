@@ -2,11 +2,11 @@
 
 Schema productivo. El catálogo es **global al producto** (no multi-tenant):
 los events son contenido HG, no por organización. Por eso `CareerPath` y
-`Event` no llevan `org_id` ni RLS. `Enrollment`, `CourseProgress` y
+`Event` no llevan `org_id` ni RLS. `Enrollment` y
 `UserLearningProfile` SÍ son por usuario/org y se mantienen draft hasta B2-08.
 
 ``Event`` reemplaza a ``Course`` (rename real de tabla en LU-01, TASK A-07 —
-ver docs/prompts/claude-code_learning_units_v2_fase1.md). ``CourseProgress``
+ver docs/prompts/claude-code_learning_units_v2_fase1.md).
 queda como está a propósito (nombre de clase + columna ``course_id``): el
 rename de esa tabla/columna es explícitamente Fase 2, documentado en la
 migración LU-01. Su FK apunta a ``events.id`` (la tabla renombrada), solo el
@@ -22,7 +22,6 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     Enum,
-    Float,
     ForeignKey,
     Integer,
     String,
@@ -146,9 +145,6 @@ class Event(Base):
     career_path: Mapped[CareerPath | None] = relationship(
         "CareerPath", back_populates="events", lazy="raise"
     )
-    progress_records: Mapped[list[CourseProgress]] = relationship(
-        "CourseProgress", back_populates="course", lazy="raise"
-    )
 
 
 class Enrollment(Base):
@@ -187,41 +183,6 @@ class Enrollment(Base):
         "CareerPath", back_populates="enrollments", lazy="raise"
     )
 
-
-class CourseProgress(Base):
-    """Progreso de visualización de un usuario en un curso.
-
-    Un row por (user_id, course_id). Se inserta al primer play y se actualiza
-    en cada heartbeat. ``is_completed=True`` cuando ``watch_pct >= 80`` (umbral
-    fijo del MVP — revisable cuando los coaches firmen criterios pedagógicos).
-    Por usuario x org → RLS estándar (tenant_isolation).
-    """
-
-    __tablename__ = "course_progress"
-    __table_args__ = (UniqueConstraint("user_id", "course_id", name="uq_progress_user_course"),)
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    org_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True
-    )
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
-    )
-    course_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True
-    )
-    last_position_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    watch_pct: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
-    is_completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    first_played_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-    last_played_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
-    )
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-
-    course: Mapped[Event] = relationship("Event", back_populates="progress_records", lazy="raise")
 
 
 class UserLearningProfile(Base):

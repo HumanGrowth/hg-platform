@@ -75,22 +75,3 @@ def test_course_detail_redirects_and_resolves(client: TestClient, factory, auth_
     finally:
         _cleanup(slug)
 
-
-def test_course_progress_post_redirect_preserves_method_and_body(
-    client: TestClient, factory, auth_headers
-) -> None:
-    """308 (a diferencia de 301/302) preserva el método y el body — clave
-    para que un cliente viejo posteando progress no lo pierda silenciosamente
-    al seguir la redirección."""
-    slug = f"redirect-test-{uuid.uuid4().hex[:8]}"
-    _make_event(slug)
-    headers = _auth(factory, auth_headers)
-    try:
-        r = client.post(
-            f"/api/v1/courses/{slug}/progress", headers=headers,
-            json={"position_seconds": 30, "watch_pct": 50.0},
-        )
-        assert r.status_code == 200
-        assert r.json()["watch_pct"] == 50.0
-    finally:
-        _cleanup(slug)

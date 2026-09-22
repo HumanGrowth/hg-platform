@@ -31,12 +31,6 @@ import type {
   CareerPath,
   CommunityEvent,
   CommunityEventInput,
-  Course,
-  CourseDetail,
-  NextCourseResponse,
-  CourseFilters,
-  CourseProgress,
-  CourseProgressPayload,
   Enrollment,
   FinalizeResult,
   HomeDashboard,
@@ -287,47 +281,10 @@ export const apiSubmitInquiry = async (payload: ContactInquiryPayload): Promise<
   }
 };
 
-// ─────────────── Catálogo PMM (paths + courses, auth Bearer) ───────────────
+// ─────────────── Catálogo PMM (career paths, auth Bearer) ───────────────
 
 export const apiListPaths = async (): Promise<CareerPath[]> => {
   const res = await backend.get<CareerPath[]>("/api/v1/paths");
-  return res.data;
-};
-
-export const apiListCourses = async (
-  filters?: CourseFilters,
-): Promise<{ items: Course[]; total: number }> => {
-  const res = await backend.get("/api/v1/courses", { params: filters });
-  return res.data as { items: Course[]; total: number };
-};
-
-/** @deprecated TASK lu-refine-B-03 — `/path` usa `apiListModulosByDimension`
- * ahora. Sin callers activos; se deja sin borrar (el endpoint que pega
- * abajo sigue vivo vía el redirect 308 legacy de A-08) por si algún otro
- * lugar necesita listar el catálogo de events heredado por dimensión. */
-export const apiListCoursesForPath = async (
-  pathCode: string,
-  filters?: Omit<CourseFilters, "track">,
-): Promise<{ items: Course[]; total: number }> => {
-  const res = await backend.get(`/api/v1/paths/${pathCode}/courses`, { params: filters });
-  return res.data as { items: Course[]; total: number };
-};
-
-export const apiGetCourse = async (slug: string): Promise<CourseDetail> => {
-  const res = await backend.get<CourseDetail>(`/api/v1/courses/${slug}`);
-  return res.data;
-};
-
-export const apiGetNextCourse = async (slug: string): Promise<NextCourseResponse> => {
-  const res = await backend.get<NextCourseResponse>(`/api/v1/courses/${slug}/next`);
-  return res.data;
-};
-
-export const apiSaveProgress = async (
-  slug: string,
-  payload: CourseProgressPayload,
-): Promise<CourseProgress> => {
-  const res = await backend.post<CourseProgress>(`/api/v1/courses/${slug}/progress`, payload);
   return res.data;
 };
 
@@ -706,8 +663,7 @@ export const apiGetModulo = async (slug: string): Promise<LearningUnitDetail> =>
   return res.data;
 };
 
-/** TASK lu-refine-A-03/B-01 — usado por /path (B-03) para reemplazar el
- * lane de `apiListCoursesForPath` (events) por units reales del pilar. */
+
 export const apiListModulosByDimension = async (
   careerPathCode: string,
   levelCode?: string,

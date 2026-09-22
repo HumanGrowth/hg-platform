@@ -167,3 +167,68 @@ def test_events_filter_event_type(client: TestClient, factory, auth_headers) -> 
         assert recorded not in slugs
     finally:
         _cleanup([live, recorded])
+
+
+# ─────────────────────────── detalle de un event (H9: sin course_progress) ───────────────────────────
+
+
+def test_get_event_detail_unauth(client: TestClient) -> None:
+    assert client.get("/api/v1/events/whatever").status_code in (401, 403)
+
+
+def test_get_event_detail_ok(client: TestClient, factory, auth_headers) -> None:
+    slug = "cp-detail-h9"
+    s = SessionLocal()
+    try:
+        path = s.scalar(select(CareerPath).where(CareerPath.code == "P1"))
+        if path is None:
+            path = CareerPath(code="P1", name="Carrera e impacto", order_index=1)
+            s.add(path)
+            s.commit()
+        s.add(Event(
+            career_path_id=path.id, title=slug, slug=slug, order_index=1,
+            career_level=CareerLevel.L1, track=EventTrack.competency, duration_seconds=300,
+        ))
+        s.commit()
+    finally:
+        s.close()
+    try:
+        user = factory.make_user(org=factory.make_org(), role=UserRole.collaborator)
+        res = client.get(f"/api/v1/events/{slug}", headers=auth_headers(user))
+        assert res.status_code == 200, res.text
+        assert res.json()["slug"] == slug
+        assert res.json()["dimension_code"] == "P1"
+        assert "progress" not in res.json()  # H9: el campo se retiró con course_progress
+    finally:
+        s = SessionLocal()
+        s.execute(delete(Event).where(Event.slug == slug))
+        s.commit()
+        s.close()
+
+
+def test_get_event_detail_404_inactive(client: TestClient, factory, auth_headers) -> None:
+    slug = "cp-inactive-h9"
+    s = SessionLocal()
+    try:
+        path = s.scalar(select(CareerPath).where(CareerPath.code == "P1"))
+        if path is None:
+            path = CareerPath(code="P1", name="Carrera e impacto", order_index=1)
+            s.add(path)
+            s.commit()
+        s.add(Event(
+            career_path_id=path.id, title=slug, slug=slug, order_index=1,
+            career_level=CareerLevel.L1, track=EventTrack.competency, duration_seconds=300,
+            is_active=False,
+        ))
+        s.commit()
+    finally:
+        s.close()
+    try:
+        user = factory.make_user(org=factory.make_org(), role=UserRole.collaborator)
+        res = client.get(f"/api/v1/events/{slug}", headers=auth_headers(user))
+        assert res.status_code == 404
+    finally:
+        s = SessionLocal()
+        s.execute(delete(Event).where(Event.slug == slug))
+        s.commit()
+        s.close()
