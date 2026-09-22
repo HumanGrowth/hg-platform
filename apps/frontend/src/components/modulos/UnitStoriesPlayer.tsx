@@ -5,7 +5,9 @@ import { X } from "lucide-react";
 import * as React from "react";
 
 import { BlockRenderer } from "@/components/modulos/BlockRenderer";
+import { isPillarMarkBlock } from "@/components/modulos/blocks/pillar-mark-context";
 import { BlockTransition } from "@/components/modulos/BlockTransition";
+import { SegmentedProgress } from "@/components/modulos/SegmentedProgress";
 import { UnitCompletionCard } from "@/components/modulos/UnitCompletionCard";
 import { Dialog } from "@/components/ui/dialog";
 import { apiCompleteBlock, apiSubmitQuiz, apiSubmitReflection } from "@/lib/api";
@@ -142,26 +144,17 @@ export function UnitStoriesPlayer({ unit, attempt, onClose }: UnitStoriesPlayerP
       {/* Header: progress marker + X — en flujo, arriba de todo. El video 9:16
           se ubica DEBAJO de este marcador (no lo tapa). */}
       <div className="flex items-center gap-3 px-4 pt-4">
-        <div className="flex flex-1 gap-1">
-          {unit.blocks.map((b, i) => {
-            const completed = blockProgress.some((bp) => bp.unit_block_id === b.id && bp.status === "completed");
-            return (
-              <div key={b.id} className="h-1 flex-1 overflow-hidden rounded-full bg-bg-sunken">
-                <div
-                  className={cn(
-                    "h-full rounded-full transition-[width] duration-base",
-                    completed ? "w-full bg-primary" : i === currentIndex ? "w-1/2 bg-primary" : "w-0",
-                  )}
-                />
-              </div>
-            );
-          })}
-        </div>
+        <SegmentedProgress
+          className="flex-1"
+          blocks={unit.blocks}
+          blockProgress={blockProgress}
+          currentIndex={currentIndex}
+        />
         <button
           type="button"
           onClick={requestClose}
           aria-label="Cerrar"
-          className="rounded-full p-1.5 text-fg-muted hover:bg-bg-sunken"
+          className="glass-fill glass-edge flex h-9 w-9 items-center justify-center rounded-full border text-fg"
         >
           <X size={22} strokeWidth={1.75} />
         </button>
@@ -208,6 +201,7 @@ export function UnitStoriesPlayer({ unit, attempt, onClose }: UnitStoriesPlayerP
               block={currentBlock}
               dimensionCode={unit.dimension_code}
               narrativeTone={unit.narrative_tone}
+              showPillarMark={isPillarMarkBlock(unit.blocks, currentIndex)}
               isCompleted={isCurrentCompleted}
               onCompleteBlock={onCompleteBlock}
               onSubmitQuiz={onSubmitQuiz}
@@ -231,7 +225,7 @@ export function UnitStoriesPlayer({ unit, attempt, onClose }: UnitStoriesPlayerP
     <>
       {shouldAnimate ? (
         <motion.div
-          className="fixed inset-x-0 top-0 z-50 h-dvh bg-bg"
+          className="glass-ambient fixed inset-x-0 top-0 z-50 h-dvh"
           drag="y"
           dragConstraints={{ top: 0, bottom: 0 }}
           dragElastic={{ top: 0, bottom: 0.5 }}
@@ -242,7 +236,7 @@ export function UnitStoriesPlayer({ unit, attempt, onClose }: UnitStoriesPlayerP
           {content}
         </motion.div>
       ) : (
-        <div className="fixed inset-x-0 top-0 z-50 h-dvh bg-bg">{content}</div>
+        <div className="glass-ambient fixed inset-x-0 top-0 z-50 h-dvh">{content}</div>
       )}
 
       <Dialog

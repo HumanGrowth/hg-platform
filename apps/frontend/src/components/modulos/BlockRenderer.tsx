@@ -4,6 +4,7 @@ import { QuizBlockView } from "./blocks/QuizBlockView";
 import { ReflectionBlockView } from "./blocks/ReflectionBlockView";
 import { TextBlockView } from "./blocks/TextBlockView";
 import { VideoBlockView } from "./blocks/VideoBlockView";
+import { PillarMarkContext } from "./blocks/pillar-mark-context";
 import { hasPresentation } from "./templates/registry";
 import { TemplatedTextBlock } from "./templates/TemplatedTextBlock";
 
@@ -22,6 +23,9 @@ export interface BlockRendererProps extends BlockRendererHandlers {
   /** `narrative_tone` de la unit — modula la escala/peso de las plantillas
    * sociales (con `presentation.emphasis_level` explícito, éste gana). */
   narrativeTone?: NarrativeTone | null;
+  /** Metáfora grande del pilar como header de la pantalla (default true). Los
+   * players la muestran sólo en el primer bloque de la unit. */
+  showPillarMark?: boolean;
   /** Navegación del player (avanzar/cerrar) — la usa el botón "Finalizar" del
    * bloque de reflexión. Opcional (p.ej. el preview no navega). */
   onAdvance?: () => void;
@@ -34,7 +38,24 @@ export interface BlockRendererProps extends BlockRendererHandlers {
  * layout a `templateFor(block)` vía `TemplatedTextBlock`; los que no la traen —
  * todas las units ya creadas — siguen en `TextBlockView`, sin cambios.
  */
-export function BlockRenderer({ block, dimensionCode, narrativeTone, onAdvance, ...handlers }: BlockRendererProps) {
+export function BlockRenderer({
+  showPillarMark = true,
+  ...props
+}: BlockRendererProps) {
+  return (
+    <PillarMarkContext.Provider value={showPillarMark}>
+      <BlockRendererInner {...props} />
+    </PillarMarkContext.Provider>
+  );
+}
+
+function BlockRendererInner({
+  block,
+  dimensionCode,
+  narrativeTone,
+  onAdvance,
+  ...handlers
+}: Omit<BlockRendererProps, "showPillarMark">) {
   switch (block.block_type) {
     case "video_intro":
     case "video_teaching":

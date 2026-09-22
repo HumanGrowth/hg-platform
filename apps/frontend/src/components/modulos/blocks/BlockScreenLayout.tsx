@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { DimensionMetaphor } from "@/components/modulos/DimensionMetaphor";
+import { usePillarMark } from "@/components/modulos/blocks/pillar-mark-context";
 import { TemplateFrameContext } from "@/components/modulos/templates/frame-context";
 import type { ResolvedPresentation } from "@/components/modulos/templates/style";
 import { MosaicBand, QuoteMark } from "@/components/ui/brand";
@@ -32,6 +33,7 @@ export function BlockScreenLayout({
   className?: string;
   presentation?: ResolvedPresentation;
 }) {
+  const showPillarMark = usePillarMark();
   if (presentation) {
     return (
       <SocialFrame presentation={presentation} className={className}>
@@ -54,9 +56,11 @@ export function BlockScreenLayout({
         )}
       >
         {/* Metáfora del pilar como header → identidad de la dimensión (64-80px). */}
-        <span aria-hidden className="shrink-0" style={{ color: style.glow }}>
-          <DimensionMetaphor code={dimensionCode ?? "P3"} className="h-16 w-16 sm:h-20 sm:w-20" />
-        </span>
+        {showPillarMark && (
+          <span aria-hidden className="shrink-0" style={{ color: style.glow }}>
+            <DimensionMetaphor code={dimensionCode ?? "P3"} className="h-16 w-16 sm:h-20 sm:w-20" />
+          </span>
+        )}
         {children}
       </div>
     </div>

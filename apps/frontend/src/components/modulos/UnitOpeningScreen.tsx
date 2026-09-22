@@ -67,11 +67,18 @@ export function UnitOpeningScreen({
     : {};
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 px-8 text-center"
-      style={{ background: `radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, ${style.glow} 12%, var(--bg)) 0%, var(--bg) 60%)` }}
-    >
-      <Wrapper {...wrapperProps} className="flex flex-col items-center gap-6">
+    <div className="glass-ambient fixed inset-0 z-50 flex flex-col items-center justify-center px-6 text-center">
+      {/* Tinte del pilar sobre el fondo ambiental (identidad de la dimensión). */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: `radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, ${style.glow} 14%, transparent) 0%, transparent 60%)` }}
+      />
+      {/* El texto vive sobre glass-surface-strong (≥74% opaco), nunca sobre el fondo pelado. */}
+      <Wrapper
+        {...wrapperProps}
+        className="glass-surface-strong relative flex w-full max-w-md flex-col items-center gap-6 px-8 py-10"
+      >
         <motion.div
           initial={shouldAnimate ? { scale: 0.8, opacity: 0, y: 8 } : false}
           animate={{ scale: 1, opacity: 1, y: 0 }}

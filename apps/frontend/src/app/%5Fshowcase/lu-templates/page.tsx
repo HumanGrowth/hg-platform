@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import * as React from "react";
 
+import { UnitOpeningScreen } from "@/components/modulos/UnitOpeningScreen";
 import { UnitBackToBackPlayer } from "@/components/modulos/UnitBackToBackPlayer";
 import { UnitStoriesPlayer } from "@/components/modulos/UnitStoriesPlayer";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
@@ -14,7 +15,7 @@ import type { Block, LearningUnitAttempt, LearningUnitDetail, TextBlock } from "
  * Monta el `UnitStoriesPlayer` REAL (9:16) con fixtures: una unit "vieja" sin
  * tags (se ve como siempre) y una "taggeada" (stat verde, quote, steps, tip).
  *
- *   /_showcase/lu-templates?unit=old|tagged|long&block=0..N&player=stories|btb|auto
+ *   /_showcase/lu-templates?unit=old|tagged|long&block=0..N&player=stories|btb|auto|opening
  *
  * `player=auto` replica el switch de `ModuloDetailView` (breakpoint 769px) y, en
  * desktop, la cadena de alturas del shell glass (`SpatialCanvas`: main con
@@ -189,6 +190,7 @@ function Player() {
   }
   const attempt = makeAttempt(unit.blocks);
   const mode = params.get("player") ?? "stories";
+  if (mode === "opening") return <UnitOpeningScreen unit={unit} onStart={() => {}} />;
   if (mode === "btb" || mode === "auto") return <DesktopOrStories unit={unit} attempt={attempt} force={mode === "btb"} />;
   return <UnitStoriesPlayer unit={unit} attempt={attempt} onClose={() => {}} />;
 }

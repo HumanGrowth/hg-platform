@@ -4,7 +4,9 @@ import { Check, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from "lucide-r
 import * as React from "react";
 
 import { BlockRenderer } from "@/components/modulos/BlockRenderer";
+import { isPillarMarkBlock } from "@/components/modulos/blocks/pillar-mark-context";
 import { BlockTransition } from "@/components/modulos/BlockTransition";
+import { SegmentedProgress } from "@/components/modulos/SegmentedProgress";
 import { UnitCompletionCard } from "@/components/modulos/UnitCompletionCard";
 import { AISoonBadge } from "@/components/shared/AISoonBadge";
 import { Button } from "@/components/ui/button";
@@ -138,23 +140,9 @@ export function UnitBackToBackPlayer({ unit, attempt, onClose }: UnitBackToBackP
   }
 
   return (
-    <div className={cn(focusMode ? "fixed inset-0 z-50 flex flex-col bg-bg p-8" : "flex h-full flex-col gap-4")}>
+    <div className={cn(focusMode ? "glass-ambient fixed inset-0 z-50 flex flex-col p-8" : "flex h-full flex-col gap-4")}>
       {!focusMode && (
-        <div className="flex gap-1">
-          {unit.blocks.map((b, i) => {
-            const completed = blockProgress.some((bp) => bp.unit_block_id === b.id && bp.status === "completed");
-            return (
-              <div key={b.id} className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg-sunken">
-                <div
-                  className={cn(
-                    "h-full rounded-full bg-primary",
-                    completed ? "w-full" : i === currentIndex ? "w-1/2 opacity-60" : "w-0",
-                  )}
-                />
-              </div>
-            );
-          })}
-        </div>
+        <SegmentedProgress blocks={unit.blocks} blockProgress={blockProgress} currentIndex={currentIndex} />
       )}
 
       <div className={cn("grid min-h-0 gap-6", focusMode ? "flex-1 grid-cols-1 place-items-center" : "flex-1 grid-cols-[1fr_280px]")}>
@@ -184,6 +172,7 @@ export function UnitBackToBackPlayer({ unit, attempt, onClose }: UnitBackToBackP
               block={currentBlock}
               dimensionCode={unit.dimension_code}
               narrativeTone={unit.narrative_tone}
+              showPillarMark={isPillarMarkBlock(unit.blocks, currentIndex)}
               isCompleted={isCurrentCompleted}
               onCompleteBlock={onCompleteBlock}
               onSubmitQuiz={onSubmitQuiz}
@@ -194,7 +183,10 @@ export function UnitBackToBackPlayer({ unit, attempt, onClose }: UnitBackToBackP
         </div>
 
         {!focusMode && (
-          <nav aria-label="Índice de bloques" className="flex min-h-0 flex-col gap-1 overflow-y-auto">
+          <nav
+            aria-label="Índice de bloques"
+            className="glass-surface-strong flex max-h-full min-h-0 flex-col gap-1 self-start overflow-y-auto p-2"
+          >
             {unit.blocks.map((b, i) => {
               const completed = blockProgress.some((bp) => bp.unit_block_id === b.id && bp.status === "completed");
               const reachable = i <= maxReachableIndex;
@@ -207,9 +199,10 @@ export function UnitBackToBackPlayer({ unit, attempt, onClose }: UnitBackToBackP
                   onClick={() => jumpTo(i)}
                   aria-current={active ? "step" : undefined}
                   className={cn(
-                    "flex items-center gap-2 rounded-md px-3 py-2 text-left font-sans text-sm transition-colors",
+                    "flex items-center gap-2 rounded-md border px-3 py-2 text-left font-sans text-sm transition-colors",
                     "disabled:cursor-not-allowed disabled:opacity-40",
-                    active ? "bg-hg-green-100 font-semibold text-primary" : "text-fg-muted hover:bg-bg-sunken",
+                    // Fila activa: glass-inset + text-fg (text-primary no llega a 4.5:1 en dark; ver glass-contrast.test).
+                    active ? "glass-inset font-semibold text-fg" : "glass-hover-bg border-transparent text-fg-muted",
                   )}
                 >
                   {completed ? (
@@ -245,7 +238,7 @@ export function UnitBackToBackPlayer({ unit, attempt, onClose }: UnitBackToBackP
             type="button"
             onClick={() => setFocusMode((v) => !v)}
             aria-label={focusMode ? "Salir de modo foco" : "Modo foco"}
-            className="rounded-md p-2 text-fg-muted hover:bg-bg-sunken"
+            className="glass-fill glass-edge flex h-9 w-9 items-center justify-center rounded-full border text-fg"
           >
             {focusMode ? (
               <Minimize2 size={18} strokeWidth={1.75} />
@@ -257,7 +250,7 @@ export function UnitBackToBackPlayer({ unit, attempt, onClose }: UnitBackToBackP
             <button
               type="button"
               onClick={onClose}
-              className="font-sans text-sm text-fg-muted hover:text-fg"
+              className="glass-fill glass-edge rounded-full border px-4 py-2 font-sans text-sm font-semibold text-fg"
             >
               Cerrar
             </button>

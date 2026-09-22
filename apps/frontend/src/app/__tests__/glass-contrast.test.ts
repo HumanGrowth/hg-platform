@@ -64,6 +64,13 @@ interface ThemeSpec {
   textStrong: Rgb; // título (--fg)
   textMuted: Rgb; // body/muted (--fg-muted)
   focusRing: Rgb; // --glass-focus-ring
+  /** Chrome liviano (.glass-fill): X del player, chips de nav. */
+  fillBase: Rgb;
+  fillAlpha: number;
+  primary: Rgb; // --color-primary (text-primary)
+  /** Track de progreso (--glass-track-fill). */
+  trackBase: Rgb;
+  trackAlpha: number;
 }
 
 const LIGHT: ThemeSpec = {
@@ -84,6 +91,11 @@ const LIGHT: ThemeSpec = {
   textStrong: hexToRgb("#1a1a1a"), // --hg-ink
   textMuted: hexToRgb("#6b7061"), // --hg-olive-gray
   focusRing: hexToRgb("#2a2826"), // --hg-charcoal
+  fillBase: [255, 255, 255],
+  fillAlpha: 0.55,
+  primary: hexToRgb("#4a7a54"), // --hg-green
+  trackBase: [255, 255, 255],
+  trackAlpha: 0.74,
 };
 
 const DARK: ThemeSpec = {
@@ -104,6 +116,11 @@ const DARK: ThemeSpec = {
   textStrong: hexToRgb("#faf3e8"), // --fg / --hg-cream
   textMuted: hexToRgb("#b3b0a8"), // --fg-muted
   focusRing: hexToRgb("#faf3e8"), // --hg-cream
+  fillBase: [255, 255, 255],
+  fillAlpha: 0.08,
+  primary: hexToRgb("#4a7a54"), // --hg-green (mismo token en dark)
+  trackBase: [0, 0, 0],
+  trackAlpha: 0.55,
 };
 
 function backdropCandidates(spec: ThemeSpec): Rgb[] {
@@ -157,5 +174,50 @@ describe.each([LIGHT, DARK])("tema glass $name · WCAG contrast gate", (spec) =>
   it("anillo de foco sobre el fondo del tema (peor blob) cumple 3:1 (UI)", () => {
     const ratio = Math.min(...backdropCandidates(spec).map((bg) => contrastRatio(bg, spec.focusRing)));
     expect(ratio).toBeGreaterThanOrEqual(AA_UI);
+  });
+});
+
+/**
+ * Flujo de módulos (/modulos) sobre glass: el player y la apertura dejan de pintar
+ * un bg-bg plano y muestran el fondo ambiental (blobs). Estos pares miden el texto
+ * y los íconos del chrome NUEVO sobre el peor blob de cada tema.
+ */
+describe.each([LIGHT, DARK])("módulos sobre glass $name · WCAG contrast gate", (spec) => {
+  const worstOver = (f: (bg: Rgb) => Rgb, text: Rgb) =>
+    Math.min(...backdropCandidates(spec).map((bg) => contrastRatio(f(bg), text)));
+  /** Nav del índice = card strong sobre el fondo; fila activa = glass-inset encima. */
+  const card = (bg: Rgb) => composite(spec.fillStrongBase, spec.fillStrongAlpha, bg);
+  const activeRow = (bg: Rgb) => composite(spec.insetBase, spec.insetAlpha, card(bg));
+
+  it("filas inactivas del índice (muted) sobre la card strong del nav cumplen 4.5:1", () => {
+    expect(worstOver(card, spec.textMuted)).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("fila activa del índice: texto principal (text-fg) sobre glass-inset cumple 4.5:1", () => {
+    expect(worstOver(activeRow, spec.textStrong)).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("fila activa: text-primary NO alcanza 4.5:1 en dark → la fila activa usa text-fg", () => {
+    // Documenta la decisión: el prompt pedía text-primary; medido, sólo pasa en light.
+    const ratio = worstOver(activeRow, spec.primary);
+    if (spec.name === "dark") expect(ratio).toBeLessThan(AA_TEXT);
+    else expect(ratio).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("texto principal sobre el fondo ambiental pelado cumple 4.5:1", () => {
+    // El texto MUTED sobre el fondo pelado mide 3.5:1 en light → por eso los bloques
+    // de contenido conservan su gradiente opaco propio (BlockScreenLayout) y sólo el
+    // chrome (header, márgenes, apertura dentro de una card strong) muestra el ambient.
+    expect(worstOver((bg) => bg, spec.textStrong)).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it("ícono (X, modo foco) sobre chip glass-fill cumple 3:1 (UI)", () => {
+    const chip = (bg: Rgb) => composite(spec.fillBase, spec.fillAlpha, bg);
+    expect(worstOver(chip, spec.textStrong)).toBeGreaterThanOrEqual(AA_UI);
+  });
+
+  it("relleno de progreso (bg-primary) sobre .glass-track cumple 3:1 (UI)", () => {
+    const track = (bg: Rgb) => composite(spec.trackBase, spec.trackAlpha, bg);
+    expect(worstOver(track, spec.primary)).toBeGreaterThanOrEqual(AA_UI);
   });
 });
