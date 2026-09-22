@@ -46,7 +46,7 @@ def test_me_metrics_returns_canonical_states(client: TestClient, factory, auth_h
         body = res.json()
         assert body["assessment_states"]["P1"]["state"] == "L4"
         assert body["last_assessment_date"] is not None
-        assert "badges_unlocked_count" in body and "dimension_completion_rate" in body
+        assert "badges_unlocked_count" in body and "dimension_completion_rate" not in body
     finally:
         _cleanup(user.id)
 

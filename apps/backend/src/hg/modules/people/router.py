@@ -21,6 +21,8 @@ from hg.core.deps import get_current_user, get_db_as_superadmin, require_role
 from hg.db import get_db
 from hg.modules.assessment.router import result_out as assessment_result_out
 from hg.modules.assessment.schemas import DimensionResultOut
+from hg.modules.badges import progression
+from hg.modules.badges.schemas import DimensionProgressionOut
 from hg.modules.identity.models import Organization, User, UserRole
 from hg.modules.learning import enrollments_service
 from hg.modules.learning.enrollments_service import InvalidPathCodeError
@@ -81,7 +83,6 @@ from hg.modules.people.service import (
     assigned_content_completed_by_users,
     assignments_due_summary_by_users,
     badges_unlocked_count_by_users,
-    dimension_completion_rate,
     now_utc,
     org_dimension_metrics,
     streak_days,
@@ -379,7 +380,6 @@ def get_user_detail(
         enrollments=[_enrollment_out(db, e) for e in enrollments],
         courses_in_progress_list=_course_progress_list(db, target.id, completed=False),
         courses_completed_list=_course_progress_list(db, target.id, completed=True),
-        dimension_completion_rate=dimension_completion_rate(db, target.id),
         assessment_states=states,
     )
 
@@ -407,6 +407,33 @@ def get_user_path(
         milestones=[PathMilestoneOut(**vars(m)) for m in r.milestones],
         custom_path_name=r.custom_path_name,
     )
+
+
+@manager_router.get("/users/{user_id}/progression", response_model=list[DimensionProgressionOut])
+def get_user_progression(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[DimensionProgressionOut]:
+    """Nivel por dimensión de un reporte — la MISMA fuente (`dimension_level_progress`)
+    que ve el colaborador en /perfil, para que manager y colaborador lean el mismo %.
+
+    El % mezcla aprendizaje + assessment. Sin ``consent_manager`` se devuelve solo
+    la parte de aprendizaje (``includes_assessment=false``): el assessment sigue
+    gateado por consentimiento. El acceso se audita (``progress``)."""
+    from hg.modules.consent import service as consent_service
+
+    target = _authorize_target(db, current_user, user_id)
+    include_assessment = consent_service.consent_manager_ok(
+        consent_service.get_privacy_consent(db, target.id)
+    )
+    consent_service.log_access(
+        db, actor=current_user, resource=consent_service.RESOURCE_PROGRESS, target_user_id=target.id
+    )
+    return [
+        DimensionProgressionOut(**d)
+        for d in progression.progression_summary(db, target.id, include_assessment=include_assessment)
+    ]
 
 
 @manager_router.get("/users/{user_id}/results", response_model=list[DimensionResultOut])
@@ -884,7 +911,6 @@ def get_my_home_dashboard(
     return HomeDashboardOut(
         next_step=next_step,
         active_enrollments=[_enrollment_out(db, e) for e in enrollments],
-        dimension_completion_rates=dimension_completion_rate(db, uid),
         recent_activity=recent_activity,
         stats=stats,
     )
@@ -911,7 +937,6 @@ def get_my_metrics(
         last_assessment_date=m.last_assessment_date,
         badges_unlocked_count=m.badges_unlocked_count,
         assessment_states=m.assessment_states,
-        dimension_completion_rate=m.dimension_completion_rate,
     )
 
 

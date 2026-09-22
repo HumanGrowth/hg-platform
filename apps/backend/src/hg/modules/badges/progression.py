@@ -252,6 +252,30 @@ def recompute_dimension(db: Session, user: User, dimension_code: str) -> None:
     db.flush()
 
 
+def recompute_tracked_users(db: Session, dimension_code: str) -> int:
+    """Recalcula la dimensión para los usuarios activos que ya tienen progreso
+    registrado en ella (``dimension_level_progress``). Se usa cuando cambia el
+    catálogo (publicar / despublicar una unit altera el denominador del % por
+    nivel para todos): sin esto, el % guardado queda viejo hasta el próximo
+    evento del usuario. Devuelve cuántos usuarios se recalcularon."""
+    dimension_code = dimension_code.upper()
+    user_ids = list(
+        db.scalars(
+            select(DimensionLevelProgress.user_id)
+            .where(DimensionLevelProgress.dimension_code == dimension_code)
+            .distinct()
+        ).all()
+    )
+    if not user_ids:
+        return 0
+    users = list(
+        db.scalars(select(User).where(User.id.in_(user_ids), User.is_active.is_(True))).all()
+    )
+    for user in users:
+        recompute_dimension(db, user, dimension_code)
+    return len(users)
+
+
 def pillar_badge_code(dimension_code: str, pillar_code: str) -> str:
     return f"pillar-{dimension_code}-{pillar_code}".lower()
 
@@ -348,11 +372,18 @@ def recompute_for_assessment_code(db: Session, user: User, assessment_code: str)
 # ─────────────────────────── Lectura para el frontend (TASK 6 FE) ───────────────────────────
 
 
-def progression_summary(db: Session, user_id: UUID) -> list[dict]:
+def progression_summary(
+    db: Session, user_id: UUID, *, include_assessment: bool = True
+) -> list[dict]:
     """Progreso por dimensión para el perfil: nivel actual + completion + niveles.
 
     El **nivel actual** es el primero cuyo completion no llegó al umbral (o el
-    último si ya se ganaron todos). Devuelve dicts (los serializa el schema)."""
+    último si ya se ganaron todos). Devuelve dicts (los serializa el schema).
+
+    ``include_assessment=False`` (vista del manager sin ``consent_manager``): el
+    completion mezcla el assessment, así que mostrarlo revelaría un derivado del
+    estado que el colaborador no autorizó a compartir. En ese caso el % es solo
+    el de aprendizaje (``learning_pct``, progreso de contenido — no gateado)."""
     levels = list(
         db.scalars(
             select(DimensionLevel).order_by(
@@ -377,7 +408,10 @@ def progression_summary(db: Session, user_id: UUID) -> list[dict]:
         current = None
         for lvl in dim_levels:
             row = progress.get((dim, lvl.level_code))
-            completion = round(row.completion_pct, 1) if row is not None else 0.0
+            if row is None:
+                completion = 0.0
+            else:
+                completion = round(row.completion_pct if include_assessment else row.learning_pct, 1)
             earned = completion >= lvl.unlock_threshold
             level_rows.append(
                 {"level_code": lvl.level_code, "name": lvl.name,
@@ -394,6 +428,7 @@ def progression_summary(db: Session, user_id: UUID) -> list[dict]:
             "current_level_name": current["name"] if current else None,
             "current_completion_pct": current["completion_pct"] if current else 0.0,
             "current_unlock_threshold": current["unlock_threshold"] if current else 100,
+            "includes_assessment": include_assessment,
             "levels": level_rows,
         })
     return out

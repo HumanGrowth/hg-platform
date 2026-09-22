@@ -225,7 +225,6 @@ export interface TeamMemberDetail extends TeamMember {
   enrollments: Enrollment[];
   courses_in_progress_list: CourseProgressDetail[];
   courses_completed_list: CourseProgressDetail[];
-  dimension_completion_rate: Record<DimensionCodeKey, number>;
   // Estados del assessment por dimensión (manager ve estados, NO respuestas).
   assessment_states: Record<string, TeamMemberDimensionState>;
 }
@@ -301,7 +300,6 @@ export interface HomeStats {
 export interface HomeDashboard {
   next_step: HomeNextStep | null;
   active_enrollments: Enrollment[];
-  dimension_completion_rates: Record<DimensionCodeKey, number>;
   recent_activity: HomeRecentActivity[];
   stats: HomeStats;
 }
@@ -665,7 +663,15 @@ export interface LearningUnitFeedItem {
   video_url: string | null;
   /** Skills de la unit (columna `keywords`) — fuente del toggle Dimensión/Skill. */
   keywords: string[] | null;
+  /** Orden estricto: todavía no se puede abrir (ver `lock_reason`). */
+  locked?: boolean;
+  lock_reason?: LockReason | null;
 }
+
+/** Por qué una unit está bloqueada: `order` = falta completar una anterior de tu
+ * nivel; `level` = es de un nivel superior al tuyo (sube al reevaluarte);
+ * `scope` = dimensión fuera de tu ruta (inscripciones). */
+export type LockReason = "order" | "level" | "scope";
 
 export interface LearningUnitFeed {
   hero: LearningUnitFeedItem | null;
@@ -800,7 +806,6 @@ export interface UserMetrics {
   badges_unlocked_count: number;
   /** {dimension_code: {state, state_label, source}} — derivado de DimensionResult. */
   assessment_states: Record<string, AssessmentStateSnapshot>;
-  dimension_completion_rate: Record<string, number>;
 }
 
 // ─────────────── Radar histórico (Sprint Tarde · TASK 6.3) ───────────────
@@ -978,6 +983,9 @@ export interface PathStep {
   level_code: string;
   pillar_code: string | null;
   estimated_minutes: number | null;
+  /** El `next_step` nunca viene bloqueado; los `upcoming` pueden estarlo. */
+  locked?: boolean;
+  lock_reason?: LockReason | null;
 }
 
 export interface PathDimensionProgress {
@@ -1200,5 +1208,7 @@ export interface DimensionProgression {
   current_level_name: string | null;
   current_completion_pct: number;
   current_unlock_threshold: number;
+  /** false = el % es solo aprendizaje (vista del manager sin consentimiento). */
+  includes_assessment?: boolean;
   levels: LevelProgress[];
 }

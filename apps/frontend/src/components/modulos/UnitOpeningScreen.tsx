@@ -28,7 +28,7 @@ const CTA_LABEL: Record<OpeningMode, string> = {
 const EYEBROW_NOTE: Record<OpeningMode, string | null> = {
   start: null,
   resume: "Seguí donde lo dejaste",
-  review: "Ya lo completaste — repasarlo vuelve a empezarlo",
+  review: "Ya lo completaste — repasarlo no cambia tu progreso",
 };
 
 /**
@@ -36,7 +36,7 @@ const EYEBROW_NOTE: Record<OpeningMode, string | null> = {
  * del pilar (line-art con el hue del pilar), el nombre de la dimensión y el
  * título en display, antes de entrar al player. Reduced-motion → sin animación.
  *
- * Es también el punto donde el usuario decide crear o resetear su attempt: el
+ * Es también el punto donde el usuario decide crear su attempt o repasarlo: el
  * `onStart` del caller es quien llama al backend, nunca el montaje.
  */
 export function UnitOpeningScreen({

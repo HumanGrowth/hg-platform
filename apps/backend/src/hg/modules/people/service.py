@@ -25,7 +25,6 @@ from sqlalchemy.orm import Session
 from hg.modules.learning.models import CareerPath, Enrollment
 from hg.modules.learning_units.dimensions import (
     DRIVE_TO_CAREER_PATH,
-    dimensions_for_career_paths,
 )
 from hg.modules.learning_units.models import (
     BlockProgress,
@@ -97,6 +96,7 @@ class AssignmentDueSummary:
 def assignments_due_summary_by_users(
     db: Session, user_ids: list[UUID]
 ) -> dict[UUID, AssignmentDueSummary]:
+    from hg.modules.learning_units.assignment_status import assignment_completed_clause
     from hg.modules.learning_units.models import ModuleAssignment
 
     out: dict[UUID, AssignmentDueSummary] = {uid: AssignmentDueSummary() for uid in user_ids}
@@ -107,7 +107,7 @@ def assignments_due_summary_by_users(
     rows = db.execute(
         select(ModuleAssignment.user_id, ModuleAssignment.due_date).where(
             ModuleAssignment.user_id.in_(user_ids),
-            ModuleAssignment.status != "completed",
+            ~assignment_completed_clause(),
             ModuleAssignment.due_date.is_not(None),
         )
     ).all()
@@ -351,48 +351,6 @@ def org_dimension_metrics(
     return out
 
 
-def dimension_completion_rate(db: Session, user_id: UUID) -> dict[str, float]:
-    """Por cada pilar P1..P6: units completadas por el user / units publicadas.
-
-    Se calcula sobre el catálogo global de units agrupado por dimensión
-    (mapeada al career_path). 0.0 si el pilar no tiene units publicadas.
-    """
-    paths = db.scalars(select(CareerPath).order_by(CareerPath.order_index)).all()
-
-    total_by_dim = {
-        d: int(c)
-        for d, c in db.execute(
-            select(LearningUnit.dimension_code, func.count())
-            .where(LearningUnit.published_at.is_not(None))
-            .group_by(LearningUnit.dimension_code)
-        ).all()
-    }
-    completed_by_dim = {
-        d: int(c)
-        for d, c in db.execute(
-            select(
-                LearningUnit.dimension_code,
-                func.count(func.distinct(LearningUnitAttempt.unit_id)),
-            )
-            .join(LearningUnit, LearningUnit.id == LearningUnitAttempt.unit_id)
-            .where(
-                LearningUnitAttempt.user_id == user_id,
-                LearningUnitAttempt.completed_at.is_not(None),
-                LearningUnit.published_at.is_not(None),
-            )
-            .group_by(LearningUnit.dimension_code)
-        ).all()
-    }
-
-    rates: dict[str, float] = {}
-    for path in paths:
-        dims = dimensions_for_career_paths([path.code])
-        total = sum(total_by_dim.get(d, 0) for d in dims)
-        completed = sum(completed_by_dim.get(d, 0) for d in dims)
-        rates[path.code] = round(completed / total, 4) if total else 0.0
-    return rates
-
-
 # ─────────────────────────── Widgets dashboard v1 (B4-E) ───────────────────────────
 # Agregaciones on-demand para los widgets (streak, weekly, team activity, adoption,
 # funnel, monthly). Se calculan en Python desde block_progress para ser
@@ -592,7 +550,6 @@ class UserMetrics:
     last_assessment_date: datetime | None
     badges_unlocked_count: int
     assessment_states: dict[str, dict[str, str]]  # {dimension: {state, state_label, source}} — desde DimensionResult
-    dimension_completion_rate: dict[str, float]
 
 
 def get_user_metrics(db: Session, user_id: UUID) -> UserMetrics:
@@ -616,5 +573,4 @@ def get_user_metrics(db: Session, user_id: UUID) -> UserMetrics:
         last_assessment_date=last_assessment,
         badges_unlocked_count=badges,
         assessment_states=assessment_states_snapshot(results),
-        dimension_completion_rate=dimension_completion_rate(db, user_id),
     )

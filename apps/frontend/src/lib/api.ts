@@ -1087,3 +1087,14 @@ export const apiGetProgression = async (): Promise<DimensionProgression[]> => {
   const res = await backend.get<DimensionProgression[]>("/api/v1/me/progression");
   return res.data;
 };
+
+/** Mismo progreso, visto por el manager de un reporte. Sin consentimiento del
+ * colaborador el % es solo de aprendizaje (`includes_assessment: false`). */
+export const apiGetTeamMemberProgression = async (
+  userId: string,
+): Promise<DimensionProgression[]> => {
+  const res = await backend.get<DimensionProgression[]>(
+    `/api/v1/manager/users/${userId}/progression`,
+  );
+  return res.data;
+};

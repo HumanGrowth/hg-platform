@@ -262,6 +262,10 @@ class LearningUnitFeedItem(BaseModel):
     # Skills (columna `keywords`) — fuente del filtro/toggle por Skill de
     # "Explorá por dimensión" (Mi Ruta) y de los pickers de asignación.
     keywords: list[str] | None = None
+    # Orden estricto: True si el usuario todavía no puede abrirla (hay una unit
+    # anterior de su dimensión sin completar). Ver `sequencing.UnitSequence`.
+    locked: bool = False
+    lock_reason: Literal["order", "level", "scope"] | None = None
 
 
 class LearningUnitFeed(BaseModel):

@@ -23,8 +23,7 @@ from sqlalchemy.orm import Session
 from hg.core.deps import get_current_user
 from hg.db import get_db
 from hg.modules.identity.models import User
-from hg.modules.learning.models import CareerPath, Enrollment
-from hg.modules.learning_units import quiz_grading
+from hg.modules.learning_units import path_engine, quiz_grading
 from hg.modules.learning_units.area_access import visible_units_predicate
 from hg.modules.learning_units.dimensions import dimensions_for_career_paths
 from hg.modules.learning_units.models import (
@@ -75,6 +74,15 @@ from hg.modules.learning_units.schemas import (
     TextBlockRead,
     VideoBlockRead,
 )
+from hg.modules.learning_units.sequencing import (
+    ENFORCED_ROLES,
+    LOCK_LEVEL,
+    LOCK_ORDER,
+    LOCK_SCOPE,
+    UnitSequence,
+    build_sequence,
+    unit_sort_key,
+)
 
 router = APIRouter()
 
@@ -107,6 +115,25 @@ def _published_unit_or_404(db: Session, slug: str, user: User) -> LearningUnit:
             detail="Completá el onboarding para acceder al resto del contenido",
         )
     return unit
+
+
+_LOCK_MESSAGES = {
+    LOCK_ORDER: "Este módulo se desbloquea al completar los anteriores de tu ruta",
+    LOCK_LEVEL: "Este módulo es de un nivel superior al tuyo: se abre cuando tu nivel suba al reevaluarte",
+    LOCK_SCOPE: "Este módulo pertenece a una dimensión fuera de tu ruta",
+}
+
+
+def _ensure_unlocked(db: Session, unit: LearningUnit, user: User) -> None:
+    """Orden estricto y nivel: 403 si la unit todavía no se puede abrir. Se valida
+    al abrir el detalle y al iniciar el attempt (el resto de endpoints exigen un
+    attempt, que solo se crea acá). Excepciones (completadas, en curso, asignadas,
+    ruta personalizada, niveles inferiores) y reglas en `sequencing`."""
+    if user.role not in ENFORCED_ROLES:
+        return
+    reason = build_sequence(db, user).lock_reason(user, unit)
+    if reason is not None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=_LOCK_MESSAGES[reason])
 
 
 def _get_attempt(db: Session, unit_id: uuid.UUID, user: User) -> LearningUnitAttempt | None:
@@ -240,7 +267,9 @@ def _attempt_status(attempt: LearningUnitAttempt | None) -> str:
     return "completed" if attempt.completed_at else "in_progress"
 
 
-def _feed_item(db: Session, unit: LearningUnit, user: User) -> LearningUnitFeedItem:
+def _feed_item(
+    db: Session, unit: LearningUnit, user: User, plan: UnitSequence | None = None
+) -> LearningUnitFeedItem:
     attempt = _get_attempt(db, unit.id, user)
     n_blocks = len(unit.blocks)
     first_video_block = next(
@@ -252,69 +281,45 @@ def _feed_item(db: Session, unit: LearningUnit, user: User) -> LearningUnitFeedI
         video = db.get(VideoBlock, first_video_block.block_id)
         poster_url = video.poster_url if video else None
         video_url = video.video_url if video else None
+    reason = plan.lock_reason(user, unit) if plan is not None else None
     return LearningUnitFeedItem(
         id=unit.id, slug=unit.slug, title=unit.title, dimension_code=unit.dimension_code,
         pillar_code=unit.pillar_code, unit_number=unit.unit_number,
         level_code=unit.level_code, estimated_duration_seconds=unit.estimated_duration_seconds,
         blocks_count=n_blocks, attempt_status=_attempt_status(attempt),
         poster_url=poster_url, video_url=video_url, keywords=unit.keywords,
+        locked=reason is not None,
+        lock_reason=reason,
     )
 
 
-def _select_feed_units(db: Session, user: User) -> tuple[LearningUnit | None, list[LearningUnit]]:
-    """Selección del "unit del día" — versión MVP (decisión doc §"Selección del
-    unit del día"): (1) attempt in_progress existente, si no (3) fallback a
-    units publicadas no completadas del dimension de una enrollment activa (o
-    cualquier publicada si no hay enrollments). El ranking por dimension_score
-    más rezagado (paso 2) queda deferred a Fase 2."""
-    in_progress_attempt = db.scalar(
-        select(LearningUnitAttempt).where(
+def _select_feed_units(
+    db: Session, user: User, plan: UnitSequence, limit: int
+) -> tuple[LearningUnit | None, list[LearningUnit]]:
+    """Selección del "unit del día": (1) el módulo en curso más reciente; si no,
+    (2) el `next_step` de Mi Ruta. Antes el feed tenía su propio criterio (una
+    candidata AL AZAR filtrada por inscripciones) y `/path` otro — ahora hay un
+    solo motor (`path_engine`, ver `sequencing`) y el feed solo lo presenta."""
+    path = path_engine.build_path(db, user.id, upcoming_n=limit, plan=plan)
+    in_progress = db.scalar(
+        select(LearningUnitAttempt)
+        .where(
             LearningUnitAttempt.user_id == user.id,
             LearningUnitAttempt.started_at.isnot(None),
             LearningUnitAttempt.completed_at.is_(None),
         )
+        .order_by(LearningUnitAttempt.started_at.desc())
     )
-    hero: LearningUnit | None = None
-    if in_progress_attempt is not None:
-        hero = db.get(LearningUnit, in_progress_attempt.unit_id)
+    hero = db.get(LearningUnit, in_progress.unit_id) if in_progress is not None else None
 
-    completed_unit_ids = set(
-        db.scalars(
-            select(LearningUnitAttempt.unit_id).where(
-                LearningUnitAttempt.user_id == user.id, LearningUnitAttempt.completed_at.isnot(None)
-            )
-        ).all()
-    )
-
-    enrolled_dimensions = list(
-        db.scalars(
-            select(CareerPath.code)
-            .join(Enrollment, Enrollment.career_path_id == CareerPath.id)
-            .where(Enrollment.user_id == user.id, Enrollment.is_active.is_(True))
-        ).all()
-    )
-
-    candidates_q = select(LearningUnit).where(
-        LearningUnit.published_at.isnot(None),
-        LearningUnit.dimension_code != ONBOARDING_DIMENSION_CODE,  # track aparte, ver onboarding.py
-        visible_units_predicate(user),  # gating por Área de la Empresa (TASK 8)
-    )
-    if completed_unit_ids:
-        candidates_q = candidates_q.where(LearningUnit.id.notin_(completed_unit_ids))
-    if enrolled_dimensions:
-        # units guardan el código Drive (CP…); traducimos los career paths
-        # inscriptos (P1..P6) a sus dimensiones Drive. Si ninguna mapea, no se
-        # filtra por dimensión (mejor mostrar algo que nada).
-        enrolled_dims = dimensions_for_career_paths(enrolled_dimensions)
-        if enrolled_dims:
-            candidates_q = candidates_q.where(LearningUnit.dimension_code.in_(enrolled_dims))
-    candidates = list(db.scalars(candidates_q.order_by(LearningUnit.created_at)).all())
-
-    if hero is None and candidates:
-        hero = candidates[random.randrange(len(candidates))]
-
-    next_units = [u for u in candidates if hero is None or u.id != hero.id]
-    return hero, next_units
+    steps = [s for s in [path.next_step, *path.upcoming] if s is not None]
+    if hero is None and steps:
+        hero = db.get(LearningUnit, steps[0].unit_id)
+    ids = [s.unit_id for s in steps if hero is None or s.unit_id != hero.id]
+    by_id = {
+        u.id: u for u in db.scalars(select(LearningUnit).where(LearningUnit.id.in_(ids))).all()
+    } if ids else {}
+    return hero, [by_id[i] for i in ids if i in by_id]
 
 
 # ─────────────────────────── Endpoints ───────────────────────────
@@ -349,9 +354,10 @@ def get_feed(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> LearningUnitFeed:
-    hero, next_units = _select_feed_units(db, current_user)
-    hero_item = _feed_item(db, hero, current_user) if hero else None
-    next_items = [_feed_item(db, u, current_user) for u in next_units[:limit]]
+    plan = build_sequence(db, current_user)
+    hero, next_units = _select_feed_units(db, current_user, plan, limit)
+    hero_item = _feed_item(db, hero, current_user, plan) if hero else None
+    next_items = [_feed_item(db, u, current_user, plan) for u in next_units[:limit]]
     return LearningUnitFeed(hero=hero_item, next=next_items)
 
 
@@ -384,17 +390,11 @@ def list_modulos_by_dimension(
     if level_code:
         conds.append(LearningUnit.level_code == level_code)
 
-    units = db.scalars(
-        select(LearningUnit)
-        .where(*conds)
-        .order_by(
-            LearningUnit.level_code.asc(),
-            LearningUnit.pillar_code.asc(),
-            LearningUnit.unit_number.asc(),
-        )
-        .limit(limit)
-    ).all()
-    return [_feed_item(db, u, current_user) for u in units]
+    # Orden de convención (nivel → pilar con "AI" al final → número) en Python:
+    # un ORDER BY de SQL ordena "AI" antes que "P1" y "P10" antes que "P2".
+    units = sorted(db.scalars(select(LearningUnit).where(*conds)).all(), key=unit_sort_key)[:limit]
+    plan = build_sequence(db, current_user)
+    return [_feed_item(db, u, current_user, plan) for u in units]
 
 
 @router.get("/modulos/{slug}", response_model=LearningUnitDetail)
@@ -404,6 +404,7 @@ def get_unit_detail(
     current_user: User = Depends(get_current_user),
 ) -> LearningUnitDetail:
     unit = _published_unit_or_404(db, slug, current_user)
+    _ensure_unlocked(db, unit, current_user)
     return _load_unit_detail(db, unit)
 
 
@@ -414,6 +415,7 @@ def start_attempt(
     current_user: User = Depends(get_current_user),
 ) -> LearningUnitAttempt:
     unit = _published_unit_or_404(db, slug, current_user)
+    _ensure_unlocked(db, unit, current_user)
     attempt = _get_attempt(db, unit.id, current_user)
     now = datetime.now(UTC)
 
@@ -423,15 +425,13 @@ def start_attempt(
         )
         db.add(attempt)
         db.flush()
-    elif attempt.completed_at is not None:
-        # Replay libre (decisión H): resetea el attempt existente, misma row/ID.
-        attempt.completed_at = None
-        attempt.started_at = now
-        db.query(BlockProgress).filter(BlockProgress.attempt_id == attempt.id).delete()
-        db.query(QuizResponse).filter(QuizResponse.attempt_id == attempt.id).delete()
-        db.query(ReflectionText).filter(ReflectionText.attempt_id == attempt.id).delete()
-        db.flush()
-    # Si ya existe y no está completo: idempotente, se devuelve tal cual.
+    # Si ya existe: idempotente, se devuelve tal cual. En particular, repetir una
+    # unit YA completada es un repaso (H3): NO se borra progreso ni se toca
+    # completed_at — "completado" nunca retrocede, así los contadores, la racha y
+    # el heatmap del manager conservan su historia. El player arranca en limpio
+    # del lado del cliente; las respuestas de quiz/reflexión se pisan con la
+    # última y los bloques ya completados no mueven su fecha (ver
+    # ``_upsert_block_progress``).
 
     db.refresh(attempt)
     return attempt
@@ -447,9 +447,16 @@ def get_attempt(
     return _own_attempt_or_404(db, unit, current_user)
 
 
-def _maybe_complete_unit(db: Session, unit: LearningUnit, attempt: LearningUnitAttempt) -> None:
+def _maybe_complete_unit(
+    db: Session, unit: LearningUnit, attempt: LearningUnitAttempt, user: User
+) -> None:
     """Unit completa cuando todos los blocks required=true tienen block_progress
-    completed. Setea completed_at una sola vez (no pisa completions previas)."""
+    completed. Setea completed_at una sola vez (no pisa completions previas).
+
+    Es el ÚNICO punto de cierre de una unit (lo usan complete, quiz/submit y
+    reflection/submit): al pasar a completada recalcula la progresión y los
+    badges de su dimensión (Capa Empresa · TASK 6). Antes solo ``complete_block``
+    lo hacía, y una unit que terminaba en quiz o reflexión quedaba sin badges."""
     if attempt.completed_at is not None:
         return
     required_block_ids = {b.id for b in unit.blocks if b.required}
@@ -466,6 +473,10 @@ def _maybe_complete_unit(db: Session, unit: LearningUnit, attempt: LearningUnitA
     )
     if required_block_ids <= completed_ids:
         attempt.completed_at = datetime.now(UTC)
+        db.flush()
+        from hg.modules.badges import progression
+
+        progression.recompute_dimension(db, user, unit.dimension_code)
 
 
 def _unit_block_or_404(db: Session, unit: LearningUnit, block_id: uuid.UUID) -> UnitBlock:
@@ -489,6 +500,10 @@ def _upsert_block_progress(
             attempt_id=attempt.id, unit_block_id=unit_block_id, status=status_, submitted_at=now
         )
         db.add(progress)
+    elif progress.status == BlockProgressStatus.completed and status_ == BlockProgressStatus.completed:
+        # Ya completado (idempotencia / repaso): conserva la fecha original para no
+        # reescribir la historia de actividad (streak, heatmap del equipo).
+        pass
     else:
         progress.status = status_
         progress.submitted_at = now
@@ -512,12 +527,8 @@ def complete_block(
         )
     attempt = _own_attempt_or_404(db, unit, current_user)
     progress = _upsert_block_progress(db, attempt, unit_block.id, BlockProgressStatus.completed)
-    _maybe_complete_unit(db, unit, attempt)
+    _maybe_complete_unit(db, unit, attempt, current_user)
     db.flush()
-    # Recalcular el completion + badges de nivel de la dimensión (Capa Empresa · TASK 6).
-    from hg.modules.badges import progression
-
-    progression.recompute_dimension(db, current_user, unit.dimension_code)
     db.refresh(progress)
     return progress
 
@@ -574,7 +585,7 @@ def submit_quiz(
         )
 
     _upsert_block_progress(db, attempt, unit_block.id, BlockProgressStatus.completed)
-    _maybe_complete_unit(db, unit, attempt)
+    _maybe_complete_unit(db, unit, attempt, current_user)
     db.flush()
     return QuizSubmitResponse(results=results, block_completed=True)
 
@@ -614,6 +625,6 @@ def submit_reflection(
         existing.text = text
 
     _upsert_block_progress(db, attempt, unit_block.id, BlockProgressStatus.completed)
-    _maybe_complete_unit(db, unit, attempt)
+    _maybe_complete_unit(db, unit, attempt, current_user)
     db.flush()
     return ReflectionSubmitOut()

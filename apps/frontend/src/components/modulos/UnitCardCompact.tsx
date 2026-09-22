@@ -5,19 +5,21 @@ import { UnitThumbnail } from "@/components/modulos/UnitThumbnail";
 import { Badge } from "@/components/ui/badge";
 import { driveToCareerPath, dimensionBadgeVariant, dimensionShortName } from "@/lib/dimension-styles";
 import type { LearningUnitFeedItem } from "@/lib/types";
-import { unitCanonicalPath } from "@/lib/modulos";
+import { lockCopy, unitCanonicalPath } from "@/lib/modulos";
 import { cn, formatApproxMinutes } from "@/lib/utils";
 
 export function UnitCardCompact({
   unit,
   assigned = false,
-  locked = false,
+  locked: lockedProp,
 }: {
   unit: LearningUnitFeedItem;
   assigned?: boolean;
-  /** Bloqueado por nivel (colaborador aún no alcanzó este nivel): grayed, no clickeable. */
+  /** Fuerza el bloqueo; por defecto sale de `unit.locked` (lo decide el servidor). */
   locked?: boolean;
 }) {
+  const locked = lockedProp ?? unit.locked ?? false;
+  const lock = lockCopy(unit.lock_reason, unit.level_code);
   const completed = unit.attempt_status === "completed";
   const pillar = driveToCareerPath(unit.dimension_code);
 
@@ -41,7 +43,7 @@ export function UnitCardCompact({
           {locked && (
             <Badge className="gap-1">
               <Lock size={11} strokeWidth={2} />
-              Nivel {unit.level_code.replace(/^L/i, "")}
+              {lock.badge}
             </Badge>
           )}
           {!locked && assigned && <Badge variant="info">Asignado por tu manager</Badge>}
@@ -59,7 +61,7 @@ export function UnitCardCompact({
     return (
       <div
         aria-disabled
-        title="Bloqueado: alcanzá este nivel en Carrera para desbloquearlo."
+        title={lock.hint}
         className="glass-surface-strong flex cursor-not-allowed items-center gap-4 rounded-lg border border-border bg-bg-raised p-4 opacity-60"
       >
         {body}

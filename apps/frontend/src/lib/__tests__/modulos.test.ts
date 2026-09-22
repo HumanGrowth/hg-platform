@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isUnitLevelLocked, levelNum } from "@/lib/modulos";
+import { levelNum, lockCopy } from "@/lib/modulos";
 
 describe("levelNum", () => {
   it("parsea LN → N y descarta códigos no-L", () => {
@@ -14,25 +14,18 @@ describe("levelNum", () => {
   });
 });
 
-describe("isUnitLevelLocked (progresión: su nivel y anteriores)", () => {
-  it("colaborador L2: L1 y L2 accesibles, L3 bloqueado", () => {
-    expect(isUnitLevelLocked("L1", "L2")).toBe(false);
-    expect(isUnitLevelLocked("L2", "L2")).toBe(false);
-    expect(isUnitLevelLocked("L3", "L2")).toBe(true);
+describe("lockCopy (explica el bloqueo que decide el servidor)", () => {
+  it("nivel superior → dice el nivel y que sube al reevaluarse", () => {
+    expect(lockCopy("level", "L3")).toEqual({
+      badge: "Nivel 3",
+      hint: "Se abre cuando tu nivel suba al reevaluarte.",
+    });
   });
-
-  it("colaborador L1: L2 bloqueado", () => {
-    expect(isUnitLevelLocked("L1", "L1")).toBe(false);
-    expect(isUnitLevelLocked("L2", "L1")).toBe(true);
+  it("orden (o sin razón) → pide completar el anterior", () => {
+    expect(lockCopy("order").hint).toContain("módulo anterior");
+    expect(lockCopy(undefined).badge).toBe("En orden");
   });
-
-  it("sin nivel del colaborador (no evaluado) → todo bloqueado", () => {
-    expect(isUnitLevelLocked("L1", null)).toBe(true);
-    expect(isUnitLevelLocked("L2", null)).toBe(true);
-    expect(isUnitLevelLocked("L1", "Integrado")).toBe(true); // escala no-L
-  });
-
-  it("contenido sin nivel L parseable → no bloquea", () => {
-    expect(isUnitLevelLocked("N1", "L2")).toBe(false);
+  it("fuera de tu ruta", () => {
+    expect(lockCopy("scope").badge).toBe("Fuera de tu ruta");
   });
 });

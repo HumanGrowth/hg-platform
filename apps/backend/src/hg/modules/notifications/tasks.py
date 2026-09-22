@@ -33,6 +33,7 @@ from hg.celery_app import celery_app
 from hg.config import get_settings
 from hg.db import SessionLocal
 from hg.modules.identity.models import User
+from hg.modules.learning_units.assignment_status import assignment_completed_clause
 from hg.modules.learning_units.models import LearningUnit, ModuleAssignment
 from hg.modules.notifications import engagement_content as content
 from hg.modules.notifications.email_service import email_service
@@ -139,7 +140,7 @@ def _run_due_date_reminders(db: Session) -> int:
         .join(LearningUnit, LearningUnit.id == ModuleAssignment.learning_unit_id)
         .join(User, User.id == ModuleAssignment.user_id)
         .where(
-            ModuleAssignment.status != "completed",
+            ~assignment_completed_clause(),
             ModuleAssignment.due_date.is_not(None),
             User.is_active.is_(True),
         )

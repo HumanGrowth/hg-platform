@@ -70,8 +70,7 @@ def test_home_empty_user_returns_defaults(client, home_env, auth_headers) -> Non
     assert body["next_step"] is None
     assert body["active_enrollments"] == []
     assert body["recent_activity"] == []
-    assert set(body["dimension_completion_rates"]) == {"P1", "P2", "P3", "P4", "P5", "P6"}
-    assert all(v == 0.0 for v in body["dimension_completion_rates"].values())
+    assert "dimension_completion_rates" not in body  # H4: el % por nivel vive en /me/progression
     stats = body["stats"]
     assert stats["courses_in_progress"] == 0
     assert stats["courses_completed"] == 0
