@@ -15,6 +15,7 @@ vi.mock("@/lib/api", () => ({
   apiGetMyResults: getMyResults,
   apiListModulosByDimension: listModulosByDimension,
   apiGetMyBadges: getMyBadges,
+  apiGetMyBehaviorFeedback: vi.fn().mockResolvedValue([]),
 }));
 
 const result: DimensionResult = {
