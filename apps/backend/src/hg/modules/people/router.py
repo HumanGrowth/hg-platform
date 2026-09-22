@@ -40,6 +40,7 @@ from hg.modules.learning_units.models import (
     LearningUnitAttempt,
     UnitBlock,
 )
+from hg.modules.learning_units.onboarding import ONBOARDING_DIMENSION_CODE
 from hg.modules.learning_units.path_router import (
     DimensionProgressOut,
     PathMilestoneOut,
@@ -833,6 +834,11 @@ def get_my_home_dashboard(
         .where(
             LearningUnitAttempt.user_id == uid,
             LearningUnitAttempt.started_at.is_not(None),
+            # Onboarding es un track aparte (mismo criterio que path_engine/
+            # sequencing): sin esto, `_pillar` caía a "P1" para units "ON" y el
+            # "próximo paso"/"actividad reciente" le atribuía a Carrera contenido
+            # que ni siquiera es de una dimensión de producto (H7).
+            LearningUnit.dimension_code != ONBOARDING_DIMENSION_CODE,
         )
     ).all()
     completed_blocks = _completed_blocks_by_attempt(db, [a.id for a, _ in attempt_rows])
@@ -841,14 +847,29 @@ def get_my_home_dashboard(
     def _activity_ts(a: LearningUnitAttempt) -> datetime:
         return a.completed_at or a.started_at  # type: ignore[return-value]
 
-    def _pillar(u: LearningUnit) -> str:
-        return career_path_for_dimension(u.dimension_code) or "P1"
+    def _pillar(u: LearningUnit) -> str | None:
+        """career_path de la unit, o None si su dimensión no mapea a ninguna de
+        las 6 (hoy no debería pasar tras excluir Onboarding arriba, pero no hay
+        motivo para inventarle una dimensión a algo que no la tiene)."""
+        return career_path_for_dimension(u.dimension_code)
 
-    ordered = sorted(attempt_rows, key=lambda r: _activity_ts(r[0]), reverse=True)
+    # Units cuya dimensión no mapea a un career_path (no debería pasar tras
+    # excluir Onboarding, pero evita un 500 de pydantic si algún día aparece un
+    # código nuevo sin registrar en DRIVE_TO_CAREER_PATH) simplemente no entran
+    # a "próximo paso" ni a "actividad reciente" — mejor omitirlas que inventarles
+    # una dimensión (H7). El career_path se resuelve una sola vez acá.
+    ordered = sorted(
+        (
+            (a, u, cp)
+            for a, u in attempt_rows
+            if (cp := _pillar(u)) is not None
+        ),
+        key=lambda r: _activity_ts(r[0]), reverse=True,
+    )
 
     # next_step: unit en progreso (no completada, <80%) con actividad más reciente.
     next_step = None
-    for a, u in ordered:
+    for a, u, cp in ordered:
         if a.completed_at is not None:
             continue
         pct = _completion_pct(completed_blocks.get(a.id, 0), total_blocks.get(u.id, 0))
@@ -858,7 +879,7 @@ def get_my_home_dashboard(
             course_id=u.id,
             course_slug=u.slug,
             course_title=u.title,
-            dimension_code=_pillar(u),
+            dimension_code=cp,
             career_level=u.level_code,
             duration_seconds=u.estimated_duration_seconds or 0,
             watch_pct=pct,
@@ -872,12 +893,12 @@ def get_my_home_dashboard(
             course_id=u.id,
             course_slug=u.slug,
             course_title=u.title,
-            dimension_code=_pillar(u),
+            dimension_code=cp,
             is_completed=a.completed_at is not None,
             last_played_at=_activity_ts(a),
             completed_at=a.completed_at,
         )
-        for a, u in ordered[:5]
+        for a, u, cp in ordered[:5]
     ]
 
     # stats — actividad = bloques completados (fechados en submitted_at).

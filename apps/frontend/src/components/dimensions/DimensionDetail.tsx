@@ -6,6 +6,7 @@ import Link from "next/link";
 import * as React from "react";
 
 import { AreaCard, areaBadgeCode } from "@/components/dimensions/AreaCard";
+import { DimensionFeedbackSection } from "@/components/dimensions/DimensionFeedbackSection";
 import { DimensionStateCard } from "@/components/dimensions/DimensionStateCard";
 import { DimensionMetaphor } from "@/components/modulos/DimensionMetaphor";
 import { EmptyRing } from "@/components/EmptyRing";
@@ -143,6 +144,8 @@ export function DimensionDetail({ dimension }: { dimension: Dimension }) {
               </p>
             </Card>
           )}
+
+          <DimensionFeedbackSection dimensionCode={dimension.code} />
 
           <MaterialSection />
           <HistorySection dimension={dimension} result={result} />

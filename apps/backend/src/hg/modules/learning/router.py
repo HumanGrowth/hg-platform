@@ -11,7 +11,6 @@ eso es Fase 3+ (decisión F).
 """
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
@@ -21,20 +20,15 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
 from hg.core.deps import get_current_user, get_db_as_superadmin
-from hg.db import get_db
 from hg.modules.identity.models import User
-from hg.modules.learning.models import CareerPath, CourseProgress, Event
+from hg.modules.learning.models import CareerPath, Event
 from hg.modules.learning.schemas import (
     CareerPathOut,
-    CourseProgressIn,
-    CourseProgressOut,
     EventDetailOut,
     EventListResponse,
     EventOut,
     NextEventOut,
 )
-
-COMPLETION_THRESHOLD = 80.0
 
 router = APIRouter()
 
@@ -135,9 +129,7 @@ def list_path_events(
     return EventListResponse(items=[EventOut.model_validate(r) for r in rows], total=total)
 
 
-# ─────────────── Detalle + progreso (course_progress, RLS por org) ───────────────
-# Usan get_db (hg_app + contexto de org via get_current_user) porque course_progress
-# tiene RLS. Los events (globales, sin RLS) son legibles bajo hg_app por el grant.
+# ─────────────────────────── Detalle de un event ───────────────────────────
 
 
 def _active_event_or_404(db: Session, slug: str) -> Event:
@@ -158,20 +150,13 @@ def _active_event_or_404(db: Session, slug: str) -> Event:
 @router.get("/events/{slug}", response_model=EventDetailOut)
 def get_event_detail(
     slug: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_as_superadmin),
+    _: User = Depends(get_current_user),
 ) -> EventDetailOut:
     event = _active_event_or_404(db, slug)
-    prog = db.scalar(
-        select(CourseProgress).where(
-            CourseProgress.course_id == event.id,
-            CourseProgress.user_id == current_user.id,
-        )
-    )
     path = db.get(CareerPath, event.career_path_id)
     return EventDetailOut(
         **EventOut.model_validate(event).model_dump(),
-        progress=CourseProgressOut.model_validate(prog) if prog else None,
         dimension_code=path.code if path else None,
     )
 
@@ -179,8 +164,8 @@ def get_event_detail(
 @router.get("/events/{slug}/next", response_model=NextEventOut)
 def get_next_event(
     slug: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_as_superadmin),
+    _: User = Depends(get_current_user),
 ) -> NextEventOut:
     event = _active_event_or_404(db, slug)
     nxt = db.scalar(
@@ -194,41 +179,6 @@ def get_next_event(
         .limit(1)
     )
     return NextEventOut(next=EventOut.model_validate(nxt) if nxt else None)
-
-
-@router.post("/events/{slug}/progress", response_model=CourseProgressOut)
-def upsert_progress(
-    slug: str,
-    payload: CourseProgressIn,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-) -> CourseProgressOut:
-    event = _active_event_or_404(db, slug)
-    prog = db.scalar(
-        select(CourseProgress).where(
-            CourseProgress.course_id == event.id,
-            CourseProgress.user_id == current_user.id,
-        )
-    )
-    if prog is None:
-        prog = CourseProgress(
-            org_id=current_user.org_id,
-            user_id=current_user.id,
-            course_id=event.id,
-            last_position_seconds=payload.position_seconds,
-            watch_pct=payload.watch_pct,
-        )
-        db.add(prog)
-    else:
-        prog.last_position_seconds = payload.position_seconds
-        prog.watch_pct = payload.watch_pct
-    # Completion: marca una sola vez al cruzar el umbral; completed_at inmutable.
-    if payload.watch_pct >= COMPLETION_THRESHOLD and not prog.is_completed:
-        prog.is_completed = True
-        prog.completed_at = datetime.now(UTC)
-    db.flush()
-    db.refresh(prog)
-    return CourseProgressOut.model_validate(prog)
 
 
 @router.get("/events", response_model=EventListResponse)
@@ -286,6 +236,4 @@ def redirect_next_course(slug: str, request: Request) -> RedirectResponse:
     return _redirect_308(request, f"/api/v1/events/{slug}/next")
 
 
-@router.post("/courses/{slug}/progress", include_in_schema=False)
-def redirect_course_progress(slug: str, request: Request) -> RedirectResponse:
-    return _redirect_308(request, f"/api/v1/events/{slug}/progress")
+

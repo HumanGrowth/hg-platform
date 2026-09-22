@@ -176,3 +176,28 @@ def test_home_only_returns_own_data(client, home_env, auth_headers) -> None:
     assert str(mine.id) in course_ids
     assert str(theirs.id) not in course_ids
     assert body["stats"]["courses_completed"] == 0  # el completado es del otro usuario
+
+
+def test_onboarding_units_do_not_appear_or_leak_into_a_product_dimension(
+    client: TestClient, factory, auth_headers
+) -> None:
+    """H7: antes, `_pillar` caía a "P1" para cualquier dimensión sin mapeo
+    (incluida "ON", Onboarding) — un módulo de onboarding en curso podía
+    aparecer como `next_step`/`recent_activity` de Carrera. Onboarding es un
+    track aparte (mismo criterio que path_engine/sequencing): no debe entrar
+    a home en absoluto."""
+    s = factory.session
+    _ensure_paths(s)
+    org = factory.make_org()
+    user = factory.make_user(org=org, role=UserRole.collaborator)
+    onboarding_unit = make_unit(s, dimension_code="ON", level_code="L1", n_blocks=1)
+    try:
+        seed_attempt(
+            s, org_id=org.id, user_id=user.id, unit=onboarding_unit,
+            when=datetime.now(UTC), completed=False,
+        )
+        body = client.get("/api/v1/me/home", headers=auth_headers(user)).json()
+        assert body["next_step"] is None
+        assert body["recent_activity"] == []
+    finally:
+        cleanup_units(s, [onboarding_unit.id])
