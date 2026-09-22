@@ -6,10 +6,12 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import delete, select
 
 from hg.db import SessionLocal
+from hg.modules.badges.models import DimensionLevelProgress
 from hg.modules.identity.models import UserRole
 from hg.modules.learning.models import CareerPath
 from hg.modules.learning_units.models import (
@@ -193,41 +195,6 @@ def test_reflection_rejects_too_short_text(client: TestClient, factory, auth_hea
             headers=headers, json={"text": "short"},
         )
         assert r.status_code == 422
-    finally:
-        _cleanup(unit_id)
-
-
-def test_replay_resets_completed_attempt(client: TestClient, factory, auth_headers) -> None:
-    slug = f"test-unit-{uuid.uuid4().hex[:8]}"
-    unit_id, text_block_id, quiz_block_id, refl_block_id = _make_unit(slug)
-    _, headers = _auth(factory, auth_headers, unlock_unit_id=unit_id)
-    try:
-        client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
-        client.post(f"/api/v1/modulos/{slug}/blocks/{text_block_id}/complete", headers=headers)
-        detail = client.get(f"/api/v1/modulos/{slug}", headers=headers).json()
-        quiz_block = next(b for b in detail["blocks"] if b["block_type"] == "quiz_recall")
-        question = quiz_block["questions"][0]
-        client.post(
-            f"/api/v1/modulos/{slug}/blocks/{quiz_block_id}/quiz/submit", headers=headers,
-            json={"responses": [{
-                "question_id": question["id"], "question_type": "single_choice",
-                "selected_option_ids": [question["options"][0]["id"]],
-            }]},
-        )
-        client.post(
-            f"/api/v1/modulos/{slug}/blocks/{refl_block_id}/reflection/submit",
-            headers=headers, json={"text": "Primera reflexión completa de esta unit de prueba."},
-        )
-        first_attempt = client.get(f"/api/v1/modulos/{slug}/attempt", headers=headers).json()
-        assert first_attempt["completed_at"] is not None
-        first_attempt_id = first_attempt["id"]
-
-        # Replay: llamar /attempts/start de nuevo debe resetear (misma row).
-        replay = client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
-        assert replay.status_code == 200
-        assert replay.json()["id"] == first_attempt_id  # mismo attempt, no uno nuevo
-        assert replay.json()["completed_at"] is None
-        assert replay.json()["block_progress"] == []
     finally:
         _cleanup(unit_id)
 
@@ -644,3 +611,143 @@ def test_seed_then_by_dimension_returns_real_unit(client: TestClient, factory, a
         s.execute(delete(LearningUnit).where(LearningUnit.slug == "hg-p1-l1-001-antes-de-seguir"))
         s.commit()
         s.close()
+
+
+# ─────────── Progresión al cerrar la unidad (hallazgo H2) ───────────
+
+
+@pytest.mark.parametrize("last", ["quiz", "reflection"])
+def test_finishing_unit_via_quiz_or_reflection_recomputes_dimension_progress(
+    client: TestClient, factory, auth_headers, last: str
+) -> None:
+    """H2: la unidad se completa con el último bloque, sea quiz o reflexión, y
+    el % de aprendizaje de su nivel debe reflejarlo (igual que con ``complete``).
+    Antes solo ``complete_block`` disparaba ``recompute_dimension``."""
+    slug = f"test-unit-{uuid.uuid4().hex[:8]}"
+    unit_id, text_block_id, quiz_block_id, refl_block_id = _make_unit(slug)
+    user, headers = _auth(factory, auth_headers, unlock_unit_id=unit_id)
+    try:
+        client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
+        assert client.post(
+            f"/api/v1/modulos/{slug}/blocks/{text_block_id}/complete", headers=headers
+        ).status_code == 200
+
+        detail = client.get(f"/api/v1/modulos/{slug}", headers=headers).json()
+        question = next(b for b in detail["blocks"] if b["block_type"] == "quiz_recall")["questions"][0]
+
+        def submit_quiz() -> None:
+            r = client.post(
+                f"/api/v1/modulos/{slug}/blocks/{quiz_block_id}/quiz/submit", headers=headers,
+                json={"responses": [{
+                    "question_id": question["id"], "question_type": "single_choice",
+                    "selected_option_ids": [question["options"][0]["id"]],
+                }]},
+            )
+            assert r.status_code == 200, r.text
+
+        def submit_reflection() -> None:
+            r = client.post(
+                f"/api/v1/modulos/{slug}/blocks/{refl_block_id}/reflection/submit",
+                headers=headers, json={"text": "Esta semana voy a probar esto en mi equipo."},
+            )
+            assert r.status_code == 200, r.text
+
+        first, second = (submit_reflection, submit_quiz) if last == "quiz" else (submit_quiz, submit_reflection)
+        first()
+        second()
+
+        assert client.get(f"/api/v1/modulos/{slug}/attempt", headers=headers).json()["completed_at"] is not None
+
+        s = SessionLocal()
+        try:
+            row = s.scalar(
+                select(DimensionLevelProgress).where(
+                    DimensionLevelProgress.user_id == user.id,
+                    DimensionLevelProgress.dimension_code == "CP",
+                    DimensionLevelProgress.level_code == "L2",
+                )
+            )
+        finally:
+            s.close()
+        assert row is not None
+        # El catálogo de dev puede tener otras units CP/L2: alcanza con que ya no sea 0.
+        assert row.learning_pct > 0, "la unidad quedó completa pero la progresión no se recalculó"
+    finally:
+        _cleanup(unit_id)
+
+
+# ─────────── Repetir un módulo = repaso, no borra (hallazgo H3) ───────────
+
+
+def test_replay_does_not_undo_completion(client: TestClient, factory, auth_headers) -> None:
+    slug = f"test-unit-{uuid.uuid4().hex[:8]}"
+    unit_id, text_block_id, quiz_block_id, refl_block_id = _make_unit(slug)
+    _, headers = _auth(factory, auth_headers, unlock_unit_id=unit_id)
+    try:
+        client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
+        client.post(f"/api/v1/modulos/{slug}/blocks/{text_block_id}/complete", headers=headers)
+        detail = client.get(f"/api/v1/modulos/{slug}", headers=headers).json()
+        question = next(b for b in detail["blocks"] if b["block_type"] == "quiz_recall")["questions"][0]
+        client.post(
+            f"/api/v1/modulos/{slug}/blocks/{quiz_block_id}/quiz/submit", headers=headers,
+            json={"responses": [{
+                "question_id": question["id"], "question_type": "single_choice",
+                "selected_option_ids": [question["options"][0]["id"]],
+            }]},
+        )
+        client.post(
+            f"/api/v1/modulos/{slug}/blocks/{refl_block_id}/reflection/submit",
+            headers=headers, json={"text": "Primera reflexión completa de esta unit de prueba."},
+        )
+        done = client.get(f"/api/v1/modulos/{slug}/attempt", headers=headers).json()
+        assert done["completed_at"] is not None
+
+        replay = client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
+        assert replay.status_code == 200
+        assert replay.json()["completed_at"] == done["completed_at"]
+        assert len(replay.json()["block_progress"]) == len(done["block_progress"])
+    finally:
+        _cleanup(unit_id)
+
+
+def test_review_resubmission_keeps_original_dates_and_completion(
+    client: TestClient, factory, auth_headers
+) -> None:
+    """H3: en repaso, volver a completar bloques ya hechos no mueve su
+    ``submitted_at`` (ni el ``completed_at`` del attempt): el heatmap y la racha
+    del manager conservan la fecha real de la primera vez."""
+    slug = f"test-unit-{uuid.uuid4().hex[:8]}"
+    unit_id, text_block_id, quiz_block_id, refl_block_id = _make_unit(slug)
+    _, headers = _auth(factory, auth_headers, unlock_unit_id=unit_id)
+    try:
+        client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
+        client.post(f"/api/v1/modulos/{slug}/blocks/{text_block_id}/complete", headers=headers)
+        detail = client.get(f"/api/v1/modulos/{slug}", headers=headers).json()
+        question = next(b for b in detail["blocks"] if b["block_type"] == "quiz_recall")["questions"][0]
+        quiz_payload = {"responses": [{
+            "question_id": question["id"], "question_type": "single_choice",
+            "selected_option_ids": [question["options"][0]["id"]],
+        }]}
+        client.post(f"/api/v1/modulos/{slug}/blocks/{quiz_block_id}/quiz/submit", headers=headers, json=quiz_payload)
+        client.post(
+            f"/api/v1/modulos/{slug}/blocks/{refl_block_id}/reflection/submit",
+            headers=headers, json={"text": "Primera reflexión completa de esta unit de prueba."},
+        )
+        before = client.get(f"/api/v1/modulos/{slug}/attempt", headers=headers).json()
+        assert before["completed_at"] is not None
+
+        # Repaso: start + volver a completar todo.
+        client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
+        client.post(f"/api/v1/modulos/{slug}/blocks/{text_block_id}/complete", headers=headers)
+        client.post(f"/api/v1/modulos/{slug}/blocks/{quiz_block_id}/quiz/submit", headers=headers, json=quiz_payload)
+        client.post(
+            f"/api/v1/modulos/{slug}/blocks/{refl_block_id}/reflection/submit",
+            headers=headers, json={"text": "Segunda reflexión, ahora en modo repaso."},
+        )
+        after = client.get(f"/api/v1/modulos/{slug}/attempt", headers=headers).json()
+
+        assert after["completed_at"] == before["completed_at"]
+        dates = lambda a: {bp["unit_block_id"]: bp["submitted_at"] for bp in a["block_progress"]}  # noqa: E731
+        assert dates(after) == dates(before)
+    finally:
+        _cleanup(unit_id)

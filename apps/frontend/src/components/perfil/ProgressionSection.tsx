@@ -2,10 +2,12 @@
 
 /**
  * "Tu nivel por dimensión" (TASK 6): nivel actual + completion 0-100 (mezcla de
- * aprendizaje + assessment + feedback del manager, FASE 1.1 — el 3er
- * componente pesa 0 hasta que se configure, ver `docs/scoring.md`) por
- * dimensión, con lo que falta para el próximo badge. Lee GET /me/progression
- * (dimension_level_progress).
+ * aprendizaje + assessment; el feedback del manager es un gate de aprobación del
+ * badge, no pesa en el %) por dimensión, con lo que falta para el próximo badge.
+ * Lee GET /me/progression (dimension_level_progress).
+ *
+ * Es LA definición de "% de dimensión" de la app: /perfil la muestra al
+ * colaborador y /team/[id] al manager (misma fuente, ver `ProgressionList`).
  */
 import * as React from "react";
 
@@ -26,18 +28,44 @@ export function ProgressionSection() {
       .catch(() => setRows([]));
   }, []);
 
-  // Solo dimensiones con algún avance (evita 6 barras en 0 para users nuevos).
-  const visible = (rows ?? []).filter((r) => r.current_completion_pct > 0);
-  if (rows === null || visible.length === 0) return null;
+  if (rows === null) return null;
 
   return (
     <section className="mt-12" id="mi-nivel">
       <Eyebrow>Tu nivel por dimensión</Eyebrow>
       <p className="mt-1 text-sm text-fg-muted">
-        Cada dimensión avanza por niveles. El % combina tu aprendizaje, tu evaluación y —cuando tu
-        empresa lo configura— el feedback de tu manager; al llegar al 100% ganás el badge de ese
+        Cada dimensión avanza por niveles. El % combina tu aprendizaje y tu evaluación; al llegar
+        al 100% (y con la aprobación de tu manager, si tu empresa la usa) ganás el badge de ese
         nivel.
       </p>
+      <ProgressionList rows={rows} />
+    </section>
+  );
+}
+
+/**
+ * Tarjetas de nivel por dimensión. Solo dimensiones con algún avance (evita 6
+ * barras en 0 para usuarios nuevos). Presentacional: la usan /perfil (propia) y
+ * /team/[id] (vista del manager).
+ */
+export function ProgressionList({
+  rows,
+  perspective = "self",
+}: {
+  rows: DimensionProgression[];
+  perspective?: "self" | "manager";
+}) {
+  const visible = rows.filter((r) => r.current_completion_pct > 0);
+  if (visible.length === 0) return null;
+  const learningOnly = perspective === "manager" && visible.some((r) => r.includes_assessment === false);
+
+  return (
+    <>
+      {learningOnly && (
+        <p className="mt-2 text-xs text-fg-subtle">
+          Solo se muestra el avance de aprendizaje: esta persona no autorizó compartir su evaluación.
+        </p>
+      )}
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {visible.map((r) => {
           const pct = Math.min(r.current_completion_pct, r.current_unlock_threshold);
@@ -73,12 +101,12 @@ export function ProgressionSection() {
               <p className="text-xs text-fg-subtle">
                 {allEarned
                   ? "Nivel máximo alcanzado 🎉"
-                  : `Te falta ${Math.round(remaining)}% para el badge ${r.current_level_name ?? ""}.`}
+                  : `Falta ${Math.round(remaining)}% para el badge ${r.current_level_name ?? ""}.`}
               </p>
             </Card>
           );
         })}
       </div>
-    </section>
+    </>
   );
 }

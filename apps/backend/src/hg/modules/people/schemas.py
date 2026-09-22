@@ -35,7 +35,6 @@ class UserMetricsOut(BaseModel):
     last_assessment_date: datetime | None
     badges_unlocked_count: int
     assessment_states: dict[str, AssessmentStateSnapshotOut]
-    dimension_completion_rate: dict[str, float]
 
 class TeamMemberOut(BaseModel):
     id: UUID
@@ -84,7 +83,6 @@ class TeamMemberDetailOut(TeamMemberOut):
     enrollments: list[EnrollmentOut]
     courses_in_progress_list: list[CourseProgressDetailOut]  # top 10 recientes
     courses_completed_list: list[CourseProgressDetailOut]  # top 10 recientes
-    dimension_completion_rate: dict[str, float]  # {"P1": 0.25, ...}
     # Estados del assessment (snapshot de UserLearningProfile.dimension_states). El
     # manager ve estados/vías, NUNCA respuestas item-by-item (privacidad B2-03).
     assessment_states: dict  # {"P1": {"state":"L3","state_label":...,"source":...}, ...}
@@ -172,7 +170,6 @@ class HomeStats(BaseModel):
 class HomeDashboardOut(BaseModel):
     next_step: NextStepOut | None
     active_enrollments: list[EnrollmentOut]
-    dimension_completion_rates: dict[str, float]  # {"P1": 0.33, ...}
     recent_activity: list[RecentActivityItem]
     stats: HomeStats
 

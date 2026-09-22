@@ -125,3 +125,25 @@ def test_due_date_reminder_skips_far_future_and_completed(factory, inactive_user
 
     assert engagement_tasks._run_due_date_reminders(factory.session) == 0
     cleanup_units(factory.session, [unit2.id])
+
+
+def test_due_date_reminder_skips_assignment_whose_unit_was_already_completed(
+    factory, inactive_user, _always_sends
+):
+    """H1: si el colaborador ya completó la unit (attempt.completed_at), no se le
+    recuerda la asignación — aunque ``ModuleAssignment.status`` siga 'assigned'."""
+    org, user, unit = inactive_user
+    now = datetime.now(UTC)
+    seed_attempt(
+        factory.session, org_id=org.id, user_id=user.id, unit=unit,
+        when=now - timedelta(days=1), completed=True,
+    )
+    factory.session.add(
+        ModuleAssignment(
+            org_id=org.id, user_id=user.id, learning_unit_id=unit.id,
+            due_date=now + timedelta(days=2),
+        )
+    )
+    factory.session.commit()
+
+    assert engagement_tasks._run_due_date_reminders(factory.session) == 0

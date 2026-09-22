@@ -79,7 +79,7 @@ def test_get_user_detail_includes_enrollments_and_progress(client, manager_with_
     assert any(e["career_path_code"] == "P1" for e in body["enrollments"])
     assert len(body["courses_completed_list"]) == 5
     assert body["courses_completed"] == 5
-    assert "P1" in body["dimension_completion_rate"]
+    assert "dimension_completion_rate" not in body  # H4: una sola definición de % (ver /progression)
 
 
 def test_get_user_detail_not_my_report_404(client, manager_with_reports, factory, auth_headers) -> None:
@@ -240,3 +240,31 @@ def test_manager_cannot_assign_custom_path_of_another_company(
         s.execute(delete(CustomPath).where(CustomPath.id == cp_id))
         s.commit()
         s.close()
+
+
+def test_completed_assignment_is_not_overdue(client, manager_with_reports, auth_headers) -> None:
+    """H1: una asignación vencida sobre una unit que el reporte YA completó no
+    es vencida. r1 completó las 5 units del fixture; el estado se deriva del
+    attempt, no de ``ModuleAssignment.status`` (que nadie actualiza)."""
+    from datetime import UTC, datetime, timedelta
+
+    mw = manager_with_reports
+    h = auth_headers(mw.manager)
+    res = client.post(
+        f"/api/v1/admin/users/{mw.r1.id}/assignments",
+        headers=h,
+        json={
+            "unit_ids": [str(mw.units[0].id)],
+            "due_date": (datetime.now(UTC) - timedelta(days=2)).isoformat(),
+        },
+    )
+    assert res.status_code == 201, res.text
+    assert res.json()[0]["status"] == "completed"
+
+    body = client.get("/api/v1/manager/me/team", headers=h).json()
+    r1_row = next(m for m in body["items"] if m["id"] == str(mw.r1.id))
+    assert r1_row["assignments_overdue"] == 0
+    assert r1_row["next_assignment_due_at"] is None
+
+    listed = client.get(f"/api/v1/admin/users/{mw.r1.id}/assignments", headers=h).json()
+    assert [a["status"] for a in listed] == ["completed"]

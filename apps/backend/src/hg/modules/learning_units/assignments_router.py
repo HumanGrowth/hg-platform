@@ -26,6 +26,11 @@ from hg.db import get_db
 from hg.modules.company import service as company_service
 from hg.modules.identity.models import User, UserRole
 from hg.modules.learning_units.area_access import enabled_area_codes, visible_units_predicate
+from hg.modules.learning_units.assignment_status import (
+    assignment_completed_clause,
+    completed_assignment_ids,
+    effective_status,
+)
 from hg.modules.learning_units.models import LearningUnit, ModuleAssignment
 
 admin_router = APIRouter()
@@ -117,7 +122,12 @@ def _authorize_manage_target(db: Session, current_user: User, user_id: UUID) -> 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
 
 
-def _out(a: ModuleAssignment, units: dict[UUID, LearningUnit], names: dict[UUID, str]) -> ModuleAssignmentOut:
+def _out(
+    a: ModuleAssignment,
+    units: dict[UUID, LearningUnit],
+    names: dict[UUID, str],
+    completed: bool,
+) -> ModuleAssignmentOut:
     unit = units.get(a.learning_unit_id)
     return ModuleAssignmentOut(
         id=a.id,
@@ -126,7 +136,7 @@ def _out(a: ModuleAssignment, units: dict[UUID, LearningUnit], names: dict[UUID,
         unit_slug=unit.slug if unit else "?",
         unit_title=unit.title if unit else "?",
         pillar_code=unit.pillar_code if unit else None,
-        status=a.status,
+        status=effective_status(a.status, completed),
         note=a.note,
         due_date=a.due_date,
         assigned_at=a.assigned_at,
@@ -144,7 +154,8 @@ def _serialize(db: Session, assignments: list[ModuleAssignment]) -> list[ModuleA
     names = {
         u.id: u.full_name for u in db.scalars(select(User).where(User.id.in_(assigner_ids))).all()
     } if assigner_ids else {}
-    return [_out(a, units, names) for a in assignments]
+    done = completed_assignment_ids(db, assignments)
+    return [_out(a, units, names, a.id in done) for a in assignments]
 
 
 # ─────────────────────────── Admin/manager ───────────────────────────
@@ -376,18 +387,18 @@ def org_assignments_summary(
         db, company_service.resolve_company_id(actor, company_id), org_id
     )
     rows = db.execute(
-        select(ModuleAssignment, LearningUnit)
+        select(ModuleAssignment, LearningUnit, assignment_completed_clause())
         .join(LearningUnit, LearningUnit.id == ModuleAssignment.learning_unit_id)
         .where(ModuleAssignment.org_id == org_id)
     ).all()
     now = datetime.now(UTC)
     agg: dict[UUID, dict] = {}
-    for a, u in rows:
+    for a, u, is_done in rows:
         entry = agg.setdefault(
             u.id, {"unit_slug": u.slug, "unit_title": u.title, "assigned": 0, "completed": 0, "overdue": 0}
         )
         entry["assigned"] += 1
-        if a.status == "completed":
+        if is_done:
             entry["completed"] += 1
         elif a.due_date is not None and a.due_date < now:
             entry["overdue"] += 1
