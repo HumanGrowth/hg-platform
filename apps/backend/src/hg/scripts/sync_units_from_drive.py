@@ -1,8 +1,9 @@
 """Bulk import de Learning Units desde Google Drive → R2 → DB (TASK lu-refine-A-11).
 
-Jorge Araya publica units en un folder raíz de Drive; cada sub-folder
-(``CP-L1-P{n}-{seq}``) trae 1-2 videos MP4 y un Google Doc con el **JSON de la
-unit embebido** (mismo formato que ``HG-P1-L1-001.json``). Este script recorre
+Jorge Araya publica units en un folder raíz de Drive; cada sub-folder de unidad
+trae 1-2 videos MP4 y un **``unit.json``** (fuente de verdad del contenido; mismo
+formato que ``HG-P1-L1-001.json``). Fallback legacy: si el folder no tiene
+``unit.json`` se usa el JSON embebido en un Google Doc. Este script recorre
 esos sub-folders, sube los MP4 a R2, arma los video_blocks apuntando a las URLs
 de R2 y hace upsert de cada unit en la DB (idempotente por slug, vía
 :func:`hg.modules.learning_units.services.upsert_unit_from_dict`).
@@ -60,10 +61,13 @@ from hg.modules.learning_units.services import (
     UnitDictError,
     sanitize_presentation,
     try_publish,
+    update_unit_in_place,
     upsert_unit_from_dict,
 )
 from hg.modules.learning_units.unit_code import (
     UnitCode,
+    normalize_dimension,
+    normalize_level,
     normalize_pillar,
     parse_unit_code,
 )
@@ -79,6 +83,10 @@ PLACEHOLDER_VIDEO_DURATION = 60
 _VIDEO_MIME = "video/mp4"
 _DOC_MIME = "application/vnd.google-apps.document"
 _FOLDER_MIME = "application/vnd.google-apps.folder"
+# Nombre del archivo de contenido de cada unidad (fuente de verdad).
+_UNIT_JSON_NAME = "unit.json"
+# `hg-rc-004-slug`, `hg-pr-v0-001-slug`, `hg-sb-000-slug` → número de unidad.
+_SLUG_NUMBER_RE = re.compile(r"^hg-[a-z]{2,3}(?:-[a-z]\d+)?-(\d{1,4})(?:-|$)")
 
 # tiers de evidencia que acepta el schema CitationOut. Los Docs de Jorge traen
 # valores fuera de este enum (``teórico``, ``neuroscience``) — se mapean al piso
@@ -147,7 +155,7 @@ def parse_folder_name(folder_name: str) -> UnitCode | None:
     if area == "GEN":  # centinela de contenido general → sin Área
         area = None
     return UnitCode(
-        area=area, dimension=m.group(2), level=int(m.group(3)),
+        area=area, dimension=normalize_dimension(m.group(2)), level=int(m.group(3)),
         pillar=normalize_pillar(m.group(4)), number=int(m.group(5)),
     )
 
@@ -175,6 +183,56 @@ def derive_unit_code(folder_name: str, mp4_names: list[str]) -> UnitCode | None:
         if code is not None:
             return code
     return None
+
+
+def parse_unit_json_text(text: str) -> dict[str, Any]:
+    """Parsea el contenido de un ``unit.json`` (objeto JSON de una unit, con
+    ``slug``). Tolera BOM. Levanta :class:`UnitDictError` si no es JSON válido o
+    no tiene la forma esperada."""
+    try:
+        obj = json.loads(text.lstrip("\ufeff"))
+    except json.JSONDecodeError as exc:
+        raise UnitDictError(f"unit.json no parseable: {exc}") from exc
+    if not isinstance(obj, dict) or "slug" not in obj:
+        raise UnitDictError("unit.json no tiene la forma esperada (objeto con 'slug')")
+    return obj
+
+
+def code_from_unit_json(unit_json: dict[str, Any]) -> UnitCode:
+    """Código de la unidad a partir de los campos del ``unit.json``, para carpetas
+    cuyo nombre (y MP4) no traen el código (D3-D6: ``dimension_code`` poblado,
+    ``pillar_code`` null, ``level_code`` ``GENERAL``).
+
+    - ``dimension_code`` → normalizado al código canónico (RC→RE, SB→SA, EM→ES).
+    - ``level_code`` → ``L1``..``L6``; ``GENERAL`` → ``L1``.
+    - ``pillar_code`` → tal cual (normalizado) o ``None``.
+    - ``unit_number`` → del JSON o, si falta, del slug (``hg-rc-004-…`` → 4).
+
+    Levanta :class:`UnitDictError` (el caller reporta y saltea) si falta la
+    dimensión, el nivel no es normalizable o no hay número de unidad."""
+    dim = unit_json.get("dimension_code")
+    if not isinstance(dim, str) or not dim.strip():
+        raise UnitDictError("sin código en carpeta/MP4 y unit.json no trae 'dimension_code'")
+    raw_level = unit_json.get("level_code")
+    level = normalize_level(raw_level) if isinstance(raw_level, str) else None
+    if level is None:
+        raise UnitDictError(
+            f"level_code {raw_level!r} no normalizable (esperado L1-L6 o GENERAL)"
+        )
+    number = unit_json.get("unit_number")
+    if not isinstance(number, int):
+        m = _SLUG_NUMBER_RE.match(str(unit_json.get("slug", "")).lower())
+        if m is None:
+            raise UnitDictError("sin 'unit_number' y no se puede derivar del slug")
+        number = int(m.group(1))
+    pillar = unit_json.get("pillar_code")
+    return UnitCode(
+        area=unit_json.get("area_code") or None,
+        dimension=normalize_dimension(dim),
+        level=int(level[1:]),
+        pillar=normalize_pillar(pillar) if isinstance(pillar, str) and pillar.strip() else None,
+        number=number,
+    )
 
 
 def extract_json_from_doc_text(doc_text: str) -> dict[str, Any]:
@@ -429,9 +487,12 @@ class FolderPayload:
     _mp4_paths_fn: Any  # (tmp_dir: Path | None) -> list[Path]
     mp4_count: int = 0
     mp4_names: list[str] = field(default_factory=list)  # para derivar el código
+    source: str = "doc"  # "unit.json" (fuente de verdad) | "doc" (fallback legacy)
     extra: dict[str, Any] = field(default_factory=dict)
 
     def doc_text(self) -> str:
+        """Texto del contenido de la unidad: el ``unit.json`` o, en el fallback
+        legacy, el texto del Google Doc (ver ``source``)."""
         return self._doc_text_fn()
 
     def mp4_paths(self, tmp_dir: Path | None) -> list[Path]:
@@ -484,6 +545,20 @@ def _drive_export_doc(service: Any, doc_id: str) -> str:
     return content.decode("utf-8") if isinstance(content, bytes) else content
 
 
+def _drive_read_text(service: Any, file_id: str) -> str:
+    """Contenido de un archivo de Drive (no-Doc, ej. ``unit.json``) como texto."""
+    content = service.files().get_media(fileId=file_id, supportsAllDrives=True).execute()
+    return content.decode("utf-8") if isinstance(content, bytes) else content
+
+
+def _find_unit_json(children: list[dict[str, Any]]) -> dict[str, Any] | None:
+    return next(
+        (c for c in children
+         if c["mimeType"] != _FOLDER_MIME and c["name"].strip().lower() == _UNIT_JSON_NAME),
+        None,
+    )
+
+
 def _drive_download_media(service: Any, file_id: str, dest: Path) -> None:
     from googleapiclient.http import MediaIoBaseDownload  # type: ignore[import-untyped]
 
@@ -504,8 +579,9 @@ _MAX_TRAVERSAL_DEPTH = 5
 
 
 def _iter_unit_folder_entries(service: Any, folder_id: str, depth: int = 0) -> Iterator[dict[str, Any]]:
-    """Folders de **unidad** = los que contienen directamente un Google Doc (el
-    JSON de la unit) **y** al menos un MP4. Se recursa en los demás (dimensión/
+    """Folders de **unidad** = los que contienen directamente el contenido (un
+    ``unit.json``, o en el fallback legacy un Google Doc) **y** al menos un MP4.
+    Se recursa en los demás (dimensión/
     nivel/estado, que agrupan) hasta ``_MAX_TRAVERSAL_DEPTH``.
 
     Detectar por contenido (no por nombre de carpeta) soporta tanto Carrera
@@ -518,7 +594,9 @@ def _iter_unit_folder_entries(service: Any, folder_id: str, depth: int = 0) -> I
         if entry["mimeType"] != _FOLDER_MIME:
             continue
         children = _drive_list_children(service, entry["id"])
-        has_doc = any(c["mimeType"] == _DOC_MIME for c in children)
+        has_doc = _find_unit_json(children) is not None or any(
+            c["mimeType"] == _DOC_MIME for c in children
+        )
         has_mp4 = any(c["mimeType"] == _VIDEO_MIME for c in children)
         if has_doc and has_mp4:
             yield entry
@@ -533,17 +611,27 @@ def _drive_folders(root_folder_id: str, only: str | None) -> Iterator[FolderPayl
         if only and name != only:
             continue
         children = _drive_list_children(service, entry["id"])
+        unit_json_file = _find_unit_json(children)
         docs = [c for c in children if c["mimeType"] == _DOC_MIME]
         mp4s = sorted(
             (c for c in children if c["mimeType"] == _VIDEO_MIME),
             key=lambda c: _vid_sort_key(c["name"]),
         )
-        if not docs:
-            log.warning("  %s: sin Google Doc — se saltea", name)
+        if unit_json_file is None and not docs:
+            log.warning("  %s: sin unit.json ni Google Doc — se saltea", name)
             continue
 
-        def _doc_text(doc_id: str = docs[0]["id"]) -> str:
-            return _drive_export_doc(service, doc_id)
+        if unit_json_file is not None:
+            source = "unit.json"
+
+            def _doc_text(file_id: str = unit_json_file["id"]) -> str:
+                return _drive_read_text(service, file_id)
+        else:
+            source = "doc"
+            log.warning("  %s: sin unit.json — se usa el JSON embebido en el Doc (legacy)", name)
+
+            def _doc_text(file_id: str = docs[0]["id"]) -> str:
+                return _drive_export_doc(service, file_id)
 
         def _mp4_paths(tmp_dir: Path | None, files: list[dict[str, Any]] = mp4s) -> list[Path]:
             assert tmp_dir is not None
@@ -555,7 +643,8 @@ def _drive_folders(root_folder_id: str, only: str | None) -> Iterator[FolderPayl
             return out
 
         yield FolderPayload(name=name, _doc_text_fn=_doc_text, _mp4_paths_fn=_mp4_paths,
-                            mp4_count=len(mp4s), mp4_names=[c["name"] for c in mp4s])
+                            mp4_count=len(mp4s), mp4_names=[c["name"] for c in mp4s],
+                            source=source)
 
 
 # ---- Carpeta local (rclone / Drive ya sincronizado a disco) ----
@@ -564,12 +653,17 @@ def _drive_folders(root_folder_id: str, only: str | None) -> Iterator[FolderPayl
 def _local_folders(root: Path, only: str | None) -> Iterator[FolderPayload]:
     for sub in sorted(p for p in root.iterdir() if p.is_dir()):
         name = sub.name
-        if not _FOLDER_NAME_RE.match(name):
+        unit_json_path = sub / _UNIT_JSON_NAME
+        if not (unit_json_path.is_file() or _FOLDER_NAME_RE.match(name)):
             continue
         if only and name != only:
             continue
-        # Doc exportado (.txt) o JSON directo (.json).
-        docs = sorted(sub.glob("*.txt")) + sorted(sub.glob("*.json"))
+        # unit.json (fuente de verdad) o, legacy, Doc exportado (.txt) / JSON directo.
+        docs = (
+            [unit_json_path]
+            if unit_json_path.is_file()
+            else sorted(sub.glob("*.txt")) + sorted(sub.glob("*.json"))
+        )
         mp4s = sorted(sub.glob("*.mp4"), key=lambda p: _vid_sort_key(p.name))
         if not docs:
             log.warning("  %s: sin .txt/.json — se saltea", name)
@@ -582,7 +676,8 @@ def _local_folders(root: Path, only: str | None) -> Iterator[FolderPayload]:
             return list(files)  # ya están en disco
 
         yield FolderPayload(name=name, _doc_text_fn=_doc_text, _mp4_paths_fn=_mp4_paths,
-                            mp4_count=len(mp4s), mp4_names=[p.name for p in mp4s])
+                            mp4_count=len(mp4s), mp4_names=[p.name for p in mp4s],
+                            source="unit.json" if docs[0] == unit_json_path else "doc")
 
 
 def _iter_folders(args: argparse.Namespace) -> Iterator[FolderPayload]:
@@ -608,6 +703,8 @@ class SyncStats:
     drafts: int = 0
     failed: int = 0
     skipped: int = 0
+    updated: int = 0  # units existentes actualizadas in-place (--update-existing)
+    blocked: int = 0  # update NO aplicado: dejaría de validar una unit publicada
 
 
 def _service_account_email() -> str | None:
@@ -657,26 +754,91 @@ def _drive_error_hint(exc: Exception) -> str | None:
     return f"Error de Google Drive: {text}"
 
 
+def _update_existing(
+    db: Any, slug: str, unit_dict: dict[str, Any], args: argparse.Namespace,
+    stats: SyncStats, finish: Any,
+) -> None:
+    """Actualiza in-place (sin borrar) una unit existente — conserva intentos,
+    asignaciones, rutas y progreso por bloque. Si la unit estaba publicada y
+    con el contenido nuevo dejaría de validar, NO se aplica (rollback) para no
+    degradar una unit en uso."""
+    from sqlalchemy import select
+
+    from hg.modules.learning_units.models import LearningUnit
+
+    unit = db.scalar(select(LearningUnit).where(LearningUnit.slug == slug))
+    assert unit is not None
+    was_published = unit.published_at is not None
+    report = update_unit_in_place(db, unit, unit_dict)
+    summary = (
+        f"bloques: {report.matched} conservados, {report.added} nuevos, {report.removed} quitados"
+        f" · quiz recreados: {report.quiz_questions_replaced}"
+        f" · progreso perdido: {report.block_progress_lost} bloques, {report.quiz_responses_lost} respuestas quiz"
+    )
+    if report.validation_errors and was_published:
+        db.rollback()
+        log.warning(
+            "  ⛔ %s (PUBLICADA) NO se actualizó — el contenido nuevo no pasa la validación de "
+            "publish:\n    - %s", slug, "\n    - ".join(report.validation_errors),
+        )
+        stats.blocked += 1
+        return
+    if not was_published and not report.validation_errors and not args.no_publish:
+        # Borrador que con el contenido nuevo ya es publicable.
+        try_publish(db, unit)
+    finish()
+    verb = "actualizaría" if args.dry_run else "actualizada"
+    state = "publicada" if unit.published_at is not None else "BORRADOR"
+    log.info("  🔄 %s %s in-place (%s) · %s", slug, verb, state, summary)
+    if report.validation_errors:
+        log.warning("    sigue como borrador: %s", "; ".join(report.validation_errors))
+    stats.updated += 1
+
+
+def _unit_exists(slug: str) -> bool:
+    from sqlalchemy import select
+
+    from hg.modules.learning_units.models import LearningUnit
+
+    db = SessionLocal()
+    try:
+        return db.scalar(select(LearningUnit.id).where(LearningUnit.slug == slug)) is not None
+    finally:
+        db.close()
+
+
+def _warn_on_code_mismatch(folder_name: str, code: UnitCode, unit_json: dict[str, Any]) -> None:
+    """Avisa si el código derivado de carpeta/MP4 contradice la dimensión o el
+    nivel que declara el unit.json (gana el de carpeta/MP4; el aviso permite
+    corregir la fuente). Los valores no normalizables (ej. ``V0`` como nivel) no
+    se comparan."""
+    dim = unit_json.get("dimension_code")
+    if isinstance(dim, str) and dim.strip() and normalize_dimension(dim) != code.dimension:
+        log.warning(
+            "  %s: dimension_code del unit.json (%r) ≠ código de carpeta/MP4 (%r) — gana el de carpeta",
+            folder_name, dim, code.dimension,
+        )
+    lvl = unit_json.get("level_code")
+    norm = normalize_level(lvl) if isinstance(lvl, str) else None
+    if norm is not None and norm != f"L{code.level}":
+        log.warning(
+            "  %s: level_code del unit.json (%r) ≠ código de carpeta/MP4 (L%d) — gana el de carpeta",
+            folder_name, lvl, code.level,
+        )
+
+
 def _process_folder(
     folder: FolderPayload, args: argparse.Namespace, stats: SyncStats
 ) -> None:
-    # El CÓDIGO de la unidad es la fuente de verdad de dimensión/pilar/unidad/
-    # nivel: del nombre de carpeta (Carrera: `CP-L1-P5-003`) o, si la carpeta no
-    # lo trae (Propósito/Relaciones: `V0-001`), del nombre del MP4
-    # (`PR-L1-V0-001.mp4`). Si no se puede derivar, se REPORTA y se saltea (nunca
-    # se importa mal en silencio).
-    code = derive_unit_code(folder.name, folder.mp4_names)
-    if code is None:
-        log.warning(
-            "  %s: código fuera de convención <DIM>-L<n>-<PILAR>-<seq> "
-            "(ni en carpeta ni en MP4) — se saltea",
-            folder.name,
-        )
-        stats.failed += 1
+    if folder.name in (getattr(args, "skip_folder", None) or ()):
+        log.warning("  %s: excluida (--skip-folder) — no se toca", folder.name)
+        stats.skipped += 1
         return
 
+    # 1. Contenido: el unit.json de la carpeta (fuente de verdad) o, fallback
+    #    legacy, el JSON embebido en el Google Doc.
     try:
-        doc_text = folder.doc_text()
+        text = folder.doc_text()
     except Exception as exc:
         hint = _drive_error_hint(exc)
         if hint is None:
@@ -686,20 +848,45 @@ def _process_folder(
         return
 
     try:
-        unit_json = extract_json_from_doc_text(doc_text)
+        unit_json = (
+            parse_unit_json_text(text)
+            if folder.source == "unit.json"
+            else extract_json_from_doc_text(text)
+        )
     except UnitDictError as exc:
         log.error("  %s: %s — se saltea", folder.name, exc)
         stats.failed += 1
         return
 
+    # 2. Código de la unidad (dimensión/nivel/pilar/número). Prioridad: nombre de
+    #    carpeta (Carrera: `CP-L1-P5-003`) → nombre del MP4 (Propósito: folder
+    #    `V0-001` + `PR-L1-V0-001.mp4`) → campos del unit.json (D3-D6: sin nivel ni
+    #    pilar en el nombre; `GENERAL` → L1, dimensión normalizada). Si ninguna
+    #    fuente sirve, se REPORTA y se saltea (nunca se importa mal en silencio).
+    code = derive_unit_code(folder.name, folder.mp4_names)
+    if code is None:
+        try:
+            code = code_from_unit_json(unit_json)
+        except UnitDictError as exc:
+            log.warning(
+                "  %s: código fuera de convención <DIM>-L<n>-<PILAR>-<seq> "
+                "(ni en carpeta ni en MP4) y unit.json no alcanza: %s — se saltea",
+                folder.name, exc,
+            )
+            stats.failed += 1
+            return
+    else:
+        _warn_on_code_mismatch(folder.name, code, unit_json)
+
     unit_json = sanitize_unit_json(unit_json)
-    # Override autoritativo desde el folder (la clave `pillar_code` del Doc es
-    # legacy — es dato externo de Jorge y mete el pilar dentro de lo que debería
-    # ser la dimensión; se descarta y se re-deriva del nombre de carpeta).
+    # Override autoritativo con el código derivado (la clave `pillar_code` del
+    # contenido es dato externo y a veces mete el pilar dentro de lo que debería
+    # ser la dimensión; se descarta y se re-deriva). `pillar_code` puede ser None
+    # (dimensiones sin pilares, D3-D6).
     unit_json["dimension_code"] = code.dimension
     unit_json["area_code"] = code.area  # None = general (Capa Empresa · TASK 8)
-    unit_json.pop("pillar_code", None)  # descartar el pillar_code legacy externo del Doc
-    unit_json["pillar_code"] = code.pillar  # CE-07: código string derivado del folder
+    unit_json.pop("pillar_code", None)  # descartar el pillar_code externo
+    unit_json["pillar_code"] = code.pillar  # CE-07: código string (o None)
     unit_json["unit_number"] = code.number
     unit_json["level_code"] = f"L{code.level}"
     slug = unit_json.get("slug", "<sin-slug>")
@@ -707,14 +894,32 @@ def _process_folder(
     stats.folders += 1
     stats.mp4s += folder.mp4_count
 
-    if args.dry_run:
+    exists = _unit_exists(slug) if (args.update_existing or args.skip_existing) else False
+    update_mode = args.update_existing and exists
+
+    if args.dry_run and not args.update_existing:
         log.info("  [DRY RUN] no se sube a R2 ni se escribe en DB")
+        return
+    if args.dry_run and not exists:
+        log.info("  [DRY RUN] unit NUEVA — se crearía (no se sube a R2 ni se escribe en DB)")
+        return
+
+    # 0. Add-only (--skip-existing): no tocar units que ya existen (preserva su
+    #    contenido y, sobre todo, los attempts/progreso de usuarios — el upsert es
+    #    delete+recreate con CASCADE). Se decide ANTES de descargar/subir videos
+    #    para no re-subir a R2 los MP4 de units que se van a saltear.
+    #    (--update-existing tiene precedencia: las existentes se actualizan in-place.)
+    if args.skip_existing and exists and not args.update_existing:
+        log.info("  ⏭️  %s ya existe — se saltea (--skip-existing)", slug)
+        stats.skipped += 1
         return
 
     # 1. URLs de los videos en R2. Con --skip-upload (los MP4 ya están subidos,
     #    p.ej. poblar la DB de prod) se reusan las URLs deterministas sin
-    #    descargar de Drive ni re-subir a R2 — sólo se hace el upsert.
-    if args.skip_upload:
+    #    descargar de Drive ni re-subir a R2 — sólo se hace el upsert. Al
+    #    ACTUALIZAR una unit existente los videos ya están en R2 (misma key
+    #    determinista): siempre se reusan.
+    if args.skip_upload or update_mode:
         video_urls = [existing_r2_url(slug, i) for i in range(1, folder.mp4_count + 1)]
     else:
         # Descargar (si Drive) + subir MP4 a R2. Un fallo acá (download de Drive
@@ -734,19 +939,12 @@ def _process_folder(
     # 2. Armar dict + upsert + publish (resiliente).
     unit_dict = assemble_unit_dict(unit_json, video_urls)
     db = SessionLocal()
+    # En --dry-run (sólo con --update-existing) todo corre igual pero se revierte.
+    finish = db.rollback if args.dry_run else db.commit
     try:
-        if args.skip_existing:
-            # Add-only: no tocar units que ya existen (preserva su contenido y,
-            # sobre todo, los attempts/progreso de usuarios). Clave para poblar
-            # prod sin pisar lo que ya está publicado y en uso.
-            from sqlalchemy import select
-
-            from hg.modules.learning_units.models import LearningUnit
-
-            if db.scalar(select(LearningUnit.id).where(LearningUnit.slug == slug)) is not None:
-                log.info("  ⏭️  %s ya existe — se saltea (--skip-existing)", slug)
-                stats.skipped += 1
-                return
+        if update_mode:
+            _update_existing(db, slug, unit_dict, args, stats, finish)
+            return
         unit = upsert_unit_from_dict(db, unit_dict, publish=False)
         db.flush()
         # Pre-seed del sub-badge de pilar (Capa Empresa · TASK 6.3): el sync corre
@@ -811,8 +1009,10 @@ def run(args: argparse.Namespace) -> SyncStats:
         return stats
 
     log.info(
-        "listo · folders=%d · mp4s=%d · publicadas=%d · borradores=%d · fallidas=%d · saltadas=%d",
+        "listo · folders=%d · mp4s=%d · publicadas=%d · borradores=%d · fallidas=%d · saltadas=%d"
+        " · actualizadas=%d · bloqueadas=%d",
         stats.folders, stats.mp4s, stats.published, stats.drafts, stats.failed, stats.skipped,
+        stats.updated, stats.blocked,
     )
     return stats
 
@@ -833,6 +1033,14 @@ def main() -> None:
                         help="no descarga de Drive ni sube a R2; reusa las URLs de R2 ya "
                              "subidas (para poblar una DB nueva, p.ej. prod, con los videos "
                              "ya presentes en R2)")
+    parser.add_argument("--skip-folder", action="append", default=[], metavar="NOMBRE",
+                        help="excluir un folder de unidad por nombre (repetible). Para folders "
+                             "con contenido ambiguo (slug duplicado, JSON de otra unidad) que "
+                             "hay que corregir en Drive antes de sincronizar")
+    parser.add_argument("--update-existing", action="store_true",
+                        help="actualiza IN-PLACE las units que ya existen (conserva su id, los "
+                             "ids de bloque y todo el progreso de usuarios; reusa los videos ya "
+                             "en R2). Con --dry-run corre todo y lo revierte")
     parser.add_argument("--skip-existing", action="store_true",
                         help="add-only: no re-crea units cuyo slug ya existe en la DB "
                              "(preserva su contenido y los attempts/progreso de usuarios)")

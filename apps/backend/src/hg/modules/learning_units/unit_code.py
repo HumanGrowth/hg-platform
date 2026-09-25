@@ -32,6 +32,13 @@ _UNIT_CODE_RE = re.compile(
 _GENERAL_SENTINEL = "GEN"
 # Alias de pilares nombrados → código canónico (IA y AI son el mismo pilar).
 _PILLAR_ALIASES = {"IA": "AI"}
+# Códigos de dimensión que usa el contenido del Drive (D3 Relaciones y
+# Conexiones, D4 Salud y Bienestar, D6 Estabilidad Emocional y Material) →
+# código canónico de la app (CP/PR/RE/SA/PI/ES, ver `dimensions.py`).
+_DIMENSION_ALIASES = {"RC": "RE", "SB": "SA", "EM": "ES"}
+# Contenido sin división por nivel (D3-D6): se normaliza al primer nivel.
+GENERAL_LEVEL = "GENERAL"
+_LEVEL_CODE_RE = re.compile(r"^L[1-6]$")
 
 
 def normalize_pillar(segment: str) -> str:
@@ -40,11 +47,27 @@ def normalize_pillar(segment: str) -> str:
     return _PILLAR_ALIASES.get(up, up)
 
 
+def normalize_dimension(segment: str) -> str:
+    """Código de dimensión canónico de la app (uppercase; RC→RE, SB→SA, EM→ES)."""
+    up = segment.strip().upper()
+    return _DIMENSION_ALIASES.get(up, up)
+
+
+def normalize_level(level: str) -> str | None:
+    """``level_code`` canónico: ``L1``..``L6`` se conserva; ``GENERAL`` (dimensiones
+    sin división por nivel) → ``L1``. Cualquier otro valor → ``None`` (el caller
+    decide si reporta y saltea)."""
+    up = level.strip().upper()
+    if up == GENERAL_LEVEL:
+        return "L1"
+    return up if _LEVEL_CODE_RE.match(up) else None
+
+
 @dataclass(frozen=True)
 class UnitCode:
     dimension: str
     level: int
-    pillar: str  # código del pilar: "P1".."P5", "AI"… (CE-07)
+    pillar: str | None  # código del pilar: "P1".."P5", "AI"… (CE-07); None en D3-D6
     number: int
     area: str | None = None  # MFG/IT/CC o None (general)
 
@@ -64,7 +87,7 @@ def parse_unit_code(code: str) -> UnitCode | None:
     if area == _GENERAL_SENTINEL:
         area = None
     return UnitCode(
-        area=area, dimension=m.group(2), level=int(m.group(3)),
+        area=area, dimension=normalize_dimension(m.group(2)), level=int(m.group(3)),
         pillar=normalize_pillar(m.group(4)), number=int(m.group(5)),
     )
 
@@ -77,4 +100,5 @@ def format_unit_code(unit: UnitCode) -> str:
     """Reconstruye el código canónico; ``number`` se rellena a 3 dígitos (001).
     Antepone el Área si la unit no es general."""
     prefix = f"{unit.area.upper()}-" if unit.area else ""
-    return f"{prefix}{unit.dimension.upper()}-L{unit.level}-{unit.pillar}-{unit.number:03d}"
+    pillar = f"-{unit.pillar}" if unit.pillar else ""
+    return f"{prefix}{unit.dimension.upper()}-L{unit.level}{pillar}-{unit.number:03d}"

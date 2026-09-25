@@ -10,6 +10,8 @@ from hg.modules.learning_units.unit_code import (
     UnitCode,
     format_unit_code,
     is_valid_unit_code,
+    normalize_dimension,
+    normalize_level,
     parse_unit_code,
 )
 
@@ -65,3 +67,30 @@ def test_format_named_pillar() -> None:
 
 def test_format_does_not_truncate_over_999() -> None:
     assert format_unit_code(UnitCode("CP", 1, "P1", 1000)) == "CP-L1-P1-1000"
+
+
+# ─────────── Normalización de dimensión / nivel (D3-D6, sin niveles) ───────────
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [("RC", "RE"), ("sb", "SA"), (" EM ", "ES"), ("CP", "CP"), ("PR", "PR"), ("PI", "PI"), ("RE", "RE")],
+)
+def test_normalize_dimension_maps_drive_codes_to_app_codes(raw: str, expected: str) -> None:
+    assert normalize_dimension(raw) == expected
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [("GENERAL", "L1"), ("general", "L1"), ("L2", "L2"), ("l3", "L3"), ("V0", None), ("L9", None), ("", None)],
+)
+def test_normalize_level(raw: str, expected: str | None) -> None:
+    assert normalize_level(raw) == expected
+
+
+def test_parse_unit_code_normalizes_dimension() -> None:
+    assert parse_unit_code("RC-L1-V0-001") == UnitCode("RE", 1, "V0", 1)
+
+
+def test_format_without_pillar_omits_segment() -> None:
+    assert format_unit_code(UnitCode("SA", 1, None, 0)) == "SA-L1-000"
