@@ -37,6 +37,7 @@ function makeMatrix(overrides?: Partial<BehaviorMatrix>): BehaviorMatrix {
         pillar_code: "P1",
         pillar_name: "Adaptabilidad de aprendizaje",
         is_current: true,
+        coaching_tips: ["Preguntá qué obstáculo frenó el avance", "Reconocé un logro concreto"],
         behaviors: [
           {
             behavior_id: "b1",
@@ -52,6 +53,7 @@ function makeMatrix(overrides?: Partial<BehaviorMatrix>): BehaviorMatrix {
         pillar_code: "P2",
         pillar_name: "Excelencia operativa",
         is_current: false,
+        coaching_tips: [],
         behaviors: [
           {
             behavior_id: "b2",
@@ -158,5 +160,21 @@ describe("BehaviorMatrixCard", () => {
     getFeedback.mockRejectedValue(new Error("boom"));
     render(<BehaviorMatrixCard userId="u1" />);
     await waitFor(() => expect(screen.getByText("Busca feedback y lo aplica")).toBeTruthy());
+  });
+
+  it("muestra los tips de coaching del pilar en curso en un panel colapsable", async () => {
+    getMatrix.mockResolvedValue(singlePillarMatrix());
+    render(<BehaviorMatrixCard userId="u1" />);
+    expect(await screen.findByText("Tips para acompañar este pilar")).toBeTruthy();
+    expect(screen.getByText("Reconocé un logro concreto")).toBeTruthy();
+  });
+
+  it("sin tips no muestra el panel", async () => {
+    const m = singlePillarMatrix();
+    m.pillars[0].coaching_tips = [];
+    getMatrix.mockResolvedValue(m);
+    render(<BehaviorMatrixCard userId="u1" />);
+    await screen.findByText("Busca feedback y lo aplica");
+    expect(screen.queryByText("Tips para acompañar este pilar")).toBeNull();
   });
 });

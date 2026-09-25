@@ -115,3 +115,25 @@ class PillarFeedback(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class PillarCoachingTip(Base):
+    """Tip curado para que el manager acompañe un pilar (catálogo global sin
+    RLS, mismo patrón que ``PillarBehavior``). Contenido editorial: se siembra
+    por migración y lo reemplaza el equipo de contenido — nunca se genera en
+    runtime."""
+
+    __tablename__ = "pillar_coaching_tips"
+    __table_args__ = (
+        UniqueConstraint(
+            "dimension_code", "pillar_code", "order_index", name="uq_pillar_coaching_tip_order"
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    dimension_code: Mapped[str] = mapped_column(String(4), nullable=False, index=True)
+    pillar_code: Mapped[str] = mapped_column(String(8), nullable=False, index=True)
+    text: Mapped[str] = mapped_column(String(500), nullable=False)
+    order_index: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

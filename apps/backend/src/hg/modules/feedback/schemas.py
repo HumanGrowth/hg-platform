@@ -21,6 +21,8 @@ class PillarBehaviorsOut(BaseModel):
     pillar_name: str
     is_current: bool
     behaviors: list[BehaviorOut]
+    # Tips curados para acompañar el pilar (máx. ``MAX_COACHING_TIPS``).
+    coaching_tips: list[str] = []
 
 
 class BehaviorMatrixOut(BaseModel):
