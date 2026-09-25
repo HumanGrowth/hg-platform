@@ -22,7 +22,7 @@ export function MethodDimensions({ pillars }: { pillars: readonly MethodPillar[]
       {pillars.map((p) => (
         <article
           key={p.code}
-          className="flex flex-col gap-3 rounded-lg border border-border bg-surface-card p-7"
+          className="flex flex-col gap-3 glass-surface-strong p-7"
         >
           <div className="flex items-center justify-between gap-3">
             <HexIcon pillar={p.code} size={40} />

@@ -58,7 +58,7 @@ export default function ForTeamsPage() {
         </DecoLayer>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {valueProps.map((v) => (
-            <div key={v.title} className="bg-surface-card border border-border rounded-lg p-8 flex flex-col gap-3">
+            <div key={v.title} className="glass-surface-strong p-8 flex flex-col gap-3">
               <h3 className="display text-fg m-0" style={{ fontSize: 32, lineHeight: 0.98 }}>
                 {v.title}
               </h3>

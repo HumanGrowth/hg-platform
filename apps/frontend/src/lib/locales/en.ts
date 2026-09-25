@@ -22,6 +22,25 @@ export const en = {
     emptyState: "Content coming soon. We're preparing material you'll find interesting.",
   },
   plataforma: {
+    tour: {
+      eyebrow: "WALKTHROUGH",
+      title: "This is HG from the inside.",
+      subtitle: "Nine platform screens, for the collaborator, their manager and HR.",
+      demoNote: "Demo screens with sample data.",
+      device: { label: "Device", desktop: "Desktop", mobile: "Mobile" },
+      tabsLabel: "Platform screens",
+      screens: [
+        { id: "home", label: "Home", desc: "Your overall progress, a daily fact and the 6 dimensions at a glance." },
+        { id: "ruta", label: "My Path", desc: "The next module, the current stage and the next badge milestone." },
+        { id: "dimensiones", label: "Dimensions", desc: "Your state in each dimension, what it means and your next steps." },
+        { id: "modulo", label: "Module", desc: "Short video, context, evidence, solution, quiz and reflection in a single flow." },
+        { id: "plan", label: "Action Plan", desc: "Micro-challenges and saved practices, dimension by dimension." },
+        { id: "eventos", label: "Events", desc: "Live webinars, recordings and community." },
+        { id: "perfil", label: "Profile", desc: "Your radar, growth archetype, achievements and badges." },
+        { id: "equipo", label: "My Team", desc: "Team follow-up for managers: activity and comparison with the organization." },
+        { id: "rrhh", label: "HR Panel", desc: "Aggregated adoption and progress across the whole organization." },
+      ],
+    },
     hero: {
       eyebrow: "PLATFORM",
       title: "Everything you need to support human growth.",
@@ -113,6 +132,14 @@ export const en = {
     title: "This is what growth in action looks like.",
     body: "Diagnosis, paths, mentorships and metrics — all connected in a single platform.",
     cta: "See the full platform →",
+  },
+  hugie: {
+    eyebrow: "COMING SOON",
+    title: "Meet Hugie.",
+    tagline: "Thinks, listens and walks with you.",
+    body: "Hugie is HG's virtual coach: the knowledge of AI made matter. Each color of its light is one of the 6 dimensions, and its energy shifts with the moment — calm while it listens, bright when you celebrate progress.",
+    note: "We're still building it. You'll find it inside the platform when it's ready.",
+    states: { reposo: "At rest", celebrando: "Celebrating" },
   },
   homeCta: {
     eyebrow: "START TODAY",

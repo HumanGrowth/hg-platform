@@ -260,8 +260,11 @@
    el clip del watermark vive dentro de HeroWatermark. El ritmo vertical es
    compartido: las secciones no definen py-* propio. */
 .landing-flow {
-  --landing-flow-odd: var(--surface-page);
-  --landing-flow-even: var(--surface-sunken);
+  /* Bandas translúcidas: dejan ver el fondo glass (blobs + tiles de body) y
+     solo insinúan el ritmo alterno. Con bandas sólidas el glass de las cards
+     no tiene nada que desenfocar. */
+  --landing-flow-odd: transparent;
+  --landing-flow-even: color-mix(in srgb, var(--surface-sunken) 45%, transparent);
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -297,4 +300,28 @@
 
 .landing-flow > .landing-flow-section:nth-child(even)::before {
   background: var(--landing-flow-even);
+}
+
+/* Hugie (marketing · HugieOrb): respiración, aura y chispas del estado
+   "celebrando". Referencia: Hugie.dc.html. Solo se aplican con motion
+   habilitado (el componente no setea animation bajo reduced-motion). */
+@keyframes hug-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+@keyframes hug-aura {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.85; }
+}
+@keyframes hug-sparkle {
+  0%, 100% { opacity: 0.1; transform: scale(0.6); }
+  50% { opacity: 1; transform: scale(1); }
+}
+.hug-sparkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hug-sparkle 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hug-sparkle { animation: none; opacity: 0.8; }
 }

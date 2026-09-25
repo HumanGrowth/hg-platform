@@ -7,6 +7,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { PlatformTour } from "@/components/marketing/PlatformTour";
 import { HeroWatermark } from "@/components/marketing/HeroWatermark";
 import { BrandSawWave } from "@/components/motion/BrandSawWave";
 import { BubbleField } from "@/components/motion/BubbleField";
@@ -53,7 +54,7 @@ export default function PlataformaPage() {
             return (
               <article
                 key={f.title}
-                className="rounded-lg border border-border bg-surface-card p-8"
+                className="glass-surface-strong p-8"
               >
                 {Icon ? <Icon size={28} strokeWidth={1.75} className="text-primary" aria-hidden /> : null}
                 <h3 className="mt-3 font-heading text-lg font-semibold text-fg">{f.title}</h3>
@@ -62,6 +63,15 @@ export default function PlataformaPage() {
             );
           })}
         </StaggerBounceGrid>
+      </section>
+
+      <section className="landing-flow-section relative max-w-marketing mx-auto px-8" aria-labelledby="tour-title">
+        <div className="mb-10 max-w-[760px]">
+          <div className="eyebrow eyebrow-accent mb-4">{c.tour.eyebrow}</div>
+          <h2 id="tour-title" className="display m-0 text-fg text-4xl sm:text-5xl">{c.tour.title}</h2>
+          <p className="mt-4 text-lg text-hg-charcoal">{c.tour.subtitle}</p>
+        </div>
+        <PlatformTour />
       </section>
     </div>
   );

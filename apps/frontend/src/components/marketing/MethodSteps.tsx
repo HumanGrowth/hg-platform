@@ -15,7 +15,7 @@ export function MethodSteps({ items }: { items: readonly Step[] }) {
       {items.map((s) => (
         <div
           key={s.n}
-          className="flex flex-col rounded-lg border border-border bg-surface-card p-5"
+          className="flex flex-col glass-surface-strong p-5"
         >
           <span className="font-mono text-sm font-semibold text-primary">{s.n}</span>
           <h3 className="mt-2 font-heading text-md font-semibold leading-tight text-fg">{s.name}</h3>

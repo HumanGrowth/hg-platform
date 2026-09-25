@@ -93,7 +93,7 @@ export function PerspectivasFilter() {
               <Link
                 key={p.id}
                 href={`/perspectivas/${p.slug}` as Route}
-                className="group flex flex-col overflow-hidden rounded-xl border border-border bg-bg-raised transition-shadow hover:shadow-md"
+                className="group flex flex-col overflow-hidden glass-surface-strong transition-shadow hover:shadow-md"
               >
                 <div className="aspect-video w-full overflow-hidden bg-bg-sunken">
                   {p.cover_image_url && (

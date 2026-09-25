@@ -11,11 +11,15 @@ import { DecoLayer } from "@/components/motion/DecoLayer";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 
+// Pantallas reales de la app (capturas del prototipo "Recorrido de plataforma"),
+// las mismas del tour de /plataforma: player de módulo, Mi Ruta, Mi Equipo
+// (manager) y Panel RRHH.
 const SCREENS = [
-  { src: "/marketing/platform/01-home-dashboard.png", alt: "Home de la app" },
-  { src: "/marketing/platform/05-home-with-real-states.png", alt: "Home con estados reales de progreso" },
-  { src: "/marketing/platform/01-onboarding-welcome.png", alt: "Onboarding del colaborador" },
-  { src: "/marketing/platform/04-admin-org-tendencias.png", alt: "Dashboard de tendencias para RRHH" },
+  { src: "/marketing/platform-tour/desk-home.webp", alt: "Inicio: progreso por dimensión" },
+  { src: "/marketing/platform-tour/desk-modulo.webp", alt: "Player de módulo con video, pasos y quiz" },
+  { src: "/marketing/platform-tour/desk-ruta.webp", alt: "Mi Ruta: siguiente módulo e hito" },
+  { src: "/marketing/platform-tour/desk-equipo.webp", alt: "Mi Equipo: vista del manager" },
+  { src: "/marketing/platform-tour/desk-rrhh.webp", alt: "Panel de RRHH con métricas agregadas" },
 ];
 
 /** Sección producto en home: stack de screens de la app → /plataforma (decisión G). */
@@ -51,14 +55,13 @@ export function ProductStack() {
       </div>
 
       <div
-        className="relative h-[320px] sm:h-[380px]"
+        className="relative h-[340px] sm:h-[420px]"
         onWheel={(e) => {
           if (Math.abs(e.deltaY) < 8) return;
           rotateStack(e.deltaY > 0 ? 1 : -1);
         }}
       >
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-[var(--hg-cream)]/40 to-transparent" />
-        {SCREENS.map((s, i) => {
+                {SCREENS.map((s, i) => {
           const distance = (i - activeIndex + SCREENS.length) % SCREENS.length;
           const hidden = distance > 2;
 
@@ -66,22 +69,23 @@ export function ProductStack() {
             <button
               type="button"
               key={s.src}
-              className="absolute overflow-hidden rounded-lg border border-border bg-[var(--hg-cream)] shadow-md transition-all duration-300"
+              className="glass-surface-strong absolute overflow-hidden transition-all duration-300"
               style={{
                 top: "50%",
                 left: "50%",
                 width: "86%",
-                height: "240px",
+                aspectRatio: "1440 / 1000",
                 zIndex: SCREENS.length - distance,
-                padding: "12px",
+                padding: "8px",
                 transform: `translate(calc(-50% + ${distance * 8}px), calc(-50% + ${distance * 22}px)) scale(${1 - distance * 0.04})`,
                 opacity: hidden ? 0 : 1 - distance * 0.16,
                 pointerEvents: hidden ? "none" : "auto",
               }}
               aria-label={`Ver pantalla ${i + 1}: ${s.alt}`}
+              onClick={() => setActiveIndex(i)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={s.src} alt={s.alt} className="h-full w-full object-cover" />
+              <img src={s.src} alt={s.alt} className="h-full w-full rounded-md object-cover object-top" />
             </button>
           );
         })}

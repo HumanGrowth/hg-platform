@@ -51,7 +51,7 @@ export default function PricingTable() {
       </div>
 
       <div className="max-w-[720px] mx-auto">
-        <Card className="bg-bg-raised p-10 border border-border">
+        <Card className="p-10">
           <div className="eyebrow mb-3">PLAN A LA MEDIDA</div>
           <h3 className="display text-fg mb-4 text-3xl">Construido contigo</h3>
           <p className="text-hg-charcoal mb-8 text-base leading-[1.6]">

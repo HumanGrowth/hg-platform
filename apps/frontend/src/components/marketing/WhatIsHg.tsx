@@ -37,7 +37,7 @@ export default function WhatIsHg() {
         {cards.map((card) => (
           <article
             key={card.title}
-            className="flex flex-col gap-3 rounded-lg border border-border bg-surface-card p-8"
+            className="flex flex-col gap-3 glass-surface-strong p-8"
           >
             <h3 className="font-heading text-lg font-semibold text-fg">{card.title}</h3>
             <p className="body-sm leading-relaxed text-hg-charcoal">{card.body}</p>

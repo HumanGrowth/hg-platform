@@ -43,7 +43,7 @@ export default function SixDimensions() {
             return (
               <article
                 key={item.code}
-                className="relative overflow-hidden rounded-lg border border-border bg-surface-card p-8 min-h-[220px]"
+                className="relative overflow-hidden glass-surface-strong p-8 min-h-[220px]"
               >
                 {src && (
                   // eslint-disable-next-line @next/next/no-img-element

@@ -111,7 +111,7 @@ export default function MetodoPage() {
         </MotionSection>
         <StaggerBounceGrid className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {c.rigor.points.map((p) => (
-            <div key={p.title} className="rounded-lg border border-border bg-surface-card p-6">
+            <div key={p.title} className="glass-surface-strong p-6">
               <h3 className="font-heading text-md font-semibold text-fg">{p.title}</h3>
               <p className="mt-2 text-sm leading-[1.55] text-hg-charcoal">{p.body}</p>
             </div>

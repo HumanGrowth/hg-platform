@@ -1,5 +1,6 @@
 import Hero from "@/components/marketing/Hero";
 import { HomeCTAFinal } from "@/components/marketing/HomeCTAFinal";
+import { HugieTeaser } from "@/components/marketing/HugieTeaser";
 import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
 import MarketingRadar from "@/components/marketing/MarketingRadar";
 import { ProductStack } from "@/components/marketing/ProductStack";
@@ -23,6 +24,7 @@ export default function LandingPage() {
       <MarketingRadar />
       <WhatIsHg />
       <ProductStack />
+      <HugieTeaser />
       <HowItWorksTimeline />
       <Quote />
       <HomeCTAFinal />

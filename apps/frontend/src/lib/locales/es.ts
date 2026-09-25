@@ -22,6 +22,25 @@ export const es = {
     emptyState: "Contenido próximamente. Estamos preparando material que te va a interesar.",
   },
   plataforma: {
+    tour: {
+      eyebrow: "RECORRIDO",
+      title: "Así se ve HG por dentro.",
+      subtitle: "Nueve pantallas de la plataforma, para el colaborador, su manager y RRHH.",
+      demoNote: "Pantallas de demostración con datos de ejemplo.",
+      device: { label: "Dispositivo", desktop: "Escritorio", mobile: "Móvil" },
+      tabsLabel: "Pantallas de la plataforma",
+      screens: [
+        { id: "home", label: "Inicio", desc: "Tu progreso general, un fact del día y las 6 dimensiones de un vistazo." },
+        { id: "ruta", label: "Mi Ruta", desc: "El siguiente módulo, la etapa en curso y el próximo hito de insignia." },
+        { id: "dimensiones", label: "Dimensiones", desc: "Tu estado en cada dimensión, qué significa y tus próximos pasos." },
+        { id: "modulo", label: "Módulo", desc: "Video corto, contexto, evidencia, solución, quiz y reflexión en un solo flujo." },
+        { id: "plan", label: "Plan de Acción", desc: "Micro-retos y prácticas guardadas, dimensión por dimensión." },
+        { id: "eventos", label: "Eventos", desc: "Webinars en vivo, grabaciones y comunidad." },
+        { id: "perfil", label: "Perfil", desc: "Tu radar, tu arquetipo de crecimiento, logros e insignias." },
+        { id: "equipo", label: "Mi Equipo", desc: "Seguimiento del equipo para su manager: actividad y comparación con la organización." },
+        { id: "rrhh", label: "Panel RRHH", desc: "Adopción y progreso agregados de toda la organización." },
+      ],
+    },
     hero: {
       eyebrow: "PLATAFORMA",
       title: "Todo lo que necesitás para acompañar el crecimiento humano.",
@@ -113,6 +132,14 @@ export const es = {
     title: "Así se ve el crecimiento en acción.",
     body: "Diagnóstico, rutas, mentorías y métricas — todo conectado en una sola plataforma.",
     cta: "Ver la plataforma completa →",
+  },
+  hugie: {
+    eyebrow: "PRÓXIMAMENTE",
+    title: "Conocé a Hugie.",
+    tagline: "Piensa, escucha y acompaña contigo.",
+    body: "Hugie es el coach virtual de HG: el conocimiento de la IA hecho materia. Cada color de su luz es una de las 6 dimensiones, y cambia de energía según el momento — en calma mientras escucha, brillante cuando celebrás un avance.",
+    note: "Lo estamos construyendo. Lo vas a encontrar dentro de la plataforma cuando esté listo.",
+    states: { reposo: "En reposo", celebrando: "Celebrando" },
   },
   homeCta: {
     eyebrow: "EMPEZÁ HOY",

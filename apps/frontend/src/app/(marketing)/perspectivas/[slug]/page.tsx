@@ -99,7 +99,7 @@ export default async function PerspectiveDetailPage({
               {post.business_case.metrics.length > 0 && (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                   {post.business_case.metrics.map((m, i) => (
-                    <div key={i} className="rounded-xl border border-border bg-bg-raised p-4 text-center">
+                    <div key={i} className="glass-surface-strong p-4 text-center">
                       <div className="font-mono text-2xl font-semibold text-primary">{m.value}</div>
                       <div className="mt-1 text-xs text-fg-muted">{m.label}</div>
                     </div>

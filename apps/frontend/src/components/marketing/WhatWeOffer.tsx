@@ -54,7 +54,7 @@ export default function WhatWeOffer() {
           {CARDS.map((f) => (
             <div
               key={f.eyebrow}
-              className="bg-surface-card border border-border rounded-lg p-8 flex flex-col gap-3 min-h-[240px]"
+              className="glass-surface-strong p-8 flex flex-col gap-3 min-h-[240px]"
             >
               <div className="flex justify-between items-start">
                 <div className="eyebrow eyebrow-accent">{f.eyebrow}</div>
