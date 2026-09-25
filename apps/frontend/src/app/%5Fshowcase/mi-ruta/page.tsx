@@ -42,6 +42,7 @@ const PATH_FULL: MyPath = {
     step(5, { title: "Prioriza como estratega", level_code: "L3", estimated_minutes: 10 }),
     step(6, { title: "Decisiones bajo presión", estimated_minutes: 7 }),
     step(7, { title: "Negociar con foco", level_code: "L3", estimated_minutes: 9 }),
+    ...Array.from({ length: 8 }, (_, i) => step(20 + i, { title: `Módulo adicional ${i + 1}` })),
   ],
   completed_this_level: 3,
   total_this_level: 12,
@@ -136,6 +137,17 @@ function install(state: string) {
     const url = config.url ?? "";
     let data: unknown = [];
     if (url.endsWith("/me/path")) data = pathFor(state);
+    else if (url.endsWith("/me/pillar-feedback"))
+      data = [
+        {
+          pillar_code: "P1",
+          dimension_code: "CP",
+          text: "Gran avance en tu forma de pedir feedback. Ahora apuntá a convertirlo en un plan concreto cada mes.",
+          updated_at: "2026-09-20T10:00:00Z",
+          manager_name: "Ana Gómez",
+        },
+      ];
+    else if (url.endsWith("/me/assignments")) data = [];
     else if (url.includes("/modulos/by-dimension")) {
       const dim = (config.params as { dimension_code?: string } | undefined)?.dimension_code;
       const level = (config.params as { level_code?: string } | undefined)?.level_code;

@@ -136,7 +136,7 @@ const LEVEL_BADGE_CODE_RE = /^level-([a-z]{2})-(l\d+)$/i;
 /**
  * Recognizes a `MyBadge.code` that represents a dimension level badge and
  * resolves it to what <HgBadge> needs. Returns null for badges that don't
- * follow that convention (callers should fall back to <BadgeIcon>).
+ * follow that convention (callers should fall back to <CatalogBadge>).
  */
 export function resolveLevelBadge(code: string, name?: string): ResolvedLevelBadge | null {
   const match = LEVEL_BADGE_CODE_RE.exec(code);
@@ -156,5 +156,45 @@ export function resolveLevelBadge(code: string, name?: string): ResolvedLevelBad
     displayName: `${dimensionName} · ${levelTitle}`,
     displayDescription: `Reconoce que alcanzaste el nivel "${levelTitle}" en tu dimensión de ${dimensionName}.`,
     displayUnlockHint: `Se desbloquea al alcanzar el nivel ${levelTitle} en ${dimensionName}.`,
+  };
+}
+
+export interface ResolvedPillarBadge {
+  dimensionCode: string;
+  /** Nombre completo de la dimensión (ej. "Carrera"). */
+  dimensionName: string;
+  pillarCode: string;
+  /** Nombre del área tal como se llama en la app — va en el banner del badge. */
+  areaName: string;
+  displayName: string;
+  displayDescription: string;
+  displayUnlockHint: string;
+}
+
+// El backend siembra los badges de área como `pillar-<drive-code>-<pillar-code>`,
+// ej. "pillar-cp-p1" (`pillar_badge_code` en badges/progression.py).
+const PILLAR_BADGE_CODE_RE = /^pillar-([a-z]{2})-([a-z0-9]+)$/i;
+
+/**
+ * Reconoce un `MyBadge.code` de área/pilar y lo resuelve a lo que necesita
+ * <HgBadge> (mismo arte del design system que los badges de nivel: picto y
+ * color de la dimensión, con el nombre del área en el banner). `name` es el
+ * nombre explícito del área que ya manda el backend. Null si no sigue la
+ * convención.
+ */
+export function resolvePillarBadge(code: string, name?: string): ResolvedPillarBadge | null {
+  const match = PILLAR_BADGE_CODE_RE.exec(code);
+  if (!match) return null;
+  const [, dimensionDriveCode, pillarCode] = match;
+  const dimensionName = badgeConfigForDimension(dimensionDriveCode).name;
+  const areaName = name?.trim() || pillarCode.toUpperCase();
+  return {
+    dimensionCode: dimensionDriveCode.toUpperCase(),
+    dimensionName,
+    pillarCode: pillarCode.toUpperCase(),
+    areaName,
+    displayName: areaName,
+    displayDescription: `Completaste todas las unidades del área ${areaName} de ${dimensionName}.`,
+    displayUnlockHint: `Completá todas las unidades del área ${areaName}.`,
   };
 }

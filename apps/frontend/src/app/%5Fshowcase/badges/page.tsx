@@ -3,9 +3,21 @@
 import * as React from "react";
 
 import { CustomPathBadgePreview } from "@/components/badges/CustomPathBadgePreview";
+import { CatalogBadge } from "@/components/badges/CatalogBadge";
 import { HgBadge } from "@/components/badges/HgBadge";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Input, Label } from "@/components/ui/input";
+
+// Badges de área reales del catálogo (nombres tal como los devuelve el backend).
+const AREA_BADGES: { code: string; name: string }[] = [
+  { code: "pillar-cp-p1", name: "Adaptabilidad de aprendizaje" },
+  { code: "pillar-cp-p2", name: "Excelencia operativa y colaboración" },
+  { code: "pillar-cp-p3", name: "Experticia y pensamiento estratégico" },
+  { code: "pillar-cp-p4", name: "Comunicación e influencia" },
+  { code: "pillar-cp-p5", name: "Inteligencia emocional y social" },
+  { code: "pillar-cp-ai", name: "Inteligencia artificial aplicada" },
+  { code: "pillar-pr-v0", name: "Etapa V0" },
+];
 
 const CAREER_PATHS = ["P1", "P2", "P3", "P4", "P5", "P6"] as const;
 
@@ -46,6 +58,18 @@ export default function BadgesShowcasePage() {
           <div key={code} className="flex flex-col items-center gap-2">
             <HgBadge dimension={code} level="Sólido" rank={2} state="earned" size={120} />
             <span className="text-xs text-fg-muted">{code}</span>
+          </div>
+        ))}
+      </Section>
+
+      <Section title="Badges de área (pillar-*, desbloqueado / bloqueado)">
+        {AREA_BADGES.map((b) => (
+          <div key={b.code} className="flex flex-col items-center gap-2">
+            <div className="flex items-end gap-2">
+              <CatalogBadge code={b.code} name={b.name} unlocked size={110} />
+              <CatalogBadge code={b.code} name={b.name} unlocked={false} size={64} />
+            </div>
+            <span className="text-xs text-fg-muted">{b.code}</span>
           </div>
         ))}
       </Section>
