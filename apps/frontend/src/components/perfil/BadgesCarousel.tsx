@@ -1,13 +1,12 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Lock, Trophy } from "lucide-react";
-import Image from "next/image";
+import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
 import * as React from "react";
 
-import { HgBadge } from "@/components/badges/HgBadge";
+import { CatalogBadge } from "@/components/badges/CatalogBadge";
 import { Card } from "@/components/ui/card";
 import { apiGetMyBadges } from "@/lib/api";
-import { resolveLevelBadge } from "@/lib/badge-kit/dimension-adapter";
+import { resolveLevelBadge, resolvePillarBadge } from "@/lib/badge-kit/dimension-adapter";
 import type { MyBadge } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -113,54 +112,33 @@ export function BadgesCarousel() {
 }
 
 /**
- * Nombre/descripción/hint explícitos para mostrar — para badges de nivel,
- * SIEMPRE los resueltos por dimension-adapter (nunca la sigla cruda de
- * `MyBadge.name/description/unlock_hint`, ver comentario ahí). Para badges
- * que no matchean la convención (ej. `pillar-*`, que ya vienen con nombre
- * explícito desde el backend), se usa el campo de la API tal cual.
+ * Nombre/descripción/hint explícitos para mostrar — para badges de nivel y de
+ * área, SIEMPRE los resueltos por dimension-adapter (nunca la sigla cruda de
+ * `MyBadge.name/description/unlock_hint`, ver comentario ahí). Para el resto se
+ * usa el campo de la API tal cual.
  */
+function resolved(badge: MyBadge) {
+  return resolveLevelBadge(badge.code, badge.name) ?? resolvePillarBadge(badge.code, badge.name);
+}
 function displayName(badge: MyBadge): string {
-  return resolveLevelBadge(badge.code, badge.name)?.displayName ?? badge.name;
+  return resolved(badge)?.displayName ?? badge.name;
 }
 function displayDescription(badge: MyBadge): string {
-  return resolveLevelBadge(badge.code, badge.name)?.displayDescription ?? badge.description;
+  return resolved(badge)?.displayDescription ?? badge.description;
 }
 function displayUnlockHint(badge: MyBadge): string {
-  return resolveLevelBadge(badge.code, badge.name)?.displayUnlockHint ?? badge.unlock_hint;
+  return resolved(badge)?.displayUnlockHint ?? badge.unlock_hint;
 }
 
-/**
- * Resuelve el arte de un badge: si el `code` es un badge de nivel de dimensión
- * (convención `level-<dim>-<levelcode>` del backend), renderiza el <HgBadge>
- * dinámico; si no, cae al ícono/placeholder del catálogo (arte sin
- * dimensión mapeable — comportamiento previo, sin cambios).
- */
 function BadgeArt({ badge, size }: { badge: MyBadge; size: number }) {
-  const resolved = resolveLevelBadge(badge.code, badge.name);
-  if (resolved) {
-    return (
-      <HgBadge
-        dimension={resolved.dimensionCode}
-        level={resolved.levelTitle}
-        rank={resolved.rank}
-        state={badge.unlocked ? "earned" : "locked"}
-        size={size}
-        compact
-      />
-    );
-  }
-
   return (
-    <span className="relative">
-      <Image src={badge.icon_url} alt="" width={size} height={size} className="object-contain" />
-      {!badge.unlocked && (
-        <Lock
-          size={16}
-          strokeWidth={2}
-          className="absolute -bottom-1 -right-1 rounded-full bg-bg-raised p-0.5 text-fg-muted"
-        />
-      )}
-    </span>
+    <CatalogBadge
+      code={badge.code}
+      name={badge.name}
+      iconUrl={badge.icon_url}
+      unlocked={badge.unlocked}
+      size={size}
+    />
   );
 }
 

@@ -4,10 +4,12 @@ import { Lock } from "lucide-react";
 import * as React from "react";
 
 import { UnitCardCompact } from "@/components/modulos/UnitCardCompact";
+import { Chip } from "@/components/ui/chip";
 import { HexIcon } from "@/components/ui/hex-icon";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiListModulosByDimension } from "@/lib/api";
+import { levelBadgeMeta } from "@/lib/badge-kit/dimension-adapter";
 import { DIMENSIONS, type DimensionMeta } from "@/lib/modulos";
 import {
   DIMENSIONS_META,
@@ -20,6 +22,15 @@ import { cn } from "@/lib/utils";
 /** El pilar AI (Foundation) siempre va último; el resto por orden natural. */
 function pillarRank(code: string): number {
   return code === "AI" ? 1 : 0;
+}
+
+/** Niveles del modelo (L1–L3): se muestran todos, los que aún no tienen contenido
+ * publicado quedan deshabilitados ("Próximamente"). */
+const LEVEL_CODES = ["L1", "L2", "L3"] as const;
+
+function levelLabel(code: string): string {
+  const title = levelBadgeMeta(code).title;
+  return `Nivel ${code.replace(/^L/i, "")}${title ? ` · ${title}` : ""}`;
 }
 
 /** Agrupa units por `pillar_code` ("P1", "P2", "AI"…). AI se lista de último. */
@@ -112,14 +123,18 @@ export function DimensionCatalog({
   return (
     <div className="flex flex-col gap-4">
       {/* Toggle Dimensión/Skill: cambia el eje de agrupación del catálogo. */}
-      <div role="tablist" aria-label="Agrupar por" className="inline-flex w-fit rounded-md border border-border">
+      <div
+        role="tablist"
+        aria-label="Agrupar por"
+        className="glass-fill-strong inline-flex w-fit gap-0.5 rounded-md border border-border p-0.5"
+      >
         <button
           type="button"
           role="tab"
           aria-selected={mode === "dimension"}
           onClick={() => setMode("dimension")}
           className={cn(
-            "px-3 py-1.5 font-sans text-xs font-semibold transition-colors",
+            "rounded px-3 py-1.5 font-sans text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
             mode === "dimension" ? "bg-hg-green-100 text-primary" : "text-fg-muted hover:bg-bg-sunken",
           )}
         >
@@ -131,7 +146,7 @@ export function DimensionCatalog({
           aria-selected={mode === "skill"}
           onClick={() => setMode("skill")}
           className={cn(
-            "border-l border-border px-3 py-1.5 font-sans text-xs font-semibold transition-colors",
+            "rounded px-3 py-1.5 font-sans text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
             mode === "skill" ? "bg-hg-green-100 text-primary" : "text-fg-muted hover:bg-bg-sunken",
           )}
         >
@@ -156,6 +171,7 @@ export function DimensionCatalog({
           {dimensionsWithUnits.map((dim) => (
             <TabsContent key={dim.code} value={dim.pillar}>
               <DimensionSection
+                pillar={dim.pillar}
                 units={byDimension[dim.code]}
                 progress={progressByPillar.get(dim.pillar)}
               />
@@ -166,9 +182,14 @@ export function DimensionCatalog({
         <p className="text-sm text-fg-muted">Todavía no hay skills etiquetados en el contenido.</p>
       ) : (
         <Tabs defaultValue={skills[0]}>
-          <TabsList aria-label="Skills" className="gap-4 overflow-x-auto">
+          <TabsList variant="bare" aria-label="Skills" className="flex gap-2 overflow-x-auto pb-1">
             {skills.map((skill) => (
-              <TabsTrigger key={skill} value={skill} className="shrink-0 whitespace-nowrap">
+              <TabsTrigger
+                key={skill}
+                value={skill}
+                variant="bare"
+                className="glass-fill-strong shrink-0 whitespace-nowrap rounded-md border border-border px-3 py-1.5 font-sans text-xs font-semibold text-fg-muted transition-colors hover:text-fg aria-selected:text-primary aria-selected:ring-2 aria-selected:ring-primary"
+              >
                 {skill}
               </TabsTrigger>
             ))}
@@ -225,15 +246,50 @@ function DimensionCard({ pillar, count }: { pillar: string; count: number }) {
 }
 
 function DimensionSection({
+  pillar,
   units,
   progress,
 }: {
+  pillar: string;
   units: LearningUnitFeedItem[];
   progress?: PathDimensionProgress;
 }) {
-  const groups = React.useMemo(() => groupByDimension(units), [units]);
+  // Nivel elegido (null = todos). Al elegir uno se pide ese nivel al backend: la
+  // lista inicial de la dimensión está acotada (máx. 50) y podría dejar niveles
+  // incompletos; mientras llega, se filtra localmente.
+  const [level, setLevel] = React.useState<string | null>(null);
+  const [byLevel, setByLevel] = React.useState<Record<string, LearningUnitFeedItem[]>>({});
+
+  React.useEffect(() => {
+    if (!level || byLevel[level]) return;
+    let active = true;
+    apiListModulosByDimension(pillar, level, 50)
+      .then((rows) => {
+        if (active) setByLevel((m) => ({ ...m, [level]: rows }));
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [level, pillar, byLevel]);
+
+  const levelCounts = React.useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const u of units) counts.set(u.level_code, (counts.get(u.level_code) ?? 0) + 1);
+    return counts;
+  }, [units]);
+  // Solo tiene sentido el selector si la dimensión ya publica más de un nivel.
+  const showLevels = [...levelCounts.keys()].length > 1;
+
+  const shownUnits = React.useMemo(() => {
+    if (!level) return units;
+    return byLevel[level] ?? units.filter((u) => u.level_code === level);
+  }, [units, level, byLevel]);
+
+  const groups = React.useMemo(() => groupByDimension(shownUnits), [shownUnits]);
   const pillars = React.useMemo(() => [...groups.keys()], [groups]);
-  const [selected, setSelected] = React.useState<string>(pillars[0] ?? "");
+  const [picked, setPicked] = React.useState<string>("");
+  const selected = groups.has(picked) ? picked : (pillars[0] ?? "");
   const current = groups.get(selected) ?? [];
   const pct =
     progress && progress.total > 0
@@ -259,6 +315,41 @@ function DimensionSection({
           />
         </div>
       )}
+      {showLevels && (
+        <div role="group" aria-label="Nivel" className="flex flex-wrap gap-2">
+          <Chip
+            active={level === null}
+            onClick={() => setLevel(null)}
+            className={level === null ? "ring-2 ring-primary" : undefined}
+          >
+            Todos
+          </Chip>
+          {LEVEL_CODES.map((l) => {
+            const count = levelCounts.get(l) ?? 0;
+            return (
+              <Chip
+                key={l}
+                active={level === l}
+                disabled={count === 0}
+                title={count === 0 ? "Próximamente" : undefined}
+                onClick={() => setLevel(l)}
+                className={cn(
+                  // `.glass-fill-strong` pisa el borde: el activo se marca con ring.
+                  level === l && "ring-2 ring-primary",
+                  count === 0 && "cursor-not-allowed opacity-60",
+                )}
+              >
+                {levelLabel(l)}
+                {count > 0 && (
+                  <span className="ml-1 rounded-full bg-bg-sunken px-1.5 text-micro tabular-nums text-fg-subtle">
+                    {count}
+                  </span>
+                )}
+              </Chip>
+            );
+          })}
+        </div>
+      )}
       {/* Sin header de dimensión: el tab ya muestra su badge + nombre. Acá solo
           los pilares + los módulos por pilar. */}
       <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
@@ -276,14 +367,14 @@ function DimensionSection({
                 type="button"
                 role="tab"
                 aria-selected={active}
-                onClick={() => setSelected(p)}
+                onClick={() => setPicked(p)}
                 className={cn(
                   "flex shrink-0 items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left font-sans text-sm transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
                   // hg-orange-700: el naranja de marca (#e8530a) no llega a 4.5:1 con texto blanco.
                   active
                     ? "border-hg-orange-700 bg-hg-orange-700 font-semibold text-white"
-                    : "border-border text-fg-muted hover:bg-bg-sunken",
+                    : "glass-fill-strong border-border text-fg-muted hover:bg-bg-sunken",
                 )}
               >
                 <span>{subPillarName(groups.get(p)?.[0]?.dimension_code, p)}</span>

@@ -4,6 +4,7 @@ import {
   badgeConfigForDimension,
   levelBadgeMeta,
   resolveLevelBadge,
+  resolvePillarBadge,
 } from "../dimension-adapter";
 import { badgeSvgString } from "../index";
 
@@ -95,5 +96,23 @@ describe("badgeSvgString — SSR-safe (sin document)", () => {
     expect(svg.length).toBeGreaterThan(0);
     expect(svg.startsWith("<svg")).toBe(true);
     expect(svg).toContain("</svg>");
+  });
+});
+
+describe("resolvePillarBadge", () => {
+  it("resuelve un badge de área con dimensión y nombre del área", () => {
+    const r = resolvePillarBadge("pillar-cp-p1", "Adaptabilidad de aprendizaje");
+    expect(r?.dimensionCode).toBe("CP");
+    expect(r?.dimensionName).toBe("Carrera e impacto");
+    expect(r?.pillarCode).toBe("P1");
+    expect(r?.areaName).toBe("Adaptabilidad de aprendizaje");
+    expect(r?.displayDescription).toContain("Adaptabilidad de aprendizaje");
+  });
+
+  it("acepta pilares no numéricos (AI, V0) y devuelve null para otros códigos", () => {
+    expect(resolvePillarBadge("pillar-cp-ai", "IA aplicada")?.pillarCode).toBe("AI");
+    expect(resolvePillarBadge("pillar-pr-v0", "Etapa V0")?.dimensionCode).toBe("PR");
+    expect(resolvePillarBadge("level-cp-l1")).toBeNull();
+    expect(resolvePillarBadge("cp-1")).toBeNull();
   });
 });

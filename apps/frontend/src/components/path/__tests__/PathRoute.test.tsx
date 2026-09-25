@@ -121,26 +121,26 @@ describe("PathRoute", () => {
     ...o,
   });
 
-  it("cuelga el feedback del manager justo después del hito de fin de pilar", () => {
+  it("muestra el feedback del pilar en curso en el panel izquierdo, no en la línea", () => {
     render(
       <PathRoute data={path({ milestones: [areaMilestone] })} heroUnit={null} pillarFeedback={[fb()]} />,
     );
-    expect(screen.getByText("Excelente foco en el feedback.")).toBeTruthy();
-    expect(screen.getByText("— Ana")).toBeTruthy();
+    const panel = screen.getByRole("region", { name: "Feedback que impulsa" });
+    expect(panel.textContent).toContain("Excelente foco en el feedback.");
+    expect(panel.textContent).toContain("— Ana");
+    // Un solo bloque de feedback; el hito de pilar en la línea es solo el checkpoint.
     expect(screen.getAllByRole("heading", { name: "Feedback que impulsa", level: 3 })).toHaveLength(1);
+    const timeline = screen.getByRole("region", { name: "Próximos pasos" });
+    expect(timeline.textContent).not.toContain("Excelente foco en el feedback.");
+    expect(timeline.textContent).toContain("Área completa · Adaptabilidad");
   });
 
-  it("sin feedback escrito, el hito de pilar muestra el estado vacío (no un hueco)", () => {
+  it("sin feedback escrito para el pilar en curso, avisa que el manager lo va a dejar", () => {
     render(<PathRoute data={path({ milestones: [areaMilestone] })} heroUnit={null} />);
     expect(screen.getByText(/Tu manager te va a dejar su feedback/)).toBeTruthy();
   });
 
-  it("los hitos de nivel no llevan feedback, y sin feedback ni hitos de área no hay tarjeta", () => {
-    render(<PathRoute data={path()} heroUnit={null} />);
-    expect(screen.queryByRole("heading", { name: "Feedback que impulsa" })).toBeNull();
-  });
-
-  it("muestra al final el feedback de pilares ya terminados (sin hito pendiente)", () => {
+  it("el feedback de otros pilares va colapsado dentro del panel", () => {
     render(
       <PathRoute
         data={path({ milestones: [] })}
@@ -148,7 +148,17 @@ describe("PathRoute", () => {
         pillarFeedback={[fb({ pillar_code: "P2", text: "Pilar cerrado con éxito." })]}
       />,
     );
+    expect(screen.getByText(/Feedback de otros pilares \(1\)/)).toBeTruthy();
     expect(screen.getByText("Pilar cerrado con éxito.")).toBeTruthy();
+  });
+
+  it("los próximos pasos viven en una región scrolleable de ~5 pasos", () => {
+    const upcoming = Array.from({ length: 12 }, (_, i) => step(i + 2));
+    render(<PathRoute data={path({ upcoming, milestones: [] })} heroUnit={null} />);
+    const region = screen.getByRole("region", { name: "Próximos pasos" });
+    expect(region.getAttribute("data-visible-steps")).toBe("5");
+    expect(region.className).toContain("overflow-y-auto");
+    expect(region.textContent).toContain("Módulo 13"); // la lista completa está, con scroll
   });
 
   it("sin next_step muestra el estado 'completaste todo' y omite el panel de nivel sin datos", () => {

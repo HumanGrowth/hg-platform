@@ -3,7 +3,7 @@
 import { Check, Lock, Play } from "lucide-react";
 import * as React from "react";
 
-import { BadgeIcon } from "@/components/ui/badge-icon";
+import { CatalogBadge } from "@/components/badges/CatalogBadge";
 import type { MyBadge } from "@/lib/types";
 import type { LearningUnitFeedItem } from "@/lib/types";
 import { lockCopy } from "@/lib/modulos";
@@ -48,11 +48,14 @@ export function AreaCard({
       className="glass-surface-strong flex flex-col gap-4 rounded-lg border border-border bg-bg-raised p-5"
     >
       <header className="flex items-start gap-4">
-        <BadgeIcon
-          iconUrl={badge?.icon_url}
+        {/* Siempre con el design system de badges (nunca el ícono genérico); si el
+            área todavía no tiene fila de catálogo, se dibuja igual con su código. */}
+        <CatalogBadge
+          code={badge?.code ?? areaBadgeCode(dimensionCode, pillarCode)}
           name={badge?.name ?? areaName}
+          iconUrl={badge?.icon_url}
           unlocked={unlocked}
-          size={34}
+          size={88}
         />
         <div className="min-w-0 flex-1">
           <h3
