@@ -264,7 +264,7 @@
      solo insinúan el ritmo alterno. Con bandas sólidas el glass de las cards
      no tiene nada que desenfocar. */
   --landing-flow-odd: transparent;
-  --landing-flow-even: color-mix(in srgb, var(--surface-sunken) 45%, transparent);
+  --landing-flow-even: transparent;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -325,3 +325,135 @@
 @media (prefers-reduced-motion: reduce) {
   .hug-sparkle { animation: none; opacity: 0.8; }
 }
+
+/* ---------------------------------------------------------------------------
+   Marketing · capa de engagement (components/marketing/fx). Todo degrada a
+   estático con prefers-reduced-motion y sin JS (ver <noscript> en el layout).
+   --------------------------------------------------------------------------- */
+.rv {
+  opacity: 0;
+  transform: translate3d(var(--rv-x, 0px), var(--rv-y, 28px), 0) scale(var(--rv-s, 1));
+  filter: blur(var(--rv-b, 0px));
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--rv-delay, 0s),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--rv-delay, 0s),
+    filter 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--rv-delay, 0s);
+}
+.rv[data-in="true"] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+@keyframes fx-word {
+  from { opacity: 0; transform: translateY(0.45em) rotate(2deg); filter: blur(8px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.fx-word { display: inline-block; }
+.fx-words:not([data-in="true"]) .fx-word { opacity: 0; }
+.fx-words[data-in="true"] .fx-word {
+  animation: fx-word 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Card con foco de luz + inclinación */
+.fx-spot {
+  --rx: 0deg;
+  --ry: 0deg;
+  transition: transform 0.25s ease-out, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.fx-spot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 50%), rgba(var(--glow), 0.22), transparent 62%);
+}
+@media (hover: hover) and (pointer: fine) {
+  .fx-spot:hover {
+    transform: perspective(900px) translateY(-4px) rotateX(var(--rx)) rotateY(var(--ry));
+    box-shadow: 0 24px 50px -20px rgba(var(--glow), 0.45), var(--glass-shadow);
+  }
+  .fx-spot:hover::before { opacity: 1; }
+}
+
+/* CTA: atracción magnética + brillo */
+.fx-cta {
+  --tx: 0px;
+  --ty: 0px;
+  transform: translate3d(var(--tx), var(--ty), 0);
+  transition: transform 0.2s ease-out, background-color 0.2s ease, color 0.2s ease;
+}
+.fx-cta:active { transform: translate3d(var(--tx), var(--ty), 0) scale(0.97); }
+.fx-cta-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-120%) skewX(-20deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transition: transform 0.7s ease;
+}
+.fx-cta-shine:hover::after { transform: translateX(120%) skewX(-20deg); }
+
+/* Fondo vivo */
+.fx-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.35;
+  will-change: transform;
+}
+.fx-blob-a {
+  width: 620px; height: 620px; left: -160px; top: 4%;
+  background: rgba(74, 122, 84, 0.55);
+  transform: translate3d(0, calc(var(--sy, 0) * -0.12px), 0);
+}
+.fx-blob-b {
+  width: 560px; height: 560px; right: -140px; top: 32%;
+  background: rgba(232, 160, 48, 0.5);
+  transform: translate3d(0, calc(var(--sy, 0) * -0.2px), 0);
+}
+.fx-blob-c {
+  width: 520px; height: 520px; left: 28%; top: 70%;
+  background: rgba(232, 83, 10, 0.32);
+  transform: translate3d(0, calc(var(--sy, 0) * -0.3px), 0);
+}
+.fx-cursor-glow {
+  position: absolute;
+  width: 520px; height: 520px;
+  left: 0; top: 0;
+  margin: -260px 0 0 -260px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(232, 160, 48, 0.18), transparent 65%);
+  transform: translate3d(var(--cx, 50vw), var(--cy, 30vh), 0);
+  will-change: transform;
+}
+@media (hover: none) { .fx-cursor-glow { display: none; } }
+[data-theme="dark"] .fx-blob { opacity: 0.28; }
+
+/* Flotación suave (mockups, orbes) */
+@keyframes fx-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.fx-float { animation: fx-float 6s ease-in-out infinite; }
+.fx-float-slow { animation: fx-float 9s ease-in-out infinite; }
+
+/* Timeline que se dibuja con el scroll */
+.fx-line-fill { transform-origin: left; transform: scaleX(var(--p, 0)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rv { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+  .fx-words .fx-word { opacity: 1 !important; animation: none !important; }
+  .fx-spot, .fx-spot:hover { transform: none !important; }
+  .fx-cta, .fx-cta:active { transform: none !important; }
+  .fx-cta-shine::after { display: none; }
+  .fx-float, .fx-float-slow { animation: none; }
+  .fx-cursor-glow { display: none; }
+}
+
+/* Logo por tema (BrandLogo): negro en glass claro, blanco en glass oscuro. */
+.logo-on-dark { display: none; }
+[data-theme="dark"] .logo-on-light { display: none; }
+[data-theme="dark"] .logo-on-dark { display: inline-block; }

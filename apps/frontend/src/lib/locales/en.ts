@@ -130,6 +130,17 @@ export const en = {
       },
     ],
   },
+  stickyCta: {
+    text: "Ready to transform how your team grows?",
+    button: "Let's talk",
+    dismiss: "Close",
+  },
+  heroStats: [
+    { value: 6, suffix: "", label: "dimensions of human growth" },
+    { value: 5, suffix: " min", label: "per learning module" },
+    { value: 3, suffix: "", label: "views: collaborator, leader and HR" },
+  ],
+  heroRotating: "Grow in",
   productStack: {
     eyebrow: "LIVE",
     title: "This is what growth in action looks like.",

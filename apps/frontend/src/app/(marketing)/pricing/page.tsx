@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 
-import { PageBottomIsotype } from "@/components/marketing/PageBottomIsotype";
 import PricingTable from "@/components/marketing/PricingTable";
 import { showPricing } from "@/lib/flags";
 
@@ -13,7 +12,6 @@ export default function PricingPage() {
   return (
     <div className="landing-flow">
       <PricingTable />
-      <PageBottomIsotype />
     </div>
   );
 }

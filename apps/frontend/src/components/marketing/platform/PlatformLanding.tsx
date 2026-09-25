@@ -1,8 +1,11 @@
 "use client";
 
-import { ArrowRight, Check, LayoutGrid, Route, Users } from "lucide-react";
-import Link from "next/link";
+import { Check, LayoutGrid, Route, Users } from "lucide-react";
 
+import { CtaLink } from "@/components/marketing/fx/CtaLink";
+import { Reveal, RevealGroup } from "@/components/marketing/fx/Reveal";
+import { SpotlightCard } from "@/components/marketing/fx/SpotlightCard";
+import { WordReveal } from "@/components/marketing/fx/WordReveal";
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { BrowserFrame, PhoneFrame } from "@/components/marketing/platform/DeviceFrames";
 import { cn } from "@/lib/utils";
@@ -33,11 +36,6 @@ function Bullets({ items }: { items: readonly string[] }) {
   );
 }
 
-const btnBase =
-  "inline-flex items-center gap-2 rounded-xl px-5 py-3 text-[15px] font-semibold whitespace-nowrap transition-colors";
-const btnPrimary = "bg-fg text-bg hover:opacity-90";
-const btnGhost = "glass-fill-strong text-fg hover:text-primary";
-
 /**
  * /plataforma — recorrido de producto. Wireframe: "Recorrido · Desktop/Mobile
  * · parte 1" (Design/). Mismas secciones en ambos anchos; desktop usa marcos
@@ -52,48 +50,47 @@ export function PlatformLanding() {
     <div className="flex flex-col">
       {/* Hero */}
       <section className="mx-auto flex w-full max-w-marketing flex-col items-center gap-5 px-5 pt-28 text-center md:px-8 md:pt-32">
-        <p className="eyebrow eyebrow-accent m-0">{c.hero.eyebrow}</p>
-        <h1 className="display m-0 max-w-[1100px] text-[52px] leading-[0.98] text-fg md:text-[88px] lg:text-[104px] lg:leading-[0.95]">
-          {c.hero.title}
-        </h1>
-        <p className="m-0 max-w-[760px] text-base leading-relaxed text-fg-muted md:text-xl">{c.hero.body}</p>
-        <div className="flex flex-wrap justify-center gap-3">
-          <Link href="/contacto" className={cn(btnBase, btnPrimary)}>
-            {c.hero.ctaPrimary}
-            <ArrowRight size={16} strokeWidth={1.8} aria-hidden />
-          </Link>
-          <a href="#recorrido" className={cn(btnBase, btnGhost)}>
+        <Reveal>
+          <p className="eyebrow eyebrow-accent m-0">{c.hero.eyebrow}</p>
+        </Reveal>
+        <WordReveal
+          text={c.hero.title}
+          as="h1"
+          className="display m-0 max-w-[1100px] text-[52px] leading-[0.98] text-fg md:text-[88px] lg:text-[104px] lg:leading-[0.95]"
+        />
+        <Reveal delay={0.3}>
+          <p className="m-0 max-w-[760px] text-base leading-relaxed text-fg-muted md:text-xl">{c.hero.body}</p>
+        </Reveal>
+        <Reveal delay={0.4} className="flex flex-wrap justify-center gap-3">
+          <CtaLink href="/contacto">{c.hero.ctaPrimary}</CtaLink>
+          <CtaLink href="#recorrido" variant="ghost" arrow={false}>
             {c.hero.ctaSecondary}
-          </a>
-        </div>
+          </CtaLink>
+        </Reveal>
 
         {/* Mobile: un teléfono */}
-        <div className="mt-6 md:hidden">
+        <Reveal variant="scale" delay={0.5} className="fx-float mt-6 md:hidden">
           <PhoneFrame shot="mob-home" alt="Inicio de la app en el teléfono" className="w-[260px]" eager />
-        </div>
+        </Reveal>
         {/* Desktop: laptop + teléfono superpuesto */}
-        <div className="relative mt-9 hidden h-[640px] w-full max-w-[1180px] md:block">
-          <BrowserFrame
-            shot="desk-home"
-            alt="Inicio de la app: progreso por dimensión"
-            height={1180}
-            className="absolute left-0 top-0 w-[92.7%]"
-          />
-          <PhoneFrame
-            shot="mob-modulo"
-            alt="Player de módulo en el teléfono"
-            className="absolute right-0 top-[140px] w-[22%] min-w-[200px]"
-            eager
-          />
-        </div>
+        <Reveal variant="scale" delay={0.5} className="relative mt-9 hidden h-[640px] w-full max-w-[1180px] md:block">
+          <div className="fx-float-slow absolute left-0 top-0 w-[92.7%]">
+            <BrowserFrame shot="desk-home" alt="Inicio de la app: progreso por dimensión" height={1180} />
+          </div>
+          <div className="fx-float absolute right-0 top-[140px] w-[22%] min-w-[200px]">
+            <PhoneFrame shot="mob-modulo" alt="Player de módulo en el teléfono" eager />
+          </div>
+        </Reveal>
       </section>
 
       {/* Tres vistas */}
       <section id="recorrido" className="mx-auto w-full max-w-marketing scroll-mt-24 px-5 py-16 md:px-8 md:py-20">
-        <p className="eyebrow mb-5">{c.views.eyebrow}</p>
-        <div className="grid gap-4 md:grid-cols-3">
+        <Reveal>
+          <p className="eyebrow mb-5">{c.views.eyebrow}</p>
+        </Reveal>
+        <RevealGroup className="grid gap-4 md:grid-cols-3" step={0.1}>
           {c.views.items.map((v, i) => (
-            <div key={v.title} className="glass-surface-strong flex items-start gap-3.5 p-5 md:p-6">
+            <SpotlightCard key={v.title} className="flex h-full items-start gap-3.5 p-5 md:p-6">
               <span className="glass-fill flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl">
                 {VIEW_ICONS[i]}
               </span>
@@ -101,13 +98,14 @@ export function PlatformLanding() {
                 <span className="text-[17px] font-bold text-fg">{v.title}</span>
                 <span className="text-sm leading-normal text-fg-muted">{v.desc}</span>
               </div>
-            </div>
+            </SpotlightCard>
           ))}
-        </div>
+        </RevealGroup>
       </section>
 
       {/* Hugie */}
       <section className="mx-auto w-full max-w-marketing px-5 md:px-8">
+        <Reveal variant="scale">
         <div className="glass-surface flex flex-col gap-9 rounded-[32px] border border-hg-amber/35 p-6 md:flex-row md:items-center md:gap-12 md:p-10">
           <div className="flex flex-col gap-4 md:w-[470px] md:shrink-0 md:gap-[18px]">
             <div className="flex flex-wrap gap-2">
@@ -131,23 +129,18 @@ export function PlatformLanding() {
             <PhoneFrame shot="mob-onb-conversacion" alt="Conversación con Hugie" className="w-[260px]" />
           </div>
           <div className="relative hidden h-[560px] flex-1 md:block lg:h-[640px]">
-            <PhoneFrame
-              shot="mob-onb-hola"
-              alt="Hugie da la bienvenida"
-              className="absolute left-0 top-[12%] w-[31%]"
-            />
-            <PhoneFrame
-              shot="mob-onb-conversacion"
-              alt="Conversación con Hugie"
-              className="absolute left-[34%] top-0 z-10 w-[33%]"
-            />
-            <PhoneFrame
-              shot="mob-onb-mapa"
-              alt="Mapa inicial de las seis dimensiones"
-              className="absolute right-0 top-[16%] w-[31%]"
-            />
+            <div className="fx-float-slow absolute left-0 top-[12%] w-[31%]">
+              <PhoneFrame shot="mob-onb-hola" alt="Hugie da la bienvenida" />
+            </div>
+            <div className="fx-float absolute left-[34%] top-0 z-10 w-[33%]">
+              <PhoneFrame shot="mob-onb-conversacion" alt="Conversación con Hugie" />
+            </div>
+            <div className="fx-float-slow absolute right-0 top-[16%] w-[31%]">
+              <PhoneFrame shot="mob-onb-mapa" alt="Mapa inicial de las seis dimensiones" />
+            </div>
           </div>
         </div>
+        </Reveal>
       </section>
 
       {/* 01–04 */}
@@ -165,7 +158,7 @@ export function PlatformLanding() {
                 flip ? "md:flex-row-reverse" : "md:flex-row",
               )}
             >
-              <div className="flex flex-col gap-[18px] md:w-[440px] md:shrink-0">
+              <Reveal variant={flip ? "right" : "left"} className="flex flex-col gap-[18px] md:w-[440px] md:shrink-0">
                 <div className="flex items-center gap-3">
                   <span className="display text-[40px] leading-none text-fg/20 md:text-[56px]">
                     {String(i + 1).padStart(2, "0")}
@@ -180,17 +173,18 @@ export function PlatformLanding() {
                 <h2 className="display m-0 text-4xl leading-none text-fg md:text-[52px]">{f.title}</h2>
                 <p className="m-0 text-base leading-relaxed text-fg-muted md:text-lg">{f.body}</p>
                 <Bullets items={f.bullets} />
-              </div>
+              </Reveal>
 
-              <div className="flex justify-center md:hidden">
+              <Reveal variant="scale" delay={0.1} className="flex justify-center md:hidden">
                 <PhoneFrame shot={shot.mob} alt={`${f.area}: ${f.title}`} className="w-[260px]" />
-              </div>
-              <BrowserFrame
-                shot={shot.desk}
-                height={shot.deskH}
-                alt={`${f.area}: ${f.title}`}
+              </Reveal>
+              <Reveal
+                variant={flip ? "left" : "right"}
+                delay={0.1}
                 className="hidden md:block md:w-[57.6%] md:shrink-0"
-              />
+              >
+                <BrowserFrame shot={shot.desk} height={shot.deskH} alt={`${f.area}: ${f.title}`} />
+              </Reveal>
             </div>
           </section>
         );

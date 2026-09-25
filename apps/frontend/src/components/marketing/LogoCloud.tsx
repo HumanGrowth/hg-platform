@@ -1,8 +1,6 @@
 "use client";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
-import { BubbleField } from "@/components/motion/BubbleField";
-import { DecoLayer } from "@/components/motion/DecoLayer";
 import { PartnerMarquee } from "@/components/motion/PartnerMarquee";
 
 const PARTNERS = ["ACME", "NOVA", "VÉRTICE", "PRISMA", "ANDINA", "DELTA"];
@@ -10,10 +8,7 @@ const PARTNERS = ["ACME", "NOVA", "VÉRTICE", "PRISMA", "ANDINA", "DELTA"];
 export default function LogoCloud() {
   const c = useMarketingCopy();
   return (
-    <section className="landing-flow-section relative max-w-marketing mx-auto px-8 text-center">
-      <DecoLayer>
-        <BubbleField seed={2} count={3} />
-      </DecoLayer>
+    <section className="mx-auto w-full max-w-marketing px-5 py-10 text-center md:px-8">
       <div className="eyebrow mb-5">{c.logoCloud.eyebrow}</div>
       {/* Logos placeholder con blur alto: aún no son partners reales. */}
       <PartnerMarquee speed={28} className="mt-2 opacity-40" pauseOnHover>

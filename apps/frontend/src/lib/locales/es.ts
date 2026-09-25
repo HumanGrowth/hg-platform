@@ -130,6 +130,17 @@ export const es = {
       },
     ],
   },
+  stickyCta: {
+    text: "¿Listos para transformar cómo crece tu equipo?",
+    button: "Conversemos",
+    dismiss: "Cerrar",
+  },
+  heroStats: [
+    { value: 6, suffix: "", label: "dimensiones del crecimiento humano" },
+    { value: 5, suffix: " min", label: "por módulo de aprendizaje" },
+    { value: 3, suffix: "", label: "vistas: colaborador, líder y RRHH" },
+  ],
+  heroRotating: "Crecé en",
   productStack: {
     eyebrow: "EN VIVO",
     title: "Así se ve el crecimiento en acción.",

@@ -4,11 +4,8 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
-import { MotionSection } from "@/components/motion/MotionSection";
-import { BrandSawWave } from "@/components/motion/BrandSawWave";
-import { BubbleField } from "@/components/motion/BubbleField";
-import { DecoLayer } from "@/components/motion/DecoLayer";
-import { Display } from "@/components/ui/display";
+import { Reveal } from "@/components/marketing/fx/Reveal";
+import { WordReveal } from "@/components/marketing/fx/WordReveal";
 import { Eyebrow } from "@/components/ui/eyebrow";
 
 // Pantallas reales de la app (capturas del prototipo "Recorrido de plataforma"),
@@ -35,19 +32,17 @@ export function ProductStack() {
   }, []);
 
   return (
-    <section className="landing-flow-section max-w-marketing mx-auto px-8">
-      <DecoLayer>
-        <BrandSawWave width={320} teeth={8} height={18} rotation={15} top="12%" right="8%" color="var(--hg-gold)" opacity={0.3} speed={0.1} />
-        <BubbleField seed={6} count={4} />
-      </DecoLayer>
-      <MotionSection as="div" className="grid items-center gap-12 md:grid-cols-2">
+    <section className="mx-auto w-full max-w-marketing px-5 py-16 md:px-8 md:py-24">
+      <div className="grid items-center gap-12 md:grid-cols-2">
       <div>
         <Eyebrow accent className="mb-6">
           {c.eyebrow}
         </Eyebrow>
-        <Display as="h2" variant="display-3" className="mb-6">
-          {c.title}
-        </Display>
+        <WordReveal
+          text={c.title}
+          as="h2"
+          className="display mb-6 m-0 text-[36px] leading-[0.98] text-fg sm:text-5xl"
+        />
         <p className="body-lg mb-6 text-fg-muted">{c.body}</p>
         <Link href="/plataforma" className="font-semibold text-primary hover:text-primary-hover">
           {c.cta}
@@ -124,7 +119,7 @@ export function ProductStack() {
           </div>
         </div>
       </div>
-      </MotionSection>
+      </div>
     </section>
   );
 }

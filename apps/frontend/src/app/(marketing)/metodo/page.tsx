@@ -1,11 +1,9 @@
-import Link from "next/link";
-
-import { HeroWatermark } from "@/components/marketing/HeroWatermark";
-import { BrandSawWave } from "@/components/motion/BrandSawWave";
-import { BubbleField } from "@/components/motion/BubbleField";
-import { DecoLayer } from "@/components/motion/DecoLayer";
-import { MotionSection } from "@/components/motion/MotionSection";
-import { StaggerBounceGrid } from "@/components/motion/StaggerBounceGrid";
+import { CtaLink } from "@/components/marketing/fx/CtaLink";
+import { PageHero } from "@/components/marketing/fx/PageHero";
+import { Reveal, RevealGroup } from "@/components/marketing/fx/Reveal";
+import { SectionHeader } from "@/components/marketing/fx/SectionHeader";
+import { SpotlightCard } from "@/components/marketing/fx/SpotlightCard";
+import { WordReveal } from "@/components/marketing/fx/WordReveal";
 import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
 import MarketingRadar from "@/components/marketing/MarketingRadar";
 import { MethodDimensions } from "@/components/marketing/MethodDimensions";
@@ -19,77 +17,49 @@ export const metadata = {
   description: c.meta.description,
 };
 
+const SECTION = "mx-auto w-full max-w-marketing px-5 py-16 md:px-8 md:py-24";
+
 export default function MetodoPage() {
   return (
     <div className="landing-flow">
-      {/* Hero */}
-      <section className="landing-flow-section landing-flow-hero relative max-w-marketing mx-auto px-8">
-        <DecoLayer>
-          <BubbleField seed={21} count={5} />
-        </DecoLayer>
-        <div className="eyebrow eyebrow-accent mb-6">{c.hero.eyebrow}</div>
-        <h1 className="display text-fg m-0 text-[56px] leading-[0.95] sm:text-[80px] lg:text-[96px]">
-          {c.hero.title}
-        </h1>
-        <p className="mt-8 max-w-[680px] text-[20px] leading-[1.5] text-hg-charcoal">
-          {c.hero.subtitle}
-        </p>
-      </section>
+      <PageHero eyebrow={c.hero.eyebrow} title={c.hero.title} subtitle={c.hero.subtitle} />
 
       {/* Un sistema, no seis módulos */}
-      <section className="landing-flow-section relative max-w-marketing mx-auto px-8">
-        <DecoLayer>
-          <BrandSawWave width={220} teeth={6} height={16} rotation={-8} top="6%" right="6%" color="var(--hg-gold)" opacity={0.28} speed={0.08} />
-        </DecoLayer>
-        <MotionSection as="div" className="rounded-2xl bg-surface-sunken p-8 sm:p-12">
-          <div className="eyebrow eyebrow-accent mb-4">{c.system.eyebrow}</div>
-          <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">
-            {c.system.title}
-          </h2>
-          <p className="mt-5 max-w-[720px] text-[18px] leading-[1.55] text-hg-charcoal">
-            {c.system.body}
-          </p>
-          <StaggerBounceGrid className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {c.system.substrates.map((s) => (
-              <div key={s.name} className="border-t-2 border-primary pt-4">
-                <h3 className="font-heading text-md font-semibold text-fg">{s.name}</h3>
-                <p className="mt-2 text-sm leading-[1.55] text-hg-charcoal">{s.body}</p>
-              </div>
-            ))}
-          </StaggerBounceGrid>
-        </MotionSection>
+      <section className={SECTION}>
+        <Reveal variant="scale">
+          <div className="glass-surface-strong p-8 sm:p-12">
+            <p className="eyebrow eyebrow-accent mb-4">{c.system.eyebrow}</p>
+            <WordReveal
+              text={c.system.title}
+              as="h2"
+              className="display m-0 max-w-[720px] text-3xl leading-none text-fg sm:text-5xl"
+            />
+            <p className="mt-5 max-w-[720px] text-lg leading-relaxed text-fg-muted">{c.system.body}</p>
+            <RevealGroup className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4" step={0.08}>
+              {c.system.substrates.map((s) => (
+                <div key={s.name} className="border-t-2 border-primary pt-4">
+                  <h3 className="font-heading text-md font-semibold text-fg">{s.name}</h3>
+                  <p className="mt-2 text-sm leading-[1.55] text-fg-muted">{s.body}</p>
+                </div>
+              ))}
+            </RevealGroup>
+          </div>
+        </Reveal>
       </section>
 
       {/* Metodología · 5 etapas */}
-      <section className="landing-flow-section relative max-w-marketing mx-auto px-8">
-        <DecoLayer>
-          <BubbleField seed={22} count={4} />
-        </DecoLayer>
-        <MotionSection as="div">
-        <div className="eyebrow eyebrow-accent mb-4">{c.steps.eyebrow}</div>
-        <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">{c.steps.title}</h2>
-        <p className="mt-4 mb-10 max-w-[620px] text-[18px] leading-[1.5] text-hg-charcoal">
-          {c.steps.body}
-        </p>
-        </MotionSection>
+      <section className={SECTION}>
+        <SectionHeader eyebrow={c.steps.eyebrow} title={c.steps.title} subtitle={c.steps.body} />
         <MethodSteps items={c.steps.items} />
       </section>
 
       {/* Las 6 dimensiones */}
-      <section className="landing-flow-section max-w-marketing mx-auto px-8">
-        <DecoLayer>
-          <BrandSawWave width={300} teeth={8} height={18} rotation={-12} bottom="6%" right="4%" color="var(--hg-gold)" opacity={0.3} speed={0.1} />
-          <BubbleField seed={23} count={4} />
-        </DecoLayer>
-        <MotionSection as="div">
-        <div className="eyebrow eyebrow-accent mb-4">{c.dimensionsHeading.eyebrow}</div>
-        <h2 className="display m-0 max-w-[720px] text-3xl text-fg sm:text-4xl">
-          {c.dimensionsHeading.title}
-        </h2>
-        <p className="mt-4 mb-10 max-w-[620px] text-[18px] leading-[1.5] text-hg-charcoal">
-          {c.dimensionsHeading.body}
-        </p>
-        </MotionSection>
+      <section className={SECTION}>
+        <SectionHeader
+          eyebrow={c.dimensionsHeading.eyebrow}
+          title={c.dimensionsHeading.title}
+          subtitle={c.dimensionsHeading.body}
+        />
         <MethodDimensions pillars={c.pillars} />
       </section>
 
@@ -97,48 +67,41 @@ export default function MetodoPage() {
       <MarketingRadar />
 
       {/* Rigor y límites */}
-      <section className="landing-flow-section relative max-w-marketing mx-auto px-8 pb-20">
-        <DecoLayer>
-          <BrandSawWave width={180} teeth={5} height={16} rotation={10} top="4%" left="2%" color="var(--hg-sage)" opacity={0.28} speed={0.08} />
-          <BubbleField seed={24} count={3} />
-        </DecoLayer>
-        <MotionSection as="div">
-        <div className="eyebrow eyebrow-accent mb-4">{c.rigor.eyebrow}</div>
-        <h2 className="display m-0 max-w-[760px] text-3xl text-fg sm:text-4xl">{c.rigor.title}</h2>
-        <p className="mt-5 mb-10 max-w-[720px] text-[18px] leading-[1.55] text-hg-charcoal">
-          {c.rigor.body}
-        </p>
-        </MotionSection>
-        <StaggerBounceGrid className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <section className={SECTION}>
+        <SectionHeader eyebrow={c.rigor.eyebrow} title={c.rigor.title} subtitle={c.rigor.body} />
+        <RevealGroup className="grid grid-cols-1 gap-5 md:grid-cols-3" step={0.1}>
           {c.rigor.points.map((p) => (
-            <div key={p.title} className="glass-surface-strong p-6">
+            <SpotlightCard key={p.title} className="h-full p-6">
               <h3 className="font-heading text-md font-semibold text-fg">{p.title}</h3>
-              <p className="mt-2 text-sm leading-[1.55] text-hg-charcoal">{p.body}</p>
-            </div>
+              <p className="mt-2 text-sm leading-[1.55] text-fg-muted">{p.body}</p>
+            </SpotlightCard>
           ))}
-        </StaggerBounceGrid>
+        </RevealGroup>
       </section>
 
       {/* Journey de producto · consistente con el home (item 22) */}
       <HowItWorksTimeline />
 
       {/* CTA final */}
-      <section className="landing-flow-section relative max-w-marketing mx-auto px-8">
-        <DecoLayer>
-          <BrandSawWave width={200} teeth={5} height={16} rotation={-15} bottom="6%" right="2%" color="var(--hg-gold)" opacity={0.3} speed={0.08} />
-        </DecoLayer>
-        <MotionSection as="div" className="flex flex-col items-start gap-6 rounded-2xl bg-hg-ink p-10 sm:p-14">
-          <h2 className="display m-0 max-w-[620px] text-3xl text-hg-cream sm:text-4xl">
-            {c.cta.title}
-          </h2>
-          <p className="max-w-[520px] text-[18px] leading-[1.5] text-hg-linen">{c.cta.body}</p>
-          <Link
-            href="/contacto"
-            className="rounded-md bg-primary px-7 py-4 font-semibold text-white transition-colors hover:bg-primary-hover"
-          >
-            {c.cta.button} →
-          </Link>
-        </MotionSection>
+      <section className={SECTION}>
+        <Reveal variant="scale">
+          <div className="glass-surface relative flex flex-col items-start gap-6 overflow-hidden rounded-[32px] border border-hg-amber/35 p-8 sm:p-14">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-20 -top-24 h-80 w-80 rounded-full opacity-50 blur-3xl"
+              style={{ background: "radial-gradient(circle, rgba(232,83,10,0.5), transparent 70%)" }}
+            />
+            <WordReveal
+              text={c.cta.title}
+              as="h2"
+              className="display relative m-0 max-w-[620px] text-3xl leading-none text-fg sm:text-5xl"
+            />
+            <p className="relative max-w-[520px] text-lg leading-relaxed text-fg-muted">{c.cta.body}</p>
+            <CtaLink href="/contacto" className="relative">
+              {c.cta.button}
+            </CtaLink>
+          </div>
+        </Reveal>
       </section>
     </div>
   );

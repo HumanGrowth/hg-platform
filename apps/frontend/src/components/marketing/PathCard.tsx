@@ -20,51 +20,41 @@ export function PathCard({ path, cohortLabel }: { path: Path; cohortLabel?: stri
   return (
     <Link
       href="/paths"
-      className={`rounded-lg p-6 flex flex-col gap-4 min-h-[280px] transition-shadow ${
-        dark ? "" : "hover:shadow-md"
+      className={`fx-spot group relative flex min-h-[280px] flex-col gap-4 overflow-hidden rounded-lg p-6 ${
+        dark ? "bg-hg-ink text-hg-cream" : "glass-surface-strong"
       }`}
-      style={{
-        background: dark ? "var(--text-strong)" : "var(--surface-page)",
-        color: dark ? "var(--surface-page)" : "var(--text-strong)",
-        border: dark ? "none" : "1px solid var(--border)",
-      }}
+      style={{ ["--glow" as string]: dark ? "232,160,48" : "74,122,84" }}
     >
-      <div className="flex justify-between items-start">
+      <div className="flex items-start justify-between">
         <div className="eyebrow" style={{ color: dark ? "var(--hg-amber)" : "var(--hg-orange-700)" }}>
           {path.category}
         </div>
-        <span className="body-xs" style={{ color: dark ? "#B3B0A8" : "var(--fg-muted)" }}>
-          {path.meta}
-        </span>
+        <span className={`body-xs ${dark ? "text-[#B3B0A8]" : "text-fg-muted"}`}>{path.meta}</span>
       </div>
       <h3
-        className="display m-0"
+        className="display m-0 transition-transform duration-300 group-hover:translate-x-1"
         style={{ fontSize: 32, lineHeight: 0.98, letterSpacing: "-0.01em", color: "inherit" }}
       >
         {path.title}
       </h3>
-      <p
-        className="text-sm leading-[1.5] mt-auto"
-        style={{ color: dark ? "#B3B0A8" : "var(--hg-charcoal)" }}
-      >
-        {path.body}
-      </p>
+      <p className={`mt-auto text-sm leading-[1.5] ${dark ? "text-[#B3B0A8]" : "text-fg-muted"}`}>{path.body}</p>
       {path.cohort != null && (
         <div className="flex items-center justify-between">
           <div className="flex">
             {(path.faces ?? []).map((c, i) => (
               <div
                 key={i}
-                className="w-7 h-7 rounded-full"
+                className="h-7 w-7 rounded-full transition-transform duration-300 group-hover:-translate-y-0.5"
                 style={{
                   background: c,
                   border: `2px solid ${dark ? "var(--text-strong)" : "var(--surface-page)"}`,
                   marginLeft: i ? -10 : 0,
+                  transitionDelay: `${i * 40}ms`,
                 }}
               />
             ))}
           </div>
-          <span className="font-mono text-xs" style={{ color: dark ? "#B3B0A8" : "var(--fg-muted)" }}>
+          <span className={`font-mono text-xs ${dark ? "text-[#B3B0A8]" : "text-fg-muted"}`}>
             {path.cohort} {cohortLabel}
           </span>
         </div>

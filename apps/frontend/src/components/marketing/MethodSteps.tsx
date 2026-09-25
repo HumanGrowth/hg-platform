@@ -1,6 +1,7 @@
 "use client";
 
-import { StaggerBounceGrid } from "@/components/motion/StaggerBounceGrid";
+import { RevealGroup } from "@/components/marketing/fx/Reveal";
+import { SpotlightCard } from "@/components/marketing/fx/SpotlightCard";
 
 interface Step {
   n: string;
@@ -8,20 +9,17 @@ interface Step {
   body: string;
 }
 
-/** Las 5 etapas de la metodología. 1 col mobile → 5 en lg, entrada stagger-bounce. */
+/** Las 5 etapas de la metodología. 1 col mobile → 5 en lg. */
 export function MethodSteps({ items }: { items: readonly Step[] }) {
   return (
-    <StaggerBounceGrid className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <RevealGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5" step={0.08}>
       {items.map((s) => (
-        <div
-          key={s.n}
-          className="flex flex-col glass-surface-strong p-5"
-        >
+        <SpotlightCard key={s.n} className="flex h-full flex-col p-5">
           <span className="font-mono text-sm font-semibold text-primary">{s.n}</span>
           <h3 className="mt-2 font-heading text-md font-semibold leading-tight text-fg">{s.name}</h3>
-          <p className="mt-2 text-sm leading-[1.5] text-hg-charcoal">{s.body}</p>
-        </div>
+          <p className="mt-2 text-sm leading-[1.5] text-fg-muted">{s.body}</p>
+        </SpotlightCard>
       ))}
-    </StaggerBounceGrid>
+    </RevealGroup>
   );
 }
