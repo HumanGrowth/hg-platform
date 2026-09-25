@@ -17,14 +17,6 @@ import { cn } from "@/lib/utils";
  * modal con el detalle. Esquema genérico: el catálogo lo define Andy después
  * (hoy el endpoint puede devolver []), por eso el estado vacío es de primera clase.
  */
-// Catálogo viejo/placeholder (seed_badges.py, `dimension-*`): un badge
-// genérico por dimensión con arte hex estático — superado por los badges de
-// nivel (`level-*`, HgBadge dinámico). Se filtra acá, a la hora de
-// presentar — no se toca el catálogo en la base de datos.
-function isPlaceholderBadge(code: string): boolean {
-  return code.startsWith("dimension-");
-}
-
 export function BadgesCarousel() {
   const [badges, setBadges] = React.useState<MyBadge[] | null>(null);
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
@@ -36,7 +28,7 @@ export function BadgesCarousel() {
     (async () => {
       try {
         const b = await apiGetMyBadges();
-        if (alive) setBadges(b.filter((badge) => !isPlaceholderBadge(badge.code)));
+        if (alive) setBadges(b);
       } catch {
         // Sin catálogo/endpoint todavía → tratamos como "sin badges" (vacío).
         if (alive) setBadges([]);
