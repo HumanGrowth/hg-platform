@@ -22,38 +22,13 @@ from hg.modules.badges.models import Badge
 log = logging.getLogger("hg.seed_badges")
 
 # (code, name, icon, description, unlock_hint, order)
-_BADGES: list[tuple[str, str, str, str, str, int]] = [
-    (
-        "dimension-cp", "Impulso de Carrera", "/icons/hex-rocket-128.png",
-        "Reconoce tu avance en Carrera e impacto: cómo crecés y dejás huella en tu trabajo.",
-        "Se desbloquea al evaluar y avanzar en tu dimensión de Carrera.", 1,
-    ),
-    (
-        "dimension-pr", "Norte Claro", "/icons/hex-star-128.png",
-        "Reconoce tu trabajo en Propósito y significado: el sentido que guía tus días.",
-        "Se desbloquea al evaluar y avanzar en tu dimensión de Propósito.", 2,
-    ),
-    (
-        "dimension-re", "Tejedor de Vínculos", "/icons/hex-chat-128.png",
-        "Reconoce tu cuidado de las Relaciones y conexión: la calidad de tus vínculos.",
-        "Se desbloquea al evaluar y avanzar en tu dimensión de Relaciones.", 3,
-    ),
-    (
-        "dimension-sa", "Raíz Sana", "/icons/hex-sprout-128.png",
-        "Reconoce tu cuidado de la Salud y bienestar: la energía que sostiene todo lo demás.",
-        "Se desbloquea al evaluar y avanzar en tu dimensión de Salud.", 4,
-    ),
-    (
-        "dimension-pi", "Mente Serena", "/icons/hex-bulb-128.png",
-        "Reconoce tu trabajo en Paz interior y claridad: calma y foco para decidir.",
-        "Se desbloquea al evaluar y avanzar en tu dimensión de Paz interior.", 5,
-    ),
-    (
-        "dimension-es", "Base Firme", "/icons/hex-scales-128.png",
-        "Reconoce tu Estabilidad emocional y material: la resiliencia que te sostiene.",
-        "Se desbloquea al evaluar y avanzar en tu dimensión de Estabilidad.", 6,
-    ),
-]
+#
+# Vacío a propósito: el catálogo viejo `dimension-*` (un badge genérico por
+# dimensión) fue reemplazado por los badges de nivel (`level-*`, sembrados por
+# el motor de progresión) y de pilar (`pillar-*`, `ensure_pillar_badge` desde el
+# sync de contenido), y se borró de la base (migración PF-03). Este script ya
+# no debe recrearlos en un ambiente nuevo.
+_BADGES: list[tuple[str, str, str, str, str, int]] = []
 
 
 def seed(db: Session) -> dict[str, int]:

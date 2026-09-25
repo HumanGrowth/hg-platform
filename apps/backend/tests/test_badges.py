@@ -85,22 +85,14 @@ def test_my_badges_requires_auth(client) -> None:
     assert client.get("/api/v1/me/badges").status_code in (401, 403)
 
 
-def test_seed_badges_is_idempotent_and_maps_6_dimensions() -> None:
+def test_seed_badges_no_longer_recreates_the_old_dimension_catalog() -> None:
     from hg.scripts.seed_badges import seed
 
     s = SessionLocal()
     try:
         s.execute(delete(Badge).where(Badge.code.like("dimension-%")))
         s.commit()
-        first = seed(s)
-        assert first["inserted"] == 6
-        second = seed(s)
-        assert second["inserted"] == 0 and second["updated"] == 6
-        rows = s.scalars(select(Badge).where(Badge.code.like("dimension-%"))).all()
-        assert len(rows) == 6
-        # Cada badge apunta a un ícono de /public/icons.
-        assert all(b.icon_url.startswith("/icons/hex-") for b in rows)
+        assert seed(s) == {"inserted": 0, "updated": 0}
+        assert s.scalars(select(Badge).where(Badge.code.like("dimension-%"))).all() == []
     finally:
-        s.execute(delete(Badge).where(Badge.code.like("dimension-%")))
-        s.commit()
         s.close()
