@@ -13,7 +13,12 @@ const THEME_COOKIE = "hg-theme";
 
 interface ThemeContextValue {
   theme: HgTheme;
+  /** Persiste la cookie y recarga (re-monta server+client sobre el tema nuevo). */
   setTheme: (theme: HgTheme) => void;
+  /** Cambio en caliente: persiste la cookie y actualiza <html data-theme> sin
+   *  recargar. Para páginas sin server components dependientes del tema
+   *  (marketing). */
+  applyTheme: (theme: HgTheme) => void;
 }
 
 function defaultSetTheme(next: HgTheme) {
@@ -27,6 +32,7 @@ function defaultSetTheme(next: HgTheme) {
 const ThemeContext = React.createContext<ThemeContextValue>({
   theme: "light",
   setTheme: defaultSetTheme,
+  applyTheme: defaultSetTheme,
 });
 
 /**
@@ -39,19 +45,44 @@ const ThemeContext = React.createContext<ThemeContextValue>({
  */
 export function ThemeProvider({
   initialTheme,
+  followSystem = false,
   children,
 }: {
   initialTheme: HgTheme;
+  /** Sin cookie `hg-theme` (el usuario nunca eligió): seguir la preferencia
+   *  del sistema (prefers-color-scheme) y reaccionar a sus cambios. */
+  followSystem?: boolean;
   children: React.ReactNode;
 }) {
+  const [theme, setThemeState] = React.useState<HgTheme>(initialTheme);
+
   const setTheme = React.useCallback((next: HgTheme) => {
     document.cookie = `${THEME_COOKIE}=${next}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
     window.location.reload();
   }, []);
 
+  const applyTheme = React.useCallback((next: HgTheme) => {
+    document.cookie = `${THEME_COOKIE}=${next}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+    document.documentElement.dataset.theme = next;
+    setThemeState(next);
+  }, []);
+
+  React.useEffect(() => {
+    if (!followSystem) return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const sync = () => {
+      const next: HgTheme = mq.matches ? "dark" : "light";
+      document.documentElement.dataset.theme = next;
+      setThemeState(next);
+    };
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, [followSystem]);
+
   const value = React.useMemo(
-    () => ({ theme: initialTheme, setTheme }),
-    [initialTheme, setTheme],
+    () => ({ theme, setTheme, applyTheme }),
+    [theme, setTheme, applyTheme],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

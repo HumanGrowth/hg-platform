@@ -114,13 +114,24 @@ export default function RootLayout({
     <html
       lang="es"
       data-theme={theme}
+      suppressHydrationWarning
       className={`${anton.variable} ${poppins.variable} ${manrope.variable} ${roboto.variable} ${mono.variable}`}
     >
+      <head>
+        {/* Sin cookie (el usuario nunca eligió tema): antes del primer paint
+            se toma la preferencia del sistema. Con cookie, manda la cookie. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(!/(?:^|; )hg-theme=/.test(document.cookie)){document.documentElement.dataset.theme=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}}catch(e){}",
+          }}
+        />
+      </head>
       <body>
         {/* Fondo del tema — tiles aleatorios desenfocados (siempre, la app
             es siempre glass). */}
         <GlassTileBackdrop />
-        <ThemeProvider initialTheme={theme}>
+        <ThemeProvider initialTheme={theme} followSystem={!themeCookie}>
           {children}
           <Toaster />
         </ThemeProvider>

@@ -1,5 +1,6 @@
 "use client";
 
+import { MarketingThemeToggle } from "@/components/marketing/MarketingThemeToggle";
 import { Menu, X } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -49,7 +50,7 @@ export default function Nav() {
   // Mismo cristal esmerilado del nav desktop al hacer scroll — el drawer mobile
   // lo usa siempre (es un panel flotante, nunca "top of page" transparente).
   const glassStyle = {
-    background: "rgba(250,243,232,0.80)",
+    background: "color-mix(in srgb, var(--bg) 80%, transparent)",
     backdropFilter: "blur(12px)",
     WebkitBackdropFilter: "blur(12px)",
   } as const;
@@ -88,6 +89,7 @@ export default function Nav() {
         {/* Desktop actions */}
         <div className="hidden md:flex items-center gap-4">
           <LanguageToggle />
+          <MarketingThemeToggle />
           <Link href="/login" className={linkCls}>
             {c.login}
           </Link>
@@ -159,7 +161,10 @@ export default function Nav() {
             <Link href="/contacto" onClick={() => setOpen(false)} className={`${ctaCls} text-center`}>
               {c.cta}
             </Link>
-            <LanguageToggle />
+            <div className="flex items-center gap-3">
+              <LanguageToggle />
+              <MarketingThemeToggle />
+            </div>
           </div>
         </div>
       </div>
