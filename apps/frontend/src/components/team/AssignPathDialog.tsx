@@ -188,13 +188,19 @@ export function AssignPathDialog({
           </div>
         )
       ) : tab === "modules" ? (
-        <ModuleBlockAssignFields
-          userId={userId}
-          userName={userName}
-          alreadyAssignedIds={alreadyAssignedUnitIds}
-          onAssigned={() => { onModulesAssigned(); onClose(); }}
-          onCancel={onClose}
-        />
+        <>
+          <p className="mb-3 text-xs text-fg-muted">
+            Los módulos sueltos le aparecen al colaborador en “Asignados por tu manager”. No cambian
+            el orden de su ruta: eso solo lo hace una ruta personalizada.
+          </p>
+          <ModuleBlockAssignFields
+            userId={userId}
+            userName={userName}
+            alreadyAssignedIds={alreadyAssignedUnitIds}
+            onAssigned={() => { onModulesAssigned(); onClose(); }}
+            onCancel={onClose}
+          />
+        </>
       ) : customStatus === "loading" ? (
         <p className="text-sm text-fg-muted">Cargando…</p>
       ) : customStatus === "error" ? (
@@ -205,6 +211,9 @@ export function AssignPathDialog({
         </p>
       ) : (
         <div className="flex flex-col gap-2">
+          <p className="text-xs text-fg-muted">
+            Una ruta personalizada sí reordena la ruta del colaborador (prioriza sus módulos).
+          </p>
           {customPaths.map((path) => {
             const assigned = alreadyAssignedCustomPathIds.includes(path.id);
             const busy = pending === path.id;
