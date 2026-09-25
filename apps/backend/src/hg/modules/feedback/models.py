@@ -83,3 +83,35 @@ class BehaviorEvaluation(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class PillarFeedback(Base):
+    """Feedback de texto libre del manager sobre un pilar de un colaborador
+    (RLS por org). A diferencia de ``BehaviorEvaluation.note`` (privada del
+    manager), este texto es VISIBLE para el colaborador en Mi Ruta: es
+    informativo, nunca un gate de progreso (eso es ``manager_approved``).
+    Unique por ``(user_id, dimension_code, pillar_code)`` = feedback vigente."""
+
+    __tablename__ = "pillar_feedback"
+    __table_args__ = (
+        UniqueConstraint("user_id", "dimension_code", "pillar_code", name="uq_pillar_feedback"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    org_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"),
+        nullable=False, index=True,
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    dimension_code: Mapped[str] = mapped_column(String(4), nullable=False)
+    pillar_code: Mapped[str] = mapped_column(String(8), nullable=False)
+    manager_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
