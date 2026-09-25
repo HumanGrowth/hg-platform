@@ -18,6 +18,7 @@ import type {
   MyPath,
   PathMilestone,
   PathStep,
+  PillarFeedback,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -317,37 +318,71 @@ function MilestoneRow({ milestone }: { milestone: PathMilestone }) {
   );
 }
 
-/**
- * "Feedback que impulsa" — feedback del manager sobre tu avance.
- * TODO(feedback-manager): reemplazar por el resumen real (y link al detalle)
- * cuando exista el feature de feedback del manager (Área 1). Hoy no hay ningún
- * dato en el perfil/score ni endpoint que lo exponga, así que es solo un
- * placeholder — NO se inventa contenido.
- */
-function ManagerFeedbackPlaceholder() {
+/** "Feedback que impulsa" de un pilar: el texto que dejó tu manager. Es
+ * informativo — nunca bloquea el avance (eso lo decide `manager_approved`). */
+function PillarFeedbackCard({
+  feedback,
+  pillarName,
+}: {
+  feedback: PillarFeedback | undefined;
+  pillarName?: string;
+}) {
   return (
     <section
-      aria-labelledby="path-feedback-title"
+      aria-label={`Feedback que impulsa${pillarName ? ` · ${pillarName}` : ""}`}
       className="glass-inset mt-2 flex items-start gap-4 rounded-2xl p-4"
     >
       <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-sunken text-fg-muted">
         <MessageSquareText size={20} strokeWidth={1.75} aria-hidden />
       </span>
       <div className="min-w-0">
-        <h3 id="path-feedback-title" className="font-heading text-sm font-medium text-fg">
-          Feedback que impulsa
-        </h3>
-        <p className="mt-0.5 text-xs text-fg-muted">
-          Acá vas a ver el feedback de tu manager sobre tu avance. Todavía no está disponible.
-        </p>
+        <h3 className="font-heading text-sm font-medium text-fg">Feedback que impulsa</h3>
+        {pillarName && <p className="text-xs text-fg-subtle">{pillarName}</p>}
+        {feedback ? (
+          <>
+            <p className="mt-1 whitespace-pre-line text-sm text-fg">{feedback.text}</p>
+            {feedback.manager_name && (
+              <p className="mt-1.5 text-xs text-fg-muted">— {feedback.manager_name}</p>
+            )}
+          </>
+        ) : (
+          <p className="mt-0.5 text-xs text-fg-muted">
+            Tu manager te va a dejar su feedback sobre este pilar. Lo vas a ver acá.
+          </p>
+        )}
       </div>
     </section>
   );
 }
 
-function RouteTimeline({ data, heroUnit }: { data: MyPath; heroUnit: LearningUnitFeedItem | null }) {
+function feedbackKey(dimensionCode: string, pillarCode: string | null): string {
+  return `${dimensionCode}:${pillarCode ?? ""}`;
+}
+
+function RouteTimeline({
+  data,
+  heroUnit,
+  pillarFeedback,
+}: {
+  data: MyPath;
+  heroUnit: LearningUnitFeedItem | null;
+  pillarFeedback: PillarFeedback[];
+}) {
   const { next_step, upcoming } = data;
   const milestonesAfter = groupMilestones(data.milestones ?? []);
+  const feedbackByPillar = new Map(
+    pillarFeedback.map((f) => [feedbackKey(f.dimension_code, f.pillar_code), f]),
+  );
+  // Feedback de pilares que ya no tienen un hito de área pendiente (pilares
+  // terminados): no tienen dónde colgarse en la línea, van al final.
+  const anchored = new Set(
+    (data.milestones ?? [])
+      .filter((m) => m.kind === "area")
+      .map((m) => feedbackKey(m.dimension_code, m.pillar_code)),
+  );
+  const pastFeedback = pillarFeedback.filter(
+    (f) => !anchored.has(feedbackKey(f.dimension_code, f.pillar_code)),
+  );
 
   return (
     <div className="p-6 lg:p-8">
@@ -397,6 +432,12 @@ function RouteTimeline({ data, heroUnit }: { data: MyPath; heroUnit: LearningUni
                     }
                   >
                     <MilestoneRow milestone={m} />
+                    {m.kind === "area" && (
+                      <PillarFeedbackCard
+                        feedback={feedbackByPillar.get(feedbackKey(m.dimension_code, m.pillar_code))}
+                        pillarName={m.pillar_code ? subPillarName(m.dimension_code, m.pillar_code) : undefined}
+                      />
+                    )}
                   </TimelineItem>
                 ))}
               </React.Fragment>
@@ -409,7 +450,13 @@ function RouteTimeline({ data, heroUnit }: { data: MyPath; heroUnit: LearningUni
           <p className="mt-1 text-sm text-fg-muted">Estamos preparando nuevos módulos para tu ruta.</p>
         </div>
       )}
-      <ManagerFeedbackPlaceholder />
+      {pastFeedback.map((f) => (
+        <PillarFeedbackCard
+          key={feedbackKey(f.dimension_code, f.pillar_code)}
+          feedback={f}
+          pillarName={subPillarName(f.dimension_code, f.pillar_code)}
+        />
+      ))}
     </div>
   );
 }
@@ -423,9 +470,12 @@ function RouteTimeline({ data, heroUnit }: { data: MyPath; heroUnit: LearningUni
 export function PathRoute({
   data,
   heroUnit,
+  pillarFeedback = [],
 }: {
   data: MyPath;
   heroUnit: LearningUnitFeedItem | null;
+  /** Feedback del manager por pilar (`GET /me/pillar-feedback`). */
+  pillarFeedback?: PillarFeedback[];
 }) {
   const hasLevel = Boolean(data.current_level) && data.total_this_level > 0;
 
@@ -441,7 +491,7 @@ export function PathRoute({
         )}
       >
         {hasLevel && <LevelSummary data={data} milestone={data.milestones?.[0]} />}
-        <RouteTimeline data={data} heroUnit={heroUnit} />
+        <RouteTimeline data={data} heroUnit={heroUnit} pillarFeedback={pillarFeedback} />
       </div>
     </section>
   );

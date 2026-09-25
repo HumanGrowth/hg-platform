@@ -9,6 +9,11 @@
   que VER (ver ``_authorize_manage_target``: ``company_admin`` queda afuera de
   esta v1, cross-org read-only queda pendiente de decisión + un segundo patrón
   de sesión).
+- ``PUT|GET /admin/users/{user_id}/pillar-feedback``: feedback de texto libre
+  por pilar (mismo gate de autorización que las evaluaciones).
+- ``GET /me/pillar-feedback``: el colaborador lee TODOS sus feedbacks de pilar.
+  A diferencia de las notas por comportamiento (privadas), este texto es para
+  que el colaborador lo vea en Mi Ruta.
 - ``GET /me/behavior-feedback``: el colaborador ve SUS calificaciones
   (read-only, sin notas del manager — privadas por default hasta confirmar
   decisión abierta #3 del plan).
@@ -28,13 +33,15 @@ from sqlalchemy.orm import Session
 from hg.core.deps import get_current_user
 from hg.db import get_db
 from hg.modules.badges import progression
-from hg.modules.feedback.models import BehaviorEvaluation, PillarBehavior
+from hg.modules.feedback.models import BehaviorEvaluation, PillarBehavior, PillarFeedback
 from hg.modules.feedback.schemas import (
     BehaviorMatrixOut,
     BehaviorOut,
     MyBehaviorEvaluationOut,
     PillarBehaviorsOut,
+    PillarFeedbackOut,
     UpsertBehaviorEvaluationsRequest,
+    UpsertPillarFeedbackRequest,
 )
 from hg.modules.identity.models import User, UserRole
 from hg.modules.learning.models import CareerPath
@@ -246,3 +253,90 @@ def my_behavior_feedback(
         )
         for e, b in rows
     ]
+
+
+def _pillar_feedback_out(db: Session, user_id: UUID) -> list[PillarFeedbackOut]:
+    rows = db.scalars(
+        select(PillarFeedback)
+        .where(PillarFeedback.user_id == user_id)
+        .order_by(PillarFeedback.dimension_code, PillarFeedback.pillar_code)
+    ).all()
+    manager_ids = {r.manager_id for r in rows if r.manager_id}
+    names = {
+        u.id: u.full_name
+        for u in (db.scalars(select(User).where(User.id.in_(manager_ids))).all() if manager_ids else [])
+    }
+    return [
+        PillarFeedbackOut(
+            pillar_code=r.pillar_code, dimension_code=r.dimension_code, text=r.text,
+            updated_at=r.updated_at, manager_name=names.get(r.manager_id) if r.manager_id else None,
+        )
+        for r in rows
+    ]
+
+
+@admin_router.get("/users/{user_id}/pillar-feedback", response_model=list[PillarFeedbackOut])
+def get_pillar_feedback(
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[PillarFeedbackOut]:
+    target = _authorize_manage_target(db, current_user, user_id)
+    return _pillar_feedback_out(db, target.id)
+
+
+@admin_router.put("/users/{user_id}/pillar-feedback", response_model=PillarFeedbackOut)
+def upsert_pillar_feedback(
+    user_id: UUID,
+    body: UpsertPillarFeedbackRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> PillarFeedbackOut:
+    target = _authorize_manage_target(db, current_user, user_id)
+    text = body.text.strip()
+    if not text:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="text vacío")
+    pillar_exists = db.scalar(
+        select(PillarBehavior.id)
+        .where(
+            PillarBehavior.dimension_code == body.dimension_code,
+            PillarBehavior.pillar_code == body.pillar_code,
+        )
+        .limit(1)
+    )
+    if pillar_exists is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="pilar inexistente"
+        )
+    row = db.scalar(
+        select(PillarFeedback).where(
+            PillarFeedback.user_id == target.id,
+            PillarFeedback.dimension_code == body.dimension_code,
+            PillarFeedback.pillar_code == body.pillar_code,
+        )
+    )
+    if row is None:
+        row = PillarFeedback(
+            org_id=target.org_id, user_id=target.id, dimension_code=body.dimension_code,
+            pillar_code=body.pillar_code, manager_id=current_user.id, text=text,
+        )
+        db.add(row)
+    else:
+        row.text = text
+        row.manager_id = current_user.id
+    db.flush()
+    db.refresh(row)
+    return PillarFeedbackOut(
+        pillar_code=row.pillar_code, dimension_code=row.dimension_code, text=row.text,
+        updated_at=row.updated_at, manager_name=current_user.full_name,
+    )
+
+
+@me_router.get("/pillar-feedback", response_model=list[PillarFeedbackOut])
+def my_pillar_feedback(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[PillarFeedbackOut]:
+    """El colaborador ve TODOS sus feedbacks de pilar (pasados y en curso).
+    Distinto de ``/me/behavior-feedback``, que excluye las notas privadas."""
+    return _pillar_feedback_out(db, current_user.id)

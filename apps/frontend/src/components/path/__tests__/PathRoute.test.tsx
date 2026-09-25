@@ -2,7 +2,13 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { PathRoute } from "@/components/path/PathRoute";
-import type { LearningUnitFeedItem, MyPath, PathMilestone, PathStep } from "@/lib/types";
+import type {
+  LearningUnitFeedItem,
+  MyPath,
+  PathMilestone,
+  PathStep,
+  PillarFeedback,
+} from "@/lib/types";
 
 const step = (n: number, o: Partial<PathStep> = {}): PathStep => ({
   unit_id: `u${n}`,
@@ -92,11 +98,57 @@ describe("PathRoute", () => {
     expect(screen.getByText("Próximo · L2")).toBeTruthy();
   });
 
-  it("expone la barra de progreso del nivel y el placeholder de feedback del manager", () => {
+  it("expone la barra de progreso del nivel", () => {
     render(<PathRoute data={path()} heroUnit={null} />);
     const bar = screen.getByRole("progressbar");
     expect(bar.getAttribute("aria-valuenow")).toBe("25");
-    expect(screen.getByRole("heading", { name: "Feedback que impulsa", level: 3 })).toBeTruthy();
+  });
+
+  const areaMilestone = milestone({
+    kind: "area",
+    after_unit_id: "u2",
+    pillar_code: "P1",
+    level_code: null,
+    badge_code: "pillar-cp-p1",
+    title: "Área completa · Adaptabilidad",
+  });
+  const fb = (o: Partial<PillarFeedback> = {}): PillarFeedback => ({
+    pillar_code: "P1",
+    dimension_code: "CP",
+    text: "Excelente foco en el feedback.",
+    updated_at: "2026-09-20T10:00:00Z",
+    manager_name: "Ana",
+    ...o,
+  });
+
+  it("cuelga el feedback del manager justo después del hito de fin de pilar", () => {
+    render(
+      <PathRoute data={path({ milestones: [areaMilestone] })} heroUnit={null} pillarFeedback={[fb()]} />,
+    );
+    expect(screen.getByText("Excelente foco en el feedback.")).toBeTruthy();
+    expect(screen.getByText("— Ana")).toBeTruthy();
+    expect(screen.getAllByRole("heading", { name: "Feedback que impulsa", level: 3 })).toHaveLength(1);
+  });
+
+  it("sin feedback escrito, el hito de pilar muestra el estado vacío (no un hueco)", () => {
+    render(<PathRoute data={path({ milestones: [areaMilestone] })} heroUnit={null} />);
+    expect(screen.getByText(/Tu manager te va a dejar su feedback/)).toBeTruthy();
+  });
+
+  it("los hitos de nivel no llevan feedback, y sin feedback ni hitos de área no hay tarjeta", () => {
+    render(<PathRoute data={path()} heroUnit={null} />);
+    expect(screen.queryByRole("heading", { name: "Feedback que impulsa" })).toBeNull();
+  });
+
+  it("muestra al final el feedback de pilares ya terminados (sin hito pendiente)", () => {
+    render(
+      <PathRoute
+        data={path({ milestones: [] })}
+        heroUnit={null}
+        pillarFeedback={[fb({ pillar_code: "P2", text: "Pilar cerrado con éxito." })]}
+      />,
+    );
+    expect(screen.getByText("Pilar cerrado con éxito.")).toBeTruthy();
   });
 
   it("sin next_step muestra el estado 'completaste todo' y omite el panel de nivel sin datos", () => {

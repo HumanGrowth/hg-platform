@@ -55,3 +55,20 @@ class MyBehaviorEvaluationOut(BaseModel):
     text: str
     rating: int
     updated_at: datetime
+
+
+PILLAR_FEEDBACK_MAX_CHARS = 2000
+
+
+class UpsertPillarFeedbackRequest(BaseModel):
+    dimension_code: str = Field(min_length=1, max_length=4)
+    pillar_code: str = Field(min_length=1, max_length=8)
+    text: str = Field(min_length=1, max_length=PILLAR_FEEDBACK_MAX_CHARS)
+
+
+class PillarFeedbackOut(BaseModel):
+    pillar_code: str
+    dimension_code: str
+    text: str
+    updated_at: datetime
+    manager_name: str | None

@@ -78,7 +78,7 @@ def get_my_path(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> PathOut:
-    r = path_engine.build_path(db, current_user.id)
+    r = path_engine.build_path(db, current_user.id, cover_area_milestones=True)
     return PathOut(
         current_level=r.current_level,
         next_step=PathStepOut(**vars(r.next_step)) if r.next_step else None,

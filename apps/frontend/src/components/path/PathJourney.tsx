@@ -6,8 +6,8 @@ import { DimensionCatalog } from "@/components/modulos/DimensionCatalog";
 import { PathRoute } from "@/components/path/PathRoute";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { apiGetMyPath, apiListModulosByDimension } from "@/lib/api";
-import type { LearningUnitFeedItem, MyPath } from "@/lib/types";
+import { apiGetMyPath, apiGetMyPillarFeedback, apiListModulosByDimension } from "@/lib/api";
+import type { LearningUnitFeedItem, MyPath, PillarFeedback } from "@/lib/types";
 
 export function PathJourney() {
   const [status, setStatus] = React.useState<"loading" | "error" | "ok">("loading");
@@ -17,13 +17,19 @@ export function PathJourney() {
   // next_step — así el slug SIEMPRE está en la respuesta: nunca cae a un
   // "hero" de otra unit (el desfase que había antes al usar /modulos/feed, que
   // elige su propio hero con lógica independiente).
+  const [pillarFeedback, setPillarFeedback] = React.useState<PillarFeedback[]>([]);
   const [heroUnit, setHeroUnit] = React.useState<LearningUnitFeedItem | null>(null);
 
   const load = React.useCallback(async () => {
     setStatus("loading");
     try {
-      const path = await apiGetMyPath();
+      // El feedback es aditivo: si falla, la ruta se muestra igual.
+      const [path, feedback] = await Promise.all([
+        apiGetMyPath(),
+        apiGetMyPillarFeedback().catch(() => [] as PillarFeedback[]),
+      ]);
       setData(path);
+      setPillarFeedback(feedback);
       const ns = path.next_step;
       setHeroUnit(
         ns
@@ -63,7 +69,7 @@ export function PathJourney() {
 
   return (
     <div className="mt-8 flex flex-col gap-12">
-      <PathRoute data={data} heroUnit={heroUnit} />
+      <PathRoute data={data} heroUnit={heroUnit} pillarFeedback={pillarFeedback} />
 
       {/* Explorá por dimensión — el catálogo completo (vivía en Módulos, que
           ahora arranca directo tu siguiente módulo). Es también la puerta para

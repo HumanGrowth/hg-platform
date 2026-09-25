@@ -8,6 +8,7 @@ import type {
   PerspectiveInput,
   PerspectiveSummary,
   BehaviorMatrix,
+  PillarFeedback,
   CustomPath,
   CustomPathScope,
   MyBehaviorEvaluation,
@@ -364,6 +365,32 @@ export const apiUpsertBehaviorEvaluations = async (
     `/api/v1/admin/users/${userId}/behavior-evaluations`,
     { evaluations },
   );
+  return res.data;
+};
+
+/** Feedback de texto por pilar escrito por el manager (lectura del manager/admin). */
+export const apiGetPillarFeedback = async (userId: string): Promise<PillarFeedback[]> => {
+  const res = await backend.get<PillarFeedback[]>(`/api/v1/admin/users/${userId}/pillar-feedback`);
+  return res.data;
+};
+
+/** Upsert del feedback vigente de un pilar. */
+export const apiUpsertPillarFeedback = async (
+  userId: string,
+  dimensionCode: string,
+  pillarCode: string,
+  text: string,
+): Promise<PillarFeedback> => {
+  const res = await backend.put<PillarFeedback>(
+    `/api/v1/admin/users/${userId}/pillar-feedback`,
+    { dimension_code: dimensionCode, pillar_code: pillarCode, text },
+  );
+  return res.data;
+};
+
+/** El colaborador lee TODOS sus feedbacks de pilar (pasados y en curso). */
+export const apiGetMyPillarFeedback = async (): Promise<PillarFeedback[]> => {
+  const res = await backend.get<PillarFeedback[]>("/api/v1/me/pillar-feedback");
   return res.data;
 };
 

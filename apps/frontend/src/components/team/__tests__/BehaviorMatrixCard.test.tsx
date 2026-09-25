@@ -5,13 +5,17 @@ import type { BehaviorMatrix } from "@/lib/types";
 
 import { BehaviorMatrixCard } from "../BehaviorMatrixCard";
 
-const { getMatrix, upsert } = vi.hoisted(() => ({
+const { getMatrix, upsert, getFeedback, upsertFeedback } = vi.hoisted(() => ({
   getMatrix: vi.fn(),
   upsert: vi.fn(),
+  getFeedback: vi.fn(),
+  upsertFeedback: vi.fn(),
 }));
 vi.mock("@/lib/api", () => ({
   apiGetBehaviorMatrix: getMatrix,
   apiUpsertBehaviorEvaluations: upsert,
+  apiGetPillarFeedback: getFeedback,
+  apiUpsertPillarFeedback: upsertFeedback,
   ApiError: class ApiError extends Error {
     status: number;
     constructor(message: string, status: number) {
@@ -79,6 +83,12 @@ function singlePillarMatrix(overrides?: Partial<BehaviorMatrix>): BehaviorMatrix
 }
 
 describe("BehaviorMatrixCard", () => {
+  beforeEach(() => {
+    getFeedback.mockReset();
+    getFeedback.mockResolvedValue([]);
+    upsertFeedback.mockReset();
+  });
+
   it("renders the current pillar's behaviors and an accordion for the rest", async () => {
     getMatrix.mockResolvedValue(makeMatrix());
     render(<BehaviorMatrixCard userId="u1" />);
@@ -115,5 +125,38 @@ describe("BehaviorMatrixCard", () => {
     getMatrix.mockResolvedValue(singlePillarMatrix({ manager_approved: false }));
     render(<BehaviorMatrixCard userId="u1" />);
     await waitFor(() => expect(screen.getByText(/Pendiente de aprobación/)).toBeTruthy());
+  });
+
+  it("saves the pillar feedback only when the manager clicks the button", async () => {
+    getMatrix.mockResolvedValue(singlePillarMatrix());
+    upsertFeedback.mockResolvedValue({
+      pillar_code: "P1", dimension_code: "CP", text: "Muy bien", updated_at: new Date().toISOString(),
+      manager_name: "Ana",
+    });
+    render(<BehaviorMatrixCard userId="u1" />);
+    const box = await screen.findByLabelText("Feedback que impulsa");
+    const button = screen.getByRole("button", { name: "Guardar feedback" }) as HTMLButtonElement;
+    expect(button.disabled).toBe(true);
+
+    fireEvent.change(box, { target: { value: "Muy bien" } });
+    expect(upsertFeedback).not.toHaveBeenCalled(); // sin autosave
+    fireEvent.click(button);
+    await waitFor(() => expect(upsertFeedback).toHaveBeenCalledWith("u1", "CP", "P1", "Muy bien"));
+  });
+
+  it("prefills the saved feedback and keeps the matrix usable if feedback fails to load", async () => {
+    getMatrix.mockResolvedValue(singlePillarMatrix());
+    getFeedback.mockResolvedValue([
+      { pillar_code: "P1", dimension_code: "CP", text: "Ya escrito", updated_at: new Date().toISOString(), manager_name: "Ana" },
+    ]);
+    const { unmount } = render(<BehaviorMatrixCard userId="u1" />);
+    await waitFor(() =>
+      expect((screen.getByLabelText("Feedback que impulsa") as HTMLTextAreaElement).value).toBe("Ya escrito"),
+    );
+    unmount();
+
+    getFeedback.mockRejectedValue(new Error("boom"));
+    render(<BehaviorMatrixCard userId="u1" />);
+    await waitFor(() => expect(screen.getByText("Busca feedback y lo aplica")).toBeTruthy());
   });
 });
