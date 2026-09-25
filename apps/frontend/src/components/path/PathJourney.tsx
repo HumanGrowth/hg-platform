@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { DimensionCatalog } from "@/components/modulos/DimensionCatalog";
+import { MyAssignmentsCard } from "@/components/path/MyAssignmentsCard";
 import { PathRoute } from "@/components/path/PathRoute";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -70,6 +71,9 @@ export function PathJourney() {
   return (
     <div className="mt-8 flex flex-col gap-12">
       <PathRoute data={data} heroUnit={heroUnit} pillarFeedback={pillarFeedback} />
+
+      {/* Módulos asignados por el manager: vista aparte, NO reordena Tu ruta. */}
+      <MyAssignmentsCard />
 
       {/* Explorá por dimensión — el catálogo completo (vivía en Módulos, que
           ahora arranca directo tu siguiente módulo). Es también la puerta para
