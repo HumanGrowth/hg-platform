@@ -136,6 +136,7 @@ export function BehaviorMatrixCard({ userId }: Props) {
       {current ? (
         <>
           <PillarTable pillar={current} savingIds={savingIds} onRate={rate} />
+          <CoachingTips tips={current.coaching_tips} />
           <PillarFeedbackBox
             key={`${current.pillar_code}:${feedback.get(`${matrix.dimension_code}:${current.pillar_code}`)?.updated_at ?? ""}`}
             saved={feedback.get(`${matrix.dimension_code}:${current.pillar_code}`)}
@@ -332,5 +333,24 @@ function PillarFeedbackBox({
         </button>
       </div>
     </div>
+  );
+}
+
+/** "Tips para acompañar este pilar": contenido curado por el equipo (no
+ * generado). Panel colapsable en vez de columna de tabla — la fila ya tiene
+ * texto + 3 botones y una columna extra se aprieta en mobile. */
+function CoachingTips({ tips }: { tips: string[] | undefined }) {
+  if (!tips || tips.length === 0) return null;
+  return (
+    <details className="mt-4 rounded-md border border-border">
+      <summary className="cursor-pointer select-none px-4 py-2.5 font-sans text-sm font-semibold text-fg">
+        Tips para acompañar este pilar
+      </summary>
+      <ul className="flex list-disc flex-col gap-2 border-t border-border py-3 pl-8 pr-4 text-sm text-fg-muted">
+        {tips.slice(0, 4).map((tip, i) => (
+          <li key={i}>{tip}</li>
+        ))}
+      </ul>
+    </details>
   );
 }

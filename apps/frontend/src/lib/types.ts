@@ -826,6 +826,8 @@ export interface PillarBehaviors {
   pillar_name: string;
   is_current: boolean;
   behaviors: BehaviorOut[];
+  /** Tips curados (2-4) para que el manager acompañe el pilar. */
+  coaching_tips: string[];
 }
 
 export interface BehaviorMatrix {

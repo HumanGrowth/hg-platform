@@ -33,7 +33,12 @@ from sqlalchemy.orm import Session
 from hg.core.deps import get_current_user
 from hg.db import get_db
 from hg.modules.badges import progression
-from hg.modules.feedback.models import BehaviorEvaluation, PillarBehavior, PillarFeedback
+from hg.modules.feedback.models import (
+    BehaviorEvaluation,
+    PillarBehavior,
+    PillarCoachingTip,
+    PillarFeedback,
+)
 from hg.modules.feedback.schemas import (
     BehaviorMatrixOut,
     BehaviorOut,
@@ -55,6 +60,7 @@ me_router = APIRouter()
 _EVALUATE_ROLES = {UserRole.manager, UserRole.admin, UserRole.superadmin}
 _ADMIN_ROLES = {UserRole.admin, UserRole.superadmin}
 _DEFAULT_DIMENSION = "CP"  # sin next_step (ruta completa / sin contenido aún)
+MAX_COACHING_TIPS = 4  # más que esto satura la card del manager
 
 
 def _authorize_manage_target(db: Session, current_user: User, user_id: UUID) -> User:
@@ -141,6 +147,19 @@ def get_behavior_matrix(
             ),
         )
 
+    tips_by_pillar: dict[str, list[str]] = {}
+    for tip in db.scalars(
+        select(PillarCoachingTip)
+        .where(
+            PillarCoachingTip.dimension_code == dimension_code,
+            PillarCoachingTip.is_active.is_(True),
+        )
+        .order_by(PillarCoachingTip.pillar_code, PillarCoachingTip.order_index)
+    ).all():
+        bucket = tips_by_pillar.setdefault(tip.pillar_code, [])
+        if len(bucket) < MAX_COACHING_TIPS:
+            bucket.append(tip.text)
+
     by_pillar: dict[str, list[PillarBehavior]] = {}
     for b in behaviors:
         by_pillar.setdefault(b.pillar_code, []).append(b)
@@ -151,6 +170,7 @@ def get_behavior_matrix(
             pillar_name=pillar_display_name(dimension_code, pillar_code),
             is_current=pillar_code == current_pillar_code,
             behaviors=[_behavior_out(b) for b in pillar_behaviors],
+            coaching_tips=tips_by_pillar.get(pillar_code, []),
         )
         for pillar_code, pillar_behaviors in by_pillar.items()
     ]

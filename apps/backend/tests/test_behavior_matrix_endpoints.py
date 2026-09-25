@@ -146,3 +146,29 @@ def test_me_behavior_feedback_returns_own_ratings(client, factory, auth_headers)
         assert mine.json()[0]["rating"] == 2
     finally:
         _cleanup_evaluations([report.id])
+
+
+def test_matrix_includes_curated_coaching_tips_capped_and_active_only(
+    client, factory, auth_headers
+) -> None:
+    from hg.modules.feedback.models import PillarCoachingTip
+
+    org = factory.make_org()
+    mgr = factory.make_user(org=org, role=UserRole.manager)
+    report = factory.make_user(org=org, manager_id=mgr.id)
+    s = SessionLocal()
+    s.execute(PillarCoachingTip.__table__.delete().where(PillarCoachingTip.dimension_code == "CP"))
+    for i in range(6):
+        s.add(PillarCoachingTip(
+            dimension_code="CP", pillar_code="P1", text=f"tip {i}", order_index=i, is_active=i != 1,
+        ))
+    s.commit()
+    try:
+        res = client.get(f"/api/v1/admin/users/{report.id}/behavior-matrix", headers=auth_headers(mgr))
+        assert res.status_code == 200, res.text
+        p1 = next(p for p in res.json()["pillars"] if p["pillar_code"] == "P1")
+        assert p1["coaching_tips"] == ["tip 0", "tip 2", "tip 3", "tip 4"]  # inactivo fuera, máx 4
+    finally:
+        s.execute(PillarCoachingTip.__table__.delete().where(PillarCoachingTip.dimension_code == "CP"))
+        s.commit()
+        s.close()
