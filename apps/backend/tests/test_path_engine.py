@@ -182,6 +182,11 @@ def test_milestones_surface_for_every_pillar_not_just_the_closest(client, factor
         p2 = next(m for m in body["milestones"] if m["badge_code"] == "pillar-cp-p2")
         assert p1["sequence_position"] == 9
         assert p2["sequence_position"] == 11
+        # La ventana de `upcoming` se amplía para que el ancla de cada hito de
+        # pilar quede visible (Mi Ruta cuelga de ahí el feedback del manager).
+        visible = {body["next_step"]["unit_id"], *(s_["unit_id"] for s_ in body["upcoming"])}
+        assert {p1["after_unit_id"], p2["after_unit_id"]} <= visible
+        assert len(body["upcoming"]) == 11
     finally:
         s.execute(delete(Badge).where(Badge.code.in_(["pillar-cp-p1", "pillar-cp-p2"])))
         s.commit()

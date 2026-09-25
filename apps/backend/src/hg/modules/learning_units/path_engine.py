@@ -265,13 +265,26 @@ def _build_milestones(
     return out
 
 
+# Tope de `upcoming` cuando se amplía para cubrir los hitos de fin de pilar.
+MAX_UPCOMING_WITH_MILESTONES = 40
+
+
 def build_path(
-    db: Session, user_id: uuid.UUID, upcoming_n: int = 8, plan: UnitSequence | None = None
+    db: Session,
+    user_id: uuid.UUID,
+    upcoming_n: int = 8,
+    plan: UnitSequence | None = None,
+    cover_area_milestones: bool = False,
 ) -> PathResult:
     """Ruta recomendada del usuario. La secuencia (orden de convención, nivel de
     partida según el score, dimensiones según inscripciones) vive en
     :mod:`hg.modules.learning_units.sequencing`; acá solo se arma la ruta
-    alternando dimensiones, se priorizan las CustomPath y se calculan los hitos."""
+    alternando dimensiones, se priorizan las CustomPath y se calculan los hitos.
+
+    ``cover_area_milestones``: extiende ``upcoming`` (más allá de ``upcoming_n``,
+    hasta ``MAX_UPCOMING_WITH_MILESTONES``) para que la unit ancla de cada hito
+    de fin de pilar quede visible — sin esto, el hito (y el feedback del manager
+    que Mi Ruta cuelga de él) se truncaba en rutas largas."""
     user = db.get(User, user_id)
     if user is None:
         raise ValueError(f"user {user_id} not found")
@@ -373,8 +386,13 @@ def build_path(
         step.locked = step.lock_reason is not None
 
     next_step = sequence[0] if sequence else None
-    upcoming = sequence[1 : 1 + upcoming_n]
     milestones = _build_milestones(db, units, completed_ids, sequence)
+    if cover_area_milestones:
+        seq_index = {st.unit_id: i for i, st in enumerate(sequence)}
+        anchor_idx = [seq_index[m.after_unit_id] for m in milestones if m.kind == "area"]
+        if anchor_idx:
+            upcoming_n = min(max(upcoming_n, max(anchor_idx)), MAX_UPCOMING_WITH_MILESTONES)
+    upcoming = sequence[1 : 1 + upcoming_n]
     return PathResult(
         current_level=current_level,
         next_step=next_step,
