@@ -840,6 +840,16 @@ export interface BehaviorMatrix {
   manager_approved: boolean;
 }
 
+/** Feedback de texto libre del manager sobre un pilar. A diferencia de las
+ * notas por comportamiento (privadas), el colaborador lo ve en Mi Ruta. */
+export interface PillarFeedback {
+  pillar_code: string;
+  dimension_code: string;
+  text: string;
+  updated_at: string;
+  manager_name: string | null;
+}
+
 // ─────────────────────────── Rutas customizables (FASE 2.2/2.3) ───────────────────────────
 
 export type CustomPathScope = "company" | "org";
