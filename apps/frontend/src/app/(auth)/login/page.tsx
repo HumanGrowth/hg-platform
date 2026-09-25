@@ -53,7 +53,7 @@ function LoginInner() {
   }
 
   return (
-    <Card className="p-8">
+    <Card className="p-8 md:p-10">
       <Eyebrow accent className="mb-2">
         Human Growth
       </Eyebrow>
