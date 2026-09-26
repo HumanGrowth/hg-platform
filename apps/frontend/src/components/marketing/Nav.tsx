@@ -1,5 +1,7 @@
 "use client";
 
+import { BrandLogo } from "@/components/marketing/BrandLogo";
+import { MarketingThemeToggle } from "@/components/marketing/MarketingThemeToggle";
 import { Menu, X } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -49,7 +51,7 @@ export default function Nav() {
   // Mismo cristal esmerilado del nav desktop al hacer scroll — el drawer mobile
   // lo usa siempre (es un panel flotante, nunca "top of page" transparente).
   const glassStyle = {
-    background: "rgba(250,243,232,0.80)",
+    background: "color-mix(in srgb, var(--bg) 80%, transparent)",
     backdropFilter: "blur(12px)",
     WebkitBackdropFilter: "blur(12px)",
   } as const;
@@ -65,13 +67,7 @@ export default function Nav() {
     >
       <div className="max-w-marketing mx-auto h-full px-8 flex items-center gap-8">
         <Link href="/" className="flex items-center gap-2.5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo/nav/logo-nav-negro@1x.png"
-            srcSet="/logo/nav/logo-nav-negro@1x.png 1x, /logo/nav/logo-nav-negro@2x.png 2x, /logo/nav/logo-nav-negro@3x.png 3x"
-            alt="Human Growth"
-            className="h-8 w-auto"
-          />
+          <BrandLogo className="h-8 w-auto" />
         </Link>
 
         {/* Desktop tabs */}
@@ -88,6 +84,7 @@ export default function Nav() {
         {/* Desktop actions */}
         <div className="hidden md:flex items-center gap-4">
           <LanguageToggle />
+          <MarketingThemeToggle />
           <Link href="/login" className={linkCls}>
             {c.login}
           </Link>
@@ -159,7 +156,10 @@ export default function Nav() {
             <Link href="/contacto" onClick={() => setOpen(false)} className={`${ctaCls} text-center`}>
               {c.cta}
             </Link>
-            <LanguageToggle />
+            <div className="flex items-center gap-3">
+              <LanguageToggle />
+              <MarketingThemeToggle />
+            </div>
           </div>
         </div>
       </div>

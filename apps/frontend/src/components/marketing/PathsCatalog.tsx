@@ -2,9 +2,8 @@
 
 import { useMemo, useState } from "react";
 
-import { BrandSawWave } from "@/components/motion/BrandSawWave";
-import { BubbleField } from "@/components/motion/BubbleField";
-import { DecoLayer } from "@/components/motion/DecoLayer";
+import { FilterChip } from "@/components/marketing/fx/FilterChip";
+import { Reveal, RevealGroup } from "@/components/marketing/fx/Reveal";
 import { GROWTH_PATHS, LEVELS, type Level, type DimensionId } from "@/lib/growth-paths";
 import { DIMENSIONS_META } from "@/lib/dimension-styles";
 
@@ -22,48 +21,40 @@ export default function PathsCatalog() {
     [pillar, level],
   );
 
-  const chip = (active: boolean) =>
-    `px-3.5 py-2 rounded-full text-[13px] font-medium cursor-pointer transition-colors border ${
-      active
-        ? "bg-hg-ink text-hg-cream border-transparent"
-        : "bg-transparent text-hg-charcoal border-border-strong hover:bg-bg-sunken"
-    }`;
-
   return (
-    <section className="landing-flow-section relative max-w-marketing mx-auto px-8">
-      <DecoLayer>
-        <BrandSawWave width={240} teeth={6} height={16} rotation={-9} top="4%" right="4%" color="var(--hg-gold)" opacity={0.28} speed={0.08} />
-        <BubbleField seed={52} count={4} />
-      </DecoLayer>
-      {/* Filtro por dimensión */}
-      <div className="flex gap-2 flex-wrap mb-3">
-        <button className={chip(pillar === "all")} onClick={() => setDimension("all")}>
-          Todos las dimensiones
-        </button>
-        {DIMENSIONS_META.map((p) => (
-          <button key={p.id} className={chip(pillar === p.id)} onClick={() => setDimension(p.id)}>
-            {p.name}
-          </button>
-        ))}
-      </div>
-      {/* Filtro por nivel */}
-      <div className="flex gap-2 flex-wrap mb-10">
-        <button className={chip(level === "all")} onClick={() => setLevel("all")}>
-          Todos los niveles
-        </button>
-        {LEVELS.map((l) => (
-          <button key={l} className={chip(level === l)} onClick={() => setLevel(l)}>
-            {l}
-          </button>
-        ))}
-      </div>
+    <section className="mx-auto w-full max-w-marketing px-5 pb-24 md:px-8">
+      <Reveal>
+        <div className="mb-3 flex flex-wrap gap-2">
+          <FilterChip active={pillar === "all"} onClick={() => setDimension("all")}>
+            Todos las dimensiones
+          </FilterChip>
+          {DIMENSIONS_META.map((p) => (
+            <FilterChip key={p.id} active={pillar === p.id} onClick={() => setDimension(p.id)}>
+              {p.name}
+            </FilterChip>
+          ))}
+        </div>
+        <div className="mb-8 flex flex-wrap gap-2">
+          <FilterChip active={level === "all"} onClick={() => setLevel("all")}>
+            Todos los niveles
+          </FilterChip>
+          {LEVELS.map((l) => (
+            <FilterChip key={l} active={level === l} onClick={() => setLevel(l)}>
+              {l}
+            </FilterChip>
+          ))}
+        </div>
+      </Reveal>
 
-      <p className="body-sm mb-6">{filtered.length} rutas</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <p className="body-sm mb-6 text-fg-muted" aria-live="polite">
+        {filtered.length} rutas
+      </p>
+      {/* key = filtros → el grid se re-monta y las cards vuelven a entrar */}
+      <RevealGroup key={`${pillar}-${level}`} className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3" step={0.05}>
         {filtered.map((p) => (
           <PathCard key={p.title} path={p} cohortLabel="en esta cohorte" />
         ))}
-      </div>
+      </RevealGroup>
     </section>
   );
 }

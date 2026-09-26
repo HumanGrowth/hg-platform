@@ -1,12 +1,13 @@
 import Hero from "@/components/marketing/Hero";
 import { HomeCTAFinal } from "@/components/marketing/HomeCTAFinal";
 import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
+import { HugieTeaser } from "@/components/marketing/HugieTeaser";
+import LogoCloud from "@/components/marketing/LogoCloud";
 import MarketingRadar from "@/components/marketing/MarketingRadar";
 import { ProductStack } from "@/components/marketing/ProductStack";
-import WhatIsHg from "@/components/marketing/WhatIsHg";
-import LogoCloud from "@/components/marketing/LogoCloud";
 import Quote from "@/components/marketing/Quote";
 import SixDimensions from "@/components/marketing/SixDimensions";
+import WhatIsHg from "@/components/marketing/WhatIsHg";
 
 export const metadata = {
   title: "Human Growth — Crecé integralmente",
@@ -23,6 +24,7 @@ export default function LandingPage() {
       <MarketingRadar />
       <WhatIsHg />
       <ProductStack />
+      <HugieTeaser />
       <HowItWorksTimeline />
       <Quote />
       <HomeCTAFinal />

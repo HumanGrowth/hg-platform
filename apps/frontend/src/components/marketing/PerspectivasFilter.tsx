@@ -5,9 +5,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
-import { BrandSawWave } from "@/components/motion/BrandSawWave";
-import { BubbleField } from "@/components/motion/BubbleField";
-import { DecoLayer } from "@/components/motion/DecoLayer";
+import { FilterChip } from "@/components/marketing/fx/FilterChip";
+import { Reveal, RevealGroup } from "@/components/marketing/fx/Reveal";
 import { apiListPerspectives } from "@/lib/api";
 import type { PerspectiveSummary } from "@/lib/types";
 
@@ -27,13 +26,6 @@ export function PerspectivasFilter() {
   const [items, setItems] = useState<PerspectiveSummary[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  const chip = (isActive: boolean) =>
-    `px-3.5 py-2 rounded-full text-[13px] font-medium cursor-pointer transition-colors border ${
-      isActive
-        ? "bg-hg-ink text-hg-cream border-transparent"
-        : "bg-transparent text-hg-charcoal border-border-strong hover:bg-bg-sunken"
-    }`;
 
   const load = useCallback(
     async (offset: number) => {
@@ -60,21 +52,17 @@ export function PerspectivasFilter() {
   }, [load]);
 
   return (
-    <section className="landing-flow-section max-w-marketing mx-auto px-8">
-      <DecoLayer>
-        <BrandSawWave width={260} teeth={7} height={18} rotation={-10} top="30%" right="2%" color="var(--hg-gold)" opacity={0.3} speed={0.1} />
-        <BubbleField seed={32} count={4} />
-      </DecoLayer>
-      <div className="mb-10 flex flex-wrap gap-2">
-        <button type="button" className={chip(active === "all")} onClick={() => setActive("all")}>
+    <section className="mx-auto w-full max-w-marketing px-5 pb-24 md:px-8">
+      <Reveal className="mb-10 flex flex-wrap gap-2">
+        <FilterChip active={active === "all"} onClick={() => setActive("all")}>
           Todo
-        </button>
+        </FilterChip>
         {c.contentTypes.map((t) => (
-          <button key={t.id} type="button" className={chip(active === t.id)} onClick={() => setActive(t.id)}>
+          <FilterChip key={t.id} active={active === t.id} onClick={() => setActive(t.id)}>
             {t.label}
-          </button>
+          </FilterChip>
         ))}
-      </div>
+      </Reveal>
 
       {loading && items.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -88,17 +76,17 @@ export function PerspectivasFilter() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <RevealGroup key={active} className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" step={0.05}>
             {items.map((p) => (
               <Link
                 key={p.id}
                 href={`/perspectivas/${p.slug}` as Route}
-                className="group flex flex-col overflow-hidden rounded-xl border border-border bg-bg-raised transition-shadow hover:shadow-md"
+                className="fx-spot group flex h-full flex-col overflow-hidden glass-surface-strong"
               >
                 <div className="aspect-video w-full overflow-hidden bg-bg-sunken">
                   {p.cover_image_url && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.cover_image_url} alt="" className="h-full w-full object-cover" />
+                    <img src={p.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   )}
                 </div>
                 <div className="flex flex-1 flex-col p-5">
@@ -115,7 +103,7 @@ export function PerspectivasFilter() {
                 </div>
               </Link>
             ))}
-          </div>
+          </RevealGroup>
           {items.length < total && (
             <div className="mt-10 text-center">
               <button

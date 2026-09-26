@@ -1,69 +1,49 @@
 "use client";
 
+import { DIM_COLORS, hexToRgbTriplet } from "@/components/marketing/fx/dim-colors";
+import { RevealGroup } from "@/components/marketing/fx/Reveal";
+import { SectionHeader } from "@/components/marketing/fx/SectionHeader";
+import { SpotlightCard } from "@/components/marketing/fx/SpotlightCard";
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
-import { MotionSection } from "@/components/motion/MotionSection";
-import { BubbleField } from "@/components/motion/BubbleField";
-import { DecoLayer } from "@/components/motion/DecoLayer";
-import { StaggerBounceGrid } from "@/components/motion/StaggerBounceGrid";
-import { Display } from "@/components/ui/display";
-import { Eyebrow } from "@/components/ui/eyebrow";
 import { dimensionIconSrc } from "@/lib/dimension-styles";
 
 /**
- * Las 6 dimensiones (items 9-11). Cada card muestra el hex icon del pilar como
- * watermark sutil al costado derecho (~3/4 visible). id="dimensiones" es el
- * destino del scroll del hero (web-v2-01).
+ * Las 6 dimensiones. Cada card tiene el foco de luz del color de su
+ * dimensión, se inclina con el cursor y su barra de color crece en hover.
+ * id="dimensiones" es el destino del scroll del hero.
  */
 export default function SixDimensions() {
   const c = useMarketingCopy().sixDimensions;
   return (
-    <section
-      id="dimensiones"
-      className="landing-flow-section scroll-mt-24 border-t border-b border-border"
-    >
-      <DecoLayer>
-        <BubbleField seed={3} count={5} />
-      </DecoLayer>
-      <MotionSection as="div" className="max-w-marketing mx-auto px-8">
-        <div className="max-w-[760px] mb-14">
-          <Eyebrow accent className="mb-4">
-            {c.eyebrow}
-          </Eyebrow>
-          <Display as="h2" variant="display-2" className="max-w-[720px]">
-            {c.title}
-          </Display>
-          <p className="text-hg-charcoal text-[18px] leading-[1.5] mt-5 max-w-[560px]">
-            {c.subtitle}
-          </p>
-        </div>
-
-        <StaggerBounceGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {c.items.map((item) => {
-            const src = dimensionIconSrc(item.code);
-            return (
-              <article
-                key={item.code}
-                className="relative overflow-hidden rounded-lg border border-border bg-surface-card p-8 min-h-[220px]"
-              >
-                {src && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={src}
-                    alt=""
-                    aria-hidden
-                    className="absolute -right-8 -top-4 w-48 select-none opacity-[0.10] pointer-events-none md:w-56"
-                  />
-                )}
-                <div className="relative z-10">
-                  <div className={`h-2 w-12 rounded-full bg-dimension-${item.code.toLowerCase()}`} />
-                  <h3 className="mt-4 font-heading text-xl font-semibold text-fg">{item.title}</h3>
-                  <p className="body-sm mt-2 max-w-[24rem] text-hg-charcoal">{item.body}</p>
-                </div>
-              </article>
-            );
-          })}
-        </StaggerBounceGrid>
-      </MotionSection>
+    <section id="dimensiones" className="mx-auto w-full max-w-marketing scroll-mt-24 px-5 py-16 md:px-8 md:py-24">
+      <SectionHeader eyebrow={c.eyebrow} title={c.title} subtitle={c.subtitle} />
+      <RevealGroup className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3" step={0.07}>
+        {c.items.map((item, i) => {
+          const src = dimensionIconSrc(item.code);
+          const color = DIM_COLORS[i] ?? DIM_COLORS[0];
+          return (
+            <SpotlightCard key={item.code} glow={hexToRgbTriplet(color)} className="group min-h-[220px] p-8">
+              {src && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={src}
+                  alt=""
+                  aria-hidden
+                  className="pointer-events-none absolute -right-8 -top-4 w-48 select-none opacity-[0.10] transition-all duration-500 group-hover:-translate-y-1 group-hover:rotate-6 group-hover:opacity-[0.22] md:w-56"
+                />
+              )}
+              <div className="relative z-10">
+                <div
+                  className="h-2 w-12 rounded-full transition-all duration-500 group-hover:w-24"
+                  style={{ background: color }}
+                />
+                <h3 className="mt-4 font-heading text-xl font-semibold text-fg">{item.title}</h3>
+                <p className="body-sm mt-2 max-w-[24rem] text-fg-muted">{item.body}</p>
+              </div>
+            </SpotlightCard>
+          );
+        })}
+      </RevealGroup>
     </section>
   );
 }

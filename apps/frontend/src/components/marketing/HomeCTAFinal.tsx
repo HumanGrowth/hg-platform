@@ -1,48 +1,47 @@
 "use client";
 
-import Link from "next/link";
-
+import { CtaLink } from "@/components/marketing/fx/CtaLink";
+import { Reveal } from "@/components/marketing/fx/Reveal";
+import { WordReveal } from "@/components/marketing/fx/WordReveal";
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { showPricing } from "@/lib/flags";
-import { MotionSection } from "@/components/motion/MotionSection";
-import { BrandCircle } from "@/components/motion/BrandCircle";
-import { DecoLayer } from "@/components/motion/DecoLayer";
-import { Display } from "@/components/ui/display";
-import { Eyebrow } from "@/components/ui/eyebrow";
 
 /** CTA final del home → /contacto + /pricing (decisión H, web-v3). */
 export function HomeCTAFinal() {
   const c = useMarketingCopy().homeCta;
   return (
-    <section className="landing-flow-section max-w-marketing mx-auto px-8 text-center">
-      <DecoLayer>
-        <BrandCircle size={560} top="-20%" left="calc(50% - 280px)" color="var(--hg-green-100)" opacity={0.5} speed={0.18} />
-      </DecoLayer>
-      <MotionSection as="div">
-      <Eyebrow accent className="mb-6">
-        {c.eyebrow}
-      </Eyebrow>
-      <Display as="h2" variant="display-3" className="mx-auto mb-6 max-w-[760px]">
-        {c.title}
-      </Display>
-      <p className="body-lg mx-auto mb-8 max-w-[620px] text-fg-muted">{c.body}</p>
-      <div className="flex flex-wrap justify-center gap-4">
-        <Link
-          href="/contacto"
-          className="bg-primary text-white px-8 py-4 rounded-md font-semibold text-base hover:bg-primary-hover transition-colors"
-        >
-          {c.primary}
-        </Link>
-        {showPricing() && (
-          <Link
-            href="/pricing"
-            className="bg-transparent text-fg border border-[color:var(--border-strong)] px-8 py-4 rounded-md font-semibold text-base hover:bg-bg-sunken transition-colors"
-          >
-            {c.secondary}
-          </Link>
-        )}
-      </div>
-      </MotionSection>
+    <section className="mx-auto w-full max-w-marketing px-5 py-16 md:px-8 md:py-24">
+      <Reveal variant="scale">
+        <div className="glass-surface relative overflow-hidden rounded-[32px] border border-hg-amber/35 p-8 text-center md:p-16">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -left-20 bottom-[-40%] h-[420px] w-[420px] rounded-full opacity-50 blur-3xl"
+            style={{ background: "radial-gradient(circle, rgba(74,122,84,0.7), transparent 70%)" }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-16 -top-1/3 h-[380px] w-[380px] rounded-full opacity-50 blur-3xl"
+            style={{ background: "radial-gradient(circle, rgba(232,83,10,0.5), transparent 70%)" }}
+          />
+          <div className="relative">
+            <p className="eyebrow eyebrow-accent mb-5 flex justify-center">{c.eyebrow}</p>
+            <WordReveal
+              text={c.title}
+              as="h2"
+              className="display mx-auto m-0 max-w-[820px] text-[36px] leading-[0.98] text-fg sm:text-5xl lg:text-[64px]"
+            />
+            <p className="mx-auto mb-8 mt-5 max-w-[620px] text-lg text-fg-muted">{c.body}</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <CtaLink href="/contacto">{c.primary.replace(/\s*→$/, "")}</CtaLink>
+              {showPricing() && (
+                <CtaLink href="/pricing" variant="ghost" arrow={false}>
+                  {c.secondary}
+                </CtaLink>
+              )}
+            </div>
+          </div>
+        </div>
+      </Reveal>
     </section>
   );
 }
