@@ -28,7 +28,7 @@ export function HomeCTAFinal() {
             <WordReveal
               text={c.title}
               as="h2"
-              className="display mx-auto m-0 max-w-[820px] text-[36px] leading-[0.98] text-fg sm:text-5xl lg:text-[64px]"
+              className="display mx-auto my-0 max-w-[820px] text-[36px] leading-[0.98] text-fg sm:text-5xl lg:text-[64px]"
             />
             <p className="mx-auto mb-8 mt-5 max-w-[620px] text-lg text-fg-muted">{c.body}</p>
             <div className="flex flex-wrap justify-center gap-3">

@@ -11,7 +11,7 @@ export default function LogoCloud() {
     <section className="mx-auto w-full max-w-marketing px-5 py-10 text-center md:px-8">
       <div className="eyebrow mb-5">{c.logoCloud.eyebrow}</div>
       {/* Logos placeholder con blur alto: aún no son partners reales. */}
-      <PartnerMarquee speed={28} className="mt-2 opacity-40" pauseOnHover>
+      <PartnerMarquee speed={28} className="mx-auto mt-2 opacity-40" pauseOnHover>
         {PARTNERS.map((name) => (
           <span
             key={name}

@@ -13,7 +13,9 @@ import { showPricing } from "@/lib/flags";
 
 /** Marketing top nav — 4 tabs + language toggle + drawer mobile (web-v2-08). */
 export default function Nav() {
-  const c = useMarketingCopy().nav;
+  const copy = useMarketingCopy();
+  const c = copy.nav;
+  const common = copy.common;
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -97,7 +99,7 @@ export default function Nav() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Abrir menú"
+          aria-label={common.openMenu}
           className="md:hidden text-fg"
         >
           <Menu size={26} strokeWidth={1.75} />
@@ -117,7 +119,7 @@ export default function Nav() {
       <div className="fixed inset-0 z-[60] md:hidden">
         <button
           type="button"
-          aria-label="Cerrar menú"
+          aria-label={common.closeMenu}
           onClick={() => setOpen(false)}
           className="absolute inset-0 bg-hg-ink/40"
         />
@@ -126,8 +128,8 @@ export default function Nav() {
           style={{ ...glassStyle, borderLeft: "1px solid var(--border)" }}
         >
           <div className="flex items-center justify-between">
-            <span className="eyebrow">Menú</span>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Cerrar menú">
+            <span className="eyebrow">{common.menu}</span>
+            <button type="button" onClick={() => setOpen(false)} aria-label={common.closeMenu}>
               <X size={24} strokeWidth={1.75} className="text-fg" />
             </button>
           </div>

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { DocTitle } from "@/components/marketing/LocalizedText";
 import PricingTable from "@/components/marketing/PricingTable";
 import { showPricing } from "@/lib/flags";
 
@@ -11,6 +12,7 @@ export default function PricingPage() {
   if (!showPricing()) redirect("/");
   return (
     <div className="landing-flow">
+      <DocTitle k="meta.pricing" />
       <PricingTable />
     </div>
   );

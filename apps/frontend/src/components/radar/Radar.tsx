@@ -36,6 +36,9 @@ export interface RadarProps {
   size?: RadarSize;
   interactive?: boolean;
   animateOnMount?: boolean;
+  /** Override de los textos (ejes + lista accesible), p. ej. para el sitio público en EN. */
+  labels?: Partial<Record<CareerPathCode, string>>;
+  a11y?: { values: string; growth: string; previous: string };
 }
 
 const ORDER: CareerPathCode[] = ["P1", "P2", "P3", "P4", "P5", "P6"];
@@ -62,6 +65,8 @@ export function Radar({
   size = "medium",
   interactive = false,
   animateOnMount = false,
+  labels,
+  a11y = { values: "Valores por dimensión", growth: "crecimiento", previous: "anterior" },
 }: RadarProps) {
   const router = useRouter();
   const { theme } = useTheme();
@@ -112,7 +117,7 @@ export function Radar({
     return {
       code,
       axis: code,
-      label: PILLAR_LABEL[code],
+      label: labels?.[code] ?? PILLAR_LABEL[code],
       value: Math.round(target * progress),
       growthValue: hasGrowth ? Math.round((growth?.[code] ?? 0) * progress) : 0,
       // El overlay previo no "anima desde el centro" — es el punto de partida.
@@ -150,7 +155,7 @@ export function Radar({
         data-testid={`radar-axis-${code}`}
       >
         <title>
-          {PILLAR_LABEL[code]}: {values[code] ?? 0}
+          {labels?.[code] ?? PILLAR_LABEL[code]}: {values[code] ?? 0}
         </title>
         {/* Marker del vértice: dot simple con el color del pilar (TASK · radar
             limpio — se removieron las metáforas SVG de los vértices). */}
@@ -168,7 +173,7 @@ export function Radar({
           fontWeight={600}
           fill={NEUTRAL}
         >
-          {PILLAR_LABEL[code]}
+          {labels?.[code] ?? PILLAR_LABEL[code]}
         </text>
       </g>
     );
@@ -263,12 +268,12 @@ export function Radar({
           verdad y no agrega altura fantasma al documento (rompía el header sticky). */}
       {state === "complete" && (
         <div className="sr-only">
-          <ul aria-label="Valores por dimensión">
+          <ul aria-label={a11y.values}>
             {data.map((d) => (
               <li key={d.code} data-testid={`radar-value-${d.code}`}>
                 {d.label}: {d.value}
-                {hasGrowth ? ` · crecimiento: ${d.growthValue}` : null}
-                {hasPrevious ? ` · anterior: ${d.previousValue}` : null}
+                {hasGrowth ? ` · ${a11y.growth}: ${d.growthValue}` : null}
+                {hasPrevious ? ` · ${a11y.previous}: ${d.previousValue}` : null}
               </li>
             ))}
           </ul>

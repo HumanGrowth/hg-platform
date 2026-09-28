@@ -9,6 +9,8 @@ export interface HexIconProps {
   /** Lado del ícono en px. */
   size?: number;
   className?: string;
+  /** Override del alt (p. ej. nombre traducido); default = nombre corto en ES. */
+  alt?: string;
 }
 
 /**
@@ -16,13 +18,13 @@ export interface HexIconProps {
  * "P#" con la fingerprint visual de la marca. Si el código no matchea, no
  * renderiza nada (el callsite decide el fallback).
  */
-export function HexIcon({ pillar, size = 40, className }: HexIconProps) {
+export function HexIcon({ pillar, size = 40, className, alt }: HexIconProps) {
   const src = dimensionIconSrc(pillar);
   if (!src) return null;
   return (
     <Image
       src={src}
-      alt={dimensionShortName(pillar)}
+      alt={alt ?? dimensionShortName(pillar)}
       width={size}
       height={size}
       className={cn("shrink-0 select-none", className)}

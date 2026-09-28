@@ -6,6 +6,7 @@ import Link from "next/link";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { contactSchema, type ContactValues } from "@/lib/validation";
 const ROLES = ["RRHH", "Líder", "IT", "Otro"] as const;
 
 export default function ContactForm({ source = "contacto" }: { source?: string }) {
+  const f = useMarketingCopy().contact.form;
   const [sentTo, setSentTo] = React.useState<string | null>(null);
   const {
     register,
@@ -35,7 +37,7 @@ export default function ContactForm({ source = "contacto" }: { source?: string }
       });
       setSentTo(values.name);
     } catch {
-      toast("No pudimos enviar tu mensaje. Probá de nuevo en un momento.", "danger");
+      toast(f.errorToast, "danger");
     }
   }
 
@@ -43,10 +45,10 @@ export default function ContactForm({ source = "contacto" }: { source?: string }
     return (
       <Card className="text-center py-12">
         <CheckCircle2 size={48} strokeWidth={1.5} className="text-hg-green mx-auto mb-4" />
-        <h2 className="display text-2xl text-fg mb-3">¡Gracias por escribirnos!</h2>
-        <p className="text-hg-charcoal mb-8">Pronto nos pondremos en contacto contigo.</p>
+        <h2 className="display text-2xl text-fg mb-3">{f.thanksTitle}</h2>
+        <p className="text-hg-charcoal mb-8">{f.thanksBody}</p>
         <Link href="/" className="text-primary font-semibold hover:underline">
-          Volver al inicio →
+          {f.backHome}
         </Link>
       </Card>
     );
@@ -55,48 +57,48 @@ export default function ContactForm({ source = "contacto" }: { source?: string }
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="glass-surface-strong max-w-[960px] mx-auto p-8 flex flex-col gap-5">
       <div>
-        <Label htmlFor="name" className="text-left">Nombre *</Label>
+        <Label htmlFor="name" className="text-left">{f.name}</Label>
         <Input id="name" autoComplete="name" {...register("name")} />
-        {errors.name && <p className="text-danger text-sm mt-1">{errors.name.message}</p>}
+        {errors.name && <p className="text-danger text-sm mt-1">{f.errors.name}</p>}
       </div>
       <div>
-        <Label htmlFor="email" className="text-left">Email *</Label>
+        <Label htmlFor="email" className="text-left">{f.email}</Label>
         <Input id="email" type="email" autoComplete="email" {...register("email")} />
-        {errors.email && <p className="text-danger text-sm mt-1">{errors.email.message}</p>}
+        {errors.email && <p className="text-danger text-sm mt-1">{errors.email.type === "invalid_string" ? f.errors.emailInvalid : f.errors.emailRequired}</p>}
       </div>
       <div>
-        <Label htmlFor="company" className="text-left">Empresa *</Label>
+        <Label htmlFor="company" className="text-left">{f.company}</Label>
         <Input id="company" autoComplete="organization" {...register("company")} />
-        {errors.company && <p className="text-danger text-sm mt-1">{errors.company.message}</p>}
+        {errors.company && <p className="text-danger text-sm mt-1">{f.errors.company}</p>}
       </div>
       <div>
-        <Label htmlFor="role" className="text-left">Rol</Label>
+        <Label htmlFor="role" className="text-left">{f.role}</Label>
         <select
           id="role"
           {...register("role")}
           className="w-full h-10 px-3 rounded-md border border-border bg-bg-raised text-fg text-sm"
           defaultValue=""
         >
-          <option value="">Seleccioná (opcional)</option>
+          <option value="">{f.rolePlaceholder}</option>
           {ROLES.map((r) => (
             <option key={r} value={r}>
-              {r}
+              {f.roles[r]}
             </option>
           ))}
         </select>
       </div>
       <div>
-        <Label htmlFor="message">Mensaje</Label>
+        <Label htmlFor="message">{f.message}</Label>
         <textarea
           id="message"
           rows={4}
           {...register("message")}
           className="w-full px-3 py-2 rounded-md border border-border bg-bg-raised text-fg text-sm resize-y"
-          placeholder="Contanos brevemente qué necesitás (opcional)"
+          placeholder={f.messagePlaceholder}
         />
       </div>
       <Button type="submit" size="lg" disabled={isSubmitting}>
-        {isSubmitting ? "Enviando…" : "Conversemos →"}
+        {isSubmitting ? f.sending : f.submit}
       </Button>
     </form>
   );

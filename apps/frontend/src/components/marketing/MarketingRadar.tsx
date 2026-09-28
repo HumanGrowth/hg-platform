@@ -11,7 +11,7 @@ import type { RadarValues } from "@/components/radar/radar-model";
 // Datos ilustrativos — NO llama al backend. Dos mallas (web-v3 decisión J):
 // crecimiento (target aspiracional, verde) + estado actual.
 const SAMPLE_CURRENT: RadarValues = { P1: 52, P2: 48, P3: 45, P4: 60, P5: 38, P6: 55 };
-const SAMPLE_GROWTH: RadarValues = { P1: 90, P2: 90, P3: 90, P4: 90, P5: 90, P6: 90 };
+const SAMPLE_GROWTH: RadarValues = { P1: 90, P2: 78, P3: 65, P4: 90, P5: 63, P6: 94 };
 
 /** Radar de marca (home + /metodo) con datos de ejemplo, en un panel glass. */
 export default function MarketingRadar() {
@@ -41,7 +41,14 @@ export default function MarketingRadar() {
           `}</style>
           <div className="marketing-radar-scale">
             {mounted ? (
-              <Radar values={SAMPLE_CURRENT} growth={SAMPLE_GROWTH} state="complete" size="large" />
+              <Radar
+                values={SAMPLE_CURRENT}
+                growth={SAMPLE_GROWTH}
+                state="complete"
+                size="large"
+                labels={c.marketingRadar.axes}
+                a11y={c.marketingRadar.a11y}
+              />
             ) : (
               <div className="aspect-square w-full" aria-hidden />
             )}

@@ -11,22 +11,25 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 // Pantallas reales de la app (capturas del prototipo "Recorrido de plataforma"),
 // las mismas del tour de /plataforma: player de módulo, Mi Ruta, Mi Equipo
 // (manager) y Panel RRHH.
-const SCREENS = [
-  { src: "/marketing/platform-tour/desk-home.webp", alt: "Inicio: progreso por dimensión" },
-  { src: "/marketing/platform-tour/desk-modulo.webp", alt: "Player de módulo con video, pasos y quiz" },
-  { src: "/marketing/platform-tour/desk-ruta.webp", alt: "Mi Ruta: siguiente módulo e hito" },
-  { src: "/marketing/platform-tour/desk-equipo.webp", alt: "Mi Equipo: vista del manager" },
-  { src: "/marketing/platform-tour/desk-rrhh.webp", alt: "Panel de RRHH con métricas agregadas" },
+const SCREEN_SRCS = [
+  "/marketing/platform-tour/desk-home.webp",
+  "/marketing/platform-tour/desk-modulo.webp",
+  "/marketing/platform-tour/desk-ruta.webp",
+  "/marketing/platform-tour/desk-equipo.webp",
+  "/marketing/platform-tour/desk-rrhh.webp",
 ];
 
 /** Sección producto en home: stack de screens de la app → /plataforma (decisión G). */
 export function ProductStack() {
-  const c = useMarketingCopy().productStack;
+  const copy = useMarketingCopy();
+  const c = copy.productStack;
+  const ui = copy.productScreens;
+  const SCREENS = SCREEN_SRCS.map((src, i) => ({ src, alt: ui.alts[i] ?? "" }));
   const [activeIndex, setActiveIndex] = useState(0);
 
   const rotateStack = useCallback((direction: 1 | -1) => {
     setActiveIndex((prev) => {
-      const next = (prev + direction + SCREENS.length) % SCREENS.length;
+      const next = (prev + direction + SCREEN_SRCS.length) % SCREEN_SRCS.length;
       return next;
     });
   }, []);
@@ -76,7 +79,7 @@ export function ProductStack() {
                 opacity: hidden ? 0 : 1 - distance * 0.16,
                 pointerEvents: hidden ? "none" : "auto",
               }}
-              aria-label={`Ver pantalla ${i + 1}: ${s.alt}`}
+              aria-label={`${ui.view} ${i + 1}: ${s.alt}`}
               onClick={() => setActiveIndex(i)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -90,7 +93,7 @@ export function ProductStack() {
             type="button"
             className="h-8 w-8 rounded-full border border-border text-sm text-fg-muted transition-colors hover:border-primary hover:text-primary"
             onClick={() => rotateStack(-1)}
-            aria-label="Pantalla anterior"
+            aria-label={ui.prev}
           >
             &lt;
           </button>
@@ -98,7 +101,7 @@ export function ProductStack() {
             type="button"
             className="h-8 w-8 rounded-full border border-border text-sm text-fg-muted transition-colors hover:border-primary hover:text-primary"
             onClick={() => rotateStack(1)}
-            aria-label="Siguiente pantalla"
+            aria-label={ui.next}
           >
             &gt;
           </button>
@@ -113,7 +116,7 @@ export function ProductStack() {
                   background: i === activeIndex ? "var(--primary)" : "var(--border)",
                   transform: i === activeIndex ? "scale(1.2)" : "scale(1)",
                 }}
-                aria-label={`Ir a pantalla ${i + 1}`}
+                aria-label={`${ui.goTo} ${i + 1}`}
               />
             ))}
           </div>
