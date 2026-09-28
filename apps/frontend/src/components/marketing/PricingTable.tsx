@@ -8,21 +8,6 @@ import { Reveal, RevealGroup } from "@/components/marketing/fx/Reveal";
 import { SpotlightCard } from "@/components/marketing/fx/SpotlightCard";
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 
-const FEATURES = [
-  "Diagnóstico inicial con base científica",
-  "Catálogo de trayectos completos",
-  "Biblioteca de contenido HG",
-  "Player de video adaptativo",
-  "Dashboard para manager directo",
-  "Dashboard RRHH con métricas org",
-  "Export CSV de progreso",
-  "Onboarding asistido del equipo",
-  "Soporte LatAm en horario local",
-  "Acceso web + mobile responsive",
-  "Re-takes del assessment (cada 30d)",
-  "Documentación de privacidad y GDPR",
-];
-
 function FeatureItem({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-start gap-2 text-sm text-fg">
@@ -34,21 +19,23 @@ function FeatureItem({ children }: { children: React.ReactNode }) {
 
 /** Página /pricing: plan a la medida (sin tarifas públicas). */
 export default function PricingTable() {
-  const c = useMarketingCopy().pricing;
+  const copy = useMarketingCopy();
+  const c = copy.pricing;
+  const p = copy.pricingPage;
   return (
     <>
       <PageHero align="center" eyebrow={c.eyebrow} title={c.title} subtitle={c.subtitle} />
       <section className="mx-auto w-full max-w-[720px] px-5 pb-24 md:px-8">
         <Reveal variant="scale">
           <SpotlightCard className="p-8 md:p-10">
-            <div className="eyebrow mb-3">PLAN A LA MEDIDA</div>
-            <h3 className="display mb-4 text-3xl text-fg">Construido contigo</h3>
+            <div className="eyebrow mb-3">{p.planEyebrow}</div>
+            <h3 className="display mb-4 text-3xl text-fg">{p.planTitle}</h3>
             <p className="mb-8 text-base leading-[1.6] text-fg-muted">
-              Elegí qué incluir según el momento de tu equipo. Sin compromisos ocultos.
+              {p.planBody}
             </p>
 
             <RevealGroup className="mb-10 grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2" step={0.04}>
-              {FEATURES.map((f) => (
+              {p.features.map((f) => (
                 <FeatureItem key={f}>{f}</FeatureItem>
               ))}
             </RevealGroup>

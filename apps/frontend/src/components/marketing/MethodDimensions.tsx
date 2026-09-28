@@ -26,7 +26,7 @@ export function MethodDimensions({ pillars }: { pillars: readonly MethodPillar[]
           className="flex h-full flex-col gap-3 p-7"
         >
           <div className="flex items-center justify-between gap-3">
-            <HexIcon pillar={p.code} size={40} />
+            <HexIcon pillar={p.code} size={40} alt={p.name} />
             <span className="font-mono text-xs text-fg-subtle">{p.tag}</span>
           </div>
           <h3 className="font-heading text-lg font-semibold leading-tight text-fg">{p.name}</h3>

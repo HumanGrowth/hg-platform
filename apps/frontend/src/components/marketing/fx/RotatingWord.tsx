@@ -2,28 +2,30 @@
 
 import { useEffect, useState } from "react";
 
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 
-import { DIM_COLORS, DIM_SHORT } from "./dim-colors";
+import { DIM_COLORS } from "./dim-colors";
 
 /** Palabra que rota entre las 6 dimensiones, con el color de cada una. */
 export function RotatingWord({ className }: { className?: string }) {
   const animate = useShouldAnimate();
+  const words = useMarketingCopy().heroDimensions;
   const [i, setI] = useState(0);
 
   useEffect(() => {
     if (!animate) return;
-    const id = setInterval(() => setI((v) => (v + 1) % DIM_SHORT.length), 2200);
+    const id = setInterval(() => setI((v) => (v + 1) % words.length), 2200);
     return () => clearInterval(id);
-  }, [animate]);
+  }, [animate, words.length]);
 
   return (
     <span className={className} aria-live="off">
       {/* grid overlay: reserva el ancho de la palabra más larga */}
       <span className="inline-grid align-bottom">
-        {DIM_SHORT.map((w, k) => (
+        {words.map((w, k) => (
           <span
-            key={w}
+            key={k}
             aria-hidden={k !== i}
             className="col-start-1 row-start-1 transition-all duration-500 ease-out"
             style={{

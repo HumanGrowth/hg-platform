@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { useTheme } from "@/components/theme/ThemeProvider";
 
 /**
@@ -11,9 +12,10 @@ import { useTheme } from "@/components/theme/ThemeProvider";
  */
 export function MarketingThemeToggle({ className = "" }: { className?: string }) {
   const { theme, applyTheme } = useTheme();
+  const common = useMarketingCopy().common;
   const isDark = theme === "dark";
   const Icon = isDark ? Sun : Moon;
-  const label = isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro";
+  const label = isDark ? common.themeToLight : common.themeToDark;
 
   return (
     <button

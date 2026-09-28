@@ -20,7 +20,9 @@ export default function WhatIsHg() {
           <SpotlightCard key={card.title} className="flex h-full flex-col gap-3 p-8">
             <span className="display text-5xl leading-none text-fg/15">{String(i + 1).padStart(2, "0")}</span>
             <h3 className="font-heading text-lg font-semibold text-fg">{card.title}</h3>
-            <p className="body-sm leading-relaxed text-fg-muted">{card.body}</p>
+            {/* whitespace-pre-line: la card "¿Cómo funciona HG?" usa \n para listar
+                las 4 etapas en líneas separadas; sin esto HTML colapsa el salto. */}
+            <p className="body-sm leading-relaxed text-fg-muted whitespace-pre-line">{card.body}</p>
           </SpotlightCard>
         ))}
       </RevealGroup>

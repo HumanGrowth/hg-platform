@@ -1,5 +1,6 @@
-import { PageHero } from "@/components/marketing/fx/PageHero";
+import { PerspectivasHero } from "@/components/marketing/PerspectivasHero";
 import { PerspectivasFilter } from "@/components/marketing/PerspectivasFilter";
+import { DocTitle } from "@/components/marketing/LocalizedText";
 import { getCopy } from "@/lib/i18n";
 
 const c = getCopy("es").perspectives;
@@ -11,7 +12,8 @@ export const metadata = { title: c.metaTitle };
 export default function PerspectivasPage() {
   return (
     <div className="landing-flow">
-      <PageHero eyebrow={c.eyebrow} title={c.title} subtitle={c.subtitle} />
+      <DocTitle k="perspectives.metaTitle" />
+      <PerspectivasHero />
       <PerspectivasFilter />
     </div>
   );

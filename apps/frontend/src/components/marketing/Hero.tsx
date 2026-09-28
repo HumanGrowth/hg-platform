@@ -25,7 +25,7 @@ export default function Hero() {
       <WordReveal
         text={`${c.titleLine1} ${c.titleLine2}`}
         as="h1"
-        className="display mx-auto m-0 max-w-[1100px] text-[44px] leading-[0.96] text-fg sm:text-6xl lg:text-[88px]"
+        className="display mx-auto my-0 max-w-[1100px] text-[44px] leading-[0.96] text-fg sm:text-6xl lg:text-[88px]"
       />
       <Reveal delay={0.35}>
         <p className="display mt-5 text-[28px] leading-none text-fg sm:text-4xl lg:text-5xl">
@@ -48,10 +48,10 @@ export default function Hero() {
       {/* Mockups flotando */}
       <Reveal variant="scale" delay={0.6} className="relative mx-auto mt-14 hidden h-[790px] w-full max-w-[1100px] md:block">
         <div className="fx-float-slow absolute left-0 top-0 w-[90%]">
-          <BrowserFrame shot="desk-home" alt="Inicio de la app: progreso por dimensión" height={1180} />
+          <BrowserFrame shot="desk-home" alt={copy.alts.deskHome} height={1180} />
         </div>
         <div className="fx-float absolute right-0 top-[150px] w-[21%] min-w-[190px]">
-          <PhoneFrame shot="mob-modulo" alt="Player de módulo en el teléfono" eager />
+          <PhoneFrame shot="mob-modulo" alt={copy.alts.mobModulo} eager />
         </div>
       </Reveal>
 
