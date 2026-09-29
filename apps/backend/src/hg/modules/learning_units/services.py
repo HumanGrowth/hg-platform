@@ -45,15 +45,33 @@ from __future__ import annotations
 
 import logging
 import uuid
+from dataclasses import dataclass, field
 from typing import Any, cast
 
 from pydantic import TypeAdapter, ValidationError
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from hg.modules.identity.models import User
-from hg.modules.learning_units.admin_router import create_block, create_unit, publish_unit
-from hg.modules.learning_units.models import LearningUnit
+from hg.modules.learning_units.admin_router import (
+    _create_block_content,
+    _create_question,
+    _validate_for_publish,
+    create_block,
+    create_unit,
+    publish_unit,
+)
+from hg.modules.learning_units.models import (
+    BLOCK_TYPE_TO_MODEL,
+    LearningUnit,
+    QuizBlock,
+    QuizQuestion,
+    ReflectionBlock,
+    TextBlock,
+    UnitBlock,
+    UnitBlockType,
+    VideoBlock,
+)
 from hg.modules.learning_units.schemas import (
     BlockPresentation,
     CitationOut,
@@ -369,6 +387,176 @@ def upsert_unit_from_dict(
     unit = db.get(LearningUnit, unit_detail.id)
     assert unit is not None  # recién creada en esta misma sesión
     return unit
+
+
+@dataclass
+class InPlaceReport:
+    """Qué hizo (o haría) :func:`update_unit_in_place` sobre una unit existente."""
+
+    matched: int = 0  # bloques conservados (mismo id, contenido actualizado)
+    added: int = 0
+    removed: int = 0
+    quiz_questions_replaced: int = 0
+    # Progreso de usuarios que se pierde por bloques eliminados / quizzes recreados.
+    block_progress_lost: int = 0
+    quiz_responses_lost: int = 0
+    validation_errors: list[str] = field(default_factory=list)
+
+
+_UNIT_FIELDS = (
+    "title", "dimension_code", "area_code", "pillar_code", "unit_number",
+    "competency_code", "level_code", "estimated_duration_seconds",
+)
+
+
+def update_unit_in_place(db: Session, unit: LearningUnit, unit_dict: dict[str, Any]) -> InPlaceReport:
+    """Actualiza una unit **existente** con el contenido de ``unit_dict`` SIN
+    borrarla, para conservar todo lo que cuelga de ella: intentos, asignaciones,
+    rutas custom y el progreso por bloque de los usuarios.
+
+    A diferencia de :func:`upsert_unit_from_dict` (delete + recreate, CASCADE),
+    acá se conserva el ``id`` de la unit y el ``unit_blocks.id`` de cada bloque
+    que se puede **emparejar** con uno nuevo (mismo tipo, en orden: el k-ésimo
+    bloque de un tipo ↔ el k-ésimo del mismo tipo). El contenido de los bloques
+    emparejados se reescribe completo desde ``unit_dict``; los bloques nuevos se
+    crean y los que sobran se eliminan (perdiendo su ``block_progress``).
+
+    Por bloque: video conserva poster/subtítulos/capítulos (sólo se actualizan
+    ``video_url`` y ``eyebrow_label``); reflexión se edita in situ (sus textos
+    de usuarios sobreviven); quiz conserva la fila del bloque y **recrea sus
+    preguntas** (las respuestas de quiz de esas preguntas se pierden y se
+    cuentan en el reporte).
+
+    Sólo hace flush. No cambia ``published_at``; devuelve en ``validation_errors``
+    lo que impediría publicarla — si la unit estaba publicada y hay errores, el
+    caller decide (típicamente rollback para no degradar una unit en uso).
+    """
+    report = InPlaceReport()
+    for f in _UNIT_FIELDS:
+        if f in unit_dict:
+            setattr(unit, f, unit_dict[f])
+    unit.updated_at = func.now()
+    db.flush()
+
+    existing = list(
+        db.scalars(select(UnitBlock).where(UnitBlock.unit_id == unit.id).order_by(UnitBlock.position))
+    )
+    incoming: list[dict[str, Any]] = unit_dict.get("blocks", [])
+
+    # 1. Emparejar por (tipo, ocurrencia).
+    pool: dict[str, list[UnitBlock]] = {}
+    for ub in existing:
+        pool.setdefault(ub.block_type.value, []).append(ub)
+    matches: dict[int, UnitBlock] = {}  # índice del bloque nuevo → unit_block existente
+    for i, blk in enumerate(incoming):
+        candidates = pool.get(str(blk.get("type")))
+        if candidates:
+            matches[i] = candidates.pop(0)
+    leftovers = [ub for lst in pool.values() for ub in lst]
+
+    # 2. Eliminar los sobrantes (template + unit_block).
+    for ub in leftovers:
+        report.block_progress_lost += _count_block_progress(db, ub.id)
+        template = db.get(BLOCK_TYPE_TO_MODEL[ub.block_type], ub.block_id)
+        db.delete(ub)
+        db.flush()
+        if template is not None:
+            db.delete(template)
+            db.flush()
+        report.removed += 1
+
+    # 3. Sacar de en medio las posiciones (UNIQUE unit_id+position) de los que quedan.
+    kept = [ub for ub in existing if ub not in leftovers]
+    for ub in kept:
+        ub.position = ub.position + 10_000
+    db.flush()
+
+    # 4. Recorrer los bloques nuevos en orden.
+    evidence_ids_by_position: dict[int, uuid.UUID] = {}
+    for i, blk in enumerate(incoming):
+        position = i + 1
+        payload = _block_to_create(blk, position, evidence_ids_by_position)
+        matched_ub = matches.get(i)
+        if matched_ub is None:
+            new_id = _create_block_content(db, unit.id, payload)
+            ub = UnitBlock(
+                unit_id=unit.id, position=position, block_type=UnitBlockType(payload.block_type),
+                block_id=new_id, required=payload.required,
+            )
+            db.add(ub)
+            db.flush()
+            report.added += 1
+        else:
+            ub = matched_ub
+            _rewrite_block_content(db, unit.id, ub, payload, report)
+            ub.position = position
+            ub.required = payload.required
+            db.flush()
+            report.matched += 1
+        if blk.get("type") == "text_evidence":
+            evidence_ids_by_position[position] = ub.id
+
+    db.refresh(unit)
+    report.validation_errors = list(_validate_for_publish(db, unit))
+    return report
+
+
+def _count_block_progress(db: Session, unit_block_id: uuid.UUID) -> int:
+    from hg.modules.learning_units.models import BlockProgress
+
+    return db.scalar(
+        select(func.count()).select_from(BlockProgress).where(BlockProgress.unit_block_id == unit_block_id)
+    ) or 0
+
+
+def _rewrite_block_content(
+    db: Session, unit_id: uuid.UUID, ub: UnitBlock, payload: Any, report: InPlaceReport
+) -> None:
+    """Reescribe el contenido del bloque emparejado ``ub`` conservando su id."""
+    model = BLOCK_TYPE_TO_MODEL[ub.block_type]
+    row = db.get(model, ub.block_id)
+    if row is None:  # referencia colgante: se rearma el contenido
+        ub.block_id = _create_block_content(db, unit_id, payload)
+        return
+
+    if isinstance(row, VideoBlock):
+        row.video_url = payload.video_url
+        row.eyebrow_label = payload.eyebrow_label
+    elif isinstance(row, TextBlock):
+        # Se crea el contenido nuevo (resuelve evidence, valida presentation) y se
+        # copia campo a campo a la fila existente, así conserva su id.
+        new_id = _create_block_content(db, unit_id, payload)
+        new = db.get(TextBlock, new_id)
+        assert new is not None
+        for col in (
+            "eyebrow", "body", "citation", "applies_to", "requires_evidence_block_id",
+            "hero_stat", "checklist_items", "presentation",
+        ):
+            setattr(row, col, getattr(new, col))
+        db.flush()
+        db.delete(new)
+    elif isinstance(row, ReflectionBlock):
+        row.eyebrow = payload.eyebrow
+        row.prompt = payload.prompt
+        row.min_chars = payload.min_chars
+        row.max_chars = payload.max_chars
+        row.example = payload.example
+    elif isinstance(row, QuizBlock):
+        row.eyebrow = payload.eyebrow
+        old_q = list(db.scalars(select(QuizQuestion).where(QuizQuestion.quiz_block_id == row.id)))
+        from hg.modules.learning_units.models import QuizResponse
+
+        qids = [q.id for q in old_q]
+        if qids:
+            report.quiz_responses_lost += db.scalar(
+                select(func.count()).select_from(QuizResponse).where(QuizResponse.question_id.in_(qids))
+            ) or 0
+        report.quiz_questions_replaced += len(old_q)
+        db.query(QuizQuestion).filter(QuizQuestion.quiz_block_id == row.id).delete()
+        db.flush()
+        for n, q in enumerate(payload.questions, start=1):
+            _create_question(db, row.id, n, q)
+    db.flush()
 
 
 def try_publish(db: Session, unit: LearningUnit) -> list[str]:

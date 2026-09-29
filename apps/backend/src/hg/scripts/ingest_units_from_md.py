@@ -128,7 +128,8 @@ def run(args: argparse.Namespace) -> None:
             try:
                 unit = upsert_unit_from_dict(db, final, publish=False)
                 db.flush()
-                ensure_pillar_badge(db, code.dimension, code.pillar)
+                if code.pillar is not None:
+                    ensure_pillar_badge(db, code.dimension, code.pillar)
                 errs = try_publish(db, unit)
                 db.commit()
                 if errs:

@@ -15,9 +15,11 @@ from hg.modules.learning_units.unit_code import UnitCode
 from hg.scripts.sync_units_from_drive import (
     assemble_unit_dict,
     build_video_blocks,
+    code_from_unit_json,
     derive_unit_code,
     extract_json_from_doc_text,
     parse_folder_name,
+    parse_unit_json_text,
     run,
     sanitize_unit_json,
 )
@@ -291,9 +293,129 @@ def test_run_local_dry_run_counts_units(tmp_path: Path) -> None:
     args = argparse.Namespace(
         root_folder_id="x", only=None, dry_run=True,
         local_folder=str(tmp_path), skip_drive_download=True, no_publish=False,
-        skip_upload=False, skip_existing=False,
+        skip_upload=False, skip_existing=False, update_existing=False,
     )
     stats = run(args)
     assert stats.folders == 1
     assert stats.mp4s == 1
     assert stats.published == 0 and stats.drafts == 0 and stats.failed == 0
+
+
+# ─────────────────── unit.json como fuente de verdad (D3-D6) ───────────────────
+
+
+def test_parse_unit_json_text_ok_and_tolerates_bom() -> None:
+    assert parse_unit_json_text('\ufeff{"slug": "hg-rc-001-x"}')["slug"] == "hg-rc-001-x"
+
+
+@pytest.mark.parametrize("bad", ["no es json", "[1, 2]", '{"title": "sin slug"}'])
+def test_parse_unit_json_text_rejects_bad(bad: str) -> None:
+    with pytest.raises(UnitDictError):
+        parse_unit_json_text(bad)
+
+
+def test_code_from_unit_json_general_level_and_null_pillar() -> None:
+    # D3: dimension_code poblado, pillar null, level GENERAL → L1; RC → RE.
+    code = code_from_unit_json({
+        "slug": "hg-rc-004-escribir-sin-motivo", "dimension_code": "RC",
+        "pillar_code": None, "level_code": "GENERAL",
+    })
+    assert code == UnitCode("RE", 1, None, 4)
+
+
+@pytest.mark.parametrize(
+    "dim,expected", [("SB", "SA"), ("PI", "PI"), ("EM", "ES"), ("PR", "PR")]
+)
+def test_code_from_unit_json_normalizes_dimensions(dim: str, expected: str) -> None:
+    code = code_from_unit_json({
+        "slug": f"hg-{dim.lower()}-002-x", "dimension_code": dim, "level_code": "GENERAL",
+    })
+    assert code.dimension == expected
+
+
+def test_code_from_unit_json_number_from_slug_zero_and_state_slug() -> None:
+    assert code_from_unit_json(
+        {"slug": "hg-sb-000-el-caso", "dimension_code": "SB", "level_code": "GENERAL"}
+    ).number == 0
+    assert code_from_unit_json(
+        {"slug": "hg-pr-v0-001-x", "dimension_code": "PR", "level_code": "L1"}
+    ).number == 1
+
+
+def test_code_from_unit_json_explicit_unit_number_wins() -> None:
+    code = code_from_unit_json(
+        {"slug": "hg-rc-001-x", "dimension_code": "RC", "level_code": "GENERAL", "unit_number": 7}
+    )
+    assert code.number == 7
+
+
+@pytest.mark.parametrize(
+    "js",
+    [
+        {"slug": "hg-rc-001-x", "level_code": "GENERAL"},  # sin dimension_code
+        {"slug": "hg-rc-001-x", "dimension_code": "RC", "level_code": "V0"},  # nivel no normalizable
+        {"slug": "hg-rc-001-x", "dimension_code": "RC"},  # sin level_code
+        {"slug": "sin-numero", "dimension_code": "RC", "level_code": "GENERAL"},
+    ],
+)
+def test_code_from_unit_json_rejects_insufficient(js: dict) -> None:
+    with pytest.raises(UnitDictError):
+        code_from_unit_json(js)
+
+
+def test_run_local_dry_run_reads_unit_json_for_general_dimension(tmp_path: Path) -> None:
+    import argparse
+    import json
+
+    # Carpeta sin código en el nombre ni en el MP4; sólo unit.json + MP4.
+    folder = tmp_path / "hg-rc-001-un-vinculo"
+    folder.mkdir()
+    (folder / "unit.json").write_text(json.dumps({
+        "slug": "hg-rc-001-un-vinculo", "title": "T", "dimension_code": "RC",
+        "pillar_code": None, "level_code": "GENERAL", "blocks": [],
+    }))
+    (folder / "video.mp4").write_bytes(b"x")
+    stats = run(argparse.Namespace(
+        root_folder_id="x", only=None, dry_run=True, local_folder=str(tmp_path),
+        skip_drive_download=True, no_publish=False, skip_upload=False, skip_existing=False, update_existing=False,
+    ))
+    assert (stats.folders, stats.failed, stats.mp4s) == (1, 0, 1)
+
+
+def test_run_local_dry_run_update_existing_marks_new_unit_without_db_write(tmp_path: Path) -> None:
+    import argparse
+    import json
+
+    folder = tmp_path / "hg-rc-777-solo-dry-run"
+    folder.mkdir()
+    (folder / "unit.json").write_text(json.dumps({
+        "slug": "hg-rc-777-solo-dry-run", "title": "T", "dimension_code": "RC",
+        "level_code": "GENERAL", "blocks": [],
+    }))
+    (folder / "video.mp4").write_bytes(b"x")
+    stats = run(argparse.Namespace(
+        root_folder_id="x", only=None, dry_run=True, local_folder=str(tmp_path),
+        skip_drive_download=True, no_publish=False, skip_upload=False, skip_existing=False,
+        update_existing=True,
+    ))
+    # unit nueva en dry-run: se reporta, no se actualiza ni se falla
+    assert (stats.folders, stats.failed, stats.updated) == (1, 0, 0)
+
+
+def test_run_skip_folder_excludes_named_folder(tmp_path: Path) -> None:
+    import argparse
+    import json
+
+    for name, slug in [("hg-rc-771-a", "hg-rc-771-a"), ("hg-rc-772-b", "hg-rc-772-b")]:
+        d = tmp_path / name
+        d.mkdir()
+        (d / "unit.json").write_text(json.dumps({
+            "slug": slug, "title": "T", "dimension_code": "RC", "level_code": "GENERAL", "blocks": [],
+        }))
+        (d / "v.mp4").write_bytes(b"x")
+    stats = run(argparse.Namespace(
+        root_folder_id="x", only=None, dry_run=True, local_folder=str(tmp_path),
+        skip_drive_download=True, no_publish=False, skip_upload=False, skip_existing=False,
+        update_existing=False, skip_folder=["hg-rc-772-b"],
+    ))
+    assert (stats.folders, stats.skipped) == (1, 1)
