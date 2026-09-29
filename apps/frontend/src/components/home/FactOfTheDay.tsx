@@ -69,7 +69,7 @@ export function FactOfTheDay() {
           <Sparkles size={14} strokeWidth={2} className="text-hg-amber" />
           Fact del día
         </div>
-        <p className="mt-4 max-w-2xl text-balance font-display text-xl leading-snug sm:text-2xl">
+        <p className="mt-4 text-balance font-display text-xl leading-snug sm:text-2xl">
           {fact.text}
         </p>
         {fact.source ? (
