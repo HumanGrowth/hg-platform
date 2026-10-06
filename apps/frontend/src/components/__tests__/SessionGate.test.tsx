@@ -109,7 +109,7 @@ describe("SessionGate · gate de onboarding", () => {
     expect(router.replace).not.toHaveBeenCalled();
   });
 
-  it("redirectAdmins manda al admin a /admin", async () => {
+  it("redirectAdmins manda al admin a /admin/org", async () => {
     storeUser = { ...completed, role: "admin" };
     apiMe.mockResolvedValue({ ...completed, role: "admin" });
 
@@ -119,6 +119,6 @@ describe("SessionGate · gate de onboarding", () => {
       </SessionGate>,
     );
 
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/admin"));
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/admin/org"));
   });
 });

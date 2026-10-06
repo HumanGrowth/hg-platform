@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { useScopedCompanyId } from "@/lib/acting-company";
-import { apiBulkImport, apiBulkImportTemplate, ApiError } from "@/lib/api";
+import { apiBulkImport, apiBulkImportTemplate, apiErrorMessage } from "@/lib/api";
 import { toast } from "@/lib/toast-store";
 import type { BulkImportResponse } from "@/lib/types";
 
@@ -49,7 +49,7 @@ function ImportContent() {
       );
     } catch (err) {
       toast(
-        err instanceof ApiError ? err.message : "No se pudo procesar el archivo.",
+        apiErrorMessage(err, "No se pudo procesar el archivo."),
         "danger",
       );
     } finally {

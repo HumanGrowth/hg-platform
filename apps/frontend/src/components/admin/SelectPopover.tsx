@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { AnchoredMenu } from "@/components/admin/AnchoredMenu";
 import { cn } from "@/lib/utils";
 
 export interface PopoverOption {
@@ -12,8 +13,8 @@ export interface PopoverOption {
 /**
  * Selector-popover reutilizable para edición inline en tablas. El trigger lo
  * define el consumidor (chip, texto, header…). El menú se posiciona con
- * `position: fixed` anclado al trigger (getBoundingClientRect) para NO quedar
- * recortado por contenedores con `overflow` (la tabla scrollea en horizontal).
+ * portal (`AnchoredMenu`) anclado al trigger, para NO quedar recortado ni
+ * desfasado por contenedores con `overflow` o `backdrop-filter`.
  */
 export function SelectPopover({
   value,
@@ -34,29 +35,8 @@ export function SelectPopover({
 }) {
   const [open, setOpen] = React.useState(false);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
-  const [pos, setPos] = React.useState<{ top: number; left: number } | null>(null);
   const MENU_W = 176; // 11rem
-
-  const place = React.useCallback(() => {
-    const el = triggerRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const left = align === "right" ? r.right - MENU_W : r.left;
-    setPos({ top: r.bottom + 4, left: Math.max(8, left) });
-  }, [align]);
-
-  React.useEffect(() => {
-    if (!open) return;
-    place();
-    // Cerrar al scrollear/resize: el menú fixed quedaría desanclado.
-    const close = () => setOpen(false);
-    window.addEventListener("scroll", close, true);
-    window.addEventListener("resize", close);
-    return () => {
-      window.removeEventListener("scroll", close, true);
-      window.removeEventListener("resize", close);
-    };
-  }, [open, place]);
+  const close = React.useCallback(() => setOpen(false), []);
 
   const selected = options.find((o) => o.value === value);
 
@@ -73,36 +53,34 @@ export function SelectPopover({
       >
         {renderTrigger({ open, label: selected?.label ?? value })}
       </button>
-      {open && pos ? (
-        <>
-          <div className="fixed inset-0 z-[60]" aria-hidden onClick={() => setOpen(false)} />
-          <div
-            role="menu"
-            aria-label={menuLabel}
-            style={{ top: pos.top, left: pos.left, width: MENU_W }}
-            className="glass-modal fixed z-[61] max-h-64 overflow-auto p-1"
+      <AnchoredMenu
+        anchor={triggerRef.current}
+        open={open}
+        onClose={close}
+        align={align}
+        width={MENU_W}
+        label={menuLabel}
+        className="p-1"
+      >
+        {options.map((o) => (
+          <button
+            key={o.value}
+            type="button"
+            role="menuitemradio"
+            aria-checked={o.value === value}
+            onClick={() => {
+              onSelect(o.value);
+              setOpen(false);
+            }}
+            className={cn(
+              "block w-full truncate rounded-md px-3 py-2 text-left font-sans text-sm hover:bg-bg-sunken",
+              o.value === value ? "font-semibold text-primary" : "text-fg",
+            )}
           >
-            {options.map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                role="menuitemradio"
-                aria-checked={o.value === value}
-                onClick={() => {
-                  onSelect(o.value);
-                  setOpen(false);
-                }}
-                className={cn(
-                  "block w-full truncate rounded-md px-3 py-2 text-left font-sans text-sm hover:bg-bg-sunken",
-                  o.value === value ? "font-semibold text-primary" : "text-fg",
-                )}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-        </>
-      ) : null}
+            {o.label}
+          </button>
+        ))}
+      </AnchoredMenu>
     </>
   );
 }

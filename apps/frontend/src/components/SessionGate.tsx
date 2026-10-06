@@ -6,7 +6,7 @@ import * as React from "react";
 import { EmptyRing } from "@/components/EmptyRing";
 import { apiMe, apiRefresh } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
-import { isAdminRole } from "@/lib/home-route";
+import { homeRouteFor, isAdminRole } from "@/lib/home-route";
 
 /**
  * Rehidrata el access token (en memoria) desde la cookie httpOnly al cargar.
@@ -38,9 +38,20 @@ export function SessionGate({
   // Gate del onboarding. El paso de **consentimiento** está OCULTO por ahora
   // (se saltea): se va directo al assessment inicial si falta completarlo.
   // `has_completed_onboarding` se decide con dato fresco de /me (meChecked).
+  // El admin que ya está operando (panel admin, o aterrizó por login) no debe
+  // rebotar a /admin/org si después va a /home a mano ("Volver a colaborador").
+  React.useEffect(() => {
+    if (!user || !isAdminRole(user.role) || requireOnboarding) return;
+    try {
+      sessionStorage.setItem("hg-admin-landed", "1");
+    } catch {
+      /* sessionStorage no disponible */
+    }
+  }, [user, requireOnboarding]);
+
   React.useEffect(() => {
     if (!ready || !redirectAdmins || !user || !meChecked) return;
-    if (isAdminRole(user.role)) router.replace("/admin" as never);
+    if (isAdminRole(user.role)) router.replace(homeRouteFor(user.role) as never);
   }, [ready, redirectAdmins, user, meChecked, router]);
 
   React.useEffect(() => {
@@ -51,7 +62,7 @@ export function SessionGate({
       try {
         if (pathname === "/home" && !sessionStorage.getItem("hg-admin-landed")) {
           sessionStorage.setItem("hg-admin-landed", "1");
-          router.replace("/admin" as never);
+          router.replace(homeRouteFor(user.role) as never);
         }
       } catch {
         /* sessionStorage no disponible: sin aterrizaje forzado */

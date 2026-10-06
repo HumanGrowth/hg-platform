@@ -21,6 +21,7 @@ import {
   apiSetCompanyAccess,
   apiSetCompanyLicenses,
   ApiError,
+  apiErrorMessage,
 } from "@/lib/api";
 import { setActingCompany } from "@/lib/acting-company";
 import { toast } from "@/lib/toast-store";
@@ -93,7 +94,7 @@ function CompaniesContent() {
       setLicFor(null);
       load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "No se pudieron actualizar las licencias.", "danger");
+      toast(apiErrorMessage(err, "No se pudieron actualizar las licencias."), "danger");
     } finally {
       setSavingLic(false);
     }

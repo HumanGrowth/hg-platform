@@ -87,6 +87,18 @@ export class ApiError extends Error {
   }
 }
 
+/** Mensaje legible de un error de la API: `ApiError` (rutas de sesión) o el
+ * `detail` que devuelve FastAPI en un error de axios (400/403/409…). Sin esto
+ * los endpoints del backend caían siempre en el mensaje genérico. */
+export function apiErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) return err.message;
+  if (axios.isAxiosError(err)) {
+    const detail = (err.response?.data as { detail?: unknown } | undefined)?.detail;
+    if (typeof detail === "string" && detail.trim()) return detail;
+  }
+  return fallback;
+}
+
 // ─────────────── Session ops (vía Next API routes + cookie) ───────────────
 
 export const apiLogin = (email: string, password: string, orgSlug?: string) =>

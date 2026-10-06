@@ -8,6 +8,7 @@ import * as React from "react";
 
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { Avatar } from "@/components/ui/avatar";
+import { BrandLogo } from "@/components/marketing/BrandLogo";
 import { apiLogout } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 
@@ -31,8 +32,7 @@ export function TopBar() {
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between gap-4 border-b border-border bg-bg-raised px-4 md:px-6">
       {/* Logo: visible en mobile (la SideNav está oculta <md). */}
       <Link href="/home" aria-label="Human Growth — inicio" className="md:hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo/nav/logo-nav-negro@2x.png" alt="Human Growth" className="h-7 w-auto" />
+        <BrandLogo className="h-7 w-auto" />
       </Link>
       <div className="flex-1" />
 

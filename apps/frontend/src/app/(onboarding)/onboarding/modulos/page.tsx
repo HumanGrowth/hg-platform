@@ -64,7 +64,7 @@ export default function OnboardingModulosPage() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-16">
       <h1 className="display text-fg text-[32px] sm:text-[40px]">Te damos la bienvenida a Human Growth</h1>
-      <p className="mt-4 max-w-prose text-hg-charcoal">
+      <p className="mt-4 max-w-prose text-fg-muted">
         Estos módulos de onboarding son tu punto de partida. El resto del contenido se habilita
         cuando tu organización te asigne algo.
       </p>

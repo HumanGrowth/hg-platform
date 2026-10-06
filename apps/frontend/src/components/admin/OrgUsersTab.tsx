@@ -1,5 +1,6 @@
 "use client";
 
+import { AnchoredMenu } from "@/components/admin/AnchoredMenu";
 import { MoreHorizontal } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -32,6 +33,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
   const [page, setPage] = React.useState(1);
   const [query, setQuery] = React.useState("");
   const [menuFor, setMenuFor] = React.useState<string | null>(null);
+  const [menuAnchor, setMenuAnchor] = React.useState<HTMLElement | null>(null);
   const [roleModal, setRoleModal] = React.useState<AdminUser | null>(null);
   const [mgrModal, setMgrModal] = React.useState<AdminUser | null>(null);
   const [deleteModal, setDeleteModal] = React.useState<AdminUser | null>(null);
@@ -189,7 +191,10 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
                     <button
                       type="button"
                       aria-label="Acciones"
-                      onClick={() => setMenuFor(menuFor === u.id ? null : u.id)}
+                      onClick={(e) => {
+                        setMenuAnchor(e.currentTarget);
+                        setMenuFor(menuFor === u.id ? null : u.id);
+                      }}
                       className="rounded-md p-1 text-fg-muted hover:bg-bg-sunken hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
                     >
                       <MoreHorizontal size={18} strokeWidth={1.75} />
@@ -199,13 +204,16 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
                       —
                     </span>
                   )}
-                  {menuFor === u.id ? (
+                  <AnchoredMenu
+                    anchor={menuAnchor}
+                    open={menuFor === u.id}
+                    onClose={() => setMenuFor(null)}
+                    align="right"
+                    width={208}
+                    className="p-2 text-left"
+                  >
                     <>
-                      <div className="fixed inset-0 z-40" onClick={() => setMenuFor(null)} />
-                      <div
-                        role="menu"
-                        className="glass-modal absolute right-5 z-50 mt-1 w-52 p-2 text-left"
-                      >
+                      <div>
                         <button
                           type="button"
                           onClick={() =>
@@ -261,7 +269,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
                         ) : null}
                       </div>
                     </>
-                  ) : null}
+                  </AnchoredMenu>
                 </td>
               </tr>
             ))}

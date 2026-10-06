@@ -279,7 +279,15 @@ def accept_invite(
         template="welcome",
         context={
             "nombre": (user.full_name or "").split(" ")[0] or "hola",
-            "cta_url": f"{settings.app_base_url}/modulos",
+            "cta_url": f"{settings.app_base_url}{_welcome_path(user.role)}",
+            **(
+                {
+                    "intro": "Entrá a tu panel para gestionar tu organización.",
+                    "cta_label": "Ir a mi panel",
+                }
+                if user.role is not UserRole.collaborator and user.role is not UserRole.manager
+                else {}
+            ),
         },
     )
     return user, access, refresh
@@ -335,6 +343,16 @@ def list_orgs(db: Session, *, limit: int, offset: int) -> tuple[list[Organizatio
         .all()
     )
     return list(items), total
+
+
+def _welcome_path(role: UserRole) -> str:
+    """Destino del CTA del correo de bienvenida: los roles que operan la
+    plataforma no pasan por módulos, aterrizan en su panel."""
+    if role is UserRole.company_admin:
+        return "/admin/empresa"
+    if role in (UserRole.admin, UserRole.superadmin):
+        return "/admin/org"
+    return "/modulos"
 
 
 # ─────────────────────────── Admin: invitations ───────────────────────────
