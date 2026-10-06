@@ -296,7 +296,7 @@ function MembersContent() {
                   renderTrigger={() => <HeaderFilterLabel label="Estado" active={statusF !== "all"} />}
                 />
               </th>
-              <th className="px-4 py-3 font-semibold">Módulos</th>
+              <th className="px-4 py-3 font-semibold" title="Completados / asignados">Módulos</th>
               <th className="px-4 py-3 text-right font-semibold">Acciones</th>
             </tr>
           </thead>
@@ -388,7 +388,14 @@ function MembersContent() {
                     />
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 font-mono text-sm text-fg">
-                    {m.modules_completed} ✓ · {m.modules_in_progress} ⋯
+                    {m.modules_assigned > 0 ? (
+                      <>
+                        {m.modules_assigned_completed}
+                        <span className="text-fg-muted"> / {m.modules_assigned}</span>
+                      </>
+                    ) : (
+                      <span className="text-fg-muted">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">

@@ -315,7 +315,7 @@ def list_company_members(db: Session, company_id: UUID, actor: User) -> list[Com
         latest_dimension_results,
     )
     from hg.modules.consent import service as consent_service
-    from hg.modules.people.service import activity_by_users
+    from hg.modules.people.service import activity_by_users, assigned_modules_progress
 
     _get_company(db, company_id)
     rows = db.execute(
@@ -327,6 +327,7 @@ def list_company_members(db: Session, company_id: UUID, actor: User) -> list[Com
     users = [u for u, _ in rows]
     name_by_id = {u.id: u.full_name for u in users}
     aggs = activity_by_users(db, [u.id for u in users])
+    assigned = assigned_modules_progress(db, [u.id for u in users])
     consents = consent_service.privacy_consents_by_user(db, [u.id for u in users])
     consent_service.log_access(db, actor=actor, resource=consent_service.RESOURCE_ROSTER)
 
@@ -354,6 +355,8 @@ def list_company_members(db: Session, company_id: UUID, actor: User) -> list[Com
                 last_active_at=agg.last_active_at,
                 modules_completed=agg.courses_completed,
                 modules_in_progress=agg.courses_in_progress,
+                modules_assigned_completed=assigned[user.id][0],
+                modules_assigned=assigned[user.id][1],
                 consent_status=status,
                 dimension_states={
                     k: MemberDimensionStateOut(**v) for k, v in states.items()

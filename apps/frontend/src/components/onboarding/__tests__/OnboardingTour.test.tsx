@@ -33,10 +33,10 @@ describe("OnboardingTour", () => {
     visible.getBoundingClientRect = rect({ top: 200, left: 24, right: 224, bottom: 240, width: 200, height: 40 });
     document.body.append(hidden, visible);
 
-    const { container } = render(<OnboardingTour userName="Ana" onDone={vi.fn()} />);
+    render(<OnboardingTour userName="Ana" onDone={vi.fn()} />);
     fireEvent.click(screen.getByText("Siguiente")); // paso "Inicio" (nav-home)
 
-    const spot = Array.from(container.querySelectorAll<HTMLElement>("div[aria-hidden]")).find((el) =>
+    const spot = Array.from(document.body.querySelectorAll<HTMLElement>("div[aria-hidden]")).find((el) =>
       el.style.boxShadow.includes("9999px"),
     );
     expect(spot).toBeTruthy();

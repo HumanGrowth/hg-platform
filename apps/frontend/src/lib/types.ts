@@ -1126,6 +1126,9 @@ export interface CompanyMember {
   last_active_at: string | null;
   modules_completed: number;
   modules_in_progress: number;
+  /** Units asignadas (sueltas + ruta) y cuántas de ellas completó. */
+  modules_assigned: number;
+  modules_assigned_completed: number;
   // Estado de consentimiento (docx §6.2): reemplaza el "sin datos" genérico.
   consent_status: "pending" | "declined" | "authorized_no_activity" | "data_available";
   dimension_states: Record<string, MemberDimensionState>;

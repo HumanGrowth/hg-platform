@@ -161,24 +161,17 @@ def badges_unlocked_count_by_users(db: Session, user_ids: list[UUID]) -> dict[UU
     return out
 
 
-def assigned_content_completed_by_users(db: Session, user_ids: list[UUID]) -> dict[UUID, bool]:
-    """True si el user completó el 100% de su contenido asignado — units
-    sueltas (``ModuleAssignment``) + la ``CustomPath`` resuelta para él (si
-    tiene alguna, vía ``resolve_custom_path``, misma precedencia que el
-    colaborador ve en /mi-ruta). Dispara la notificación "completó las rutas
-    asignadas" en la tarjeta del manager. Independiente del feedback del
-    manager y del assessment — solo mira completion de contenido
-    (``LearningUnitAttempt.completed_at``, nunca el ``ModuleAssignment.status``
-    que no se actualiza). Sin nada asignado → False (nada que notificar)."""
+def assigned_units_by_users(db: Session, user_ids: list[UUID]) -> dict[UUID, set[UUID]]:
+    """Units asignadas por user: sueltas (``ModuleAssignment``) + la ``CustomPath``
+    resuelta para él (si tiene alguna, vía ``resolve_custom_path``, misma
+    precedencia que el colaborador ve en /mi-ruta)."""
     from hg.modules.identity.models import User
     from hg.modules.learning_units.models import ModuleAssignment
     from hg.modules.paths.resolution import custom_path_unit_order, resolve_custom_path
 
-    out: dict[UUID, bool] = dict.fromkeys(user_ids, False)
-    if not user_ids:
-        return out
-
     assigned_by_user: dict[UUID, set[UUID]] = {uid: set() for uid in user_ids}
+    if not user_ids:
+        return assigned_by_user
     for uid, unit_id in db.execute(
         select(ModuleAssignment.user_id, ModuleAssignment.learning_unit_id).where(
             ModuleAssignment.user_id.in_(user_ids)
@@ -194,21 +187,52 @@ def assigned_content_completed_by_users(db: Session, user_ids: list[UUID]) -> di
         path = resolve_custom_path(db, user)
         if path is not None:
             assigned_by_user[uid].update(custom_path_unit_order(db, path.id))
+    return assigned_by_user
 
-    all_unit_ids = {u for units in assigned_by_user.values() for u in units}
-    if not all_unit_ids:
-        return out
 
+def completed_units_by_users(
+    db: Session, user_ids: list[UUID], unit_ids: set[UUID]
+) -> dict[UUID, set[UUID]]:
+    """Units (de ``unit_ids``) con attempt completado, por user."""
     completed_by_user: dict[UUID, set[UUID]] = {uid: set() for uid in user_ids}
+    if not user_ids or not unit_ids:
+        return completed_by_user
     for uid, unit_id in db.execute(
         select(LearningUnitAttempt.user_id, LearningUnitAttempt.unit_id).where(
             LearningUnitAttempt.user_id.in_(user_ids),
-            LearningUnitAttempt.unit_id.in_(all_unit_ids),
+            LearningUnitAttempt.unit_id.in_(unit_ids),
             LearningUnitAttempt.completed_at.is_not(None),
         )
     ).all():
         completed_by_user[uid].add(unit_id)
+    return completed_by_user
 
+
+def assigned_modules_progress(db: Session, user_ids: list[UUID]) -> dict[UUID, tuple[int, int]]:
+    """(completadas, asignadas) por user, contando solo units asignadas — para el
+    ratio "completados / asignados" del roster de la empresa."""
+    assigned_by_user = assigned_units_by_users(db, user_ids)
+    all_unit_ids = {u for units in assigned_by_user.values() for u in units}
+    completed_by_user = completed_units_by_users(db, user_ids, all_unit_ids)
+    return {
+        uid: (len(assigned_by_user[uid] & completed_by_user[uid]), len(assigned_by_user[uid]))
+        for uid in user_ids
+    }
+
+
+def assigned_content_completed_by_users(db: Session, user_ids: list[UUID]) -> dict[UUID, bool]:
+    """True si el user completó el 100% de su contenido asignado (ver
+    ``assigned_units_by_users``). Dispara la notificación "completó las rutas
+    asignadas" en la tarjeta del manager. Independiente del feedback del
+    manager y del assessment — solo mira completion de contenido
+    (``LearningUnitAttempt.completed_at``, nunca el ``ModuleAssignment.status``
+    que no se actualiza). Sin nada asignado → False (nada que notificar)."""
+    out: dict[UUID, bool] = dict.fromkeys(user_ids, False)
+    if not user_ids:
+        return out
+    assigned_by_user = assigned_units_by_users(db, user_ids)
+    all_unit_ids = {u for units in assigned_by_user.values() for u in units}
+    completed_by_user = completed_units_by_users(db, user_ids, all_unit_ids)
     for uid in user_ids:
         assigned = assigned_by_user[uid]
         if assigned and assigned <= completed_by_user[uid]:
