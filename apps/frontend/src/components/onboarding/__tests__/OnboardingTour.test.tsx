@@ -22,4 +22,27 @@ describe("OnboardingTour", () => {
     fireEvent.click(screen.getByText("Saltar"));
     expect(onDone).toHaveBeenCalledWith("skip");
   });
+
+  it("ancla el spotlight al elemento VISIBLE cuando SideNav y BottomNav comparten data-tour-id", () => {
+    const rect = (r: Partial<DOMRect>) => () => r as DOMRect;
+    const hidden = document.createElement("a");
+    hidden.setAttribute("data-tour-id", "nav-home");
+    hidden.getBoundingClientRect = rect({ top: 0, left: 0, right: 0, bottom: 0, width: 0, height: 0 });
+    const visible = document.createElement("a");
+    visible.setAttribute("data-tour-id", "nav-home");
+    visible.getBoundingClientRect = rect({ top: 200, left: 24, right: 224, bottom: 240, width: 200, height: 40 });
+    document.body.append(hidden, visible);
+
+    const { container } = render(<OnboardingTour userName="Ana" onDone={vi.fn()} />);
+    fireEvent.click(screen.getByText("Siguiente")); // paso "Inicio" (nav-home)
+
+    const spot = Array.from(container.querySelectorAll<HTMLElement>("div[aria-hidden]")).find((el) =>
+      el.style.boxShadow.includes("9999px"),
+    );
+    expect(spot).toBeTruthy();
+    expect(spot!.style.top).toBe("192px"); // 200 - 8
+    expect(spot!.style.left).toBe("16px"); // 24 - 8
+    hidden.remove();
+    visible.remove();
+  });
 });

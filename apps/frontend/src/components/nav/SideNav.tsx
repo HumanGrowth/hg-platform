@@ -1,5 +1,6 @@
 "use client";
 
+import { BrandLogo } from "@/components/marketing/BrandLogo";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -44,12 +45,16 @@ export function SideNav({ className }: { className?: string }) {
     >
       <div className="flex min-h-0 flex-1 flex-col gap-6">
         <Link href="/home" aria-label="Human Growth — inicio" className="flex shrink-0 items-center px-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={collapsed ? "/isotype/isotype-oscuro.svg" : "/logo/nav/logo-nav-negro@2x.png"}
-            alt="Human Growth"
-            className="h-7 w-auto"
-          />
+          {collapsed ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/isotype/isotype-oscuro.svg" alt="Human Growth" className="logo-on-light h-7 w-auto" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/isotype/isotype-blanco.svg" alt="Human Growth" className="logo-on-dark h-7 w-auto" />
+            </>
+          ) : (
+            <BrandLogo className="h-7 w-auto" />
+          )}
         </Link>
         <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
           {items.map((item) => {

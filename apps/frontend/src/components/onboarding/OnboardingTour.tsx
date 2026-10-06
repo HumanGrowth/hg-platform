@@ -27,6 +27,20 @@ interface Step {
 
 const PAD = 8; // padding del spotlight alrededor del elemento
 const CARD_W = 340;
+const CARD_H = 320; // alto aproximado de la card (para acotarla al viewport)
+
+/** SideNav (desktop) y BottomNav (mobile) comparten `data-tour-id`; uno de los
+ * dos está oculto (display:none → rect 0×0). `querySelector` devolvía el primero
+ * del DOM aunque estuviera oculto y el spotlight caía en (0,0). Se toma el
+ * primero que realmente se ve. */
+function findVisibleTarget(id: string): HTMLElement | null {
+  const nodes = document.querySelectorAll<HTMLElement>(`[data-tour-id="${id}"]`);
+  for (const node of Array.from(nodes)) {
+    const r = node.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) return node;
+  }
+  return null;
+}
 
 interface Spot {
   top: number;
@@ -81,18 +95,22 @@ export function OnboardingTour({
 
   // Medir/posicionar el spotlight cada vez que cambia el paso (o en resize/scroll).
   React.useLayoutEffect(() => {
-    const measure = () => {
-      const target = step.targetId
-        ? (document.querySelector(`[data-tour-id="${step.targetId}"]`) as HTMLElement | null)
-        : null;
+    const measure = (scrollIntoView: boolean) => {
+      const target = step.targetId ? findVisibleTarget(step.targetId) : null;
       if (!target) {
         setSpot(null);
         return;
       }
-      target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
-      const r = target.getBoundingClientRect();
       const vw = window.innerWidth;
       const vh = window.innerHeight;
+      let r = target.getBoundingClientRect();
+      // Solo se hace scroll si el elemento no está a la vista, y solo al cambiar
+      // de paso: hacerlo en cada scroll/resize provocaba un loop que dejaba el
+      // spotlight corrido respecto del menú.
+      if (scrollIntoView && (r.top < 0 || r.bottom > vh)) {
+        target.scrollIntoView({ block: "center", inline: "nearest" });
+        r = target.getBoundingClientRect();
+      }
       const top = r.top - PAD;
       const left = r.left - PAD;
       const width = r.width + PAD * 2;
@@ -106,12 +124,13 @@ export function OnboardingTour({
         // Al LADO (derecha) — caso desktop con el nav en el sidebar izquierdo.
         placement = "right";
         cardLeft = r.right + GAP;
-        cardTop = midY; // centrado vertical vía translateY(-50%)
+        // La card se centra vía translateY(-50%): se acota para no salirse de la pantalla.
+        cardTop = Math.min(Math.max(midY, CARD_H / 2 + 12), vh - CARD_H / 2 - 12);
       } else if (r.left - GAP - CARD_W >= 0) {
         // Al lado (izquierda) si no hay lugar a la derecha.
         placement = "left";
         cardLeft = r.left - GAP;
-        cardTop = midY;
+        cardTop = Math.min(Math.max(midY, CARD_H / 2 + 12), vh - CARD_H / 2 - 12);
       } else {
         // Fallback vertical (mobile: nav abajo → tarjeta arriba).
         placement = midY < vh / 2 ? "below" : "above";
@@ -120,12 +139,19 @@ export function OnboardingTour({
       }
       setSpot({ top, left, width, height, cardTop, cardLeft, placement });
     };
-    measure();
-    window.addEventListener("resize", measure);
-    window.addEventListener("scroll", measure, true);
+    measure(true);
+    // El layout se asienta después del primer paint (transición de ancho del
+    // sidebar, fuentes, banner): se vuelve a medir un par de veces.
+    const timers = [120, 400].map((ms) => window.setTimeout(() => measure(false), ms));
+    const onChange = () => measure(false);
+    window.addEventListener("resize", onChange);
+    window.addEventListener("scroll", onChange, true);
+    window.visualViewport?.addEventListener("resize", onChange);
     return () => {
-      window.removeEventListener("resize", measure);
-      window.removeEventListener("scroll", measure, true);
+      timers.forEach((t) => window.clearTimeout(t));
+      window.removeEventListener("resize", onChange);
+      window.removeEventListener("scroll", onChange, true);
+      window.visualViewport?.removeEventListener("resize", onChange);
     };
   }, [i, step.targetId]);
 

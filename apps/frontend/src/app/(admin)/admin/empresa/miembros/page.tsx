@@ -21,6 +21,7 @@ import {
   apiDeleteUser,
   apiUpdateCompanyMember,
   ApiError,
+  apiErrorMessage,
 } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
@@ -161,7 +162,7 @@ function MembersContent() {
       toast(okMsg, "success");
       load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "No se pudo actualizar.", "danger");
+      toast(apiErrorMessage(err, "No se pudo actualizar."), "danger");
       load(); // revierte el select a su valor real
     } finally {
       setSavingId(null);
@@ -186,7 +187,7 @@ function MembersContent() {
       setForm({ org_id: "", email: "", name: "", role: "collaborator" });
       load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "No se pudo enviar la invitación.", "danger");
+      toast(apiErrorMessage(err, "No se pudo enviar la invitación."), "danger");
     } finally {
       setSubmitting(false);
     }
@@ -202,7 +203,7 @@ function MembersContent() {
       setConfirmEmail("");
       load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "No se pudo eliminar el usuario.", "danger");
+      toast(apiErrorMessage(err, "No se pudo eliminar el usuario."), "danger");
     } finally {
       setDeleting(false);
     }

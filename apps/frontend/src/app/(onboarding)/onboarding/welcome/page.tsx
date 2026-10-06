@@ -1,9 +1,9 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
+import { BrandLogo } from "@/components/marketing/BrandLogo";
 import { apiStartSession } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
@@ -27,7 +27,7 @@ export default function OnboardingWelcome() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
-      <img src="/logo/nav/logo-nav-negro@2x.png" alt="Human Growth" className="mb-10 h-9 w-auto" />
+      <BrandLogo className="mb-10 h-9 w-auto" />
       <h1 className="display max-w-[760px] text-fg text-[40px] sm:text-[56px]">
         {firstName
           ? `Hola ${firstName}, vamos a entender tu punto de partida`

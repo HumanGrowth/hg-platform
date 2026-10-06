@@ -12,3 +12,11 @@
  */
 export const showPricing = (): boolean =>
   process.env.NEXT_PUBLIC_SHOW_PRICING === "true";
+
+/**
+ * Rutas custom por Empresa/Organización (/admin/empresa/rutas). Default `false`:
+ * la pantalla se muestra con las acciones deshabilitadas y un aviso. Flipear a
+ * `"true"` en Vercel para habilitarla sin deploy de código.
+ */
+export const customPathsEnabled = (): boolean =>
+  process.env.NEXT_PUBLIC_CUSTOM_PATHS_ENABLED === "true";

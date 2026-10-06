@@ -35,12 +35,14 @@ import {
 } from "@/lib/api";
 import { blocksFor, cpCatalog, cpLevels, CP_DIMENSION as CUSTOM_PATH_DIMENSION, type BlockMode, type ContentBlock } from "@/lib/cp-blocks";
 import { subPillarName } from "@/lib/dimension-styles";
+import { customPathsEnabled } from "@/lib/flags";
 import { toast } from "@/lib/toast-store";
 import type { AssignableUnit, CompanyMember, CompanyOrg, CustomPath, CustomPathScope } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 function RutasContent() {
   const { companyId, ready } = useScopedCompanyId();
+  const enabled = customPathsEnabled();
   const [paths, setPaths] = React.useState<CustomPath[] | null>(null);
   const [orgs, setOrgs] = React.useState<CompanyOrg[]>([]);
   const [createOpen, setCreateOpen] = React.useState(false);
@@ -89,11 +91,21 @@ function RutasContent() {
             Rutas de la empresa
           </Display>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>
+        <Button onClick={() => setCreateOpen(true)} disabled={!enabled}>
           <Plus size={18} strokeWidth={1.75} />
           Nueva ruta
         </Button>
       </div>
+
+      {!enabled && (
+        <div
+          role="status"
+          className="mt-4 rounded-lg border border-dashed border-border bg-bg-sunken px-4 py-3 text-sm text-fg-muted"
+        >
+          Esta función no está habilitada todavía. Vas a poder crear y asignar rutas personalizadas
+          cuando se active para tu empresa.
+        </div>
+      )}
 
       <p className="mt-3 max-w-prose text-sm text-fg-muted">
         Una ruta agrupa módulos con un orden propio. Aplica a toda la <strong>Empresa</strong> o a una{" "}
@@ -125,17 +137,18 @@ function RutasContent() {
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-2">
-                  <Button variant="secondary" onClick={() => setItemsPath(p)}>
+                  <Button variant="secondary" onClick={() => setItemsPath(p)} disabled={!enabled}>
                     Módulos
                   </Button>
-                  <Button variant="secondary" onClick={() => setMembersPath(p)}>
+                  <Button variant="secondary" onClick={() => setMembersPath(p)} disabled={!enabled}>
                     <Users size={16} strokeWidth={1.75} />
                     Asignar
                   </Button>
                   <button
                     type="button"
                     onClick={() => void toggleActive(p)}
-                    className="rounded-md border border-border px-3 py-1.5 font-sans text-xs font-semibold text-fg hover:bg-bg-sunken"
+                    disabled={!enabled}
+                    className="rounded-md border border-border px-3 py-1.5 font-sans text-xs font-semibold text-fg hover:bg-bg-sunken disabled:pointer-events-none disabled:opacity-40"
                   >
                     {p.is_active ? "Desactivar" : "Activar"}
                   </button>
@@ -143,7 +156,8 @@ function RutasContent() {
                     type="button"
                     aria-label={`Eliminar ${p.name}`}
                     onClick={() => void remove(p)}
-                    className="rounded-md p-2 text-fg-subtle hover:bg-bg-sunken hover:text-danger"
+                    disabled={!enabled}
+                    className="rounded-md p-2 text-fg-subtle hover:bg-bg-sunken hover:text-danger disabled:pointer-events-none disabled:opacity-40"
                   >
                     <Trash2 size={16} strokeWidth={1.75} />
                   </button>

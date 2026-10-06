@@ -28,6 +28,7 @@ import {
   apiRenameCompanyOrg,
   apiSetOrgQuota,
   ApiError,
+  apiErrorMessage,
 } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 import { COUNTRIES, countryName } from "@/lib/countries";
@@ -97,7 +98,7 @@ function OrganizacionesContent() {
       });
       load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "No se pudo actualizar el cupo.", "danger");
+      toast(apiErrorMessage(err, "No se pudo actualizar el cupo."), "danger");
     } finally {
       setSavingQuota(null);
     }
@@ -114,7 +115,7 @@ function OrganizacionesContent() {
       setRenameFor(null);
       load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "No se pudo renombrar la organización.", "danger");
+      toast(apiErrorMessage(err, "No se pudo renombrar la organización."), "danger");
     } finally {
       setBusy(false);
     }
@@ -129,7 +130,7 @@ function OrganizacionesContent() {
       setDeleteFor(null);
       load();
     } catch (err) {
-      toast(err instanceof ApiError ? err.message : "No se pudo eliminar la organización.", "danger");
+      toast(apiErrorMessage(err, "No se pudo eliminar la organización."), "danger");
     } finally {
       setBusy(false);
     }
@@ -156,7 +157,7 @@ function OrganizacionesContent() {
       load();
     } catch (err) {
       toast(
-        err instanceof ApiError ? err.message : "No se pudo crear la organización.",
+        apiErrorMessage(err, "No se pudo crear la organización."),
         "danger",
       );
     } finally {
