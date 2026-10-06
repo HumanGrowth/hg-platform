@@ -23,12 +23,16 @@ export function ModuleBlockAssignFields({
   alreadyAssignedIds,
   onAssigned,
   onCancel,
+  assign,
 }: {
+  /** Clave del destinatario (reinicia el picker al cambiar). */
   userId: string;
   userName: string;
   alreadyAssignedIds: Set<string>;
   onAssigned: () => void;
   onCancel: () => void;
+  /** Destino alternativo (p. ej. una organización). Por defecto asigna al usuario `userId`. */
+  assign?: (unitIds: string[], dueDateIso: string, note: string | null) => Promise<unknown>;
 }) {
   const [units, setUnits] = React.useState<AssignableUnit[]>([]);
   const [mode, setMode] = React.useState<BlockMode>("pillar");
@@ -76,12 +80,11 @@ export function ModuleBlockAssignFields({
     if (pendingUnitIds.size === 0 || !dueDate) return;
     setSaving(true);
     try {
-      await apiAssignModules(
-        userId,
-        [...pendingUnitIds],
-        new Date(dueDate).toISOString(),
-        note.trim() || null,
-      );
+      const unitIds = [...pendingUnitIds];
+      const dueIso = new Date(dueDate).toISOString();
+      const noteValue = note.trim() || null;
+      if (assign) await assign(unitIds, dueIso, noteValue);
+      else await apiAssignModules(userId, unitIds, dueIso, noteValue);
       toast(`Módulos asignados a ${userName}.`, "success");
       onAssigned();
     } catch {

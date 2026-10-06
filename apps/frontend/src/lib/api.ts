@@ -3,6 +3,7 @@ import axios, { type AxiosInstance } from "axios";
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
 import type {
+  OrgModule,
   Perspective,
   PerspectiveContentType,
   PerspectiveInput,
@@ -785,6 +786,39 @@ export const apiAssignModules = async (
     note: note ?? null,
   });
   return res.data;
+};
+
+/** Módulos de una ORGANIZACIÓN: los reciben los miembros actuales y todo el que se sume. */
+export const apiAssignModulesToOrg = async (
+  orgId: string,
+  unitIds: string[],
+  dueDate: string | null,
+  note: string | null,
+  companyId?: string,
+): Promise<{ members_targeted: number; assignments_created: number }> => {
+  const res = await backend.post(
+    `/api/v1/admin/organizations/${orgId}/assignments`,
+    { unit_ids: unitIds, due_date: dueDate, note },
+    { params: companyId ? { company_id: companyId } : undefined },
+  );
+  return res.data;
+};
+
+export const apiListOrgModules = async (orgId: string, companyId?: string): Promise<OrgModule[]> => {
+  const res = await backend.get<OrgModule[]>(`/api/v1/admin/organizations/${orgId}/modules`, {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
+  return res.data;
+};
+
+export const apiRemoveOrgModule = async (
+  orgId: string,
+  unitId: string,
+  companyId?: string,
+): Promise<void> => {
+  await backend.delete(`/api/v1/admin/organizations/${orgId}/modules/${unitId}`, {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
 };
 
 export const apiUpdateAssignment = async (

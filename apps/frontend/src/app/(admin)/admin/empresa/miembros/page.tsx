@@ -392,16 +392,6 @@ function MembersContent() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <Link
-                        href={
-                          `/admin/org/users/${m.id}/assignments?name=${encodeURIComponent(m.full_name)}` as Route
-                        }
-                        aria-label={`Asignar módulos a ${m.full_name}`}
-                        title="Asignar módulos"
-                        className="rounded-md p-1.5 text-fg-muted hover:bg-bg-sunken hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber"
-                      >
-                        <FileEdit size={16} strokeWidth={1.75} />
-                      </Link>
                       {isSuperadmin && editable && (
                         <button
                           type="button"

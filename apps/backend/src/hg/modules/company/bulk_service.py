@@ -34,6 +34,7 @@ from hg.modules.company import service as company_service
 from hg.modules.identity import service as identity_service
 from hg.modules.identity.invitations import Invitation
 from hg.modules.identity.models import Organization, User, UserRole
+from hg.modules.learning_units.org_modules import apply_org_modules
 
 TEMPLATE_HEADERS = ["organizacion", "email", "nombre_completo", "rol", "manager_email"]
 # MIME oficial del .xlsx (para el Content-Type de la plantilla y el upload).
@@ -192,7 +193,11 @@ def _process_row(
         select(User).where(User.company_id == company_id, func.lower(User.email) == email)
     )
     if existing is not None:
-        return _update_existing(existing, org, role, full_name, manager, reserve)
+        prev_org_id = existing.org_id
+        result = _update_existing(existing, org, role, full_name, manager, reserve)
+        if existing.org_id != prev_org_id:
+            apply_org_modules(db, existing)  # módulos de la org de destino
+        return result
 
     # ¿Ya hay una invitación pendiente para este email en alguna org de la Empresa?
     pending = db.scalar(
