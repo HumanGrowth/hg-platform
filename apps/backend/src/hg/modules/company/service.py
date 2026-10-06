@@ -31,6 +31,7 @@ from hg.modules.company.schemas import (
 from hg.modules.identity import service as identity_service
 from hg.modules.identity.invitations import Invitation
 from hg.modules.identity.models import Company, Organization, User, UserRole
+from hg.modules.learning_units.area_access import PILLAR_CODES
 from hg.modules.learning_units.models import Area
 from hg.modules.learning_units.org_modules import apply_org_modules
 
@@ -469,7 +470,7 @@ def update_area(db: Session, *, code: str, data: UpdateAreaRequest) -> AreaOut:
 
 
 def get_company_access(db: Session, company_id: UUID) -> CompanyAccessOut:
-    _require_company(db, company_id)
+    company = _require_company(db, company_id)
     codes = list(
         db.scalars(
             select(CompanyAreaAccess.area_code)
@@ -477,17 +478,36 @@ def get_company_access(db: Session, company_id: UUID) -> CompanyAccessOut:
             .order_by(CompanyAreaAccess.area_code)
         ).all()
     )
-    return CompanyAccessOut(company_id=company_id, area_codes=codes)
+    return CompanyAccessOut(
+        company_id=company_id, area_codes=codes, pillar_codes=_ordered_pillars(company.enabled_pillars)
+    )
+
+
+def _ordered_pillars(codes: list[str]) -> list[str]:
+    return [c for c in PILLAR_CODES if c in set(codes)]
 
 
 def set_company_access(
-    db: Session, *, company_id: UUID, area_codes: list[str], granted_by: User
+    db: Session,
+    *,
+    company_id: UUID,
+    area_codes: list[str],
+    granted_by: User,
+    pillar_codes: list[str] | None = None,
 ) -> CompanyAccessOut:
     """Reemplaza el set de Áreas habilitadas de la Empresa (diff add/remove).
 
     Valida que la Empresa exista y que cada código sea un Área real; luego borra
     los rows sobrantes y agrega los faltantes (idempotente vía diff)."""
-    _require_company(db, company_id)
+    company = _require_company(db, company_id)
+    if pillar_codes is not None:
+        unknown_pillars = set(pillar_codes) - set(PILLAR_CODES)
+        if unknown_pillars:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"pilares inexistentes: {sorted(unknown_pillars)}",
+            )
+        company.enabled_pillars = _ordered_pillars(pillar_codes)
     wanted = set(area_codes)
     if wanted:
         real = set(db.scalars(select(Area.code).where(Area.code.in_(wanted))).all())
@@ -512,7 +532,11 @@ def set_company_access(
             )
         )
     db.flush()
-    return CompanyAccessOut(company_id=company_id, area_codes=sorted(wanted))
+    return CompanyAccessOut(
+        company_id=company_id,
+        area_codes=sorted(wanted),
+        pillar_codes=_ordered_pillars(company.enabled_pillars),
+    )
 
 
 def _require_company(db: Session, company_id: UUID) -> Company:

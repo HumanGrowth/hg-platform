@@ -1142,6 +1142,8 @@ export interface Area {
 export interface CompanyAccess {
   company_id: string;
   area_codes: string[];
+  /** Pilares (códigos de dimensión: CP, PR, RE, SA, PI, ES) habilitados. */
+  pillar_codes: string[];
 }
 
 export interface BulkImportRow {

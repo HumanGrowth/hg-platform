@@ -21,7 +21,11 @@ from sqlalchemy.orm import Session
 from hg.core.deps import get_db_as_superadmin, require_role
 from hg.modules.company import service as company_service
 from hg.modules.identity.models import Organization, User
-from hg.modules.learning_units.area_access import enabled_area_codes
+from hg.modules.learning_units.area_access import (
+    blocked_by_pillar,
+    enabled_area_codes,
+    enabled_pillar_codes,
+)
 from hg.modules.learning_units.models import LearningUnit
 from hg.modules.paths.models import (
     CustomPath,
@@ -190,6 +194,14 @@ def set_custom_path_items(
         units[uid].slug for uid in unit_ids
         if units[uid].area_code is not None and units[uid].area_code not in enabled
     ]
+    blocked_pillars = blocked_by_pillar(
+        list(units.values()), enabled_pillar_codes(db, resolved_company)
+    )
+    if blocked_pillars:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Pilar no habilitado para la empresa: {blocked_pillars}",
+        )
     if blocked:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

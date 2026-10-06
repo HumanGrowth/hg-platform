@@ -130,7 +130,13 @@ def set_company_access(
     actor: User = Depends(require_role("superadmin")),
 ) -> CompanyAccessOut:
     return service.set_company_access(
-        db, company_id=company_id, area_codes=[c.upper() for c in body.area_codes], granted_by=actor
+        db,
+        company_id=company_id,
+        area_codes=[c.upper() for c in body.area_codes],
+        granted_by=actor,
+        pillar_codes=(
+            [c.upper() for c in body.pillar_codes] if body.pillar_codes is not None else None
+        ),
     )
 
 
