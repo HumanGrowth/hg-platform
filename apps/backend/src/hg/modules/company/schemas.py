@@ -150,16 +150,19 @@ class UpdateAreaRequest(BaseModel):
 
 
 class CompanyAccessOut(BaseModel):
-    """Áreas habilitadas para una Empresa (los códigos con un row de acceso)."""
+    """Áreas (rows de acceso) y pilares habilitados para una Empresa."""
 
     company_id: UUID
     area_codes: list[str]
+    pillar_codes: list[str]
 
 
 class SetCompanyAccessRequest(BaseModel):
     """Reemplaza el set completo de Áreas habilitadas de la Empresa (PUT)."""
 
     area_codes: list[str] = Field(default_factory=list, max_length=50)
+    # None = no tocar los pilares (compatibilidad con clientes que solo mandan áreas).
+    pillar_codes: list[str] | None = Field(default=None, max_length=6)
 
 
 # ─────────────────────────── Bulk import (TASK 4) ───────────────────────────

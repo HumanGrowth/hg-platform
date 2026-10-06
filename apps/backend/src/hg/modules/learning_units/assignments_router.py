@@ -25,7 +25,12 @@ from hg.core.deps import get_current_user, get_db_as_superadmin, require_role
 from hg.db import get_db
 from hg.modules.company import service as company_service
 from hg.modules.identity.models import User, UserRole
-from hg.modules.learning_units.area_access import enabled_area_codes, visible_units_predicate
+from hg.modules.learning_units.area_access import (
+    blocked_by_pillar,
+    enabled_area_codes,
+    enabled_pillar_codes,
+    visible_units_predicate,
+)
 from hg.modules.learning_units.assignment_status import (
     assignment_completed_clause,
     completed_assignment_ids,
@@ -261,6 +266,12 @@ def assign_modules(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Área no habilitada para la empresa: {sorted(blocked)}",
         )
+    blocked_pillars = blocked_by_pillar(units, enabled_pillar_codes(db, target.company_id))
+    if blocked_pillars:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Pilar no habilitado para la empresa: {blocked_pillars}",
+        )
     # Corrección post-2.4: la asignación manual (manager/admin) solo admite
     # contenido de Carrera Profesional — el resto de las dimensiones se asigna
     # vía score del assessment, no eligiendo módulos a mano.
@@ -345,6 +356,12 @@ def assign_modules_to_organization(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Área no habilitada para la empresa: {sorted(blocked)}",
+        )
+    blocked_pillars = blocked_by_pillar(units, enabled_pillar_codes(db, org.company_id))
+    if blocked_pillars:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Pilar no habilitado para la empresa: {blocked_pillars}",
         )
     non_cp = [u.slug for u in units if u.dimension_code != "CP"]
     if non_cp:

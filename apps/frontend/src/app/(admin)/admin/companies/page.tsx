@@ -24,6 +24,7 @@ import {
   apiErrorMessage,
 } from "@/lib/api";
 import { setActingCompany } from "@/lib/acting-company";
+import { DIMENSIONS } from "@/lib/dimensions";
 import { toast } from "@/lib/toast-store";
 import type { Area, Company } from "@/lib/types";
 
@@ -43,6 +44,7 @@ function CompaniesContent() {
   // Access editor
   const [accessFor, setAccessFor] = React.useState<Company | null>(null);
   const [enabled, setEnabled] = React.useState<Set<string>>(new Set());
+  const [pillars, setPillars] = React.useState<Set<string>>(new Set());
   const [savingAccess, setSavingAccess] = React.useState(false);
 
   const load = React.useCallback(() => {
@@ -103,9 +105,11 @@ function CompaniesContent() {
   async function openAccess(company: Company) {
     setAccessFor(company);
     setEnabled(new Set());
+    setPillars(new Set());
     try {
       const access = await apiGetCompanyAccess(company.id);
       setEnabled(new Set(access.area_codes));
+      setPillars(new Set(access.pillar_codes));
     } catch {
       toast("No se pudo cargar el acceso de la empresa.", "danger");
     }
@@ -115,7 +119,7 @@ function CompaniesContent() {
     if (!accessFor) return;
     setSavingAccess(true);
     try {
-      await apiSetCompanyAccess(accessFor.id, [...enabled]);
+      await apiSetCompanyAccess(accessFor.id, [...enabled], [...pillars]);
       toast("Acceso actualizado.", "success");
       setAccessFor(null);
     } catch {
@@ -288,9 +292,32 @@ function CompaniesContent() {
         open={accessFor !== null}
         onClose={() => setAccessFor(null)}
         title={accessFor ? `Acceso de ${accessFor.name}` : "Acceso"}
-        description="Marcá las áreas que esta empresa puede ver. El contenido general siempre es visible."
+        description="Elegí los pilares y las áreas que esta empresa puede ver. El contenido general de un pilar habilitado siempre es visible."
       >
         <div className="flex flex-col gap-3">
+          <p className="font-sans text-xs font-semibold uppercase tracking-meta text-fg-muted">
+            Pilares
+          </p>
+          {DIMENSIONS.map((d) => (
+            <label key={d.code} className="flex items-center gap-3 text-sm text-fg">
+              <input
+                type="checkbox"
+                checked={pillars.has(d.code)}
+                onChange={(e) => {
+                  const next = new Set(pillars);
+                  if (e.target.checked) next.add(d.code);
+                  else next.delete(d.code);
+                  setPillars(next);
+                }}
+                className="h-4 w-4 rounded border-border"
+              />
+              <span className="font-mono text-xs font-semibold">{d.code}</span>
+              <span className="text-fg-muted">{d.name}</span>
+            </label>
+          ))}
+          <p className="mt-2 font-sans text-xs font-semibold uppercase tracking-meta text-fg-muted">
+            Áreas
+          </p>
           {areas.length === 0 ? (
             <p className="text-sm text-fg-muted">No hay áreas en el catálogo.</p>
           ) : (

@@ -1132,9 +1132,11 @@ export const apiGetCompanyAccess = async (companyId: string): Promise<CompanyAcc
 export const apiSetCompanyAccess = async (
   companyId: string,
   areaCodes: string[],
+  pillarCodes?: string[],
 ): Promise<CompanyAccess> => {
   const res = await backend.put<CompanyAccess>(`/api/v1/admin/companies/${companyId}/access`, {
     area_codes: areaCodes,
+    ...(pillarCodes ? { pillar_codes: pillarCodes } : {}),
   });
   return res.data;
 };

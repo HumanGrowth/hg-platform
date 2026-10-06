@@ -15,8 +15,9 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     func,
+    text,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hg.db import Base
@@ -59,6 +60,14 @@ class Company(Base):
     contract_end: Mapped[date | None] = mapped_column(Date)
     # Pool de licencias de la Empresa (lo asigna superadmin HG).
     licenses_total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # Pilares (códigos de dimensión) cuyo contenido puede ver esta Empresa. Lo
+    # gobierna el superadmin; default = los 6 (ver `learning_units/area_access.py`).
+    enabled_pillars: Mapped[list[str]] = mapped_column(
+        ARRAY(String(4)),
+        nullable=False,
+        default=lambda: ["CP", "PR", "RE", "SA", "PI", "ES"],
+        server_default=text("ARRAY['CP','PR','RE','SA','PI','ES']::varchar[]"),
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
