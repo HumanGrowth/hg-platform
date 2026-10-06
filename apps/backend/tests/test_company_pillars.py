@@ -92,8 +92,18 @@ def test_disabled_dimension_and_pillar_hide_content_and_block_assignment(
     s.commit()
     access = f"{API}/admin/companies/{org.company_id}/access"
 
+    career = {"CP": "P1", "PR": "P2"}  # dimensión Drive → career path del listado
+
     def visible(unit) -> bool:
-        return client.get(f"{API}/modulos/{unit.slug}", headers=auth_headers(user)).status_code == 200
+        # Listado por dimensión: aplica el gating de acceso pero no el bloqueo de
+        # secuencia (el detalle por slug bloquea P2 hasta completar P1).
+        res = client.get(
+            f"{API}/modulos/by-dimension",
+            params={"dimension_code": career[unit.dimension_code]},
+            headers=auth_headers(user),
+        )
+        assert res.status_code == 200, res.text
+        return unit.slug in {i["slug"] for i in res.json()}
 
     try:
         # Dimensión PR deshabilitada → su contenido se oculta.
