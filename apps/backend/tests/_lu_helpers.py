@@ -34,6 +34,7 @@ def make_unit(
     published: bool = True,
     estimated_duration_seconds: int = 300,
     area_code: str | None = None,
+    pillar_code: str | None = None,
 ) -> LearningUnit:
     """Crea una unit publicada con ``n_blocks`` bloques (templates text_context).
 
@@ -44,6 +45,7 @@ def make_unit(
         dimension_code=dimension_code,
         level_code=level_code,
         area_code=area_code,
+        pillar_code=pillar_code,
         published_at=datetime.now(UTC) if published else None,
         estimated_duration_seconds=estimated_duration_seconds,
     )

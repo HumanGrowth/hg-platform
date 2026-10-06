@@ -60,13 +60,24 @@ class Company(Base):
     contract_end: Mapped[date | None] = mapped_column(Date)
     # Pool de licencias de la Empresa (lo asigna superadmin HG).
     licenses_total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    # Pilares (códigos de dimensión) cuyo contenido puede ver esta Empresa. Lo
-    # gobierna el superadmin; default = los 6 (ver `learning_units/area_access.py`).
-    enabled_pillars: Mapped[list[str]] = mapped_column(
+    # Dimensiones (CP, PR, RE, SA, PI, ES) cuyo contenido puede ver esta Empresa.
+    # La columna se llama `enabled_pillars` por herencia de EP-01 (nombre mal
+    # elegido: un PILAR es una sub-categoría de una dimensión); no se renombra para
+    # no romper el código ya desplegado.
+    enabled_dimensions: Mapped[list[str]] = mapped_column(
+        "enabled_pillars",
         ARRAY(String(4)),
         nullable=False,
         default=lambda: ["CP", "PR", "RE", "SA", "PI", "ES"],
         server_default=text("ARRAY['CP','PR','RE','SA','PI','ES']::varchar[]"),
+    )
+    # Pilares deshabilitados dentro de una dimensión habilitada: "<DIM>:<PILAR>"
+    # (p. ej. "CP:P3"). Vacío = todos habilitados.
+    disabled_pillars: Mapped[list[str]] = mapped_column(
+        ARRAY(String(20)),
+        nullable=False,
+        default=list,
+        server_default=text("ARRAY[]::varchar[]"),
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
