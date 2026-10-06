@@ -16,21 +16,30 @@ from hg.modules.company.models import CompanyAreaAccess
 from hg.modules.identity.models import Company, User, UserRole
 from hg.modules.learning_units.models import LearningUnit
 
-# Pilares gobernables por Empresa (códigos de dimensión de las units). Otras
-# dimensiones del catálogo (p. ej. "ON", onboarding) no se gatean por pilar.
-PILLAR_CODES: tuple[str, ...] = ("CP", "PR", "RE", "SA", "PI", "ES")
+# Dimensiones gobernables por Empresa (códigos de dimensión de las units). Otras
+# dimensiones del catálogo (p. ej. "ON", onboarding) no se gatean. Un PILAR es una
+# sub-categoría DENTRO de una dimensión (`pillar_code`: P1..P5/AI en CP, V0..Vn en PR).
+DIMENSION_CODES: tuple[str, ...] = ("CP", "PR", "RE", "SA", "PI", "ES")
+
+
+def pillar_key(dimension_code: str, pillar_code: str) -> str:
+    """Clave de un pilar deshabilitado: "<DIM>:<PILAR>" (p. ej. "CP:P3")."""
+    return f"{dimension_code}:{pillar_code}"
 
 
 def visible_units_predicate(user: User) -> ColumnElement[bool]:
     """Predicado SQL: la unit es visible si (es general o su Área está habilitada
-    para la Empresa del ``user``) Y (su pilar está habilitado para la Empresa).
-    El superadmin no se filtra (ve todo el catálogo)."""
+    para la Empresa del ``user``) Y (su dimensión está habilitada) Y (su pilar no
+    está deshabilitado). El superadmin no se filtra (ve todo el catálogo)."""
     if user.role == UserRole.superadmin:
         return true()
     enabled_areas = select(CompanyAreaAccess.area_code).where(
         CompanyAreaAccess.company_id == user.company_id
     )
-    enabled_pillars = select(func.unnest(Company.enabled_pillars)).where(
+    enabled_dimensions = select(func.unnest(Company.enabled_dimensions)).where(
+        Company.id == user.company_id
+    )
+    disabled_pillars = select(func.unnest(Company.disabled_pillars)).where(
         Company.id == user.company_id
     )
     return and_(
@@ -39,8 +48,14 @@ def visible_units_predicate(user: User) -> ColumnElement[bool]:
             LearningUnit.area_code.in_(enabled_areas),
         ),
         or_(
-            LearningUnit.dimension_code.not_in(PILLAR_CODES),
-            LearningUnit.dimension_code.in_(enabled_pillars),
+            LearningUnit.dimension_code.not_in(DIMENSION_CODES),
+            LearningUnit.dimension_code.in_(enabled_dimensions),
+        ),
+        or_(
+            LearningUnit.pillar_code.is_(None),
+            func.concat(LearningUnit.dimension_code, ":", LearningUnit.pillar_code).not_in(
+                disabled_pillars
+            ),
         ),
     )
 
@@ -64,16 +79,26 @@ def enabled_area_codes(db, company_id) -> set[str]:  # type: ignore[no-untyped-d
     )
 
 
-def enabled_pillar_codes(db, company_id) -> set[str]:  # type: ignore[no-untyped-def]
-    """Pilares habilitados para una Empresa (set de códigos de dimensión)."""
-    pillars = db.scalar(select(Company.enabled_pillars).where(Company.id == company_id))
-    return set(pillars) if pillars is not None else set(PILLAR_CODES)
+def company_content_access(db, company_id) -> tuple[set[str], set[str]]:  # type: ignore[no-untyped-def]
+    """(dimensiones habilitadas, pilares deshabilitados "<DIM>:<PILAR>") de una Empresa."""
+    row = db.execute(
+        select(Company.enabled_dimensions, Company.disabled_pillars).where(Company.id == company_id)
+    ).first()
+    if row is None:
+        return set(DIMENSION_CODES), set()
+    return set(row[0]), set(row[1])
 
 
-def blocked_by_pillar(units, enabled_pillars: set[str]) -> list[str]:  # type: ignore[no-untyped-def]
-    """Slugs de las units cuyo pilar NO está habilitado (para validar asignaciones)."""
+def blocked_by_content_access(units, access: tuple[set[str], set[str]]) -> list[str]:  # type: ignore[no-untyped-def]
+    """Slugs de las units cuya dimensión no está habilitada o cuyo pilar está
+    deshabilitado (para validar asignaciones)."""
+    dimensions, disabled = access
     return sorted(
         u.slug
         for u in units
-        if u.dimension_code in PILLAR_CODES and u.dimension_code not in enabled_pillars
+        if u.dimension_code in DIMENSION_CODES
+        and (
+            u.dimension_code not in dimensions
+            or (u.pillar_code is not None and pillar_key(u.dimension_code, u.pillar_code) in disabled)
+        )
     )

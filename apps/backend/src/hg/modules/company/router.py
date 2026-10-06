@@ -134,8 +134,11 @@ def set_company_access(
         company_id=company_id,
         area_codes=[c.upper() for c in body.area_codes],
         granted_by=actor,
-        pillar_codes=(
-            [c.upper() for c in body.pillar_codes] if body.pillar_codes is not None else None
+        dimension_codes=(
+            [c.upper() for c in body.dimension_codes] if body.dimension_codes is not None else None
+        ),
+        disabled_pillars=(
+            [c.upper() for c in body.disabled_pillars] if body.disabled_pillars is not None else None
         ),
     )
 

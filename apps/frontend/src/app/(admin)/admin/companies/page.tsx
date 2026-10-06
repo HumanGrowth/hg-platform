@@ -26,7 +26,7 @@ import {
 import { setActingCompany } from "@/lib/acting-company";
 import { DIMENSIONS } from "@/lib/dimensions";
 import { toast } from "@/lib/toast-store";
-import type { Area, Company } from "@/lib/types";
+import type { Area, Company, DimensionAccess } from "@/lib/types";
 
 function CompaniesContent() {
   const router = useRouter();
@@ -44,7 +44,9 @@ function CompaniesContent() {
   // Access editor
   const [accessFor, setAccessFor] = React.useState<Company | null>(null);
   const [enabled, setEnabled] = React.useState<Set<string>>(new Set());
-  const [pillars, setPillars] = React.useState<Set<string>>(new Set());
+  const [dims, setDims] = React.useState<Set<string>>(new Set());
+  const [offPillars, setOffPillars] = React.useState<Set<string>>(new Set());
+  const [catalog, setCatalog] = React.useState<DimensionAccess[]>([]);
   const [savingAccess, setSavingAccess] = React.useState(false);
 
   const load = React.useCallback(() => {
@@ -105,11 +107,15 @@ function CompaniesContent() {
   async function openAccess(company: Company) {
     setAccessFor(company);
     setEnabled(new Set());
-    setPillars(new Set());
+    setDims(new Set());
+    setOffPillars(new Set());
+    setCatalog([]);
     try {
       const access = await apiGetCompanyAccess(company.id);
       setEnabled(new Set(access.area_codes));
-      setPillars(new Set(access.pillar_codes));
+      setDims(new Set(access.dimension_codes));
+      setOffPillars(new Set(access.disabled_pillars));
+      setCatalog(access.dimensions);
     } catch {
       toast("No se pudo cargar el acceso de la empresa.", "danger");
     }
@@ -119,7 +125,10 @@ function CompaniesContent() {
     if (!accessFor) return;
     setSavingAccess(true);
     try {
-      await apiSetCompanyAccess(accessFor.id, [...enabled], [...pillars]);
+      await apiSetCompanyAccess(accessFor.id, [...enabled], {
+        dimensionCodes: [...dims],
+        disabledPillars: [...offPillars],
+      });
       toast("Acceso actualizado.", "success");
       setAccessFor(null);
     } catch {
@@ -292,29 +301,63 @@ function CompaniesContent() {
         open={accessFor !== null}
         onClose={() => setAccessFor(null)}
         title={accessFor ? `Acceso de ${accessFor.name}` : "Acceso"}
-        description="Elegí los pilares y las áreas que esta empresa puede ver. El contenido general de un pilar habilitado siempre es visible."
+        description="Elegí las dimensiones, los pilares de cada una y las áreas que esta empresa puede ver. El contenido general de lo habilitado siempre es visible."
       >
         <div className="flex flex-col gap-3">
           <p className="font-sans text-xs font-semibold uppercase tracking-meta text-fg-muted">
-            Pilares
+            Dimensiones y pilares
           </p>
-          {DIMENSIONS.map((d) => (
-            <label key={d.code} className="flex items-center gap-3 text-sm text-fg">
-              <input
-                type="checkbox"
-                checked={pillars.has(d.code)}
-                onChange={(e) => {
-                  const next = new Set(pillars);
-                  if (e.target.checked) next.add(d.code);
-                  else next.delete(d.code);
-                  setPillars(next);
-                }}
-                className="h-4 w-4 rounded border-border"
-              />
-              <span className="font-mono text-xs font-semibold">{d.code}</span>
-              <span className="text-fg-muted">{d.name}</span>
-            </label>
-          ))}
+          {DIMENSIONS.map((d) => {
+            const dimOn = dims.has(d.code);
+            const pillars = catalog.find((c) => c.code === d.code)?.pillars ?? [];
+            return (
+              <div key={d.code} className="flex flex-col gap-2">
+                <label className="flex items-center gap-3 text-sm font-semibold text-fg">
+                  <input
+                    type="checkbox"
+                    checked={dimOn}
+                    onChange={(e) => {
+                      const next = new Set(dims);
+                      if (e.target.checked) next.add(d.code);
+                      else next.delete(d.code);
+                      setDims(next);
+                    }}
+                    className="h-4 w-4 rounded border-border"
+                  />
+                  <span className="font-mono text-xs">{d.code}</span>
+                  <span>{d.name}</span>
+                </label>
+                {pillars.length > 0 ? (
+                  <div className="ml-7 flex flex-col gap-1.5 border-l border-border pl-4">
+                    {pillars.map((p) => {
+                      const key = `${d.code}:${p.code}`;
+                      return (
+                        <label
+                          key={key}
+                          className={`flex items-center gap-3 text-sm ${dimOn ? "text-fg" : "text-fg-subtle"}`}
+                        >
+                          <input
+                            type="checkbox"
+                            disabled={!dimOn}
+                            checked={dimOn && !offPillars.has(key)}
+                            onChange={(e) => {
+                              const next = new Set(offPillars);
+                              if (e.target.checked) next.delete(key);
+                              else next.add(key);
+                              setOffPillars(next);
+                            }}
+                            className="h-4 w-4 rounded border-border"
+                          />
+                          <span className="font-mono text-xs">{p.code}</span>
+                          <span className="text-fg-muted">{p.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
           <p className="mt-2 font-sans text-xs font-semibold uppercase tracking-meta text-fg-muted">
             Áreas
           </p>

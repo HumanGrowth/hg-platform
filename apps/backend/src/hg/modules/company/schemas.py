@@ -149,20 +149,39 @@ class UpdateAreaRequest(BaseModel):
     is_active: bool | None = None
 
 
+class PillarAccessOut(BaseModel):
+    """Un PILAR (sub-categoría dentro de una dimensión) y si está habilitado."""
+
+    code: str
+    name: str
+    enabled: bool
+
+
+class DimensionAccessOut(BaseModel):
+    """Una dimensión (CP, PR, …), si está habilitada, y los pilares de su catálogo."""
+
+    code: str
+    enabled: bool
+    pillars: list[PillarAccessOut]
+
+
 class CompanyAccessOut(BaseModel):
-    """Áreas (rows de acceso) y pilares habilitados para una Empresa."""
+    """Acceso de contenido de una Empresa: Áreas, dimensiones y pilares."""
 
     company_id: UUID
     area_codes: list[str]
-    pillar_codes: list[str]
+    dimension_codes: list[str]  # dimensiones habilitadas
+    disabled_pillars: list[str]  # "<DIM>:<PILAR>" deshabilitados
+    dimensions: list[DimensionAccessOut]
 
 
 class SetCompanyAccessRequest(BaseModel):
-    """Reemplaza el set completo de Áreas habilitadas de la Empresa (PUT)."""
+    """Reemplaza el set completo de Áreas habilitadas de la Empresa (PUT).
+    ``dimension_codes`` / ``disabled_pillars`` en None = no tocarlos."""
 
     area_codes: list[str] = Field(default_factory=list, max_length=50)
-    # None = no tocar los pilares (compatibilidad con clientes que solo mandan áreas).
-    pillar_codes: list[str] | None = Field(default=None, max_length=6)
+    dimension_codes: list[str] | None = Field(default=None, max_length=6)
+    disabled_pillars: list[str] | None = Field(default=None, max_length=200)
 
 
 # ─────────────────────────── Bulk import (TASK 4) ───────────────────────────

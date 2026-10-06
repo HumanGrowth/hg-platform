@@ -24,16 +24,19 @@ from hg.modules.company.schemas import (
     CreateAreaRequest,
     CreateCompanyOrgRequest,
     CreateCompanyRequest,
+    DimensionAccessOut,
     MemberDimensionStateOut,
+    PillarAccessOut,
     UpdateAreaRequest,
     UpdateMemberRequest,
 )
 from hg.modules.identity import service as identity_service
 from hg.modules.identity.invitations import Invitation
 from hg.modules.identity.models import Company, Organization, User, UserRole
-from hg.modules.learning_units.area_access import PILLAR_CODES
-from hg.modules.learning_units.models import Area
+from hg.modules.learning_units.area_access import DIMENSION_CODES, pillar_key
+from hg.modules.learning_units.models import Area, LearningUnit
 from hg.modules.learning_units.org_modules import apply_org_modules
+from hg.modules.learning_units.pillars import pillar_display_name, pillar_rank
 
 # ─────────────────────────── Scope de Empresa (frontera en app) ───────────────────────────
 
@@ -469,6 +472,50 @@ def update_area(db: Session, *, code: str, data: UpdateAreaRequest) -> AreaOut:
 # ─────────────────────────── Acceso Empresa↔Área (superadmin · TASK 8) ───────────────────────────
 
 
+def _catalog_pillars(db: Session) -> dict[str, list[str]]:
+    """Pilares existentes por dimensión (de las units del catálogo), en el orden
+    de presentación (el pilar "AI" va último)."""
+    rows = db.execute(
+        select(LearningUnit.dimension_code, LearningUnit.pillar_code)
+        .where(LearningUnit.pillar_code.is_not(None))
+        .distinct()
+    ).all()
+    out: dict[str, list[str]] = {}
+    for dim, pillar in rows:
+        out.setdefault(dim, []).append(pillar)
+    for dim in out:
+        out[dim].sort(key=lambda c: (pillar_rank(c), c))
+    return out
+
+
+def _access_out(db: Session, company: Company, area_codes: list[str]) -> CompanyAccessOut:
+    catalog = _catalog_pillars(db)
+    enabled_dims = set(company.enabled_dimensions)
+    disabled = set(company.disabled_pillars)
+    dimensions = [
+        DimensionAccessOut(
+            code=dim,
+            enabled=dim in enabled_dims,
+            pillars=[
+                PillarAccessOut(
+                    code=p,
+                    name=pillar_display_name(dim, p),
+                    enabled=pillar_key(dim, p) not in disabled,
+                )
+                for p in catalog.get(dim, [])
+            ],
+        )
+        for dim in DIMENSION_CODES
+    ]
+    return CompanyAccessOut(
+        company_id=company.id,
+        area_codes=area_codes,
+        dimension_codes=[d for d in DIMENSION_CODES if d in enabled_dims],
+        disabled_pillars=sorted(disabled),
+        dimensions=dimensions,
+    )
+
+
 def get_company_access(db: Session, company_id: UUID) -> CompanyAccessOut:
     company = _require_company(db, company_id)
     codes = list(
@@ -478,13 +525,7 @@ def get_company_access(db: Session, company_id: UUID) -> CompanyAccessOut:
             .order_by(CompanyAreaAccess.area_code)
         ).all()
     )
-    return CompanyAccessOut(
-        company_id=company_id, area_codes=codes, pillar_codes=_ordered_pillars(company.enabled_pillars)
-    )
-
-
-def _ordered_pillars(codes: list[str]) -> list[str]:
-    return [c for c in PILLAR_CODES if c in set(codes)]
+    return _access_out(db, company, codes)
 
 
 def set_company_access(
@@ -493,21 +534,34 @@ def set_company_access(
     company_id: UUID,
     area_codes: list[str],
     granted_by: User,
-    pillar_codes: list[str] | None = None,
+    dimension_codes: list[str] | None = None,
+    disabled_pillars: list[str] | None = None,
 ) -> CompanyAccessOut:
-    """Reemplaza el set de Áreas habilitadas de la Empresa (diff add/remove).
+    """Reemplaza el set de Áreas habilitadas de la Empresa (diff add/remove) y,
+    si vienen, sus dimensiones habilitadas y pilares deshabilitados.
 
-    Valida que la Empresa exista y que cada código sea un Área real; luego borra
-    los rows sobrantes y agrega los faltantes (idempotente vía diff)."""
+    Valida que la Empresa exista, que cada código sea un Área real, que cada
+    dimensión sea una dimensión del catálogo y que cada pilar ("<DIM>:<PILAR>")
+    exista en ella; luego borra los rows sobrantes y agrega los faltantes."""
     company = _require_company(db, company_id)
-    if pillar_codes is not None:
-        unknown_pillars = set(pillar_codes) - set(PILLAR_CODES)
+    if dimension_codes is not None:
+        unknown_dims = set(dimension_codes) - set(DIMENSION_CODES)
+        if unknown_dims:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"dimensiones inexistentes: {sorted(unknown_dims)}",
+            )
+        company.enabled_dimensions = [d for d in DIMENSION_CODES if d in set(dimension_codes)]
+    if disabled_pillars is not None:
+        catalog = _catalog_pillars(db)
+        valid = {pillar_key(d, p) for d, ps in catalog.items() for p in ps}
+        unknown_pillars = set(disabled_pillars) - valid
         if unknown_pillars:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"pilares inexistentes: {sorted(unknown_pillars)}",
             )
-        company.enabled_pillars = _ordered_pillars(pillar_codes)
+        company.disabled_pillars = sorted(set(disabled_pillars))
     wanted = set(area_codes)
     if wanted:
         real = set(db.scalars(select(Area.code).where(Area.code.in_(wanted))).all())
@@ -532,11 +586,7 @@ def set_company_access(
             )
         )
     db.flush()
-    return CompanyAccessOut(
-        company_id=company_id,
-        area_codes=sorted(wanted),
-        pillar_codes=_ordered_pillars(company.enabled_pillars),
-    )
+    return _access_out(db, company, sorted(wanted))
 
 
 def _require_company(db: Session, company_id: UUID) -> Company:

@@ -1139,11 +1139,28 @@ export interface Area {
   created_at: string;
 }
 
+export interface PillarAccess {
+  code: string;
+  name: string;
+  enabled: boolean;
+}
+
+export interface DimensionAccess {
+  /** Código de dimensión (CP, PR, RE, SA, PI, ES). */
+  code: string;
+  enabled: boolean;
+  /** Pilares (sub-categorías) del catálogo dentro de la dimensión. */
+  pillars: PillarAccess[];
+}
+
 export interface CompanyAccess {
   company_id: string;
   area_codes: string[];
-  /** Pilares (códigos de dimensión: CP, PR, RE, SA, PI, ES) habilitados. */
-  pillar_codes: string[];
+  /** Dimensiones habilitadas. */
+  dimension_codes: string[];
+  /** Pilares deshabilitados, como "<DIM>:<PILAR>" (p. ej. "CP:P3"). */
+  disabled_pillars: string[];
+  dimensions: DimensionAccess[];
 }
 
 export interface BulkImportRow {

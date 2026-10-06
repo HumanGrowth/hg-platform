@@ -64,8 +64,8 @@ def test_new_member_in_org_gets_org_modules(client, factory, auth_headers) -> No
             json={"org_id": str(org_a.id)},
         )
         assert moved.status_code == 200, moved.text
-        # El token del user movido sigue apuntando a su org vieja (RLS): se re-emite.
-        newcomer.org_id = org_a.id
+        # El token se emite con el org_id del objeto: se recarga el user movido.
+        factory.session.refresh(newcomer)
         mine = client.get("/api/v1/me/assignments", headers=auth_headers(newcomer)).json()
         assert [a["learning_unit_id"] for a in mine] == [str(unit)]
         assert mine[0]["note"] == "bienvenida"
@@ -102,7 +102,7 @@ def test_removing_org_module_stops_inheritance_but_keeps_existing(
             headers=auth_headers(admin),
             json={"org_id": str(org_a.id)},
         )
-        later.org_id = org_a.id
+        factory.session.refresh(later)
         assert client.get("/api/v1/me/assignments", headers=auth_headers(later)).json() == []
     finally:
         _cleanup([unit])
