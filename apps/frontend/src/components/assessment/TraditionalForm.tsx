@@ -78,10 +78,10 @@ export function TraditionalForm({
                 className={cn(
                   "flex min-h-[44px] min-w-[44px] flex-1 items-center justify-center rounded-md border",
                   "px-3 py-2 font-mono text-base font-semibold transition-colors",
-                  "hover:border-primary hover:bg-hg-green-100 focus-visible:outline-none",
+                  "hover:border-primary hover:bg-hg-green-100 dark:hover:bg-white/10 focus-visible:outline-none",
                   "focus-visible:ring-2 focus-visible:ring-hg-amber disabled:opacity-40",
                   selectedValue === v
-                    ? "border-primary bg-hg-green-100 text-fg"
+                    ? "border-primary bg-hg-green-100 text-fg dark:bg-white/15"
                     : "border-border-strong text-fg",
                 )}
               >
@@ -107,9 +107,9 @@ export function TraditionalForm({
               aria-pressed={selectedValue === opt.value}
               className={cn(
                 "glass-fill-strong min-h-[44px] rounded-lg border bg-surface-card px-4 py-3 text-left",
-                "font-sans text-sm text-fg transition-colors hover:border-primary hover:bg-hg-green-100",
+                "font-sans text-sm text-fg transition-colors hover:border-primary hover:bg-hg-green-100 dark:hover:bg-white/10",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber disabled:opacity-40",
-                selectedValue === opt.value ? "border-primary bg-hg-green-100" : "border-border-strong",
+                selectedValue === opt.value ? "border-primary bg-hg-green-100 dark:bg-white/15" : "border-border-strong",
               )}
             >
               {opt.label}

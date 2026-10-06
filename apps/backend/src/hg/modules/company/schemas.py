@@ -53,6 +53,14 @@ class CreateCompanyOrgRequest(BaseModel):
     license_quota: int = Field(default=0, ge=0)
 
 
+class UpdateOrgRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+
+
+class UpdateCompanyLicensesRequest(BaseModel):
+    licenses_total: int = Field(ge=0)
+
+
 class UpdateOrgQuotaRequest(BaseModel):
     license_quota: int = Field(ge=0)
 

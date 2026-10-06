@@ -9,7 +9,7 @@ const { router, apiMe, apiRefresh } = vi.hoisted(() => ({
   apiRefresh: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({ useRouter: () => router }));
+vi.mock("next/navigation", () => ({ useRouter: () => router, usePathname: () => "/modulos" }));
 vi.mock("@/lib/api", () => ({ apiMe, apiRefresh }));
 
 // Store mutable a nivel de módulo: setSession lo actualiza y el re-render
@@ -93,5 +93,32 @@ describe("SessionGate · gate de onboarding", () => {
 
     await waitFor(() => expect(screen.getByText("app-home")).toBeTruthy());
     expect(router.replace).not.toHaveBeenCalledWith("/onboarding/modulos");
+  });
+
+  it("admin no pasa por el assessment ni onboarding aunque has_completed_onboarding sea false", async () => {
+    storeUser = { ...incomplete, role: "admin" };
+    apiMe.mockResolvedValue({ ...incomplete, role: "admin" });
+
+    render(
+      <SessionGate requireOnboarding>
+        <div>app-home</div>
+      </SessionGate>,
+    );
+
+    await waitFor(() => expect(screen.getByText("app-home")).toBeTruthy());
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  it("redirectAdmins manda al admin a /admin", async () => {
+    storeUser = { ...completed, role: "admin" };
+    apiMe.mockResolvedValue({ ...completed, role: "admin" });
+
+    render(
+      <SessionGate redirectAdmins>
+        <div>onboarding</div>
+      </SessionGate>,
+    );
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/admin"));
   });
 });

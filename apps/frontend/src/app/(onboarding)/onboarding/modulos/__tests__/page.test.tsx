@@ -6,7 +6,9 @@ import type { OnboardingStatus } from "@/lib/types";
 import OnboardingModulosPage from "../page";
 
 const { getStatus } = vi.hoisted(() => ({ getStatus: vi.fn() }));
-vi.mock("@/lib/api", () => ({ apiGetOnboardingStatus: getStatus }));
+const { replace } = vi.hoisted(() => ({ replace: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
+vi.mock("@/lib/api", () => ({ apiGetOnboardingStatus: getStatus, apiLogout: vi.fn() }));
 
 function makeStatus(overrides?: Partial<OnboardingStatus>): OnboardingStatus {
   return {
@@ -29,6 +31,21 @@ describe("OnboardingModulosPage", () => {
     await waitFor(() => expect(screen.getByText("Bienvenida a HG")).toBeTruthy());
     expect(screen.getByText("Cómo usar la plataforma")).toBeTruthy();
     expect(screen.getByText("1 de 2 completados")).toBeTruthy();
+  });
+
+  it("tells the user they will get an email when modules are assigned", async () => {
+    getStatus.mockResolvedValue(makeStatus());
+    render(<OnboardingModulosPage />);
+    await waitFor(() =>
+      expect(screen.getByText(/Te llegará un correo cuando tu organización tenga módulos/)).toBeTruthy(),
+    );
+    expect(screen.getByText("Cerrar sesión")).toBeTruthy();
+  });
+
+  it("redirects to /home once the restriction is lifted", async () => {
+    getStatus.mockResolvedValue(makeStatus({ is_restricted: false }));
+    render(<OnboardingModulosPage />);
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/home"));
   });
 
   it("shows a waiting message once all onboarding units are completed", async () => {

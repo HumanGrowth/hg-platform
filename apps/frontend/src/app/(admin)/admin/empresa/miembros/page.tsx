@@ -484,6 +484,7 @@ function MembersContent() {
             >
               <option value="collaborator">Colaborador</option>
               <option value="manager">Manager</option>
+              <option value="admin">Admin</option>
             </select>
           </div>
           <div className="mt-2 flex justify-end gap-3">

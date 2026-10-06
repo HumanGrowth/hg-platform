@@ -8,24 +8,41 @@
  * completar esto — por eso el estado "todo completo" sigue mostrando un
  * mensaje de espera en vez de redirigir solo.
  */
-import { CheckCircle2, PlayCircle } from "lucide-react";
+import { CheckCircle2, Mail, PlayCircle } from "lucide-react";
 import Link from "next/link";
 import type { Route } from "next";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
-import { apiGetOnboardingStatus } from "@/lib/api";
+import { apiGetOnboardingStatus, apiLogout } from "@/lib/api";
+import { useAuthStore } from "@/lib/auth-store";
 import type { OnboardingStatus } from "@/lib/types";
 
 export default function OnboardingModulosPage() {
+  const router = useRouter();
+  const clear = useAuthStore((s) => s.clear);
   const [status, setStatus] = React.useState<OnboardingStatus | null>(null);
   const [error, setError] = React.useState(false);
 
   React.useEffect(() => {
     apiGetOnboardingStatus()
-      .then(setStatus)
+      .then((st) => {
+        // Ya recibió su primera asignación: se levantó la restricción.
+        if (!st.is_restricted) router.replace("/home" as never);
+        else setStatus(st);
+      })
       .catch(() => setError(true));
-  }, []);
+  }, [router]);
+
+  async function logout() {
+    try {
+      await apiLogout();
+    } finally {
+      clear();
+      router.replace("/login");
+    }
+  }
 
   if (error) {
     return (
@@ -46,15 +63,15 @@ export default function OnboardingModulosPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-16">
-      <h1 className="display text-fg text-[32px] sm:text-[40px]">Bienvenido a Human Growth</h1>
+      <h1 className="display text-fg text-[32px] sm:text-[40px]">Te damos la bienvenida a Human Growth</h1>
       <p className="mt-4 max-w-prose text-hg-charcoal">
-        Antes de ver el resto de la plataforma, completá estos módulos de onboarding. El resto del
-        contenido se habilita apenas tu organización te asigne algo.
+        Estos módulos de onboarding son tu punto de partida. El resto del contenido se habilita
+        cuando tu organización te asigne algo.
       </p>
 
       {status.total_count === 0 ? (
         <p className="mt-10 text-sm text-fg-muted">
-          Todavía no hay módulos de onboarding cargados — hablá con tu manager o administrador.
+          Todavía no hay módulos de onboarding cargados.
         </p>
       ) : (
         <>
@@ -93,12 +110,27 @@ export default function OnboardingModulosPage() {
 
           {status.all_completed && (
             <div className="mt-8 rounded-lg border border-dashed border-border bg-bg-sunken px-4 py-3 text-sm text-fg-muted">
-              Completaste el onboarding. En cuanto tu organización te asigne contenido, vas a ver el
-              resto de la plataforma acá mismo.
+              Completaste el onboarding.
             </div>
           )}
         </>
       )}
+
+      <div className="glass-surface-strong mt-8 flex items-start gap-3 rounded-lg border border-border bg-bg-raised px-4 py-4 text-sm text-fg-muted">
+        <Mail size={18} strokeWidth={1.75} className="mt-0.5 shrink-0 text-fg-subtle" />
+        <p>
+          Te llegará un correo cuando tu organización tenga módulos asignados para vos. Mientras
+          tanto, no necesitás hacer nada más.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => void logout()}
+        className="mt-6 w-fit rounded-md px-3 py-2 font-sans text-sm font-semibold text-fg-muted hover:bg-bg-sunken hover:text-fg"
+      >
+        Cerrar sesión
+      </button>
     </div>
   );
 }

@@ -275,7 +275,7 @@ def accept_invite(
     # /modulos por ahora; pasará a /modulos/intro cuando exista (Release TASK 6).
     email_service.send(
         to=user.email,
-        subject="¡Bienvenida a HumanGrowth!",
+        subject="Te damos la bienvenida a HumanGrowth",
         template="welcome",
         context={
             "nombre": (user.full_name or "").split(" ")[0] or "hola",

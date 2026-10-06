@@ -11,6 +11,7 @@ import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Input, Label } from "@/components/ui/input";
 import { ApiError, apiAcceptInvite, apiInviteInfo } from "@/lib/api";
+import { homeRouteFor } from "@/lib/home-route";
 import { useAuthStore } from "@/lib/auth-store";
 import type { InviteInfo } from "@/lib/types";
 import { acceptInviteSchema, type AcceptInviteValues as FormValues } from "@/lib/validation";
@@ -51,7 +52,7 @@ function AcceptInviteInner() {
         values.usernameOrEmail,
       );
       setSession(user, accessToken);
-      router.replace("/home");
+      router.replace(homeRouteFor(user.role) as never);
     } catch (err) {
       setFormError(
         err instanceof ApiError && err.status === 410

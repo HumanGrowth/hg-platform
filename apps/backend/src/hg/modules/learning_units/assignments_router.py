@@ -32,12 +32,13 @@ from hg.modules.learning_units.assignment_status import (
     effective_status,
 )
 from hg.modules.learning_units.models import LearningUnit, ModuleAssignment
+from hg.modules.notifications.tasks import notify_content_unlocked
 
 admin_router = APIRouter()
 me_router = APIRouter()
 
-_MANAGE_ROLES = {UserRole.manager, UserRole.admin, UserRole.superadmin}
-_ADMIN_ROLES = {UserRole.admin, UserRole.superadmin}
+_MANAGE_ROLES = {UserRole.manager, UserRole.admin, UserRole.company_admin, UserRole.superadmin}
+_ADMIN_ROLES = {UserRole.admin, UserRole.company_admin, UserRole.superadmin}
 
 
 # ─────────────────────────── Schemas ───────────────────────────
@@ -110,16 +111,26 @@ class OrgUnitAssignmentAggOut(BaseModel):
 
 
 def _authorize_manage_target(db: Session, current_user: User, user_id: UUID) -> User:
-    """El target debe estar en la org (RLS) y ser reporte directo, salvo
-    admin/superadmin. 404 si no es visible/gestionable por el usuario."""
+    """Corre bajo ``hg_superadmin`` (la Empresa puede tener varias orgs y la RLS
+    es por org): la frontera se impone acá. 404 si el target no es gestionable."""
     if current_user.role not in _MANAGE_ROLES:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="insufficient role")
     target = db.get(User, user_id)
-    if target is None:
+    if target is None or not _can_manage(current_user, target):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
-    if current_user.role in _ADMIN_ROLES or target.manager_id == current_user.id:
-        return target
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+    return target
+
+
+def _can_manage(actor: User, target: User) -> bool:
+    """superadmin: todos · admin/company_admin: miembros de SU Empresa (o su org)
+    · manager: sus reportes directos."""
+    if actor.role == UserRole.superadmin:
+        return True
+    if actor.role in _ADMIN_ROLES:
+        return (actor.company_id is not None and target.company_id == actor.company_id) or (
+            target.org_id == actor.org_id
+        )
+    return target.manager_id == actor.id
 
 
 def _out(
@@ -195,7 +206,7 @@ def list_assignable_units(
 @admin_router.get("/users/{user_id}/assignments", response_model=list[ModuleAssignmentOut])
 def list_user_assignments(
     user_id: UUID,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db_as_superadmin),
     current_user: User = Depends(get_current_user),
 ) -> list[ModuleAssignmentOut]:
     target = _authorize_manage_target(db, current_user, user_id)
@@ -217,7 +228,7 @@ def list_user_assignments(
 def assign_modules(
     user_id: UUID,
     body: AssignModulesRequest,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db_as_superadmin),
     current_user: User = Depends(get_current_user),
 ) -> list[ModuleAssignmentOut]:
     target = _authorize_manage_target(db, current_user, user_id)
@@ -282,6 +293,8 @@ def assign_modules(
     db.flush()  # no commit a mitad (ver nota del módulo); get_db commitea al final
     for a in created:
         db.refresh(a)
+    if created:
+        notify_content_unlocked(db, [target])
     return _serialize(db, created)
 
 
@@ -361,6 +374,8 @@ def assign_modules_to_organization(
     ]
     db.add_all(created)
     db.flush()
+    if created:
+        notify_content_unlocked(db, members)
     total_pairs = len(members) * len(valid_ids)
     return OrgAssignmentSummaryOut(
         org_id=org_id,
@@ -414,14 +429,10 @@ def org_assignments_summary(
 def _get_assignment_or_404(db: Session, assignment_id: UUID, current_user: User) -> ModuleAssignment:
     if current_user.role not in _MANAGE_ROLES:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="insufficient role")
-    a = db.get(ModuleAssignment, assignment_id)  # RLS ya limita a la org del token
-    if a is None:
+    a = db.get(ModuleAssignment, assignment_id)  # sesión superadmin: frontera = _can_manage
+    target = db.get(User, a.user_id) if a is not None else None
+    if a is None or target is None or not _can_manage(current_user, target):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="assignment not found")
-    # Manager (no admin) solo gestiona asignaciones de sus reportes.
-    if current_user.role not in _ADMIN_ROLES:
-        target = db.get(User, a.user_id)
-        if target is None or target.manager_id != current_user.id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="assignment not found")
     return a
 
 
@@ -429,7 +440,7 @@ def _get_assignment_or_404(db: Session, assignment_id: UUID, current_user: User)
 def update_assignment(
     assignment_id: UUID,
     body: UpdateAssignmentRequest,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db_as_superadmin),
     current_user: User = Depends(get_current_user),
 ) -> ModuleAssignmentOut:
     a = _get_assignment_or_404(db, assignment_id, current_user)
@@ -443,7 +454,7 @@ def update_assignment(
 @admin_router.delete("/assignments/{assignment_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_assignment(
     assignment_id: UUID,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db_as_superadmin),
     current_user: User = Depends(get_current_user),
 ) -> Response:
     a = _get_assignment_or_404(db, assignment_id, current_user)
