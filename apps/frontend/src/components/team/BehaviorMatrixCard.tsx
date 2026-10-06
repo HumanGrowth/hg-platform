@@ -27,7 +27,9 @@ interface Props {
   userId: string;
 }
 
-/** Matriz de comportamientos del pilar en curso — el manager califica cada
+/** Matriz de comportamientos del pilar en curso (solo ese pilar: cuando el
+ * colaborador completa nivel + evaluación, el pilar en curso del path avanza y
+ * éste reemplaza al anterior) — el manager califica cada
  * comportamiento en 3 puntos. Guardado optimista: la fila muestra el rating
  * elegido de inmediato y confirma/revierte según la respuesta del PUT
  * (`apiUpsertBehaviorEvaluations`), que trae la matriz recalculada
@@ -126,7 +128,6 @@ export function BehaviorMatrixCard({ userId }: Props) {
   }
 
   const current = matrix.pillars.find((p) => p.is_current);
-  const rest = matrix.pillars.filter((p) => !p.is_current);
 
   return (
     <section className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-5">
@@ -148,35 +149,6 @@ export function BehaviorMatrixCard({ userId }: Props) {
       )}
 
       <ApprovalStatus matrix={matrix} />
-
-      {rest.length > 0 && (
-        <details className="mt-5 rounded-md border border-border">
-          <summary className="cursor-pointer select-none px-4 py-2.5 font-sans text-sm font-semibold text-fg">
-            Otros pilares de {matrix.dimension_name} ({rest.length})
-          </summary>
-          <div className="flex flex-col gap-5 border-t border-border p-4">
-            {rest.map((p) => (
-              <div key={p.pillar_code} className="flex flex-col gap-3">
-                <PillarTable pillar={p} savingIds={savingIds} onRate={rate} />
-                {feedback.has(`${matrix.dimension_code}:${p.pillar_code}`) && (
-                  <details className="rounded-md border border-border">
-                    <summary className="cursor-pointer select-none px-3 py-2 font-sans text-xs font-semibold text-fg-muted">
-                      Feedback que dejaste en este pilar
-                    </summary>
-                    <div className="border-t border-border p-3">
-                      <PillarFeedbackBox
-                        saved={feedback.get(`${matrix.dimension_code}:${p.pillar_code}`)}
-                        onSave={(text) => saveFeedback(p.pillar_code, text)}
-                        hideTitle
-                      />
-                    </div>
-                  </details>
-                )}
-              </div>
-            ))}
-          </div>
-        </details>
-      )}
     </section>
   );
 }

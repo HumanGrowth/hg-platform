@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import * as React from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -61,7 +62,20 @@ interface Spot {
  * card centrado — no se rompe ni desaparece. Respeta prefers-reduced-motion
  * (el pulso se desactiva globalmente en globals.css).
  */
-export function OnboardingTour({
+export function OnboardingTour(props: {
+  userName: string;
+  onDone: (action: "finish" | "skip") => void;
+}) {
+  // Portal a <body>: dentro de <main> un ancestro con transform/filter/animación
+  // vuelve su containing block al `position: fixed`, y el spotlight (medido con
+  // getBoundingClientRect, coords de viewport) queda desfasado del menú.
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return createPortal(<TourInner {...props} />, document.body);
+}
+
+function TourInner({
   userName,
   onDone,
 }: {
@@ -142,7 +156,7 @@ export function OnboardingTour({
     measure(true);
     // El layout se asienta después del primer paint (transición de ancho del
     // sidebar, fuentes, banner): se vuelve a medir un par de veces.
-    const timers = [120, 400].map((ms) => window.setTimeout(() => measure(false), ms));
+    const timers = [120, 400, 700].map((ms) => window.setTimeout(() => measure(false), ms));
     const onChange = () => measure(false);
     window.addEventListener("resize", onChange);
     window.addEventListener("scroll", onChange, true);

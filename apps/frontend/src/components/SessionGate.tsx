@@ -76,7 +76,15 @@ export function SessionGate({
     // Restricción de CONTENIDO (distinta del assessment de arriba): el user
     // todavía no recibió ninguna asignación de su organización/empresa →
     // solo puede ver la dimensión Onboarding ("ON"), ver `onboarding.py`.
+    // Se aterriza ahí UNA vez por pestaña; después puede explorar la app (el
+    // backend sigue limitando el contenido) vía los botones de esa pantalla.
     if (user.content_restricted_to_onboarding === true) {
+      try {
+        if (sessionStorage.getItem("hg-onboarding-landed")) return;
+        sessionStorage.setItem("hg-onboarding-landed", "1");
+      } catch {
+        /* sessionStorage no disponible: siempre aterriza en onboarding */
+      }
       router.replace("/onboarding/modulos" as never);
     }
   }, [ready, requireOnboarding, user, meChecked, router, pathname]);

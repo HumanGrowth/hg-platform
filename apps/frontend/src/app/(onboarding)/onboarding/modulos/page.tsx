@@ -8,7 +8,7 @@
  * completar esto — por eso el estado "todo completo" sigue mostrando un
  * mensaje de espera en vez de redirigir solo.
  */
-import { CheckCircle2, Mail, PlayCircle } from "lucide-react";
+import { CheckCircle2, Compass, Mail, PlayCircle } from "lucide-react";
 import Link from "next/link";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
@@ -22,6 +22,8 @@ import type { OnboardingStatus } from "@/lib/types";
 export default function OnboardingModulosPage() {
   const router = useRouter();
   const clear = useAuthStore((s) => s.clear);
+  const role = useAuthStore((s) => s.user?.role);
+  const isManager = role === "manager";
   const [status, setStatus] = React.useState<OnboardingStatus | null>(null);
   const [error, setError] = React.useState(false);
 
@@ -124,13 +126,25 @@ export default function OnboardingModulosPage() {
         </p>
       </div>
 
-      <button
-        type="button"
-        onClick={() => void logout()}
-        className="mt-6 w-fit rounded-md px-3 py-2 font-sans text-sm font-semibold text-fg-muted hover:bg-bg-sunken hover:text-fg"
-      >
-        Cerrar sesión
-      </button>
+      <p className="mt-6 text-sm text-fg-muted">
+        Mientras tanto, explorá la plataforma{isManager ? " y mirá a tu equipo" : ""}.
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <Link
+          href={(isManager ? "/team" : "/home") as Route}
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-primary-hover"
+        >
+          <Compass size={16} strokeWidth={1.75} aria-hidden />
+          {isManager ? "Ir a Mi equipo" : "Explorar la plataforma"}
+        </Link>
+        <button
+          type="button"
+          onClick={() => void logout()}
+          className="rounded-md px-3 py-2 font-sans text-sm font-semibold text-fg-muted hover:bg-bg-sunken hover:text-fg"
+        >
+          Cerrar sesión
+        </button>
+      </div>
     </div>
   );
 }

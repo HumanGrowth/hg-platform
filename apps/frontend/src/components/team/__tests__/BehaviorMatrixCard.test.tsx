@@ -91,11 +91,11 @@ describe("BehaviorMatrixCard", () => {
     upsertFeedback.mockReset();
   });
 
-  it("renders the current pillar's behaviors and an accordion for the rest", async () => {
+  it("renders only the current pillar's behaviors (no dropdown of other pillars)", async () => {
     getMatrix.mockResolvedValue(makeMatrix());
     render(<BehaviorMatrixCard userId="u1" />);
     await waitFor(() => expect(screen.getByText("Busca feedback y lo aplica")).toBeTruthy());
-    expect(screen.getByText(/Otros pilares de Carrera/)).toBeTruthy();
+    expect(screen.queryByText(/Otros pilares/)).toBeNull();
   });
 
   it("rates a behavior optimistically and saves via PUT", async () => {

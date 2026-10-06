@@ -87,6 +87,9 @@ class CompanyMemberOut(BaseModel):
     last_active_at: datetime | None
     modules_completed: int
     modules_in_progress: int
+    # Ratio del roster: units asignadas (sueltas + ruta) y cuántas de ellas completó.
+    modules_assigned: int
+    modules_assigned_completed: int
     # Estado de consentimiento (docx §6.2): pending | declined |
     # authorized_no_activity | data_available. Reemplaza el "sin datos" genérico.
     consent_status: str

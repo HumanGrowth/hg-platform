@@ -23,6 +23,7 @@ import { ActingAsBanner } from "@/components/admin/ActingAsBanner";
 import { BetaBanner } from "@/components/BetaBanner";
 import { AdminBottomNav } from "@/components/nav/AdminBottomNav";
 import { isActive } from "@/components/nav/items";
+import { UserMenu } from "@/components/nav/UserMenu";
 import { SessionGate } from "@/components/SessionGate";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -180,6 +181,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </aside>
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <ActingAsBanner />
+            {/* Chip de usuario: se mantiene en modo admin (tema, perfil, logout). */}
+            <div className="flex shrink-0 justify-end px-3 py-2 md:px-0 md:pb-3 md:pt-0">
+              <UserMenu adminMode />
+            </div>
             {/* `relative`: main es el containing block → cualquier elemento
                 position:absolute queda contenido y clippeado por su scroll, y no
                 extiende <html> (evita que un sr-only rebelde rompa el sticky). */}
