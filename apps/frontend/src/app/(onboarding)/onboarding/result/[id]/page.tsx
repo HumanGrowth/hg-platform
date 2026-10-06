@@ -56,7 +56,7 @@ export default function OnboardingResult() {
         <>
           <Radar values={radar} state="complete" size="large" animateOnMount />
 
-          <p className="mt-8 max-w-prose text-hg-charcoal">
+          <p className="mt-8 max-w-prose text-fg-muted">
             Esto es una <strong>estimación rápida</strong>. Podés profundizar cualquier dimensión
             para confirmar tu estado.
           </p>

@@ -6,7 +6,7 @@
  * permite crear nuevas (apiCreateCompanyOrg). company_admin ve las suyas;
  * superadmin gestiona la empresa que eligió (contexto acting-company).
  */
-import { LineChart, Plus } from "lucide-react";
+import { LineChart, Pencil, Plus, Trash2 } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import * as React from "react";
@@ -23,7 +23,9 @@ import { useScopedCompanyId } from "@/lib/acting-company";
 import {
   apiCompanyOrgs,
   apiCreateCompanyOrg,
+  apiDeleteCompanyOrg,
   apiGetMyCompany,
+  apiRenameCompanyOrg,
   apiSetOrgQuota,
   ApiError,
 } from "@/lib/api";
@@ -55,6 +57,12 @@ function OrganizacionesContent() {
   // Edición inline del cupo por org: { [orgId]: valorEnEdición }.
   const [quotaEdit, setQuotaEdit] = React.useState<Record<string, string>>({});
   const [savingQuota, setSavingQuota] = React.useState<string | null>(null);
+
+  // Renombrar / eliminar org.
+  const [renameFor, setRenameFor] = React.useState<CompanyOrg | null>(null);
+  const [renameValue, setRenameValue] = React.useState("");
+  const [deleteFor, setDeleteFor] = React.useState<CompanyOrg | null>(null);
+  const [busy, setBusy] = React.useState(false);
 
   const load = React.useCallback(() => {
     if (!ready) return;
@@ -92,6 +100,38 @@ function OrganizacionesContent() {
       toast(err instanceof ApiError ? err.message : "No se pudo actualizar el cupo.", "danger");
     } finally {
       setSavingQuota(null);
+    }
+  }
+
+  async function onRename(e: React.FormEvent) {
+    e.preventDefault();
+    const name = renameValue.trim();
+    if (!renameFor || !name) return;
+    setBusy(true);
+    try {
+      await apiRenameCompanyOrg(renameFor.id, name, companyId);
+      toast("Nombre actualizado.", "success");
+      setRenameFor(null);
+      load();
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : "No se pudo renombrar la organización.", "danger");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onDelete() {
+    if (!deleteFor) return;
+    setBusy(true);
+    try {
+      await apiDeleteCompanyOrg(deleteFor.id, companyId);
+      toast("Organización eliminada.", "success");
+      setDeleteFor(null);
+      load();
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : "No se pudo eliminar la organización.", "danger");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -167,6 +207,7 @@ function OrganizacionesContent() {
               <th className="px-5 py-3 font-semibold">País</th>
               <th className="px-5 py-3 font-semibold">Miembros</th>
               <th className="px-5 py-3 font-semibold">Cupo (licencias)</th>
+              <th className="px-5 py-3 font-semibold">Acciones</th>
               {isSuperadmin && <th className="px-5 py-3 font-semibold">Dashboard</th>}
             </tr>
           </thead>
@@ -212,6 +253,29 @@ function OrganizacionesContent() {
                     )}
                   </div>
                 </td>
+                <td className="px-5 py-3">
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      aria-label={`Renombrar ${o.name}`}
+                      onClick={() => {
+                        setRenameFor(o);
+                        setRenameValue(o.name);
+                      }}
+                      className="rounded-md p-1.5 text-fg-muted hover:bg-bg-sunken hover:text-fg"
+                    >
+                      <Pencil size={16} strokeWidth={1.75} />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Eliminar ${o.name}`}
+                      onClick={() => setDeleteFor(o)}
+                      className="rounded-md p-1.5 text-fg-muted hover:bg-bg-sunken hover:text-danger"
+                    >
+                      <Trash2 size={16} strokeWidth={1.75} />
+                    </button>
+                  </div>
+                </td>
                 {isSuperadmin && (
                   <td className="px-5 py-3">
                     <Button
@@ -242,6 +306,53 @@ function OrganizacionesContent() {
           <p className="px-5 py-10 text-center text-sm text-fg-muted">Cargando…</p>
         ) : null}
       </Card>
+
+      <Dialog
+        open={renameFor !== null}
+        onClose={() => setRenameFor(null)}
+        title="Renombrar organización"
+      >
+        <form onSubmit={onRename} className="flex flex-col gap-4" noValidate>
+          <div>
+            <Label htmlFor="org-rename">Nombre</Label>
+            <Input
+              id="org-rename"
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+            />
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="secondary" onClick={() => setRenameFor(null)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={busy || !renameValue.trim()}>
+              {busy ? "Guardando…" : "Guardar"}
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+
+      <Dialog
+        open={deleteFor !== null}
+        onClose={() => setDeleteFor(null)}
+        title="Eliminar organización"
+        description={
+          deleteFor
+            ? deleteFor.user_count > 0
+              ? `${deleteFor.name} todavía tiene miembros. Movelos a otra organización antes de eliminarla.`
+              : `Vas a eliminar ${deleteFor.name}. Esta acción no se puede deshacer.`
+            : undefined
+        }
+      >
+        <div className="flex justify-end gap-3">
+          <Button variant="secondary" onClick={() => setDeleteFor(null)}>
+            Cancelar
+          </Button>
+          <Button onClick={() => void onDelete()} disabled={busy}>
+            {busy ? "Eliminando…" : "Eliminar"}
+          </Button>
+        </div>
+      </Dialog>
 
       <Dialog
         open={open}

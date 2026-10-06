@@ -44,7 +44,7 @@ export default function ConsentScreen() {
 
   if (checking) {
     return (
-      <div className="flex flex-1 items-center justify-center px-6 py-16 text-hg-charcoal">
+      <div className="flex flex-1 items-center justify-center px-6 py-16 text-fg-muted">
         Cargando…
       </div>
     );
@@ -55,42 +55,42 @@ export default function ConsentScreen() {
       <h1 className="display text-fg text-[32px] sm:text-[40px]">
         Antes de empezar: decide quién ve tu progreso
       </h1>
-      <p className="mt-6 max-w-prose text-hg-charcoal">
+      <p className="mt-6 max-w-prose text-fg-muted">
         HumanGrowth funciona mejor cuando tu empresa puede ver tu avance y apoyarte. Antes de activar
         eso, queremos que sepas exactamente qué compartimos — y que la decisión sea siempre tuya.
       </p>
 
       <div className="mt-8 flex flex-col gap-4">
-        <label className="flex gap-3 rounded-lg border border-hg-line p-4">
+        <label className="flex gap-3 rounded-lg border border-border p-4">
           <input
             type="checkbox"
             checked={manager}
             onChange={(e) => setManager(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-hg-line"
+            className="mt-1 h-4 w-4 rounded border-border"
           />
           <span className="text-sm">
             <span className="font-semibold text-fg">
               Autorizo que mi jefe directo vea mi progreso por pilar y reciba un aviso cuando complete uno.
             </span>
-            <span className="mt-1 block text-hg-charcoal">
+            <span className="mt-1 block text-fg-muted">
               Tu jefe directo verá qué pilares completaste, no tus respuestas ni tu actividad detallada.
             </span>
           </span>
         </label>
 
-        <label className="flex gap-3 rounded-lg border border-hg-line p-4">
+        <label className="flex gap-3 rounded-lg border border-border p-4">
           <input
             type="checkbox"
             checked={hr}
             onChange={(e) => setHr(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-hg-line"
+            className="mt-1 h-4 w-4 rounded border-border"
           />
           <span className="text-sm">
             <span className="font-semibold text-fg">
               Autorizo que RRHH vea mis datos junto con los de mi equipo, dentro de reportes agregados
               de progreso y adopción.
             </span>
-            <span className="mt-1 block text-hg-charcoal">
+            <span className="mt-1 block text-fg-muted">
               RRHH ve tendencias del equipo (quién avanza, quién necesita apoyo), no un perfil
               individual expuesto fuera de tu línea de reporte.
             </span>
@@ -111,17 +111,17 @@ export default function ConsentScreen() {
           type="button"
           onClick={() => save(false, false)}
           disabled={saving}
-          className="rounded-md border border-hg-line px-8 py-4 font-sans text-base font-semibold text-fg transition-colors hover:bg-hg-line/10 disabled:opacity-50"
+          className="rounded-md border border-border px-8 py-4 font-sans text-base font-semibold text-fg transition-colors hover:bg-hg-line/10 disabled:opacity-50"
         >
           Ahora no
         </button>
       </div>
-      <p className="mt-3 text-xs text-hg-charcoal/80">
+      <p className="mt-3 text-xs text-fg-muted">
         Puedes activarlo más adelante desde Configuración → Privacidad. Mientras tanto, tu empresa
         verá tu perfil como “consentimiento pendiente” — no como inactividad ni bajo desempeño.
       </p>
 
-      <p className="mt-8 border-t border-hg-line pt-4 text-xs text-hg-charcoal/70">
+      <p className="mt-8 border-t border-border pt-4 text-xs text-fg-muted">
         Este consentimiento se rige por la Ley N.° 8968 de Protección de la Persona frente al
         Tratamiento de sus Datos Personales de Costa Rica. Puedes revocarlo cuando quieras desde
         Configuración → Privacidad, sin que esto afecte tu acceso a HumanGrowth.

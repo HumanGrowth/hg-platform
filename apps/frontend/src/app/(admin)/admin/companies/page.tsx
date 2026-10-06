@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyRound, LogIn, Plus } from "lucide-react";
+import { KeyRound, LogIn, Pencil, Plus } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import * as React from "react";
@@ -19,6 +19,7 @@ import {
   apiListAreas,
   apiListCompanies,
   apiSetCompanyAccess,
+  apiSetCompanyLicenses,
   ApiError,
 } from "@/lib/api";
 import { setActingCompany } from "@/lib/acting-company";
@@ -32,6 +33,11 @@ function CompaniesContent() {
   const [openCreate, setOpenCreate] = React.useState(false);
   const [form, setForm] = React.useState({ name: "", slug: "", licenses_total: 50 });
   const [submitting, setSubmitting] = React.useState(false);
+
+  // Editor de licencias (pool)
+  const [licFor, setLicFor] = React.useState<Company | null>(null);
+  const [licValue, setLicValue] = React.useState("0");
+  const [savingLic, setSavingLic] = React.useState(false);
 
   // Access editor
   const [accessFor, setAccessFor] = React.useState<Company | null>(null);
@@ -70,6 +76,26 @@ function CompaniesContent() {
       );
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function saveLicenses() {
+    if (!licFor) return;
+    const value = Number(licValue);
+    if (!Number.isInteger(value) || value < 0) {
+      toast("Ingresá una cantidad válida.", "danger");
+      return;
+    }
+    setSavingLic(true);
+    try {
+      await apiSetCompanyLicenses(licFor.id, value);
+      toast("Licencias actualizadas.", "success");
+      setLicFor(null);
+      load();
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : "No se pudieron actualizar las licencias.", "danger");
+    } finally {
+      setSavingLic(false);
     }
   }
 
@@ -131,7 +157,22 @@ function CompaniesContent() {
                 <td className="px-5 py-3 font-mono text-xs text-fg-muted">{c.slug}</td>
                 <td className="px-5 py-3 font-mono text-sm text-fg">{c.org_count}</td>
                 <td className="px-5 py-3 font-mono text-sm text-fg">
-                  {c.licenses_used}/{c.licenses_total}
+                  <div className="flex items-center gap-2">
+                    <span>
+                      {c.licenses_used}/{c.licenses_total}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`Editar licencias de ${c.name}`}
+                      onClick={() => {
+                        setLicFor(c);
+                        setLicValue(String(c.licenses_total));
+                      }}
+                      className="rounded-md p-1.5 text-fg-muted hover:bg-bg-sunken hover:text-fg"
+                    >
+                      <Pencil size={14} strokeWidth={1.75} />
+                    </button>
+                  </div>
                 </td>
                 <td className="px-5 py-3">
                   <div className="flex gap-2">
@@ -209,6 +250,37 @@ function CompaniesContent() {
             </Button>
           </div>
         </form>
+      </Dialog>
+
+      <Dialog
+        open={licFor !== null}
+        onClose={() => setLicFor(null)}
+        title={licFor ? `Licencias de ${licFor.name}` : "Licencias"}
+        description="Tamaño del pool de la empresa. No puede ser menor a los cupos ya repartidos ni a los usuarios activos."
+      >
+        <div className="flex flex-col gap-4">
+          <div>
+            <Label htmlFor="lic-total">Licencias (pool)</Label>
+            <Input
+              id="lic-total"
+              type="number"
+              min={0}
+              value={licValue}
+              onChange={(e) => setLicValue(e.target.value)}
+            />
+            {licFor ? (
+              <p className="mt-1 text-xs text-fg-muted">En uso: {licFor.licenses_used}.</p>
+            ) : null}
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="secondary" onClick={() => setLicFor(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => void saveLicenses()} disabled={savingLic}>
+              {savingLic ? "Guardando…" : "Guardar"}
+            </Button>
+          </div>
+        </div>
       </Dialog>
 
       <Dialog

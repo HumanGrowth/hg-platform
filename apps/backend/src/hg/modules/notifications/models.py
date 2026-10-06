@@ -35,7 +35,7 @@ class EngagementReminder(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    # 'inactivity_7d' | 'inactivity_21d' | 'assignment_due_soon' | 'assignment_due_today'
+    # 'inactivity_7d' | 'inactivity_21d' | 'assignment_due_soon' | 'assignment_due_today' | 'content_unlocked'
     kind: Mapped[str] = mapped_column(String(30), nullable=False)
     # ModuleAssignment.id para los kinds de due date; NULL para inactividad.
     reference_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))

@@ -38,5 +38,10 @@ celery_app.conf.update(
             # 09:00 hora Costa Rica — mañana, antes de que arranque el día.
             "schedule": crontab(hour=9, minute=0),
         },
+        # "Te llegará un correo cuando tu organización te asigne módulos".
+        "send-content-unlocked": {
+            "task": "notifications.send_content_unlocked",
+            "schedule": crontab(minute="*/15"),
+        },
     },
 )

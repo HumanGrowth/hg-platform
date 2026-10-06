@@ -33,10 +33,10 @@ export default function OnboardingWelcome() {
           ? `Hola ${firstName}, vamos a entender tu punto de partida`
           : "Vamos a entender tu punto de partida"}
       </h1>
-      <p className="mt-6 max-w-prose text-hg-charcoal">
+      <p className="mt-6 max-w-prose text-fg-muted">
         18 preguntas cortas sobre tus 6 dimensiones. No hay respuestas correctas.
       </p>
-      <ul className="mt-6 flex flex-col gap-2 text-hg-charcoal sm:flex-row sm:gap-8">
+      <ul className="mt-6 flex flex-col gap-2 text-fg-muted sm:flex-row sm:gap-8">
         <li>6 dimensiones</li>
         <li className="hidden sm:block" aria-hidden>·</li>
         <li>~5-6 minutos</li>

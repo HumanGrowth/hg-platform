@@ -63,45 +63,45 @@ def _pmm_options(levels: list[str]) -> list[tuple[str, int, str]]:
 
 
 PMM_ITEMS = [
-    ("PMM-C1", "C1", "¿Cómo describirías hoy tu capacidad de adaptarte a cambios y aprender cosas nuevas?", [
-        "Me cuesta adaptarme a cambios. Aprendo cuando me lo piden explícitamente.",
-        "Me adapto a cambios planeados. Busco aprender lo necesario para mi rol.",
-        "Me adapto con autonomía. Aprendo proactivamente y aplico lo nuevo a mi trabajo.",
-        "Ayudo a otros a adaptarse. Identifico oportunidades de aprendizaje para el equipo.",
-        "Anticipo cambios sistémicos. Diseño caminos de aprendizaje para múltiples equipos.",
-        "Lidero transformaciones organizacionales. La adaptabilidad es parte de la cultura que construyo.",
+    ("PMM-C1", "C1", "¿Cómo te adaptás a los cambios y aprendés cosas nuevas?", [
+        "Me cuesta adaptarme. Aprendo cuando me lo piden.",
+        "Me adapto a cambios planeados. Aprendo lo necesario para mi rol.",
+        "Me adapto con autonomía. Aprendo por iniciativa y lo aplico.",
+        "Ayudo a otros a adaptarse. Detecto aprendizajes para el equipo.",
+        "Anticipo cambios sistémicos. Diseño aprendizaje para varios equipos.",
+        "Lidero transformaciones. La adaptabilidad es parte de la cultura que construyo.",
     ]),
-    ("PMM-C2", "C2", "¿Cómo describirías hoy tu nivel de excelencia operativa y colaboración con tus pares?", [
-        "Cumplo tareas con supervisión cercana. La calidad y los plazos dependen de que me los recuerden.",
-        "Ejecuto mi trabajo con calidad estándar. Colaboro cuando me lo piden.",
-        "Entrego con calidad consistente y autonomía. Colaboro de forma fluida con mi equipo.",
-        "Elevo el estándar de calidad del equipo. Coordino la colaboración entre pares.",
-        "Diseño procesos de excelencia para varios equipos. Articulo colaboración cross-funcional.",
-        "Defino el estándar operativo de la organización. La colaboración efectiva es parte de la cultura que lidero.",
+    ("PMM-C2", "C2", "¿Cómo es hoy tu calidad de trabajo y tu colaboración con pares?", [
+        "Cumplo tareas con supervisión cercana. Calidad y plazos dependen de recordatorios.",
+        "Trabajo con calidad estándar. Colaboro cuando me lo piden.",
+        "Entrego con calidad y autonomía. Colaboro con fluidez.",
+        "Elevo el estándar del equipo. Coordino la colaboración entre pares.",
+        "Diseño procesos de excelencia para varios equipos. Articulo la colaboración entre áreas.",
+        "Defino el estándar operativo de la organización. Lidero una cultura de colaboración.",
     ]),
-    ("PMM-C3", "C3", "¿Cómo describirías hoy tu expertise técnico y tu pensamiento estratégico?", [
-        "Tengo conocimientos básicos. Resuelvo problemas conocidos siguiendo instrucciones.",
-        "Manejo bien mi área. Resuelvo problemas habituales por mi cuenta.",
-        "Tengo expertise sólido. Tomo decisiones con visión del impacto en mi trabajo.",
+    ("PMM-C3", "C3", "¿Cómo es hoy tu expertise técnico y tu visión estratégica?", [
+        "Tengo conocimientos básicos. Resuelvo problemas conocidos con instrucciones.",
+        "Manejo bien mi área. Resuelvo lo habitual por mi cuenta.",
+        "Tengo expertise sólido. Decido viendo el impacto en mi trabajo.",
         "Soy referente técnico. Conecto decisiones con la estrategia del área.",
-        "Tengo visión sistémica. Decido bajo incertidumbre considerando múltiples áreas.",
-        "Defino la dirección estratégica. Mi expertise moldea las decisiones de la organización.",
+        "Tengo visión sistémica. Decido con incertidumbre considerando varias áreas.",
+        "Defino la dirección estratégica. Mi expertise orienta a la organización.",
     ]),
-    ("PMM-C4", "C4", "¿Cómo describirías hoy tu comunicación y tu capacidad de influir en otros?", [
-        "Me cuesta expresar ideas con claridad. Comunico lo justo para cumplir mi tarea.",
-        "Comunico con claridad en mi equipo. Transmito información de forma efectiva.",
-        "Comunico con impacto y adapto el mensaje a mi audiencia. Influyo en decisiones de mi área.",
-        "Articulo mensajes complejos. Influyo en stakeholders más allá de mi equipo.",
-        "Comunico visión a gran escala. Influyo en decisiones de múltiples áreas.",
-        "Mi comunicación moviliza a la organización. Soy una voz de referencia interna y externa.",
+    ("PMM-C4", "C4", "¿Cómo es hoy tu comunicación y tu capacidad de influir?", [
+        "Me cuesta expresar ideas con claridad. Comunico lo justo.",
+        "Comunico con claridad en mi equipo.",
+        "Comunico con impacto y adapto el mensaje. Influyo en decisiones de mi área.",
+        "Articulo mensajes complejos. Influyo más allá de mi equipo.",
+        "Comunico visión a gran escala. Influyo en decisiones de varias áreas.",
+        "Mi comunicación moviliza a la organización. Soy voz de referencia.",
     ]),
-    ("PMM-C5", "C5", "¿Cómo describirías hoy tu inteligencia emocional y social?", [
-        "Me cuesta reconocer mis emociones y las de otros. Los conflictos me desbordan.",
-        "Reconozco mis emociones básicas. Manejo relaciones cordiales en el día a día.",
-        "Tengo buena auto-conciencia y empatía. Manejo conflictos de forma constructiva.",
-        "Leo bien la dinámica del equipo. Ayudo a otros a resolver sus conflictos.",
-        "Modelo la cultura emocional de varios equipos. Anticipo y prevengo tensiones sistémicas.",
-        "Cultivo la seguridad psicológica de la organización. La inteligencia social es parte del liderazgo que ejerzo.",
+    ("PMM-C5", "C5", "¿Cómo es hoy tu inteligencia emocional y social?", [
+        "Me cuesta reconocer emociones, mías y ajenas. Los conflictos me desbordan.",
+        "Reconozco mis emociones básicas. Mantengo relaciones cordiales.",
+        "Tengo autoconciencia y empatía. Manejo conflictos de forma constructiva.",
+        "Leo la dinámica del equipo. Ayudo a otros a resolver conflictos.",
+        "Modelo la cultura emocional de varios equipos. Prevengo tensiones sistémicas.",
+        "Cultivo la seguridad psicológica de la organización. Lidero con inteligencia social.",
     ]),
 ]
 
@@ -117,14 +117,14 @@ def _pmm() -> list[tuple]:
 MLQ = [
     ("MLQ-1", "Presencia", False, True, "Siento que mi vida tiene sentido."),
     ("MLQ-2", "Presencia", False, False, "Tengo claro para qué estoy en este mundo."),
-    ("MLQ-3", "Presencia", False, False, "Sé qué es lo que hace que mi vida valga la pena."),
-    ("MLQ-4", "Presencia", False, False, "He encontrado un propósito de vida que realmente me llena."),
-    ("MLQ-5", "Presencia", True, False, "Siento que mi vida no tiene un rumbo claro."),
-    ("MLQ-6", "Búsqueda", False, False, "Ando buscando algo que le dé más sentido a mi vida."),
-    ("MLQ-7", "Búsqueda", False, False, "Constantemente me pregunto cuál es mi propósito en la vida."),
-    ("MLQ-8", "Búsqueda", False, True, "Sigo buscando algo que le dé dirección a mi vida."),
-    ("MLQ-9", "Búsqueda", False, False, "Estoy en busca de una misión o propósito que sea mío."),
-    ("MLQ-10", "Búsqueda", False, False, "Siento que todavía estoy buscando el significado de mi vida."),
+    ("MLQ-3", "Presencia", False, False, "Sé qué hace que mi vida valga la pena."),
+    ("MLQ-4", "Presencia", False, False, "He encontrado un propósito de vida que me llena."),
+    ("MLQ-5", "Presencia", True, False, "Siento que mi vida no tiene rumbo claro."),
+    ("MLQ-6", "Búsqueda", False, False, "Busco algo que dé más sentido a mi vida."),
+    ("MLQ-7", "Búsqueda", False, False, "Me pregunto seguido cuál es mi propósito."),
+    ("MLQ-8", "Búsqueda", False, True, "Busco algo que dé dirección a mi vida."),
+    ("MLQ-9", "Búsqueda", False, False, "Busco una misión o propósito propio."),
+    ("MLQ-10", "Búsqueda", False, False, "Aún busco el significado de mi vida."),
 ]
 
 
@@ -137,16 +137,16 @@ def _mlq() -> list[tuple]:
 
 # P3 · UCLA-3 (A1-A3, escala 1-5) + Cacioppo (B1-B5, escala 1-5). Short: A1, B1.
 UCLA = [
-    ("UCLA-A1", "Soledad", True, "¿Qué tan seguido sentís que te hace falta compañía?"),
-    ("UCLA-A2", "Soledad", False, "¿Qué tan seguido sentís que andás solo/a, aunque estés rodeado/a de gente?"),
-    ("UCLA-A3", "Soledad", False, "¿Qué tan seguido sentís que no tenés con quién hablar de verdad?"),
+    ("UCLA-A1", "Soledad", True, "¿Con qué frecuencia sentís que te falta compañía?"),
+    ("UCLA-A2", "Soledad", False, "¿Con qué frecuencia sentís soledad, incluso estando entre gente?"),
+    ("UCLA-A3", "Soledad", False, "¿Con qué frecuencia sentís que no tenés con quién hablar de verdad?"),
 ]
 CACIOPPO = [
-    ("CAC-B1", "Íntima", True, "Tengo al menos una persona con quien puedo hablar abiertamente de lo que me preocupa."),
-    ("CAC-B2", "Íntima", False, "Cuando me pasa algo importante —bueno o malo— sé exactamente a quién llamar primero."),
-    ("CAC-B3", "Relacional", False, "Tengo un grupo de amigos o familiares con quienes me veo o hablo con regularidad."),
-    ("CAC-B4", "Relacional", False, "Si necesito una mano con algo, sé a quién pedirle ayuda."),
-    ("CAC-B5", "Colectiva", False, "Me siento parte de algún grupo o comunidad que me importa."),
+    ("CAC-B1", "Íntima", True, "Tengo al menos a alguien con quien hablar abiertamente de lo que me preocupa."),
+    ("CAC-B2", "Íntima", False, "Cuando me pasa algo importante, sé a quién llamar primero."),
+    ("CAC-B3", "Relacional", False, "Tengo amigos o familiares con quienes hablo o me veo con regularidad."),
+    ("CAC-B4", "Relacional", False, "Si necesito ayuda, sé a quién pedírsela."),
+    ("CAC-B5", "Colectiva", False, "Me siento parte de una comunidad que me importa."),
 ]
 
 
@@ -162,28 +162,28 @@ def _cacioppo() -> list[tuple]:
 
 # P4 · Prochaska × 4 dominios. a=conductual (numérico), b=intención (E1-E5). Short: *b.
 PROCHASKA_STAGES = [
-    ("No lo veo como un problema, estoy bien así.", 1, "E1"),
-    ("A veces pienso que debería cambiar, pero no sé si es para tanto.", 2, "E2"),
-    ("Quiero cambiar y ya tengo idea de cómo empezar.", 3, "E3"),
-    ("Ya empecé a hacer cambios hace menos de 6 meses.", 4, "E4"),
-    ("Llevo más de 6 meses con el cambio, ya es parte de mi rutina.", 5, "E5"),
+    ("No lo veo como problema; estoy bien así.", 1, "E1"),
+    ("A veces pienso que debería cambiar, pero dudo que importe tanto.", 2, "E2"),
+    ("Quiero cambiar y sé cómo empezar.", 3, "E3"),
+    ("Empecé a cambiar hace menos de 6 meses.", 4, "E4"),
+    ("Llevo más de 6 meses con el cambio; ya es rutina.", 5, "E5"),
 ]
 # (code, domain, prompt, [behavioral option labels])
 PROCHASKA_A = [
-    ("PRO-1a", "Sueño", "En los últimos 30 días, ¿cuántas noches dormiste al menos 7 horas seguidas?",
+    ("PRO-1a", "Sueño", "En los últimos 30 días, ¿cuántas noches dormiste 7 horas seguidas o más?",
      ["0–5 noches", "6–10 noches", "11–15 noches", "16–20 noches", "Más de 20 noches"]),
-    ("PRO-2a", "Actividad", "En la última semana, ¿cuántos días hiciste al menos 30 minutos de actividad física moderada?",
+    ("PRO-2a", "Actividad", "En la última semana, ¿cuántos días hiciste 30 minutos o más de actividad física moderada?",
      ["0 días", "1–2 días", "3–4 días", "5–6 días", "Todos los días"]),
-    ("PRO-3a", "Nutrición", "En un día típico, ¿cuántas porciones de frutas y verduras comés aproximadamente?",
+    ("PRO-3a", "Nutrición", "En un día típico, ¿cuántas porciones de frutas y verduras comés?",
      ["0–1 porciones", "2 porciones", "3 porciones", "4 porciones", "5 o más porciones"]),
-    ("PRO-4a", "Recuperación", "En la última semana, ¿cuántos días lograste desconectarte completamente del trabajo por al menos 30 minutos?",
+    ("PRO-4a", "Recuperación", "En la última semana, ¿cuántos días te desconectaste del trabajo por 30 minutos o más?",
      ["0 días", "1–2 días", "3–4 días", "5–6 días", "Todos los días"]),
 ]
 PROCHASKA_B = [
-    ("PRO-1b", "Sueño", "Cuando pensás en tu sueño, ¿cuál de estas te describe mejor?"),
-    ("PRO-2b", "Actividad", "Cuando pensás en hacer ejercicio de forma regular, ¿cuál te describe mejor?"),
-    ("PRO-3b", "Nutrición", "Cuando pensás en cómo te alimentás, ¿cuál te describe mejor?"),
-    ("PRO-4b", "Recuperación", "Cuando pensás en tu capacidad de desconectarte y recuperarte, ¿cuál te describe mejor?"),
+    ("PRO-1b", "Sueño", "Sobre tu sueño, ¿cuál opción te describe mejor?"),
+    ("PRO-2b", "Actividad", "Sobre hacer ejercicio con regularidad, ¿cuál opción te describe mejor?"),
+    ("PRO-3b", "Nutrición", "Sobre tu alimentación, ¿cuál opción te describe mejor?"),
+    ("PRO-4b", "Recuperación", "Sobre tu capacidad de desconectarte y recuperarte, ¿cuál opción te describe mejor?"),
 ]
 
 
@@ -202,16 +202,16 @@ def _prochaska() -> list[tuple]:
 
 # P5 · ERQ-10 (A1-A10, 1-7) + AAQ-II (B1, invertido). Short: A1, A7.
 ERQ = [
-    ("ERQ-A1", "Reevaluación", True, "Cuando quiero sentirme mejor, cambio la forma en que pienso sobre lo que está pasando."),
-    ("ERQ-A2", "Reevaluación", False, "Cuando quiero salir de un estado negativo, le busco otro ángulo a la situación."),
-    ("ERQ-A3", "Reevaluación", False, "Cuando algo me estresa, trato de pensar diferente para mantener la calma."),
-    ("ERQ-A4", "Reevaluación", False, "Cuando quiero ponerme de mejor humor, cambio cómo estoy viendo la situación."),
+    ("ERQ-A1", "Reevaluación", True, "Para sentirme mejor, cambio mi forma de pensar sobre lo que pasa."),
+    ("ERQ-A2", "Reevaluación", False, "Para salir de un estado negativo, busco otro ángulo de la situación."),
+    ("ERQ-A3", "Reevaluación", False, "Cuando algo me estresa, pienso distinto para mantener la calma."),
+    ("ERQ-A4", "Reevaluación", False, "Para mejorar mi ánimo, cambio cómo veo la situación."),
     ("ERQ-A5", "Reevaluación", False, "Manejo mis emociones reinterpretando lo que me pasa."),
-    ("ERQ-A6", "Reevaluación", False, "Cuando quiero reducir lo que siento negativamente, cambio cómo pienso en eso."),
+    ("ERQ-A6", "Reevaluación", False, "Para reducir una emoción negativa, cambio cómo pienso en ella."),
     ("ERQ-A7", "Supresión", True, "Me guardo lo que siento para mí."),
-    ("ERQ-A8", "Supresión", False, "Aunque sienta emociones positivas, tengo cuidado de no mostrarlas."),
+    ("ERQ-A8", "Supresión", False, "Aunque sienta emociones positivas, cuido de no mostrarlas."),
     ("ERQ-A9", "Supresión", False, "Controlo lo que siento no dejándolo salir."),
-    ("ERQ-A10", "Supresión", False, "Cuando siento emociones difíciles, me aseguro de no expresarlas."),
+    ("ERQ-A10", "Supresión", False, "Ante emociones difíciles, me aseguro de no expresarlas."),
 ]
 
 
@@ -229,14 +229,14 @@ def _aaq() -> list[tuple]:
 RISC = [
     "Me adapto bien cuando las cosas cambian.",
     "Puedo manejar lo que se me venga encima.",
-    "Le busco el lado chistoso o liviano a los problemas.",
-    "Salir adelante en situaciones difíciles me hace más fuerte.",
-    "Me recupero rápido después de una enfermedad o un golpe de la vida.",
-    "Creo que puedo llegar a mis metas aunque se presenten obstáculos en el camino.",
-    "Bajo presión, me mantengo enfocado/a y pienso con claridad.",
+    "Encuentro el lado liviano de los problemas.",
+    "Superar situaciones difíciles me hace más fuerte.",
+    "Me recupero rápido de una enfermedad o un golpe de la vida.",
+    "Creo que puedo lograr mis metas aunque haya obstáculos.",
+    "Bajo presión, mantengo el enfoque y pienso con claridad.",
     "Un fracaso no me quita las ganas de seguir.",
-    "Me considero una persona con temple cuando las cosas se ponen difíciles.",
-    "Puedo lidiar con emociones complicadas como la tristeza, el miedo o el enojo.",
+    "Mantengo el temple cuando las cosas se ponen difíciles.",
+    "Puedo lidiar con emociones como la tristeza, el miedo o el enojo.",
 ]
 
 
@@ -254,15 +254,15 @@ def _cfpb() -> list[tuple]:
     b5_opts = [("No", 0, None), ("Parcialmente", 2, None), ("Sí", 4, None)]
     return [
         ("CFPB-B1", "Finanzas", None, MC, 0, 4, False, True, 1,
-         "Si hoy perdiera mi fuente de ingresos principal, ¿por cuánto tiempo podría sostener mis gastos sin endeudarme?", b1_opts),
+         "Si hoy perdieras tu ingreso principal, ¿por cuánto tiempo podrías cubrir tus gastos sin endeudarte?", b1_opts),
         ("CFPB-B2", "Finanzas", None, L15, 1, 5, False, False, 2,
-         "Estoy tranquilo/a con la seguridad económica que tengo para el futuro.", None),
+         "Siento tranquilidad con mi seguridad económica a futuro.", None),
         ("CFPB-B3", "Finanzas", None, L15, 1, 5, False, False, 3,
-         "Tengo dinero suficiente para cubrir lo que necesito mes a mes.", None),
+         "Tengo dinero suficiente para cubrir lo que necesito cada mes.", None),
         ("CFPB-B4", "Finanzas", None, L15, 1, 5, True, False, 4,
          "Siento que mis finanzas controlan mi vida.", None),
         ("CFPB-B5", "Finanzas", None, MC, 0, 4, False, False, 5,
-         "Si se me presentara un gasto inesperado de ₡500.000, podría cubrirlo sin endeudarme.", b5_opts),
+         "Podría cubrir un gasto inesperado de ₡500.000 sin endeudarme.", b5_opts),
     ]
 
 

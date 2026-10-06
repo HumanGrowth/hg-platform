@@ -128,6 +128,26 @@ def create_company(db: Session, *, data: CreateCompanyRequest) -> CompanyOut:
     return _company_out(db, company)
 
 
+def set_company_licenses(db: Session, *, company_id: UUID, licenses_total: int) -> CompanyOut:
+    """Superadmin: ajusta el pool de licencias de la Empresa. No puede quedar por
+    debajo de lo ya repartido en cupos de orgs ni de los usuarios activos."""
+    company = _get_company(db, company_id)
+    assigned = _quota_assigned(db, company_id)
+    used = identity_service.company_active_users(db, company_id)
+    floor = max(assigned, used)
+    if licenses_total < floor:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"El pool no puede ser menor a {floor} (cupos repartidos: {assigned}, "
+                f"usuarios activos: {used})."
+            ),
+        )
+    company.licenses_total = licenses_total
+    db.flush()
+    return _company_out(db, company)
+
+
 # ─────────────────────────── company_admin: orgs ───────────────────────────
 
 
@@ -199,6 +219,55 @@ def create_org_in_company(
         id=org.id, name=org.name, slug=org.slug, country=org.country,
         user_count=0, license_quota=org.license_quota,
     )
+
+
+def rename_org(db: Session, *, company_id: UUID, org_id: UUID, name: str) -> CompanyOrgOut:
+    org = _require_company_org(db, company_id, org_id)
+    org.name = name.strip()
+    db.flush()
+    user_count = int(
+        db.scalar(
+            select(func.count(User.id)).where(User.org_id == org.id, User.is_active.is_(True))
+        )
+        or 0
+    )
+    return CompanyOrgOut(
+        id=org.id, name=org.name, slug=org.slug, country=org.country,
+        user_count=user_count, license_quota=org.license_quota,
+    )
+
+
+def delete_org(db: Session, *, company_id: UUID, org_id: UUID) -> None:
+    """Elimina una org de la Empresa. Solo si no tiene miembros (activos ni
+    inactivos): borrar con usuarios arrastraría su historial; hay que moverlos
+    antes. Tampoco se puede dejar a la Empresa sin ninguna org."""
+    org = _require_company_org(db, company_id, org_id)
+    members = int(
+        db.scalar(select(func.count(User.id)).where(User.org_id == org.id)) or 0
+    )
+    if members > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"La organización tiene {members} miembro(s). Movelos a otra "
+                "organización antes de eliminarla."
+            ),
+        )
+    remaining = int(
+        db.scalar(
+            select(func.count()).select_from(Organization).where(
+                Organization.company_id == company_id
+            )
+        )
+        or 0
+    )
+    if remaining <= 1:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="La Empresa debe conservar al menos una organización.",
+        )
+    db.delete(org)
+    db.flush()
 
 
 def set_org_license_quota(
@@ -289,6 +358,10 @@ def list_company_members(db: Session, company_id: UUID, actor: User) -> list[Com
     return out
 
 
+# Roles que un admin de empresa puede asignar desde el roster (no superadmin/company_admin).
+_ASSIGNABLE_ROLES = {UserRole.collaborator, UserRole.manager, UserRole.admin}
+
+
 def invite_to_company_org(
     db: Session, *, company_id: UUID, org_id: UUID, email: str,
     role: UserRole, invited_by: User, name: str | None,
@@ -296,13 +369,14 @@ def invite_to_company_org(
     """Invita a una org de la Empresa. Valida que la org pertenezca a la Empresa
     y reusa el flujo de identity (cascade de licencias pool+cap incluido)."""
     _require_company_org(db, company_id, org_id)
+    if role not in _ASSIGNABLE_ROLES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Rol inválido (solo colaborador, manager o admin).",
+        )
     return identity_service.create_invitation(
         db, org_id=org_id, email=email, role=role, invited_by=invited_by, name=name
     )
-
-
-# Roles que un admin de empresa puede asignar desde el roster (no superadmin/company_admin).
-_ASSIGNABLE_ROLES = {UserRole.collaborator, UserRole.manager, UserRole.admin}
 
 
 def update_company_member(

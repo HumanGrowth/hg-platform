@@ -35,6 +35,7 @@ from hg.db import SessionLocal
 from hg.modules.identity.models import User
 from hg.modules.learning_units.assignment_status import assignment_completed_clause
 from hg.modules.learning_units.models import LearningUnit, ModuleAssignment
+from hg.modules.learning_units.onboarding import is_content_restricted
 from hg.modules.notifications import engagement_content as content
 from hg.modules.notifications.email_service import email_service
 from hg.modules.notifications.models import EngagementReminder
@@ -184,6 +185,84 @@ def _run_due_date_reminders(db: Session) -> int:
             _log(db, org_id=user.org_id, user_id=user.id, kind=kind, reference_id=assignment.id)
             sent += 1
     return sent
+
+
+CONTENT_UNLOCKED_KIND = "content_unlocked"
+_RESTRICTABLE_ROLES = ("collaborator", "manager")
+
+
+def notify_content_unlocked(db: Session, users: list[User]) -> int:
+    """Avisa por email a quienes estaban esperando su primera asignación (ver
+    `learning_units/onboarding.py`) y ya la recibieron. Una sola vez por user
+    (`EngagementReminder` kind=content_unlocked). No avisa a quien ya empezó a
+    consumir contenido: ya sabe que tiene módulos. Idempotente: se llama tanto
+    al asignar como en el barrido periódico."""
+    settings = get_settings()
+    already = set(
+        db.scalars(
+            select(EngagementReminder.user_id).where(
+                EngagementReminder.kind == CONTENT_UNLOCKED_KIND,
+                EngagementReminder.user_id.in_([u.id for u in users]),
+            )
+        ).all()
+    )
+    candidates = [
+        u for u in users
+        if u.is_active and u.role.value in _RESTRICTABLE_ROLES
+        and u.id not in already
+    ]
+    if not candidates:
+        return 0
+    aggs = activity_by_users(db, [u.id for u in candidates])
+    sent = 0
+    for user in candidates:
+        if aggs[user.id].last_active_at is not None or is_content_restricted(db, user):
+            continue
+        status = email_service.send(
+            to=user.email,
+            subject="Tu organización ya te asignó módulos",
+            template="engagement_reminder",
+            context={
+                "nombre": user.full_name.split(" ")[0],
+                "headline": "Ya tenés módulos asignados",
+                "subtext": "Tu organización te asignó contenido en HumanGrowth. Ya podés ver tu ruta completa.",
+                "insight": content.why_keep_learning(str(user.id)),
+                "cta_label": "Ver mis módulos",
+                "cta_url": f"{settings.app_base_url}/modulos",
+            },
+        )
+        log.info(
+            "engagement.content_unlocked",
+            extra={"user_id": str(user.id), "status": status},
+        )
+        # Igual que el resto: "skipped" (flag off) no se registra, para no
+        # bloquear el envío real cuando se prenda el flag.
+        if status == "sent":
+            _log(db, org_id=user.org_id, user_id=user.id, kind=CONTENT_UNLOCKED_KIND)
+            sent += 1
+    return sent
+
+
+@celery_app.task(name="notifications.send_content_unlocked", ignore_result=True)
+def send_content_unlocked() -> dict[str, int]:
+    """Barrido: cubre lo que no pasa por una asignación directa (rutas custom
+    por org/empresa o asignadas a miembros)."""
+    db = SessionLocal()
+    try:
+        db.begin()
+        db.execute(text("SET LOCAL ROLE hg_superadmin"))
+        users = list(
+            db.scalars(select(User).where(User.is_active.is_(True))).all()
+        )
+        sent = notify_content_unlocked(db, users)
+        db.commit()
+        log.info("engagement.content_unlocked_run", extra={"sent": sent})
+        return {"sent": sent}
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
 
 @celery_app.task(name="notifications.send_engagement_reminders", ignore_result=True)

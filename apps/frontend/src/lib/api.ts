@@ -943,6 +943,36 @@ export const apiCreateCompanyOrg = async (
   return res.data;
 };
 
+export const apiRenameCompanyOrg = async (
+  orgId: string,
+  name: string,
+  companyId?: string,
+): Promise<CompanyOrg> => {
+  const res = await backend.patch<CompanyOrg>(
+    `/api/v1/company/organizations/${orgId}`,
+    { name },
+    { params: companyId ? { company_id: companyId } : undefined },
+  );
+  return res.data;
+};
+
+export const apiDeleteCompanyOrg = async (orgId: string, companyId?: string): Promise<void> => {
+  await backend.delete(`/api/v1/company/organizations/${orgId}`, {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
+};
+
+/** Superadmin: ajusta el pool de licencias de una Empresa. */
+export const apiSetCompanyLicenses = async (
+  companyId: string,
+  licensesTotal: number,
+): Promise<Company> => {
+  const res = await backend.patch<Company>(`/api/v1/admin/companies/${companyId}/licenses`, {
+    licenses_total: licensesTotal,
+  });
+  return res.data;
+};
+
 /** Asigna el cupo de licencias de una org (valida suma ≤ pool de la empresa). */
 export const apiSetOrgQuota = async (
   orgId: string,

@@ -12,6 +12,7 @@ import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Input, Label } from "@/components/ui/input";
 import { ApiError, apiLogin } from "@/lib/api";
+import { homeRouteFor } from "@/lib/home-route";
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
 import { loginSchema, type LoginValues as FormValues } from "@/lib/validation";
@@ -42,7 +43,7 @@ function LoginInner() {
     try {
       const { user, accessToken } = await apiLogin(values.email, values.password);
       setSession(user, accessToken);
-      router.replace("/home");
+      router.replace(homeRouteFor(user.role) as never);
     } catch (err) {
       setFormError(
         err instanceof ApiError && err.status === 401

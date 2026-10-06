@@ -1,11 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
 import { apiMe, apiRefresh } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
+import { isAdminRole } from "@/lib/home-route";
 
 /**
  * Rehidrata el access token (en memoria) desde la cookie httpOnly al cargar.
@@ -15,12 +16,17 @@ import { useAuthStore } from "@/lib/auth-store";
 export function SessionGate({
   children,
   requireOnboarding = false,
+  redirectAdmins = false,
 }: {
   children: React.ReactNode;
   /** Si el user tiene `has_completed_onboarding === false`, redirige al flujo. */
   requireOnboarding?: boolean;
+  /** Admin/company_admin/superadmin no son colaboradores: se mandan a /admin
+   * (para el layout de onboarding, donde no tienen nada que hacer). */
+  redirectAdmins?: boolean;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { accessToken, hydrating, setSession, clear, user } = useAuthStore();
   const [ready, setReady] = React.useState(Boolean(accessToken));
   // El `user` del store puede estar desactualizado (p.ej. recién completó el
@@ -33,7 +39,25 @@ export function SessionGate({
   // (se saltea): se va directo al assessment inicial si falta completarlo.
   // `has_completed_onboarding` se decide con dato fresco de /me (meChecked).
   React.useEffect(() => {
+    if (!ready || !redirectAdmins || !user || !meChecked) return;
+    if (isAdminRole(user.role)) router.replace("/admin" as never);
+  }, [ready, redirectAdmins, user, meChecked, router]);
+
+  React.useEffect(() => {
     if (!ready || !requireOnboarding || !user || !meChecked) return;
+    if (isAdminRole(user.role)) {
+      // Aterrizaje: al abrir la app con sesión viva ("/" → /home) el admin
+      // entra a su panel, una vez por pestaña; después puede ir al /home a mano.
+      try {
+        if (pathname === "/home" && !sessionStorage.getItem("hg-admin-landed")) {
+          sessionStorage.setItem("hg-admin-landed", "1");
+          router.replace("/admin" as never);
+        }
+      } catch {
+        /* sessionStorage no disponible: sin aterrizaje forzado */
+      }
+      return; // sin assessment ni onboarding de contenido
+    }
     if (user.has_completed_onboarding === false) {
       router.replace("/onboarding/welcome" as never);
       return;
@@ -44,7 +68,7 @@ export function SessionGate({
     if (user.content_restricted_to_onboarding === true) {
       router.replace("/onboarding/modulos" as never);
     }
-  }, [ready, requireOnboarding, user, meChecked, router]);
+  }, [ready, requireOnboarding, user, meChecked, router, pathname]);
 
   React.useEffect(() => {
     if (accessToken) {
@@ -90,7 +114,7 @@ export function SessionGate({
 
   // En rutas gated por onboarding, esperar a que `/me` confirme el estado fresco
   // antes de renderizar (evita el flash de la app + el redirect con dato viejo).
-  if (!ready || hydrating || (requireOnboarding && !meChecked)) {
+  if (!ready || hydrating || ((requireOnboarding || redirectAdmins) && !meChecked)) {
     return (
       <div className="flex flex-1 items-center justify-center py-32">
         <EmptyRing label="Cargando tu espacio…" />

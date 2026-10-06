@@ -31,8 +31,10 @@ from hg.modules.company.schemas import (
     CreateCompanyRequest,
     SetCompanyAccessRequest,
     UpdateAreaRequest,
+    UpdateCompanyLicensesRequest,
     UpdateMemberRequest,
     UpdateOrgQuotaRequest,
+    UpdateOrgRequest,
 )
 from hg.modules.identity import service as identity_service
 from hg.modules.identity.models import User
@@ -64,6 +66,18 @@ def create_company(
     _: User = Depends(require_role("superadmin")),
 ) -> CompanyOut:
     return service.create_company(db, data=body)
+
+
+@admin_router.patch("/companies/{company_id}/licenses", response_model=CompanyOut)
+def set_company_licenses(
+    company_id: UUID,
+    body: UpdateCompanyLicensesRequest,
+    db: Session = Depends(get_db_as_superadmin),
+    _: User = Depends(require_role("superadmin")),
+) -> CompanyOut:
+    return service.set_company_licenses(
+        db, company_id=company_id, licenses_total=body.licenses_total
+    )
 
 
 # ─────────────────────────── Superadmin: /admin/areas (catálogo global · TASK 8) ─────────────
@@ -155,6 +169,32 @@ def create_organization(
     return service.create_org_in_company(
         db, company_id=service.resolve_company_id(actor, company_id), data=body
     )
+
+
+@company_router.patch("/organizations/{org_id}", response_model=CompanyOrgOut)
+def rename_organization(
+    org_id: UUID,
+    body: UpdateOrgRequest,
+    company_id: UUID | None = Query(None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
+) -> CompanyOrgOut:
+    return service.rename_org(
+        db, company_id=service.resolve_company_id(actor, company_id), org_id=org_id, name=body.name
+    )
+
+
+@company_router.delete("/organizations/{org_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_organization(
+    org_id: UUID,
+    company_id: UUID | None = Query(None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
+) -> Response:
+    service.delete_org(
+        db, company_id=service.resolve_company_id(actor, company_id), org_id=org_id
+    )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @company_router.patch("/organizations/{org_id}/quota", response_model=CompanyOrgOut)
