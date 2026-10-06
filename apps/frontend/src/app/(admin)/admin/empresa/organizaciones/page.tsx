@@ -6,12 +6,13 @@
  * permite crear nuevas (apiCreateCompanyOrg). company_admin ve las suyas;
  * superadmin gestiona la empresa que eligió (contexto acting-company).
  */
-import { LineChart, Pencil, Plus, Trash2 } from "lucide-react";
+import { BookPlus, LineChart, Pencil, Plus, Trash2 } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { CompanyAdminGate } from "@/components/CompanyAdminGate";
+import { OrgModulesDialog } from "@/components/admin/OrgModulesDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
@@ -63,6 +64,7 @@ function OrganizacionesContent() {
   const [renameFor, setRenameFor] = React.useState<CompanyOrg | null>(null);
   const [renameValue, setRenameValue] = React.useState("");
   const [deleteFor, setDeleteFor] = React.useState<CompanyOrg | null>(null);
+  const [modulesFor, setModulesFor] = React.useState<CompanyOrg | null>(null);
   const [busy, setBusy] = React.useState(false);
 
   const load = React.useCallback(() => {
@@ -258,6 +260,15 @@ function OrganizacionesContent() {
                   <div className="flex gap-1">
                     <button
                       type="button"
+                      aria-label={`Asignar módulos a ${o.name}`}
+                      title="Asignar módulos"
+                      onClick={() => setModulesFor(o)}
+                      className="rounded-md p-1.5 text-fg-muted hover:bg-bg-sunken hover:text-fg"
+                    >
+                      <BookPlus size={16} strokeWidth={1.75} />
+                    </button>
+                    <button
+                      type="button"
                       aria-label={`Renombrar ${o.name}`}
                       onClick={() => {
                         setRenameFor(o);
@@ -307,6 +318,16 @@ function OrganizacionesContent() {
           <p className="px-5 py-10 text-center text-sm text-fg-muted">Cargando…</p>
         ) : null}
       </Card>
+
+      {modulesFor && (
+        <OrgModulesDialog
+          open
+          onClose={() => setModulesFor(null)}
+          orgId={modulesFor.id}
+          orgName={modulesFor.name}
+          companyId={companyId}
+        />
+      )}
 
       <Dialog
         open={renameFor !== null}

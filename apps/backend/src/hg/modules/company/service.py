@@ -32,6 +32,7 @@ from hg.modules.identity import service as identity_service
 from hg.modules.identity.invitations import Invitation
 from hg.modules.identity.models import Company, Organization, User, UserRole
 from hg.modules.learning_units.models import Area
+from hg.modules.learning_units.org_modules import apply_org_modules
 
 # ─────────────────────────── Scope de Empresa (frontera en app) ───────────────────────────
 
@@ -384,6 +385,7 @@ def update_company_member(
 ) -> User:
     """Mover de org, cambiar manager, cambiar rol o activar/desactivar (dentro de la Empresa)."""
     member = _require_company_member(db, company_id, user_id)
+    org_changed = False
 
     if payload.role is not None and payload.role != member.role:
         if member.id == actor.id:
@@ -403,6 +405,7 @@ def update_company_member(
         member.org_id = target_org.id
         member.company_id = target_org.company_id  # sigue siendo la misma Empresa
         member.manager_id = None  # el manager viejo era de otra org
+        org_changed = True
 
     if payload.manager_id is not None:
         manager = _require_company_member(db, company_id, payload.manager_id)
@@ -423,6 +426,9 @@ def update_company_member(
         member.is_active = payload.is_active
 
     db.flush()
+    if org_changed:
+        # Los módulos de la org de destino (los de la anterior quedan como están).
+        apply_org_modules(db, member)
     return member
 
 

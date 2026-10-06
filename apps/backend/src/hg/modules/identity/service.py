@@ -33,6 +33,7 @@ from hg.modules.identity.models import (
     UserRole,
     UserSession,
 )
+from hg.modules.learning_units.org_modules import apply_org_modules
 from hg.modules.notifications.email_service import email_service
 
 logger = logging.getLogger("hg.identity")
@@ -268,6 +269,8 @@ def accept_invite(
     # CE-06: el uso del pool se computa (users activos), no hay contador que sumar.
     invitation.accepted_at = _now()
     invitation.accepted_user_id = user.id
+    # Módulos de la organización: el miembro nuevo los recibe de inmediato.
+    apply_org_modules(db, user)
 
     access, refresh = _issue_session(db, user)
 

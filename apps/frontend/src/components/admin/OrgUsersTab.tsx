@@ -237,13 +237,6 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
                         >
                           Cambiar rol
                         </button>
-                        <Link
-                          href={`/admin/org/users/${u.id}/assignments?name=${encodeURIComponent(u.full_name)}` as Route}
-                          onClick={() => setMenuFor(null)}
-                          className="block w-full rounded-md px-3 py-2 text-left font-sans text-sm text-fg hover:bg-bg-sunken"
-                        >
-                          Asignar módulos
-                        </Link>
                         <button
                           type="button"
                           onClick={() => {

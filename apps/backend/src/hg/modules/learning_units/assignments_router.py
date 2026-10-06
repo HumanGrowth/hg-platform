@@ -31,7 +31,12 @@ from hg.modules.learning_units.assignment_status import (
     completed_assignment_ids,
     effective_status,
 )
-from hg.modules.learning_units.models import LearningUnit, ModuleAssignment
+from hg.modules.learning_units.models import (
+    LearningUnit,
+    ModuleAssignment,
+    OrgModuleAssignment,
+)
+from hg.modules.learning_units.org_modules import upsert_org_modules
 from hg.modules.notifications.tasks import notify_content_unlocked
 
 admin_router = APIRouter()
@@ -318,9 +323,10 @@ def assign_modules_to_organization(
     db: Session = Depends(get_db_as_superadmin),
     actor: User = Depends(require_role(*_ORG_ASSIGN_ROLES)),
 ) -> OrgAssignmentSummaryOut:
-    """Asigna un set de units a TODOS los miembros ACTIVOS de una organización
-    ahora mismo (materializa `ModuleAssignment`, aditivo). Puntual: no aplica a
-    quien se sume después — para eso, una `CustomPath` (FASE 2.2)."""
+    """Asigna un set de units a la ORGANIZACIÓN: se registran como módulos de la
+    org (todo miembro que se sume después los recibe automáticamente, ver
+    `org_modules.apply_org_modules`) y se materializa un `ModuleAssignment` para
+    cada miembro ACTIVO actual (aditivo)."""
     org = company_service.require_company_org(
         db, company_service.resolve_company_id(actor, company_id), org_id
     )
@@ -350,6 +356,10 @@ def assign_modules_to_organization(
             ),
         )
 
+    upsert_org_modules(
+        db, org_id=org_id, unit_ids=body.unit_ids, assigned_by=actor.id,
+        due_date=body.due_date, note=body.note,
+    )
     members = list(
         db.scalars(
             select(User).where(User.org_id == org_id, User.is_active.is_(True))
@@ -384,6 +394,66 @@ def assign_modules_to_organization(
         assignments_created=len(created),
         already_assigned=total_pairs - len(created),
     )
+
+
+class OrgModuleOut(BaseModel):
+    learning_unit_id: UUID
+    unit_slug: str
+    unit_title: str
+    pillar_code: str | None
+    due_date: datetime | None
+    note: str | None
+    assigned_at: datetime
+
+
+@admin_router.get("/organizations/{org_id}/modules", response_model=list[OrgModuleOut])
+def list_org_modules(
+    org_id: UUID,
+    company_id: UUID | None = Query(default=None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role(*_ORG_ASSIGN_ROLES)),
+) -> list[OrgModuleOut]:
+    """Módulos que recibe todo miembro de la organización."""
+    company_service.require_company_org(
+        db, company_service.resolve_company_id(actor, company_id), org_id
+    )
+    rows = db.execute(
+        select(OrgModuleAssignment, LearningUnit)
+        .join(LearningUnit, LearningUnit.id == OrgModuleAssignment.learning_unit_id)
+        .where(OrgModuleAssignment.org_id == org_id)
+        .order_by(OrgModuleAssignment.assigned_at.desc())
+    ).all()
+    return [
+        OrgModuleOut(
+            learning_unit_id=u.id, unit_slug=u.slug, unit_title=u.title,
+            pillar_code=u.pillar_code, due_date=a.due_date, note=a.note, assigned_at=a.assigned_at,
+        )
+        for a, u in rows
+    ]
+
+
+@admin_router.delete(
+    "/organizations/{org_id}/modules/{unit_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+def remove_org_module(
+    org_id: UUID,
+    unit_id: UUID,
+    company_id: UUID | None = Query(default=None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role(*_ORG_ASSIGN_ROLES)),
+) -> Response:
+    """Quita el módulo de la organización: los miembros que se sumen después ya
+    no lo reciben. Lo ya asignado a miembros existentes NO se toca."""
+    company_service.require_company_org(
+        db, company_service.resolve_company_id(actor, company_id), org_id
+    )
+    db.execute(
+        sa_delete(OrgModuleAssignment).where(
+            OrgModuleAssignment.org_id == org_id,
+            OrgModuleAssignment.learning_unit_id == unit_id,
+        )
+    )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @admin_router.get(

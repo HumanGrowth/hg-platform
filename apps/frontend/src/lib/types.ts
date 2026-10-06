@@ -920,6 +920,16 @@ export interface OnboardingStatus {
   all_completed: boolean;
 }
 
+export interface OrgModule {
+  learning_unit_id: string;
+  unit_slug: string;
+  unit_title: string;
+  pillar_code: string | null;
+  due_date: string | null;
+  note: string | null;
+  assigned_at: string;
+}
+
 export interface AssignableUnit {
   id: string;
   slug: string;
