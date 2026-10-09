@@ -193,26 +193,27 @@ def test_my_pillar_tips_matches_current_pillar_and_mixes_sources(client, factory
                 assert dim["pillar_code"] == matrix["current_pillar_code"]
 
 
-def test_validated_content_replaces_placeholders() -> None:
-    """PF-03: no quedan placeholders; cada pilar tiene tips con versión colaborador
-    y comportamientos validados (P1..P5 + AI)."""
-    from hg.modules.feedback.models import PillarCoachingTip
+def test_validated_content_migration_data_is_complete() -> None:
+    """PF-03: el contenido que carga la migración es completo y válido (se prueba
+    el dato de la migración, no la tabla: otros tests vacían `pillar_coaching_tips`)."""
+    import importlib.util
+    from pathlib import Path
 
-    s = SessionLocal()
-    try:
-        tips = s.scalars(select(PillarCoachingTip).where(PillarCoachingTip.dimension_code == "CP")).all()
-        assert tips, "PF-03 no cargó tips"
-        assert not [t for t in tips if t.text.startswith("[Placeholder]")]
-        by_pillar: dict[str, list] = {}
-        for t in tips:
-            by_pillar.setdefault(t.pillar_code, []).append(t)
-        assert set(by_pillar) >= {"P1", "P2", "P3", "P4", "P5", "AI"}
-        for pillar, rows in by_pillar.items():
-            assert len(rows) >= 7, pillar
-            assert all(t.collaborator_text for t in rows), pillar
-        behaviors = s.scalars(
-            select(PillarBehavior).where(PillarBehavior.dimension_code == "CP", PillarBehavior.pillar_code == "AI")
-        ).all()
-        assert len(behaviors) >= 4
-    finally:
-        s.close()
+    path = Path(__file__).parent.parent / "migrations" / "versions" / "PF-03_pillar_content_validated.py"
+    spec = importlib.util.spec_from_file_location("pf03", path)
+    assert spec is not None and spec.loader is not None
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    assert set(mod._TIPS) == {"P1", "P2", "P3", "P4", "P5", "AI"}
+    assert set(mod._BEHAVIORS) == set(mod._TIPS)
+    for pillar, tips in mod._TIPS.items():
+        assert len(tips) >= 7, pillar
+        for manager_text, collab_text in tips:
+            assert manager_text and collab_text
+            assert len(manager_text) <= 500 and len(collab_text) <= 500
+            assert "[Placeholder]" not in manager_text + collab_text
+    for pillar, behaviors in mod._BEHAVIORS.items():
+        assert len(behaviors) >= 4, pillar
+        assert all(0 < len(b) <= 500 for b in behaviors)
+    assert len(mod._SKILL_BY_TITLE) > 100
