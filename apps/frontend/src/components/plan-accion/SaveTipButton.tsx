@@ -24,6 +24,7 @@ export function SaveTipButton({
   source = "solution",
   label = "Guardar en mi cuaderno",
   className,
+  tone = "default",
 }: {
   prefillText?: string;
   dimensionCode?: string | null;
@@ -32,6 +33,8 @@ export function SaveTipButton({
   source?: "solution" | "reflection" | "custom";
   label?: string;
   className?: string;
+  /** "onDark": para plantillas sobre fondo oscuro/color (glass blanco translúcido). */
+  tone?: "default" | "onDark";
 }) {
   const [open, setOpen] = React.useState(false);
   const [text, setText] = React.useState(prefillText);
@@ -58,7 +61,13 @@ export function SaveTipButton({
 
   if (saved) {
     return (
-      <span className={cn("inline-flex items-center gap-1.5 text-sm font-medium text-success", className)}>
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 text-sm font-medium",
+          tone === "onDark" ? "text-hg-cream" : "text-success",
+          className,
+        )}
+      >
         <Check size={16} strokeWidth={2} /> Guardado ·{" "}
         <Link href={"/plan-accion" as Route} className="underline hover:text-primary">
           Ver en Plan de Acción
@@ -76,7 +85,9 @@ export function SaveTipButton({
           setOpen(true);
         }}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-raised px-3 py-1.5 font-sans text-sm font-medium text-fg hover:border-primary hover:text-primary",
+          tone === "onDark"
+            ? "inline-flex items-center gap-1.5 rounded-full border border-white/40 bg-white/15 px-3 py-1.5 font-sans text-sm font-medium text-hg-cream hover:bg-white/25"
+            : "inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-raised px-3 py-1.5 font-sans text-sm font-medium text-fg hover:border-primary hover:text-primary",
           className,
         )}
       >

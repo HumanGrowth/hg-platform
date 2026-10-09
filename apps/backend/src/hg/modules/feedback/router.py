@@ -24,6 +24,7 @@ mitad de handler (``get_db`` commitea al cerrar el request).
 """
 from __future__ import annotations
 
+import re
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -42,9 +43,11 @@ from hg.modules.feedback.models import (
 from hg.modules.feedback.schemas import (
     BehaviorMatrixOut,
     BehaviorOut,
+    DimensionPillarTipsOut,
     MyBehaviorEvaluationOut,
     PillarBehaviorsOut,
     PillarFeedbackOut,
+    PillarTipOut,
     UpsertBehaviorEvaluationsRequest,
     UpsertPillarFeedbackRequest,
 )
@@ -52,7 +55,14 @@ from hg.modules.identity.models import User, UserRole
 from hg.modules.learning.models import CareerPath
 from hg.modules.learning_units import path_engine
 from hg.modules.learning_units.dimensions import career_path_for_dimension
+from hg.modules.learning_units.models import (
+    TextBlock,
+    TextBlockVariant,
+    UnitBlock,
+    UnitBlockType,
+)
 from hg.modules.learning_units.pillars import pillar_display_name
+from hg.modules.learning_units.sequencing import build_sequence
 
 admin_router = APIRouter()
 me_router = APIRouter()
@@ -360,3 +370,108 @@ def my_pillar_feedback(
     """El colaborador ve TODOS sus feedbacks de pilar (pasados y en curso).
     Distinto de ``/me/behavior-feedback``, que excluye las notas privadas."""
     return _pillar_feedback_out(db, current_user.id)
+
+
+# ───────────────────────── Tips del Plan de Acción por pilar ─────────────────────────
+
+MAX_PILLAR_TIPS = 12  # por dimensión; más que esto satura el visor de a un tip
+_CITATION_RE = re.compile(r"[ \t]*\[\d+(?:\s*[,\-\u2013]\s*\d+)*\]")
+_MD_RE = re.compile(r"[*_`~>#]|==")
+_TIP_MAX_CHARS = 220  # mismo criterio que la plantilla "tip" del front
+
+
+def _plain(text: str) -> str:
+    return re.sub(r"\s+", " ", _MD_RE.sub("", _CITATION_RE.sub("", text))).strip()
+
+
+def _module_tip_texts(block: TextBlock) -> list[str]:
+    """Ideas accionables de un bloque solución: los pasos del checklist, o el
+    cuerpo entero si es una acción corta."""
+    if block.checklist_items:
+        out = []
+        for item in block.checklist_items:
+            title = _plain(str(item.get("title", "")))
+            detail = _plain(str(item.get("detail") or ""))
+            if title:
+                out.append(f"{title}. {detail}" if detail and len(title) + len(detail) < _TIP_MAX_CHARS else title)
+        return out
+    body = _plain(block.body)
+    return [body] if body and len(body) <= _TIP_MAX_CHARS else []
+
+
+@me_router.get("/pillar-tips", response_model=list[DimensionPillarTipsOut])
+def my_pillar_tips(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[DimensionPillarTipsOut]:
+    """Tips del Plan de Acción: por cada dimensión de la ruta, el pilar EN CURSO
+    (el de su próxima unit pendiente) con los tips de coaching del pilar — los
+    mismos que guían al manager — mezclados 1:1 con ideas de los módulos de ese
+    pilar. Solo contenido curado; no se genera en runtime."""
+    plan = build_sequence(db, current_user)
+    out: list[DimensionPillarTipsOut] = []
+    for dim in plan.ordered_by_dim:
+        if not plan.in_scope(dim):
+            continue
+        nxt = plan.next_unit(dim)
+        if nxt is None or not nxt.pillar_code:
+            continue
+        pillar = nxt.pillar_code
+
+        coaching = [
+            PillarTipOut(text=t.text, source="coaching")
+            for t in db.scalars(
+                select(PillarCoachingTip)
+                .where(
+                    PillarCoachingTip.dimension_code == dim,
+                    PillarCoachingTip.pillar_code == pillar,
+                    PillarCoachingTip.is_active.is_(True),
+                )
+                .order_by(PillarCoachingTip.order_index)
+            ).all()
+        ]
+
+        pillar_units = [u for u in plan.required(dim) if u.pillar_code == pillar]
+        unit_by_id = {u.id: u for u in pillar_units}
+        module: list[PillarTipOut] = []
+        if unit_by_id:
+            rows = db.execute(
+                select(UnitBlock.unit_id, UnitBlock.position, TextBlock)
+                .join(TextBlock, TextBlock.id == UnitBlock.block_id)
+                .where(
+                    UnitBlock.unit_id.in_(unit_by_id),
+                    UnitBlock.block_type == UnitBlockType.text_solution,
+                    TextBlock.variant == TextBlockVariant.solution,
+                )
+            ).all()
+            order = {u.id: i for i, u in enumerate(pillar_units)}
+            for unit_id, _pos, tb in sorted(rows, key=lambda r: (order[r[0]], r[1])):
+                unit = unit_by_id[unit_id]
+                for text in _module_tip_texts(tb):
+                    module.append(
+                        PillarTipOut(
+                            text=text, source="module", unit_id=unit.id, unit_slug=unit.slug,
+                            unit_title=unit.title, block_id=tb.id,
+                        )
+                    )
+
+        # Mezcla 1:1 (coaching primero) y descarta duplicados exactos.
+        mixed: list[PillarTipOut] = []
+        seen: set[str] = set()
+        for i in range(max(len(coaching), len(module))):
+            for pool in (coaching, module):
+                if i < len(pool) and pool[i].text not in seen:
+                    seen.add(pool[i].text)
+                    mixed.append(pool[i])
+        if not mixed:
+            continue
+        out.append(
+            DimensionPillarTipsOut(
+                dimension_code=dim,
+                career_path_code=career_path_for_dimension(dim),
+                pillar_code=pillar,
+                pillar_name=pillar_display_name(dim, pillar),
+                tips=mixed[:MAX_PILLAR_TIPS],
+            )
+        )
+    return out

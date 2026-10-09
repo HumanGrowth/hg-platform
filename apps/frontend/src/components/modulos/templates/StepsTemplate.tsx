@@ -4,7 +4,7 @@ import { detectChecklistItems, numberedListStart } from "@/lib/parsers/autoDetec
 import { cn } from "@/lib/utils";
 
 import { useTemplateFrame } from "./frame-context";
-import { SourceLine, STACK, TemplateEyebrow, type TemplateProps } from "./parts";
+import { SourceLine, STACK, TemplateEyebrow, TemplateSaveTip, type TemplateProps } from "./parts";
 import { EMPHASIS } from "./style";
 
 interface Step {
@@ -18,7 +18,7 @@ interface Step {
  * duplicar los pasos). Es una pieza visual estática — a diferencia del look clásico
  * (`InteractiveChecklist`) no persiste checks. Sin pasos cae a cuerpo editorial.
  */
-export function StepsTemplate({ block, body, p }: TemplateProps) {
+export function StepsTemplate({ block, body, dimensionCode, p }: TemplateProps) {
   const { landscape } = useTemplateFrame();
   const explicit = block.checklist_items;
   const detected = explicit?.length ? null : detectChecklistItems(body);
@@ -73,6 +73,12 @@ export function StepsTemplate({ block, body, p }: TemplateProps) {
           })}
         </ol>
       )}
+      <TemplateSaveTip
+        block={block}
+        dimensionCode={dimensionCode}
+        prefillText={steps.slice(0, 5).map((s) => `• ${s.title}`).join("\n")}
+        p={p}
+      />
       <SourceLine block={block} p={p} />
     </div>
   );

@@ -4,11 +4,11 @@ import { HexIcon } from "@/components/ui/hex-icon";
 import { cn } from "@/lib/utils";
 
 import { useTemplateFrame } from "./frame-context";
-import { SourceLine, STACK, TemplateDots, TemplateEyebrow, type TemplateProps } from "./parts";
+import { SourceLine, STACK, TemplateDots, TemplateEyebrow, TemplateSaveTip, type TemplateProps } from "./parts";
 import { EMPHASIS } from "./style";
 
 /** Tip: HexIcon de la dimensión + acción corta. Apaisado: ícono a la izquierda. */
-export function TipTemplate({ block, body, p }: TemplateProps) {
+export function TipTemplate({ block, body, dimensionCode, p }: TemplateProps) {
   const { landscape } = useTemplateFrame();
   const size = EMPHASIS[p.emphasis];
   const icon = <HexIcon pillar={p.careerPath} size={128} className={cn("h-auto", size.hex)} />;
@@ -25,6 +25,7 @@ export function TipTemplate({ block, body, p }: TemplateProps) {
       <MarkdownBody variant={p.t.md} emphasis={p.emphasis} fluid className={size.body}>
         {body}
       </MarkdownBody>
+      <TemplateSaveTip block={block} dimensionCode={dimensionCode} prefillText={body} p={p} />
       <SourceLine block={block} p={p} />
       <TemplateDots p={p} />
     </>

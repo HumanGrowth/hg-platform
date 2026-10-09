@@ -9,6 +9,7 @@ import type {
   PerspectiveInput,
   PerspectiveSummary,
   BehaviorMatrix,
+  DimensionPillarTips,
   PillarFeedback,
   CustomPath,
   CustomPathScope,
@@ -404,6 +405,12 @@ export const apiUpsertPillarFeedback = async (
 /** El colaborador lee TODOS sus feedbacks de pilar (pasados y en curso). */
 export const apiGetMyPillarFeedback = async (): Promise<PillarFeedback[]> => {
   const res = await backend.get<PillarFeedback[]>("/api/v1/me/pillar-feedback");
+  return res.data;
+};
+
+/** Tips por dimensión, del pilar en curso (coaching + módulos del pilar). */
+export const apiGetMyPillarTips = async (): Promise<DimensionPillarTips[]> => {
+  const res = await backend.get<DimensionPillarTips[]>("/api/v1/me/pillar-tips");
   return res.data;
 };
 

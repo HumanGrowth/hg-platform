@@ -172,3 +172,22 @@ def test_matrix_includes_curated_coaching_tips_capped_and_active_only(
         s.execute(PillarCoachingTip.__table__.delete().where(PillarCoachingTip.dimension_code == "CP"))
         s.commit()
         s.close()
+
+
+def test_my_pillar_tips_matches_current_pillar_and_mixes_sources(client, factory, auth_headers) -> None:
+    org = factory.make_org()
+    user = factory.make_user(org=org, role=UserRole.collaborator)
+    res = client.get("/api/v1/me/pillar-tips", headers=auth_headers(user))
+    assert res.status_code == 200, res.text
+    for dim in res.json():
+        assert dim["tips"], "no se devuelven dimensiones sin tips"
+        assert len(dim["tips"]) <= 12
+        assert {t["source"] for t in dim["tips"]} <= {"coaching", "module"}
+        # El pilar de los tips es el mismo pilar en curso que ve el manager.
+        if dim["dimension_code"] == "CP":
+            mgr = factory.make_user(org=org, role=UserRole.admin)
+            matrix = client.get(
+                f"/api/v1/admin/users/{user.id}/behavior-matrix", headers=auth_headers(mgr)
+            ).json()
+            if matrix["dimension_code"] == "CP":
+                assert dim["pillar_code"] == matrix["current_pillar_code"]

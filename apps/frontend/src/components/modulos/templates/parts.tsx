@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { SaveTipButton } from "@/components/plan-accion/SaveTipButton";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import type { TextBlock } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -65,5 +66,34 @@ export function TemplateDots({ p }: { p: ResolvedPresentation }) {
       <span className={cn("h-2.5 w-2.5 rounded-full", p.t.dark ? "bg-hg-cream" : "bg-hg-green")} />
       <span className="h-2.5 w-2.5 rounded-full bg-hg-amber" />
     </span>
+  );
+}
+
+/**
+ * "Guardar en mi cuaderno" dentro de una plantilla de solución (steps/tip).
+ * Centrado: las zonas de navegación del player (15% por lado) tapan los bordes.
+ */
+export function TemplateSaveTip({
+  block,
+  dimensionCode,
+  prefillText,
+  p,
+}: {
+  block: TextBlock;
+  dimensionCode?: string;
+  prefillText: string;
+  p: ResolvedPresentation;
+}) {
+  if (!prefillText.trim()) return null;
+  return (
+    <div className="flex justify-center pt-1">
+      <SaveTipButton
+        prefillText={prefillText}
+        dimensionCode={dimensionCode}
+        blockId={block.id}
+        source="solution"
+        tone={p.t.dark ? "onDark" : "default"}
+      />
+    </div>
   );
 }

@@ -20,7 +20,7 @@ from hg.config import get_settings
 from hg.core.deps import get_current_user
 from hg.db import get_db
 from hg.modules.identity.models import User
-from hg.modules.learning_units.models import SAVED_TIP_SOURCES, LearningUnit, SavedTip
+from hg.modules.learning_units.models import SAVED_TIP_SOURCES, LearningUnit, SavedTip, UnitBlock
 
 router = APIRouter()
 
@@ -90,9 +90,13 @@ def save_tip(
 ) -> TipOut:
     if body.source not in SAVED_TIP_SOURCES:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="invalid source")
+    unit_id = body.unit_id
+    if unit_id is None and body.block_id is not None:
+        # Las plantillas del player no conocen su unit: se deriva del índice de bloques.
+        unit_id = db.scalar(select(UnitBlock.unit_id).where(UnitBlock.block_id == body.block_id).limit(1))
     tip = SavedTip(
         org_id=user.org_id, user_id=user.id, tip_text=body.tip_text.strip(), source=body.source,
-        learning_unit_id=body.unit_id, block_id=body.block_id, dimension_code=body.dimension_code,
+        learning_unit_id=unit_id, block_id=body.block_id, dimension_code=body.dimension_code,
     )
     db.add(tip)
     db.flush()
