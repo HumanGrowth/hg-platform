@@ -302,4 +302,17 @@ describe("orientación del marco (el display decide el layout)", () => {
     const r2 = render(<BlockRenderer block={tip} dimensionCode="CP" {...handlers} />);
     expect(r2.container.querySelector("img")?.closest("div.flex.items-center")).not.toBeNull();
   });
+
+  it("steps y tip ofrecen 'Guardar en mi cuaderno' (se había perdido con las plantillas)", () => {
+    const steps = text(
+      { block_type: "text_solution", variant: "solution", checklist_items: [{ title: "a", detail: null }] },
+      { template: "steps" },
+    );
+    const r1 = render(<BlockRenderer block={steps} dimensionCode="CP" {...handlers} />);
+    expect(screen.getByText("Guardar en mi cuaderno")).toBeTruthy();
+    r1.unmount();
+    const tip = text({ block_type: "text_solution", variant: "solution", body: "Una acción corta." }, { template: "tip" });
+    render(<BlockRenderer block={tip} dimensionCode="CP" {...handlers} />);
+    expect(screen.getByText("Guardar en mi cuaderno")).toBeTruthy();
+  });
 });

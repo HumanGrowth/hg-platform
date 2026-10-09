@@ -74,3 +74,22 @@ class PillarFeedbackOut(BaseModel):
     text: str
     updated_at: datetime
     manager_name: str | None
+
+
+class PillarTipOut(BaseModel):
+    text: str
+    # "coaching" = tip curado del pilar (el mismo catálogo que ve el manager);
+    # "module" = idea de un bloque "solución" de un módulo del pilar.
+    source: str
+    unit_id: UUID | None = None
+    unit_slug: str | None = None
+    unit_title: str | None = None
+    block_id: UUID | None = None
+
+
+class DimensionPillarTipsOut(BaseModel):
+    dimension_code: str
+    career_path_code: str | None
+    pillar_code: str
+    pillar_name: str
+    tips: list[PillarTipOut]

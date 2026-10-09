@@ -852,6 +852,26 @@ export interface PillarFeedback {
   manager_name: string | null;
 }
 
+/** Tip del Plan de Acción: coaching del pilar (el que guía al manager) o idea
+ * de un módulo del pilar. */
+export interface PillarTip {
+  text: string;
+  source: "coaching" | "module";
+  unit_id: string | null;
+  unit_slug: string | null;
+  unit_title: string | null;
+  block_id: string | null;
+}
+
+/** Tips del pilar en curso de UNA dimensión (`GET /me/pillar-tips`). */
+export interface DimensionPillarTips {
+  dimension_code: string;
+  career_path_code: string | null;
+  pillar_code: string;
+  pillar_name: string;
+  tips: PillarTip[];
+}
+
 // ─────────────────────────── Rutas customizables (FASE 2.2/2.3) ───────────────────────────
 
 export type CustomPathScope = "company" | "org";
