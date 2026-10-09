@@ -418,17 +418,22 @@ def my_pillar_tips(
             continue
         pillar = nxt.pillar_code
 
+        # Versión colaborador del tip; sin ella (o con un placeholder sin validar)
+        # el tip es solo para el manager y no se muestra acá.
         coaching = [
-            PillarTipOut(text=t.text, source="coaching")
+            PillarTipOut(text=t.collaborator_text, source="coaching")
             for t in db.scalars(
                 select(PillarCoachingTip)
                 .where(
                     PillarCoachingTip.dimension_code == dim,
                     PillarCoachingTip.pillar_code == pillar,
                     PillarCoachingTip.is_active.is_(True),
+                    PillarCoachingTip.collaborator_text.is_not(None),
+                    PillarCoachingTip.collaborator_text.not_like("[Placeholder]%"),
                 )
                 .order_by(PillarCoachingTip.order_index)
             ).all()
+            if t.collaborator_text
         ]
 
         pillar_units = [u for u in plan.required(dim) if u.pillar_code == pillar]

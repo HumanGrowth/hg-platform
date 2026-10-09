@@ -191,3 +191,28 @@ def test_my_pillar_tips_matches_current_pillar_and_mixes_sources(client, factory
             ).json()
             if matrix["dimension_code"] == "CP":
                 assert dim["pillar_code"] == matrix["current_pillar_code"]
+
+
+def test_validated_content_replaces_placeholders() -> None:
+    """PF-03: no quedan placeholders; cada pilar tiene tips con versión colaborador
+    y comportamientos validados (P1..P5 + AI)."""
+    from hg.modules.feedback.models import PillarCoachingTip
+
+    s = SessionLocal()
+    try:
+        tips = s.scalars(select(PillarCoachingTip).where(PillarCoachingTip.dimension_code == "CP")).all()
+        assert tips, "PF-03 no cargó tips"
+        assert not [t for t in tips if t.text.startswith("[Placeholder]")]
+        by_pillar: dict[str, list] = {}
+        for t in tips:
+            by_pillar.setdefault(t.pillar_code, []).append(t)
+        assert set(by_pillar) >= {"P1", "P2", "P3", "P4", "P5", "AI"}
+        for pillar, rows in by_pillar.items():
+            assert len(rows) >= 7, pillar
+            assert all(t.collaborator_text for t in rows), pillar
+        behaviors = s.scalars(
+            select(PillarBehavior).where(PillarBehavior.dimension_code == "CP", PillarBehavior.pillar_code == "AI")
+        ).all()
+        assert len(behaviors) >= 4
+    finally:
+        s.close()
