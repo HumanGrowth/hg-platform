@@ -13,6 +13,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { apiGetMyPath } from "@/lib/api";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
 import { dimensionStyle } from "@/lib/dimension-styles";
+import { unitCanonicalPath } from "@/lib/modulos";
 import type { LearningUnitAttempt, LearningUnitDetail, PathStep } from "@/lib/types";
 import { cn, formatApproxMinutes } from "@/lib/utils";
 
@@ -106,7 +107,7 @@ export function UnitCompletionCard({ unit, attempt, quizStats }: UnitCompletionC
       <div className="mt-2 flex flex-col gap-3 sm:flex-row">
         {nextStep && (
           <Link
-            href={`/modulos/${nextStep.slug}` as Route}
+            href={unitCanonicalPath(nextStep)}
             className={cn(buttonVariants({ size: "lg" }))}
           >
             Siguiente módulo

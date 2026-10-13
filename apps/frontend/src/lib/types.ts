@@ -973,6 +973,8 @@ export interface PathStep {
   /** El `next_step` nunca viene bloqueado; los `upcoming` pueden estarlo. */
   locked?: boolean;
   lock_reason?: LockReason | null;
+  /** Con `pillar_code` arma la ruta canónica (`unitCanonicalPath`); null → cae al slug. */
+  unit_number?: number | null;
 }
 
 export interface PathDimensionProgress {

@@ -57,6 +57,8 @@ class PathStep:
     # anterior de su dimensión sin completar). `next_step` nunca viene bloqueado.
     locked: bool = False
     lock_reason: str | None = None  # "order" | "level" | "scope" (ver sequencing)
+    # Para armar la ruta canónica `/modulos/<DIM>/<Ln>/<pilar>/<seq>` en el front.
+    unit_number: int | None = None
 
 
 @dataclass
@@ -416,4 +418,5 @@ def _to_step(u: LearningUnit, career_path_code: str) -> PathStep:
         level_code=u.level_code,
         pillar_code=u.pillar_code,
         estimated_minutes=mins,
+        unit_number=u.unit_number,
     )

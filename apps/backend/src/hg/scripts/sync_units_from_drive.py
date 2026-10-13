@@ -918,8 +918,10 @@ def _process_folder(
     #    p.ej. poblar la DB de prod) se reusan las URLs deterministas sin
     #    descargar de Drive ni re-subir a R2 — sólo se hace el upsert. Al
     #    ACTUALIZAR una unit existente los videos ya están en R2 (misma key
-    #    determinista): siempre se reusan.
-    if args.skip_upload or update_mode:
+    #    determinista): se reusan, salvo --replace-videos (video nuevo: se
+    #    sobrescribe el MP4 en la misma key; nunca en --dry-run).
+    replace_videos = getattr(args, "replace_videos", False) and not args.dry_run
+    if args.skip_upload or (update_mode and not replace_videos):
         video_urls = [existing_r2_url(slug, i) for i in range(1, folder.mp4_count + 1)]
     else:
         # Descargar (si Drive) + subir MP4 a R2. Un fallo acá (download de Drive
@@ -1041,6 +1043,10 @@ def main() -> None:
                         help="actualiza IN-PLACE las units que ya existen (conserva su id, los "
                              "ids de bloque y todo el progreso de usuarios; reusa los videos ya "
                              "en R2). Con --dry-run corre todo y lo revierte")
+    parser.add_argument("--replace-videos", action="store_true",
+                        help="con --update-existing: descarga los MP4 de Drive y sobrescribe los "
+                             "de R2 (misma key) en vez de reusar los ya subidos. Ignorado en "
+                             "--dry-run")
     parser.add_argument("--skip-existing", action="store_true",
                         help="add-only: no re-crea units cuyo slug ya existe en la DB "
                              "(preserva su contenido y los attempts/progreso de usuarios)")
