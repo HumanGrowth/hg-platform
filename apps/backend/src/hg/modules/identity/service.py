@@ -33,6 +33,7 @@ from hg.modules.identity.models import (
     UserRole,
     UserSession,
 )
+from hg.modules.identity.password_reset import PasswordResetToken
 from hg.modules.learning_units.org_modules import apply_org_modules
 from hg.modules.notifications.email_service import email_service
 
@@ -46,6 +47,9 @@ def _display_name_from_email(email: str) -> str:
     return local.split(".")[0].replace("_", " ").title() or "hola"
 
 INVITE_TTL_DAYS = 7
+PASSWORD_RESET_TTL_MINUTES = 60
+# Anti-spam: no emitimos otro link si ya se mandó uno hace menos de esto.
+PASSWORD_RESET_COOLDOWN_SECONDS = 60
 _INVALID_CREDENTIALS = "invalid credentials"
 
 
@@ -172,6 +176,89 @@ def logout(db: Session, *, refresh_token: str) -> None:
     ).scalar_one_or_none()
     if session is not None and session.revoked_at is None:
         session.revoked_at = _now()
+
+
+def request_password_reset(db: Session, *, email: str) -> None:
+    """Emite y envía un link de recuperación. Siempre "exitoso" hacia afuera:
+    no revela si el email existe (la respuesta HTTP es idéntica). Si el email
+    está en varias orgs, cada cuenta activa recibe su propio link."""
+    users = (
+        db.execute(
+            select(User).where(func.lower(User.email) == email.strip().lower(), User.is_active.is_(True))
+        )
+        .scalars()
+        .all()
+    )
+    now = _now()
+    for user in users:
+        recent = db.execute(
+            select(PasswordResetToken.id).where(
+                PasswordResetToken.user_id == user.id,
+                PasswordResetToken.used_at.is_(None),
+                PasswordResetToken.created_at > now - timedelta(seconds=PASSWORD_RESET_COOLDOWN_SECONDS),
+            )
+        ).first()
+        if recent is not None:
+            continue
+        # Un solo link vigente por usuario: invalida los pendientes anteriores.
+        for old in db.execute(
+            select(PasswordResetToken).where(
+                PasswordResetToken.user_id == user.id, PasswordResetToken.used_at.is_(None)
+            )
+        ).scalars():
+            old.used_at = now
+
+        plain, token_hash = generate_opaque_token()
+        db.add(
+            PasswordResetToken(
+                user_id=user.id,
+                org_id=user.org_id,
+                token_hash=token_hash,
+                expires_at=now + timedelta(minutes=PASSWORD_RESET_TTL_MINUTES),
+            )
+        )
+        db.flush()
+        email_service.send(
+            to=user.email,
+            subject="Restablecé tu contraseña de HumanGrowth",
+            template="password_reset",
+            context={
+                "nombre": (user.full_name or "").split(" ")[0] or "hola",
+                "link": f"{settings.app_base_url}/reset-password?token={plain}",
+                "minutos": PASSWORD_RESET_TTL_MINUTES,
+            },
+        )
+
+
+def _load_valid_reset_token(db: Session, token: str) -> PasswordResetToken:
+    row = db.execute(
+        select(PasswordResetToken).where(PasswordResetToken.token_hash == hash_opaque_token(token))
+    ).scalar_one_or_none()
+    if row is None or row.used_at is not None or row.expires_at <= _now():
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="reset link invalid or expired")
+    return row
+
+
+def validate_password_reset_token(db: Session, *, token: str) -> None:
+    _load_valid_reset_token(db, token)
+
+
+def reset_password(db: Session, *, token: str, new_password: str) -> None:
+    """Consume el token, fija la nueva contraseña y revoca todas las sesiones
+    abiertas del usuario (quien tenga el refresh viejo queda fuera)."""
+    row = _load_valid_reset_token(db, token)
+    user = db.get(User, row.user_id)
+    if user is None or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="reset link invalid or expired")
+
+    now = _now()
+    user.hashed_password = hash_password(new_password)
+    row.used_at = now
+    for s in db.execute(
+        select(UserSession).where(UserSession.user_id == user.id, UserSession.revoked_at.is_(None))
+    ).scalars():
+        s.revoked_at = now
+    db.flush()
 
 
 def invitation_info(db: Session, *, token: str) -> dict:

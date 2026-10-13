@@ -102,15 +102,12 @@ function LoginInner() {
           {isSubmitting ? "Entrando…" : "Iniciar sesión"}
         </Button>
 
-        {/* TODO: reactivar cuando exista flow de recovery (B3-07).
-        <button
-          type="button"
+        <Link
+          href="/forgot-password"
           className="mt-1 self-start text-sm text-fg-muted underline-offset-2 hover:underline"
-          onClick={() => setFormError("Pedile a tu admin que te reenvíe la invitación.")}
         >
           Olvidé mi contraseña
-        </button>
-        */}
+        </Link>
       </form>
 
       <p className="mt-6 text-center text-sm text-fg-muted">

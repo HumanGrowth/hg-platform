@@ -99,6 +99,15 @@ class AcceptInviteRequest(BaseModel):
         return self
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=1)
+    password: str = Field(min_length=6)
+
+
 # ─────────────────────────── Admin / Orgs ───────────────────────────
 
 

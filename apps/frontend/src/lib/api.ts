@@ -109,6 +109,16 @@ export const apiLogin = (email: string, password: string, orgSlug?: string) =>
 export const apiAcceptInvite = (token: string, password: string, usernameOrEmail: string) =>
   postJson<AuthResult>("/api/auth/accept-invite", { token, password, usernameOrEmail });
 
+export const apiForgotPassword = (email: string) =>
+  postJson<{ status: string }>("/api/auth/forgot-password", { email });
+
+export const apiResetPassword = (token: string, password: string) =>
+  postJson<null>("/api/auth/reset-password", { token, password });
+
+export const apiValidateResetToken = async (token: string): Promise<void> => {
+  await axios.get(`${BACKEND}/api/v1/auth/reset-password/validate`, { params: { token } });
+};
+
 /** Rehidrata el access token desde la cookie httpOnly (no recibe el refresh). */
 const apiRefreshRaw = () => postJson<AuthResult>("/api/auth/refresh", {});
 

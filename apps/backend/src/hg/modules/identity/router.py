@@ -1,4 +1,4 @@
-"""Auth router: login, refresh, logout, me, accept-invite.
+"""Auth router: login, refresh, logout, me, accept-invite, recuperar contraseña.
 
 Endpoints públicos: login, refresh, accept-invite (NO existe /register).
 ``/me`` requiere Bearer. logout requiere el refresh token en el body.
@@ -14,6 +14,7 @@ from hg.modules.identity import service
 from hg.modules.identity.models import Organization, User
 from hg.modules.identity.schemas import (
     AcceptInviteRequest,
+    ForgotPasswordRequest,
     InviteInfoResponse,
     LoginRequest,
     LogoutRequest,
@@ -21,6 +22,7 @@ from hg.modules.identity.schemas import (
     MeUpdateRequest,
     OnboardingSeenRequest,
     RefreshRequest,
+    ResetPasswordRequest,
     TokenResponse,
     UserOut,
 )
@@ -56,6 +58,32 @@ def logout(
     db: Session = Depends(get_db_as_superadmin),
 ) -> None:
     service.logout(db, refresh_token=body.refresh_token)
+
+
+@router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
+def forgot_password(
+    body: ForgotPasswordRequest,
+    db: Session = Depends(get_db_as_superadmin),
+) -> dict[str, str]:
+    """Pide el link de recuperación. Respuesta idéntica exista o no el email."""
+    service.request_password_reset(db, email=body.email)
+    return {"status": "ok"}
+
+
+@router.get("/reset-password/validate", status_code=status.HTTP_204_NO_CONTENT)
+def validate_reset_token(
+    token: str = Query(min_length=1),
+    db: Session = Depends(get_db_as_superadmin),
+) -> None:
+    service.validate_password_reset_token(db, token=token)
+
+
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+def reset_password(
+    body: ResetPasswordRequest,
+    db: Session = Depends(get_db_as_superadmin),
+) -> None:
+    service.reset_password(db, token=body.token, new_password=body.password)
 
 
 def _reports_count(db: Session, user_id: object) -> int:

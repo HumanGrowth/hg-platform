@@ -6,6 +6,25 @@ export const loginSchema = z.object({
 });
 export type LoginValues = z.infer<typeof loginSchema>;
 
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Ingresá tu email")
+    .regex(/^\S+@\S+\.\S+$/, "Ingresá un email válido"),
+});
+export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    password: z.string().min(6, "Mínimo 6 caracteres"),
+    confirm: z.string().min(1, "Repetí la contraseña"),
+  })
+  .refine((v) => v.password === v.confirm, {
+    path: ["confirm"],
+    message: "Las contraseñas no coinciden",
+  });
+export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
+
 export const acceptInviteSchema = z.object({
   // Release TASK 3.4: un solo campo "usuario o correo" (email invitado o username).
   usernameOrEmail: z
