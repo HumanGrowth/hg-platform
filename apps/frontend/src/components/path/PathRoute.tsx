@@ -33,7 +33,7 @@ function dimensionName(code: string): string {
 }
 
 function stepHref(s: PathStep): Route {
-  return `/modulos/${s.slug}` as Route;
+  return unitCanonicalPath(s);
 }
 
 /** "Próximo · L2 · 8 min" — sin el tramo de minutos si el paso no lo trae. */

@@ -54,8 +54,8 @@ function pad3(n: number): string {
 
 type UnitLike = Pick<
   LearningUnitDetail | LearningUnitFeedItem,
-  "slug" | "dimension_code" | "level_code" | "pillar_code" | "unit_number"
->;
+  "slug" | "dimension_code" | "level_code" | "pillar_code"
+> & { unit_number?: number | null }; // opcional: `PathStep` puede no traerlo (→ cae al slug)
 
 /**
  * Ruta canónica anidada de una unit: `/modulos/<DIM>/<Ln>/<pillar_code>/<seq>`

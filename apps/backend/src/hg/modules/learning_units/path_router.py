@@ -27,6 +27,7 @@ class PathStepOut(BaseModel):
     estimated_minutes: int | None
     locked: bool = False
     lock_reason: Literal["order", "level", "scope"] | None = None
+    unit_number: int | None = None
 
 
 class PathMilestoneOut(BaseModel):
