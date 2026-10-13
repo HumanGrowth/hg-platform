@@ -15,6 +15,7 @@ import hg.modules.assessment.models  # noqa: F401
 import hg.modules.badges.models  # noqa: F401
 import hg.modules.feedback.models  # noqa: F401
 import hg.modules.identity.invitations  # noqa: F401
+import hg.modules.identity.password_reset  # noqa: F401
 import hg.modules.identity.models  # noqa: F401
 import hg.modules.learning.models  # noqa: F401
 import hg.modules.learning_units.models  # noqa: F401
