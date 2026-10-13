@@ -408,6 +408,10 @@ def accept_invite(
         }
         if username is not None:
             values["username"] = username
+        # El nombre pre-cargado por RRHH se respeta; si sigue siendo el placeholder
+        # derivado del correo, manda lo que la persona escribió al aceptar.
+        if (existing.full_name or "").strip() in ("", _display_name_from_email(existing.email)):
+            values["full_name"] = display_name
         try:
             result = cast(
                 CursorResult,
