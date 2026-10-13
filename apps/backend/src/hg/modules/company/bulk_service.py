@@ -240,7 +240,8 @@ def _update_existing(
             raise _RowError("el manager pertenece a otra organización")
         user.manager_id = manager.id
     consumed = False
-    if not user.is_active:
+    # Un invitado (pre-provisioning) no se "reactiva": se activa al aceptar.
+    if not user.is_active and not user.is_invited:
         reserve()
         user.is_active = True
         consumed = True

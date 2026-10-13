@@ -90,7 +90,9 @@ def _reports_count(db: Session, user_id: object) -> int:
     from sqlalchemy import func, select
 
     return int(
-        db.scalar(select(func.count()).select_from(User).where(User.manager_id == user_id)) or 0
+        db.scalar(select(func.count())
+        .select_from(User)
+        .where(User.manager_id == user_id, User.is_invited.is_(False))) or 0
     )
 
 
