@@ -164,8 +164,12 @@ def _team_members(db: Session, current_user: User) -> list[User]:
     """Reportes que el usuario puede ver. Admin/superadmin → toda la org;
     cualquier otro → sus reportes directos (lista vacía si no tiene)."""
     if current_user.role in _ADMIN_ROLES:
-        return list(db.scalars(select(User).where(User.id != current_user.id)).all())
-    return list(db.scalars(select(User).where(User.manager_id == current_user.id)).all())
+        return list(
+            db.scalars(select(User).where(User.id != current_user.id, User.is_invited.is_(False))).all()
+        )
+    return list(
+        db.scalars(select(User).where(User.manager_id == current_user.id, User.is_invited.is_(False))).all()
+    )
 
 
 @manager_router.get("/me/team", response_model=TeamResponse)
@@ -663,7 +667,7 @@ def _resolve_scope(
             org = db.get(Organization, org_id)
             allowed = org is not None and org.company_id == current_user.company_id
         if allowed:
-            users = list(db.scalars(select(User).where(User.org_id == org_id)).all())
+            users = list(db.scalars(select(User).where(User.org_id == org_id, User.is_invited.is_(False))).all())
             return users, [org_id]
 
     # Empresa completa.
@@ -673,14 +677,18 @@ def _resolve_scope(
     elif current_user.role == UserRole.admin:
         target_company = current_user.company_id
     if target_company is not None:
-        users = list(db.scalars(select(User).where(User.company_id == target_company)).all())
+        users = list(
+            db.scalars(select(User).where(User.company_id == target_company, User.is_invited.is_(False))).all()
+        )
         org_ids = list(
             db.scalars(select(Organization.id).where(Organization.company_id == target_company)).all()
         )
         return users, org_ids
 
     # Fallback: superadmin sin scope → su propia org.
-    users = list(db.scalars(select(User).where(User.org_id == current_user.org_id)).all())
+    users = list(
+        db.scalars(select(User).where(User.org_id == current_user.org_id, User.is_invited.is_(False))).all()
+    )
     return users, [current_user.org_id]
 
 
@@ -1023,7 +1031,9 @@ def get_manager_widgets(
     comparison: TeamOrgComparison | None = None
     if member_ids:
         org_uids = list(
-            db.scalars(select(User.id).where(User.org_id == current_user.org_id)).all()
+            db.scalars(
+                select(User.id).where(User.org_id == current_user.org_id, User.is_invited.is_(False))
+            ).all()
         )
         cutoff = now_utc() - timedelta(days=ACTIVE_WINDOW_DAYS)
 

@@ -37,6 +37,11 @@ const ESTADO_OPTIONS = [
   { value: "active", label: "Activo" },
   { value: "inactive", label: "Inactivo" },
 ];
+const INVITE_LABEL: Record<string, string> = {
+  staged: "Preparado",
+  sent: "Invitado",
+  expired: "Invitación vencida",
+};
 const ROLE_CHIP: Record<string, string> = {
   collaborator: "bg-bg-sunken text-fg-muted",
   manager: "bg-warning-bg text-warning",
@@ -122,7 +127,7 @@ function MembersContent() {
   const [savingId, setSavingId] = React.useState<string | null>(null);
 
   // Filtros + búsqueda (client-side).
-  const [statusF, setStatusF] = React.useState<"all" | "active" | "inactive">("all");
+  const [statusF, setStatusF] = React.useState<"all" | "active" | "inactive" | "invited">("all");
   const [roleF, setRoleF] = React.useState("");
   const [orgF, setOrgF] = React.useState("");
   const [query, setQuery] = React.useState("");
@@ -213,7 +218,8 @@ function MembersContent() {
     const q = query.trim().toLowerCase();
     return (members ?? []).filter((m) => {
       if (statusF === "active" && !m.is_active) return false;
-      if (statusF === "inactive" && m.is_active) return false;
+      if (statusF === "inactive" && (m.is_active || m.is_invited)) return false;
+      if (statusF === "invited" && !m.is_invited) return false;
       if (roleF && m.role !== roleF) return false;
       if (orgF && m.org_id !== orgF) return false;
       if (q && !m.full_name.toLowerCase().includes(q) && !m.email.toLowerCase().includes(q)) {
@@ -291,8 +297,9 @@ function MembersContent() {
                     { value: "all", label: "Todos" },
                     { value: "active", label: "Activos" },
                     { value: "inactive", label: "Inactivos" },
+                    { value: "invited", label: "Invitados" },
                   ]}
-                  onSelect={(v) => setStatusF(v as "all" | "active" | "inactive")}
+                  onSelect={(v) => setStatusF(v as "all" | "active" | "inactive" | "invited")}
                   renderTrigger={() => <HeaderFilterLabel label="Estado" active={statusF !== "all"} />}
                 />
               </th>
@@ -306,7 +313,7 @@ function MembersContent() {
               const busy = savingId === m.id;
               // Managers candidatos: activos de la MISMA org, distintos del propio.
               const managerOptions = (members ?? []).filter(
-                (u) => u.org_id === m.org_id && u.id !== m.id && u.is_active,
+                (u) => u.org_id === m.org_id && u.id !== m.id && (u.is_active || u.is_invited),
               );
               return (
                 <tr key={m.id} className="border-b border-border last:border-0 align-middle">
@@ -365,6 +372,15 @@ function MembersContent() {
                     />
                   </td>
                   <td className="px-4 py-3">
+                    {m.is_invited ? (
+                      // Un invitado se activa al aceptar su invitación: no se edita a mano.
+                      <ValueChip
+                        label={INVITE_LABEL[m.invite_status ?? "staged"] ?? "Invitado"}
+                        open={false}
+                        editable={false}
+                        tone="bg-warning-bg text-warning"
+                      />
+                    ) : (
                     <SelectPopover
                       value={m.is_active ? "active" : "inactive"}
                       disabled={!editable || busy}
@@ -386,6 +402,7 @@ function MembersContent() {
                         />
                       )}
                     />
+                    )}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 font-mono text-sm text-fg">
                     {m.modules_assigned > 0 ? (

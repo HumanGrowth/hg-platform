@@ -203,6 +203,7 @@ class AdminUserOut(BaseModel):
     role: UserRole
     career_level: CareerLevel | None
     is_active: bool
+    is_invited: bool = False
     last_login_at: datetime | None
     last_active_at: datetime | None
     manager_id: UUID | None

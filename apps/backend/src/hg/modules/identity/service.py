@@ -7,11 +7,14 @@ levantan ``HTTPException`` para los errores de dominio.
 from __future__ import annotations
 
 import logging
+import secrets
 from datetime import UTC, datetime, timedelta
+from functools import lru_cache
+from typing import cast
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
-from sqlalchemy import delete, func, select
+from sqlalchemy import CursorResult, delete, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -70,6 +73,56 @@ def company_active_users(db: Session, company_id: UUID) -> int:
     )
 
 
+@lru_cache(maxsize=1)
+def _invited_password_hash() -> str:
+    """Hash centinela de los invitados: un secreto aleatorio que nadie conoce.
+    Se calcula UNA vez (bcrypt es lento: 5000 filas de un bulk no pueden pagarlo
+    cada una) y como además el login excluye a los invitados, nunca se verifica."""
+    return hash_password(secrets.token_urlsafe(32))
+
+
+def find_user_by_email(db: Session, org_id: UUID, email: str) -> User | None:
+    """User de la org por email, sin distinguir mayúsculas (uq_users_org_email sí)."""
+    return db.scalar(
+        select(User).where(User.org_id == org_id, func.lower(User.email) == email.strip().lower())
+    )
+
+
+def get_or_create_invited_user(
+    db: Session, *, org: Organization, email: str, role: UserRole, full_name: str | None = None
+) -> User:
+    """Pre-provisioning: la fila User del invitado, con su org y rol ya definidos.
+
+    - No existe → se crea como invitado (inactivo, hash centinela).
+    - Ya es invitado → se reusa (se actualiza el rol y, si viene, el nombre).
+    - Ya es un usuario real (activo o desactivado) → 409.
+    """
+    existing = find_user_by_email(db, org.id, email)
+    if existing is not None:
+        if not existing.is_invited:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="ese correo ya pertenece a un usuario de la organización",
+            )
+        existing.role = role
+        if full_name and full_name.strip():
+            existing.full_name = full_name.strip()
+        return existing
+    user = User(
+        org_id=org.id,
+        company_id=org.company_id,
+        email=email.strip(),
+        hashed_password=_invited_password_hash(),
+        full_name=(full_name or "").strip() or _display_name_from_email(email),
+        role=role,
+        is_active=False,
+        is_invited=True,
+    )
+    db.add(user)
+    db.flush()
+    return user
+
+
 def check_license_available(db: Session, org: Organization) -> None:
     """Valida, antes de sumar un user activo a ``org``, el **pool de la Empresa**
     (CE-06: el límite es solo el pool de la Empresa; el cap por-org se eliminó).
@@ -108,8 +161,10 @@ def _issue_session(db: Session, user: User) -> tuple[str, str]:
 def authenticate(
     db: Session, *, email: str, password: str, org_slug: str | None
 ) -> tuple[User, str, str]:
+    # Los invitados (pre-provisioning) no tienen credenciales: no participan del
+    # login, ni siquiera para desambiguar un email repetido entre orgs.
     stmt = select(User).join(Organization, User.org_id == Organization.id).where(
-        User.email == email
+        User.email == email, User.is_invited.is_(False)
     )
     if org_slug:
         stmt = stmt.where(Organization.slug == org_slug)
@@ -334,24 +389,69 @@ def accept_invite(
         username = value
         display_name = value
 
-    user = User(
-        org_id=org.id,
-        company_id=org.company_id,  # denormalizado (Capa Empresa · CE-01)
-        email=invitation.email,
-        hashed_password=hash_password(password),
-        full_name=display_name,
-        username=username,
-        role=invitation.role,
-        last_login_at=_now(),
-    )
-    db.add(user)
-    try:
-        db.flush()
-    except IntegrityError as e:
+    existing = find_user_by_email(db, org.id, invitation.email)
+    if existing is not None and not existing.is_invited:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="ese usuario o correo ya existe en la organización",
-        ) from e
+        )
+
+    if existing is not None:
+        # Pre-provisioning: la cuenta ya está configurada (rol, manager, depto…):
+        # solo se ACTIVA. El UPDATE condicional es el candado contra el doble
+        # accept: de dos requests concurrentes solo uno modifica la fila.
+        values: dict[str, object] = {
+            "is_active": True,
+            "is_invited": False,
+            "hashed_password": hash_password(password),
+            "last_login_at": _now(),
+        }
+        if username is not None:
+            values["username"] = username
+        # El nombre pre-cargado por RRHH se respeta; si sigue siendo el placeholder
+        # derivado del correo, manda lo que la persona escribió al aceptar.
+        if (existing.full_name or "").strip() in ("", _display_name_from_email(existing.email)):
+            values["full_name"] = display_name
+        try:
+            result = cast(
+                CursorResult,
+                db.execute(
+                    update(User)
+                    .where(User.id == existing.id, User.is_invited.is_(True))
+                    .values(**values)
+                    .execution_options(synchronize_session=False)
+                ),
+            )
+            db.flush()
+        except IntegrityError as e:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="ese usuario o correo ya existe en la organización",
+            ) from e
+        if result.rowcount != 1:
+            raise HTTPException(status_code=status.HTTP_410_GONE, detail="invitation already used")
+        db.refresh(existing)
+        user = existing
+    else:
+        # Invitación emitida antes del pre-provisioning: no hay fila, se crea.
+        user = User(
+            org_id=org.id,
+            company_id=org.company_id,  # denormalizado (Capa Empresa · CE-01)
+            email=invitation.email,
+            hashed_password=hash_password(password),
+            full_name=display_name,
+            username=username,
+            role=invitation.role,
+            last_login_at=_now(),
+        )
+        db.add(user)
+        try:
+            db.flush()
+        except IntegrityError as e:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="ese usuario o correo ya existe en la organización",
+            ) from e
 
     # CE-06: el uso del pool se computa (users activos), no hay contador que sumar.
     invitation.accepted_at = _now()
@@ -448,6 +548,60 @@ def _welcome_path(role: UserRole) -> str:
 # ─────────────────────────── Admin: invitations ───────────────────────────
 
 
+def issue_invitation(
+    db: Session, *, user: User, invited_by: User
+) -> tuple[Invitation, str]:
+    """Emite (y envía por correo) la invitación de un usuario invitado.
+
+    Revoca antes las invitaciones pendientes de ese correo en la org —así el token
+    viejo deja de valer y no hay duplicados— y manda un token nuevo."""
+    if not user.is_invited:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="el usuario ya aceptó su invitación"
+        )
+    org = db.get(Organization, user.org_id)
+    if org is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="organization not found")
+    check_license_available(db, org)
+
+    now = _now()
+    for previous in db.scalars(
+        select(Invitation).where(
+            Invitation.org_id == org.id,
+            func.lower(Invitation.email) == user.email.lower(),
+            Invitation.accepted_at.is_(None),
+            Invitation.revoked_at.is_(None),
+        )
+    ).all():
+        previous.revoked_at = now
+
+    plain, token_hash = generate_opaque_token()
+    invitation = Invitation(
+        org_id=org.id,
+        email=user.email,
+        role=user.role,
+        token_hash=token_hash,
+        invited_by_user_id=invited_by.id,
+        expires_at=now + timedelta(days=INVITE_TTL_DAYS),
+    )
+    db.add(invitation)
+    db.flush()
+
+    invite_url = f"{settings.app_base_url}/accept-invite?token={plain}"
+    # Email real de invitación (template oficial formal, sin beta). Nunca rompe el
+    # flujo: email_service.send loguea y devuelve status, no levanta.
+    email_service.send(
+        to=user.email,
+        subject="Tu acceso a HumanGrowth ya está listo",
+        template="invitation",
+        context={
+            "nombre": (user.full_name or "").strip() or _display_name_from_email(user.email),
+            "link": invite_url,
+        },
+    )
+    return invitation, plain
+
+
 def create_invitation(
     db: Session,
     *,
@@ -468,31 +622,8 @@ def create_invitation(
         )
     check_license_available(db, org)
 
-    plain, token_hash = generate_opaque_token()
-    invitation = Invitation(
-        org_id=org_id,
-        email=email,
-        role=role,
-        token_hash=token_hash,
-        invited_by_user_id=invited_by.id,
-        expires_at=_now() + timedelta(days=INVITE_TTL_DAYS),
-    )
-    db.add(invitation)
-    db.flush()
-
-    invite_url = f"{settings.app_base_url}/accept-invite?token={plain}"
-    # Email real de invitación (template oficial formal, sin beta). Nunca rompe el
-    # flujo: email_service.send loguea y devuelve status, no levanta.
-    email_service.send(
-        to=email,
-        subject="Tu acceso a HumanGrowth ya está listo",
-        template="invitation",
-        context={
-            "nombre": (name or "").strip() or _display_name_from_email(email),
-            "link": invite_url,
-        },
-    )
-    return invitation, plain
+    user = get_or_create_invited_user(db, org=org, email=email, role=role, full_name=name)
+    return issue_invitation(db, user=user, invited_by=invited_by)
 
 
 def revoke_invitation(db: Session, *, invitation_id: UUID, actor: User) -> None:
@@ -505,6 +636,33 @@ def revoke_invitation(db: Session, *, invitation_id: UUID, actor: User) -> None:
         )
     if invitation.revoked_at is None:
         invitation.revoked_at = _now()
+    _drop_orphan_invited_user(db, invitation)
+
+
+def _drop_orphan_invited_user(db: Session, invitation: Invitation) -> None:
+    """Al revocar la invitación de alguien que aún no aceptó, su cuenta invitada
+    deja de tener sentido: se elimina salvo que otros ya dependan de ella
+    (reportes directos) u otra invitación siga vigente."""
+    if invitation.accepted_at is not None:
+        return
+    user = find_user_by_email(db, invitation.org_id, invitation.email)
+    if user is None or not user.is_invited:
+        return
+    other_pending = db.scalar(
+        select(func.count())
+        .select_from(Invitation)
+        .where(
+            Invitation.org_id == invitation.org_id,
+            func.lower(Invitation.email) == invitation.email.lower(),
+            Invitation.accepted_at.is_(None),
+            Invitation.revoked_at.is_(None),
+            Invitation.id != invitation.id,
+        )
+    )
+    reports = db.scalar(select(func.count()).select_from(User).where(User.manager_id == user.id))
+    if not other_pending and not reports:
+        db.execute(delete(User).where(User.id == user.id))
+        db.flush()
 
 
 def list_invitations(
@@ -554,7 +712,11 @@ def list_org_users(
     if status_filter == "active":
         filters.append(User.is_active.is_(True))
     elif status_filter == "inactive":
+        # "Desactivado": los invitados no cuentan, aún no tienen cuenta propia.
         filters.append(User.is_active.is_(False))
+        filters.append(User.is_invited.is_(False))
+    elif status_filter == "invited":
+        filters.append(User.is_invited.is_(True))
     if role is not None:
         filters.append(User.role == role)
 
@@ -621,6 +783,11 @@ def update_user(db: Session, *, user_id: UUID, actor: User, payload: dict) -> Us
     # Reactivar consume del pool de la Empresa → validar antes (CE-06: sin contador
     # por-org; el uso se computa por users activos).
     if new_active is not None and new_active != target.is_active:
+        if new_active is True and target.is_invited:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="un invitado se activa al aceptar su invitación",
+            )
         if new_active is True:
             org = db.get(Organization, target.org_id)
             if org is not None:

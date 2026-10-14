@@ -100,7 +100,7 @@ def revoke_invitation(
 @router.get("/orgs/{org_id}/users", response_model=PaginatedUsers)
 def list_org_users(
     org_id: UUID,
-    status_filter: Literal["active", "inactive", "all"] = Query(default="all", alias="status"),
+    status_filter: Literal["active", "inactive", "invited", "all"] = Query(default="all", alias="status"),
     role: UserRole | None = Query(default=None),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),

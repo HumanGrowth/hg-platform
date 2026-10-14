@@ -7,6 +7,7 @@ la Empresa A nunca toca datos de la Empresa B.
 """
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -331,6 +332,30 @@ def list_company_members(db: Session, company_id: UUID, actor: User) -> list[Com
     consents = consent_service.privacy_consents_by_user(db, [u.id for u in users])
     consent_service.log_access(db, actor=actor, resource=consent_service.RESOURCE_ROSTER)
 
+    # Invitaciones vigentes por (org, correo): distinguen "preparado" (el invitado
+    # existe pero aún no se le mandó el correo) de "enviado" / "expirado".
+    pending_expiry: dict[tuple[UUID, str], datetime] = {}
+    if any(u.is_invited for u in users):
+        for org_id, email, expires_at in db.execute(
+            select(Invitation.org_id, Invitation.email, Invitation.expires_at)
+            .join(Organization, Organization.id == Invitation.org_id)
+            .where(
+                Organization.company_id == company_id,
+                Invitation.accepted_at.is_(None),
+                Invitation.revoked_at.is_(None),
+            )
+        ).all():
+            pending_expiry[(org_id, email.lower())] = expires_at
+    now = datetime.now(UTC)
+
+    def _invite_status(u: User) -> str | None:
+        if not u.is_invited:
+            return None
+        expires_at = pending_expiry.get((u.org_id, u.email.lower()))
+        if expires_at is None:
+            return "staged"
+        return "expired" if expires_at <= now else "sent"
+
     out: list[CompanyMemberOut] = []
     for user, org_name in rows:
         agg = aggs[user.id]
@@ -352,6 +377,8 @@ def list_company_members(db: Session, company_id: UUID, actor: User) -> list[Com
                 manager_id=user.manager_id,
                 manager_name=name_by_id.get(user.manager_id) if user.manager_id else None,
                 is_active=user.is_active,
+                is_invited=user.is_invited,
+                invite_status=_invite_status(user),
                 last_active_at=agg.last_active_at,
                 modules_completed=agg.courses_completed,
                 modules_in_progress=agg.courses_in_progress,
@@ -424,6 +451,11 @@ def update_company_member(
         member.manager_id = manager.id
 
     if payload.is_active is not None and payload.is_active != member.is_active:
+        if payload.is_active is True and member.is_invited:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Un invitado se activa al aceptar su invitación.",
+            )
         # Reactivar consume del pool de la Empresa → validar antes (CE-06: sin
         # contador por-org; el uso se computa por users activos).
         if payload.is_active is True:

@@ -183,7 +183,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
                 </td>
                 <td className="px-3 py-3 sm:px-5">
                   <Badge variant={u.is_active ? "success" : "default"}>
-                    {u.is_active ? "activo" : "inactivo"}
+                    {u.is_invited ? "invitado" : u.is_active ? "activo" : "inactivo"}
                   </Badge>
                 </td>
                 <td className="relative px-3 py-3 sm:px-5 text-right">
@@ -214,19 +214,22 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
                   >
                     <>
                       <div>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            mutate(
-                              u.id,
-                              { is_active: !u.is_active },
-                              u.is_active ? "Usuario desactivado." : "Usuario reactivado.",
-                            )
-                          }
-                          className="block w-full rounded-md px-3 py-2 text-left font-sans text-sm text-fg hover:bg-bg-sunken disabled:opacity-40"
-                        >
-                          {u.is_active ? "Desactivar" : "Reactivar"}
-                        </button>
+                        {/* Un invitado se activa al aceptar su invitación: sin Reactivar. */}
+                        {!u.is_invited && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              mutate(
+                                u.id,
+                                { is_active: !u.is_active },
+                                u.is_active ? "Usuario desactivado." : "Usuario reactivado.",
+                              )
+                            }
+                            className="block w-full rounded-md px-3 py-2 text-left font-sans text-sm text-fg hover:bg-bg-sunken disabled:opacity-40"
+                          >
+                            {u.is_active ? "Desactivar" : "Reactivar"}
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => {
@@ -361,7 +364,7 @@ export function OrgUsersTab({ org, onMutated }: { org: Org | null; onMutated: ()
             >
               <option value="">— sin manager —</option>
               {data?.items
-                .filter((u) => u.id !== mgrModal?.id && u.is_active)
+                .filter((u) => u.id !== mgrModal?.id && (u.is_active || u.is_invited))
                 .map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.full_name} ({u.role})

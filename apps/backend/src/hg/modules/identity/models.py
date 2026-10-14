@@ -7,6 +7,7 @@ from datetime import date, datetime
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     Date,
     DateTime,
     Enum,
@@ -133,6 +134,8 @@ class User(Base):
     __table_args__ = (
         UniqueConstraint("org_id", "email", name="uq_users_org_email"),
         UniqueConstraint("org_id", "username", name="uq_users_org_username"),
+        # Un invitado nunca está activo: se activa al aceptar la invitación.
+        CheckConstraint("NOT (is_invited AND is_active)", name="ck_users_invited_inactive"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -163,6 +166,14 @@ class User(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), index=True
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Pre-provisioning: la cuenta ya está configurada (org, rol, manager) pero la
+    # persona aún no aceptó la invitación. Invariante: is_invited ⇒ NOT is_active.
+    # Distinto de "desactivado" (is_active=False, is_invited=False): un invitado
+    # nunca se reactiva a mano, se activa al aceptar. Su hashed_password es un
+    # hash centinela que nadie conoce.
+    is_invited: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("false"), nullable=False
+    )
     # Tour de features post-primer-login (Release TASK 6). False = mostrar el tour.
     has_seen_onboarding: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

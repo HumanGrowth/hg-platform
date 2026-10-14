@@ -84,6 +84,10 @@ class CompanyMemberOut(BaseModel):
     manager_id: UUID | None = None
     manager_name: str | None = None
     is_active: bool
+    # Pre-provisioning: cuenta ya configurada, sin aceptar. `invite_status`:
+    # staged (sin correo enviado) | sent | expired; None si no es invitado.
+    is_invited: bool = False
+    invite_status: str | None = None
     last_active_at: datetime | None
     modules_completed: int
     modules_in_progress: int

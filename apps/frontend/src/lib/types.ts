@@ -64,6 +64,8 @@ export interface AdminUser {
   role: UserRole;
   career_level: CareerLevel | null;
   is_active: boolean;
+  /** Pre-provisioning: cuenta ya configurada, la persona aún no aceptó la invitación. */
+  is_invited: boolean;
   last_login_at: string | null;
   last_active_at: string | null;
   manager_id: string | null;
@@ -1145,6 +1147,9 @@ export interface CompanyMember {
   manager_id: string | null;
   manager_name: string | null;
   is_active: boolean;
+  /** Invitado sin aceptar. `invite_status`: staged (sin correo enviado) | sent | expired. */
+  is_invited: boolean;
+  invite_status: "staged" | "sent" | "expired" | null;
   last_active_at: string | null;
   modules_completed: number;
   modules_in_progress: number;
