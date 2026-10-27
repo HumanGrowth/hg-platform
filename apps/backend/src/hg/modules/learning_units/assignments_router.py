@@ -41,7 +41,7 @@ from hg.modules.learning_units.models import (
     ModuleAssignment,
     OrgModuleAssignment,
 )
-from hg.modules.learning_units.org_modules import upsert_org_modules
+from hg.modules.learning_units.org_modules import org_assignment_error, upsert_org_modules
 from hg.modules.notifications.tasks import notify_content_unlocked
 
 admin_router = APIRouter()
@@ -350,28 +350,9 @@ def assign_modules_to_organization(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"learning units inexistentes: {sorted(str(m) for m in missing)}",
         )
-    enabled = enabled_area_codes(db, org.company_id)
-    blocked = [u.slug for u in units if u.area_code is not None and u.area_code not in enabled]
-    if blocked:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Área no habilitada para la empresa: {sorted(blocked)}",
-        )
-    blocked_pillars = blocked_by_content_access(units, company_content_access(db, org.company_id))
-    if blocked_pillars:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Contenido no habilitado para la empresa (dimensión o pilar): {blocked_pillars}",
-        )
-    non_cp = [u.slug for u in units if u.dimension_code != "CP"]
-    if non_cp:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=(
-                "Solo se puede asignar contenido de Carrera Profesional (CP): "
-                f"{sorted(non_cp)}"
-            ),
-        )
+    problem = org_assignment_error(db, org.company_id, units)
+    if problem is not None:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=problem)
 
     upsert_org_modules(
         db, org_id=org_id, unit_ids=body.unit_ids, assigned_by=actor.id,

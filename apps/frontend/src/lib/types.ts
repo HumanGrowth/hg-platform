@@ -1198,6 +1198,23 @@ export interface BulkImportRow {
   email: string;
   estado: "creado" | "actualizado" | "error";
   motivo: string | null;
+  /** Fila aplicada con un problema secundario (p.ej. no se pudo enlazar el manager). */
+  aviso: string | null;
+}
+
+export interface BulkImportOrgRow {
+  fila: number;
+  organizacion: string;
+  estado: "creada" | "actualizada" | "sin_cambios" | "error";
+  motivo: string | null;
+}
+
+export interface BulkImportModuleRow {
+  fila: number;
+  organizacion: string;
+  modulo: string;
+  estado: "asignado" | "sin_cambios" | "error";
+  motivo: string | null;
 }
 
 export interface BulkImportResponse {
@@ -1206,6 +1223,20 @@ export interface BulkImportResponse {
   actualizados: number;
   errores: number;
   filas: BulkImportRow[];
+  organizaciones: BulkImportOrgRow[];
+  modulos: BulkImportModuleRow[];
+  advertencias: string[];
+  /** true = vista previa: no se escribió nada ni se mandó ningún correo. */
+  solo_validar: boolean;
+  invitaciones_enviadas: number;
+}
+
+export interface SendInvitationsResponse {
+  enviadas: number;
+  omitidas: number;
+  /** Invitados que no entraron en esta llamada (tope por llamada). */
+  pendientes: number;
+  errores: Record<string, string>;
 }
 
 // ─────────────────────────── Progresión por dimensión (TASK 6) ───────────────────────────

@@ -14,10 +14,12 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, Up
 from sqlalchemy.orm import Session
 
 from hg.core.deps import get_db_as_superadmin, require_role
-from hg.modules.company import bulk_service, service
+from hg.modules.company import bulk_service, invite_service, service
 from hg.modules.company.bulk_service import BulkImportError
 from hg.modules.company.schemas import (
     AreaOut,
+    BulkImportModuleRowOut,
+    BulkImportOrgRowOut,
     BulkImportResponse,
     BulkImportRowOut,
     CompanyAccessOut,
@@ -29,6 +31,8 @@ from hg.modules.company.schemas import (
     CreateAreaRequest,
     CreateCompanyOrgRequest,
     CreateCompanyRequest,
+    SendInvitationsRequest,
+    SendInvitationsResponse,
     SetCompanyAccessRequest,
     UpdateAreaRequest,
     UpdateCompanyLicensesRequest,
@@ -284,19 +288,23 @@ def bulk_import_template(
     return Response(
         content=content,
         media_type=bulk_service.XLSX_MIME,
-        headers={"Content-Disposition": 'attachment; filename="plantilla_miembros.xlsx"'},
+        headers={"Content-Disposition": 'attachment; filename="plantilla_estructura.xlsx"'},
     )
 
 
 @company_router.post("/members/bulk-import", response_model=BulkImportResponse)
 async def bulk_import_members(
     file: UploadFile = File(...),
+    validate_only: bool = Query(False, description="vista previa: no escribe ni manda correos"),
+    send_invitations: bool = Query(False, description="mandar las invitaciones al cargar"),
     company_id: UUID | None = Query(None, description="solo superadmin"),
     db: Session = Depends(get_db_as_superadmin),
     actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
 ) -> BulkImportResponse:
-    """Alta/actualización masiva de miembros desde un `.xlsx`. Idempotente por
-    email; devuelve un reporte fila por fila (nunca falla todo por una fila mala)."""
+    """Carga masiva de la estructura de la empresa desde un `.xlsx` (hojas Organizaciones,
+    Miembros y Módulos). Idempotente; devuelve un reporte fila por fila (nunca falla todo
+    por una fila mala). Las personas nuevas quedan como invitados con la cuenta ya
+    configurada; los correos solo salen con ``send_invitations`` (o desde el paso de envío)."""
     content = await file.read()
     if len(content) > _MAX_UPLOAD_BYTES:
         raise HTTPException(
@@ -304,19 +312,72 @@ async def bulk_import_members(
             detail="el archivo excede el tamaño máximo (5 MB)",
         )
     try:
-        rows = bulk_service.bulk_import(
-            db, company_id=service.resolve_company_id(actor, company_id),
-            actor=actor, content=content,
+        outcome = bulk_service.bulk_import(
+            db, company_id=service.resolve_company_id(actor, company_id), actor=actor,
+            content=content, validate_only=validate_only, send_invitations=send_invitations,
         )
     except BulkImportError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
         ) from exc
-    filas = [BulkImportRowOut.model_validate(r) for r in rows]
+    filas = [BulkImportRowOut.model_validate(r) for r in outcome.members]
     return BulkImportResponse(
         total=len(filas),
         creados=sum(1 for r in filas if r.estado == "creado"),
         actualizados=sum(1 for r in filas if r.estado == "actualizado"),
         errores=sum(1 for r in filas if r.estado == "error"),
         filas=filas,
+        organizaciones=[BulkImportOrgRowOut.model_validate(r) for r in outcome.orgs],
+        modulos=[BulkImportModuleRowOut.model_validate(r) for r in outcome.modules],
+        advertencias=outcome.warnings,
+        solo_validar=outcome.validate_only,
+        invitaciones_enviadas=outcome.invitations_sent,
+    )
+
+
+# ─────────────────────────── Invitaciones (pre-provisioning) ───────────────────────────
+
+
+@company_router.post("/invitations/send", response_model=SendInvitationsResponse)
+def send_company_invitations(
+    body: SendInvitationsRequest,
+    company_id: UUID | None = Query(None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
+) -> SendInvitationsResponse:
+    """Manda las invitaciones de los invitados ya configurados: a todos los que no tienen
+    correo enviado (y los de invitación vencida), a una organización o a personas puntuales."""
+    result = invite_service.send_invitations(
+        db, company_id=service.resolve_company_id(actor, company_id), actor=actor,
+        org_id=body.org_id, user_ids=body.user_ids, include_expired=body.include_expired,
+    )
+    return SendInvitationsResponse(
+        enviadas=result.sent, omitidas=result.skipped, pendientes=result.remaining,
+        errores=result.errors,
+    )
+
+
+@company_router.post("/members/{user_id}/resend-invite", status_code=status.HTTP_204_NO_CONTENT)
+def resend_member_invite(
+    user_id: UUID,
+    company_id: UUID | None = Query(None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
+) -> None:
+    """Reenvía la invitación de una persona (token nuevo; el enlace anterior deja de valer)."""
+    invite_service.resend_invitation(
+        db, company_id=service.resolve_company_id(actor, company_id), user_id=user_id, actor=actor
+    )
+
+
+@company_router.delete("/members/{user_id}/invite", status_code=status.HTTP_204_NO_CONTENT)
+def discard_member_invite(
+    user_id: UUID,
+    company_id: UUID | None = Query(None, description="solo superadmin"),
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
+) -> None:
+    """Descarta a un invitado que todavía no aceptó (revoca su invitación y elimina la cuenta)."""
+    invite_service.discard_invited(
+        db, company_id=service.resolve_company_id(actor, company_id), user_id=user_id
     )

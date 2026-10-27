@@ -1,6 +1,16 @@
 "use client";
 
-import { ChevronDown, FileEdit, ListFilter, Plus, Trash2, Upload } from "lucide-react";
+import {
+  ChevronDown,
+  ListFilter,
+  MailPlus,
+  Plus,
+  RefreshCw,
+  Send,
+  Trash2,
+  Upload,
+  UserMinus,
+} from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import * as React from "react";
@@ -19,6 +29,9 @@ import {
   apiCompanyMembers,
   apiCompanyOrgs,
   apiDeleteUser,
+  apiDiscardInvite,
+  apiResendInvite,
+  apiSendInvitations,
   apiUpdateCompanyMember,
   ApiError,
   apiErrorMessage,
@@ -41,6 +54,11 @@ const INVITE_LABEL: Record<string, string> = {
   staged: "Preparado",
   sent: "Invitado",
   expired: "Invitación vencida",
+};
+const INVITE_TONE: Record<string, string> = {
+  staged: "bg-bg-sunken text-fg-muted",
+  sent: "bg-warning-bg text-warning",
+  expired: "bg-danger/10 text-danger",
 };
 const ROLE_CHIP: Record<string, string> = {
   collaborator: "bg-bg-sunken text-fg-muted",
@@ -137,6 +155,10 @@ function MembersContent() {
   const [form, setForm] = React.useState({ org_id: "", email: "", name: "", role: "collaborator" });
   const [submitting, setSubmitting] = React.useState(false);
 
+  // Invitados: envío en lote y descarte.
+  const [sendingAll, setSendingAll] = React.useState(false);
+  const [discardModal, setDiscardModal] = React.useState<CompanyMember | null>(null);
+
   // Eliminar (solo superadmin).
   const [deleteModal, setDeleteModal] = React.useState<CompanyMember | null>(null);
   const [confirmEmail, setConfirmEmail] = React.useState("");
@@ -169,6 +191,55 @@ function MembersContent() {
     } catch (err) {
       toast(apiErrorMessage(err, "No se pudo actualizar."), "danger");
       load(); // revierte el select a su valor real
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  /** Manda las invitaciones pendientes de la empresa (preparadas + vencidas). */
+  async function sendPending() {
+    setSendingAll(true);
+    try {
+      const res = await apiSendInvitations({}, companyId);
+      const failed = Object.keys(res.errores).length;
+      toast(
+        `${res.enviadas} invitaciones enviadas${failed ? `, ${failed} con error` : ""}${
+          res.pendientes ? `. Quedan ${res.pendientes}: volvé a enviar.` : "."
+        }`,
+        failed ? "danger" : "success",
+      );
+      load();
+    } catch (err) {
+      toast(apiErrorMessage(err, "No se pudieron enviar las invitaciones."), "danger");
+    } finally {
+      setSendingAll(false);
+    }
+  }
+
+  /** Envía o reenvía la invitación de una persona (token nuevo si ya había una). */
+  async function sendOne(m: CompanyMember) {
+    setSavingId(m.id);
+    try {
+      await apiResendInvite(m.id, companyId);
+      toast(m.invite_status === "staged" ? "Invitación enviada." : "Invitación reenviada.", "success");
+      load();
+    } catch (err) {
+      toast(apiErrorMessage(err, "No se pudo enviar la invitación."), "danger");
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  async function discardInvited() {
+    if (!discardModal) return;
+    setSavingId(discardModal.id);
+    try {
+      await apiDiscardInvite(discardModal.id, companyId);
+      toast("Invitado descartado.", "success");
+      setDiscardModal(null);
+      load();
+    } catch (err) {
+      toast(apiErrorMessage(err, "No se pudo descartar al invitado."), "danger");
     } finally {
       setSavingId(null);
     }
@@ -229,6 +300,10 @@ function MembersContent() {
     });
   }, [members, statusF, roleF, orgF, query]);
 
+  const toSend = (members ?? []).filter(
+    (m) => m.is_invited && (m.invite_status === "staged" || m.invite_status === "expired"),
+  ).length;
+
   if (!ready) return null; // superadmin sin empresa elegida → el hook redirige al selector.
 
   return (
@@ -253,6 +328,19 @@ function MembersContent() {
           </Button>
         </div>
       </div>
+
+      {toSend > 0 ? (
+        <Card className="mt-6 flex flex-wrap items-center justify-between gap-3 border-hg-amber/40 bg-hg-amber/5 px-5 py-4">
+          <p className="text-sm text-fg">
+            <strong>{toSend}</strong> {toSend === 1 ? "persona está" : "personas están"} lista
+            {toSend === 1 ? "" : "s"} para recibir su invitación (preparadas o con la invitación vencida).
+          </p>
+          <Button onClick={() => void sendPending()} disabled={sendingAll}>
+            <Send size={16} strokeWidth={1.75} />
+            {sendingAll ? "Enviando…" : "Enviar invitaciones"}
+          </Button>
+        </Card>
+      ) : null}
 
       {/* Solo búsqueda arriba; los filtros por columna viven en los headers. */}
       <div className="mt-6">
@@ -378,7 +466,7 @@ function MembersContent() {
                         label={INVITE_LABEL[m.invite_status ?? "staged"] ?? "Invitado"}
                         open={false}
                         editable={false}
-                        tone="bg-warning-bg text-warning"
+                        tone={INVITE_TONE[m.invite_status ?? "staged"] ?? INVITE_TONE.staged}
                       />
                     ) : (
                     <SelectPopover
@@ -416,7 +504,43 @@ function MembersContent() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
-                      {isSuperadmin && editable && (
+                      {m.is_invited && m.invite_status !== "sent" && (
+                        <button
+                          type="button"
+                          aria-label={
+                            m.invite_status === "expired"
+                              ? `Reenviar invitación a ${m.full_name}`
+                              : `Enviar invitación a ${m.full_name}`
+                          }
+                          title={
+                            m.invite_status === "expired"
+                              ? "La invitación venció: reenviar"
+                              : "Enviar invitación"
+                          }
+                          disabled={busy}
+                          onClick={() => void sendOne(m)}
+                          className="rounded-md p-1.5 text-primary hover:bg-hg-green-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:opacity-40"
+                        >
+                          {m.invite_status === "expired" ? (
+                            <RefreshCw size={16} strokeWidth={1.75} />
+                          ) : (
+                            <MailPlus size={16} strokeWidth={1.75} />
+                          )}
+                        </button>
+                      )}
+                      {m.is_invited && (
+                        <button
+                          type="button"
+                          aria-label={`Descartar invitado ${m.full_name}`}
+                          title="Descartar invitado"
+                          disabled={busy}
+                          onClick={() => setDiscardModal(m)}
+                          className="rounded-md p-1.5 text-fg-muted hover:bg-bg-sunken hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40 disabled:opacity-40"
+                        >
+                          <UserMinus size={16} strokeWidth={1.75} />
+                        </button>
+                      )}
+                      {isSuperadmin && editable && !m.is_invited && (
                         <button
                           type="button"
                           aria-label={`Eliminar a ${m.full_name}`}
@@ -511,6 +635,34 @@ function MembersContent() {
             </Button>
           </div>
         </form>
+      </Dialog>
+
+      <Dialog
+        open={discardModal !== null}
+        onClose={() => setDiscardModal(null)}
+        title="Descartar invitado"
+        description="Se revoca su invitación y se elimina la cuenta preparada. Sus reportes quedan sin manager."
+      >
+        {discardModal ? (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-fg-muted">
+              ¿Descartar a <span className="font-semibold text-fg">{discardModal.full_name}</span> (
+              {discardModal.email})? Si todavía no aceptó, no pierde ningún dato.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button variant="secondary" onClick={() => setDiscardModal(null)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={savingId === discardModal.id}
+                onClick={() => void discardInvited()}
+              >
+                Descartar
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </Dialog>
 
       {/* Borrado DEFINITIVO — solo superadmin, con confirmación por email. */}

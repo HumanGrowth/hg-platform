@@ -201,11 +201,53 @@ class BulkImportRowOut(BaseModel):
     email: str
     estado: str  # creado | actualizado | error
     motivo: str | None = None
+    # Fila aplicada con un problema secundario (p.ej. no se pudo enlazar el manager).
+    aviso: str | None = None
+
+
+class BulkImportOrgRowOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    fila: int
+    organizacion: str
+    estado: str  # creada | actualizada | sin_cambios | error
+    motivo: str | None = None
+
+
+class BulkImportModuleRowOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    fila: int
+    organizacion: str
+    modulo: str
+    estado: str  # asignado | sin_cambios | error
+    motivo: str | None = None
 
 
 class BulkImportResponse(BaseModel):
+    # Resumen de la hoja de miembros (contrato original del importador).
     total: int
     creados: int
     actualizados: int
     errores: int
     filas: list[BulkImportRowOut]
+    # Hojas nuevas + advertencias + modo.
+    organizaciones: list[BulkImportOrgRowOut] = []
+    modulos: list[BulkImportModuleRowOut] = []
+    advertencias: list[str] = []
+    solo_validar: bool = False
+    invitaciones_enviadas: int = 0
+
+
+class SendInvitationsRequest(BaseModel):
+    # Sin filtros: todos los invitados sin correo enviado (y los de invitación vencida).
+    org_id: UUID | None = None
+    user_ids: list[UUID] | None = None
+    include_expired: bool = True
+
+
+class SendInvitationsResponse(BaseModel):
+    enviadas: int
+    omitidas: int
+    pendientes: int  # invitados que no entraron en esta llamada (tope por llamada)
+    errores: dict[str, str]  # correo → motivo

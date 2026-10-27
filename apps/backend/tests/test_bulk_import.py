@@ -31,10 +31,11 @@ def _xlsx(rows: list[list[str]]) -> bytes:
     return buf.getvalue()
 
 
-def _post(client: TestClient, headers: dict[str, str], content: bytes):
+def _post(client: TestClient, headers: dict[str, str], content: bytes, **params):
     return client.post(
         f"{API}/company/members/bulk-import",
         headers=headers,
+        params=params or None,
         files={"file": ("miembros.xlsx", content, XLSX_MIME)},
     )
 
@@ -89,21 +90,25 @@ def test_bulk_mixed_creates_updates_and_reports_errors(
     updated = s.get(User, existing.id)
     assert updated.full_name == "Nombre Nuevo"
     assert updated.role == UserRole.manager
-    inv = s.scalar(select(Invitation).where(func.lower(Invitation.email) == new_email))
-    assert inv is not None and inv.accepted_at is None
+    # BP-01: la persona nueva queda como INVITADO (cuenta configurada, sin correo todavía).
+    invited = s.scalar(select(User).where(func.lower(User.email) == new_email))
+    assert invited is not None and invited.is_invited and not invited.is_active
+    assert s.scalar(select(Invitation).where(func.lower(Invitation.email) == new_email)) is None
 
 
 def test_bulk_is_idempotent_by_email(client: TestClient, factory, auth_headers) -> None:
-    """Re-subir el mismo email no duplica: la 2da corrida reporta 'actualizado'
-    (invitación ya pendiente) y no crea una segunda invitación."""
+    """Re-subir el mismo email no duplica: la 2da corrida reporta 'actualizado' y, aun
+    pidiendo enviar, no manda una segunda invitación (ya hay una vigente)."""
     slug, _org, admin = _setup(factory, licenses_total=None)
     email = _email()
     content = _xlsx([[slug, email, "Dup", "collaborator", ""]])
 
-    first = _post(client, auth_headers(admin), content)
+    first = _post(client, auth_headers(admin), content, send_invitations=True)
     assert first.json()["creados"] == 1
+    assert first.json()["invitaciones_enviadas"] == 1
 
-    second = _post(client, auth_headers(admin), content)
+    second = _post(client, auth_headers(admin), content, send_invitations=True)
+    assert second.json()["invitaciones_enviadas"] == 0
     assert second.json()["actualizados"] == 1
     assert second.json()["creados"] == 0
 
