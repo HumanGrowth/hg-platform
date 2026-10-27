@@ -20,6 +20,7 @@ import type {
   SavedTip,
   Area,
   BulkImportResponse,
+  SendInvitationsResponse,
   Company,
   CompanyAccess,
   CompanyMember,
@@ -1092,13 +1093,47 @@ export const apiBulkImportTemplate = async (): Promise<Blob> => {
   return res.data as Blob;
 };
 
-export const apiBulkImport = async (file: File, companyId?: string): Promise<BulkImportResponse> => {
+export const apiBulkImport = async (
+  file: File,
+  companyId?: string,
+  opts: { validateOnly?: boolean; sendInvitations?: boolean } = {},
+): Promise<BulkImportResponse> => {
   const fd = new FormData();
   fd.append("file", file);
   const res = await backend.post<BulkImportResponse>("/api/v1/company/members/bulk-import", fd, {
+    params: {
+      ...(companyId ? { company_id: companyId } : {}),
+      ...(opts.validateOnly ? { validate_only: true } : {}),
+      ...(opts.sendInvitations ? { send_invitations: true } : {}),
+    },
+  });
+  return res.data;
+};
+
+/** Manda las invitaciones de los invitados ya configurados (sin filtros: todos los que
+ * no tienen correo enviado + los de invitación vencida). */
+export const apiSendInvitations = async (
+  body: { org_id?: string; user_ids?: string[]; include_expired?: boolean } = {},
+  companyId?: string,
+): Promise<SendInvitationsResponse> => {
+  const res = await backend.post<SendInvitationsResponse>("/api/v1/company/invitations/send", body, {
     params: companyId ? { company_id: companyId } : undefined,
   });
   return res.data;
+};
+
+/** Reenvía la invitación de una persona (token nuevo; el enlace anterior deja de valer). */
+export const apiResendInvite = async (userId: string, companyId?: string): Promise<void> => {
+  await backend.post(`/api/v1/company/members/${userId}/resend-invite`, null, {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
+};
+
+/** Descarta a un invitado que todavía no aceptó (revoca su invitación y elimina la cuenta). */
+export const apiDiscardInvite = async (userId: string, companyId?: string): Promise<void> => {
+  await backend.delete(`/api/v1/company/members/${userId}/invite`, {
+    params: companyId ? { company_id: companyId } : undefined,
+  });
 };
 
 // ─────────────────────────── Capa Empresa · superadmin (companies + áreas) ───────────────────────────

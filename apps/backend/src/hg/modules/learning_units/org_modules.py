@@ -17,7 +17,30 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from hg.modules.identity.models import User
-from hg.modules.learning_units.models import ModuleAssignment, OrgModuleAssignment
+from hg.modules.learning_units.area_access import (
+    blocked_by_content_access,
+    company_content_access,
+    enabled_area_codes,
+)
+from hg.modules.learning_units.models import LearningUnit, ModuleAssignment, OrgModuleAssignment
+
+
+def org_assignment_error(db: Session, company_id: UUID, units: list[LearningUnit]) -> str | None:
+    """Por qué NO se pueden asignar ``units`` a una org de la Empresa (``None`` si
+    se puede): Área no habilitada, dimensión/pilar deshabilitado o contenido que no
+    es de Carrera. Fuente única de la regla: la usan el endpoint de asignación a
+    org y el bulk de empresa."""
+    enabled = enabled_area_codes(db, company_id)
+    blocked = [u.slug for u in units if u.area_code is not None and u.area_code not in enabled]
+    if blocked:
+        return f"Área no habilitada para la empresa: {sorted(blocked)}"
+    blocked_pillars = blocked_by_content_access(units, company_content_access(db, company_id))
+    if blocked_pillars:
+        return f"Contenido no habilitado para la empresa (dimensión o pilar): {blocked_pillars}"
+    non_cp = [u.slug for u in units if u.dimension_code != "CP"]
+    if non_cp:
+        return f"Solo se puede asignar contenido de Carrera Profesional (CP): {sorted(non_cp)}"
+    return None
 
 
 def apply_org_modules(db: Session, user: User) -> int:
@@ -87,3 +110,43 @@ def upsert_org_modules(
             row.note = note
     db.flush()
     return new
+
+
+def assign_units_to_active_members(
+    db: Session,
+    *,
+    org_id: UUID,
+    unit_ids: list[UUID],
+    assigned_by: UUID,
+    due_date: datetime | None,
+    note: str | None,
+) -> list[User]:
+    """Materializa un `ModuleAssignment` para cada miembro ACTIVO actual de la org
+    que aún no tenga esas units (aditivo). Los invitados los reciben al aceptar
+    (`apply_org_modules`). Devuelve los miembros a los que se les creó algo."""
+    members = list(
+        db.scalars(select(User).where(User.org_id == org_id, User.is_active.is_(True))).all()
+    )
+    if not members or not unit_ids:
+        return []
+    already = set(
+        db.execute(
+            select(ModuleAssignment.user_id, ModuleAssignment.learning_unit_id).where(
+                ModuleAssignment.user_id.in_([m.id for m in members]),
+                ModuleAssignment.learning_unit_id.in_(unit_ids),
+            )
+        ).all()
+    )
+    created = [
+        ModuleAssignment(
+            org_id=org_id, user_id=m.id, learning_unit_id=uid,
+            assigned_by_user_id=assigned_by, due_date=due_date, note=note,
+        )
+        for m in members
+        for uid in unit_ids
+        if (m.id, uid) not in already
+    ]
+    db.add_all(created)
+    db.flush()
+    touched = {a.user_id for a in created}
+    return [m for m in members if m.id in touched]
