@@ -17,6 +17,8 @@ interface Props {
   /** id del bloque — para persistir el estado marcado en localStorage. */
   storageKey: string;
   dimensionCode?: string;
+  /** Origen del tip guardado: `solution` (por defecto) o `reflection` ("Tu práctica"). */
+  source?: "solution" | "reflection";
 }
 
 function usePersistedChecks(key: string, count: number): [boolean[], (i: number) => void] {
@@ -57,7 +59,7 @@ function usePersistedChecks(key: string, count: number): [boolean[], (i: number)
  * en color del pilar (persisten en localStorage por bloque), `detail`
  * expandible, y un placeholder de AI "Guardar en mi cuaderno".
  */
-export function InteractiveChecklist({ items, storageKey, dimensionCode }: Props) {
+export function InteractiveChecklist({ items, storageKey, dimensionCode, source = "solution" }: Props) {
   const style = dimensionStyle(dimensionCode);
   const [checks, toggle] = usePersistedChecks(`hg-checklist-${storageKey}`, items.length);
   const [expanded, setExpanded] = React.useState<number | null>(null);
@@ -116,7 +118,7 @@ export function InteractiveChecklist({ items, storageKey, dimensionCode }: Props
       <SaveTipButton
         prefillText={items.map((it) => `• ${it.title}`).join("\n")}
         dimensionCode={dimensionCode}
-        source="solution"
+        source={source}
         className="self-start"
       />
     </div>

@@ -27,17 +27,22 @@ from dataclasses import dataclass
 # dimensiones donde el nivel es constante y el pilar es el estado).
 # `(<AREA>-)?<DIM>-L<n>-<PILAR>-<seq>`.
 _UNIT_CODE_RE = re.compile(
-    r"^(?:([A-Z]{2,3})-)?([A-Z]{2,3})-L(\d{1,2})-([A-Z]{1,4}\d{0,2})-(\d{1,4})$"
+    r"^(?:([A-Z]{2,3})-)?([A-Z]{2,3})-L(\d{1,2})-([A-Z]{1,6}\d{0,2})-(\d{1,4})$"
 )
+# Wave 2 (D2-D6): carpeta plana sin nivel `<DIM>-<PILAR3>-<seq>` (`EM-TRA-003`) o
+# la unidad introductoria `<DIM>-000` (`PS-000`, sin pilar).
+_FLAT_UNIT_CODE_RE = re.compile(r"^([A-Z]{2})-(?:([A-Z]{3})-)?(\d{3})$")
 _GENERAL_SENTINEL = "GEN"
 # Alias de pilares nombrados → código canónico (IA y AI son el mismo pilar).
 _PILLAR_ALIASES = {"IA": "AI"}
 # Códigos de dimensión que usa el contenido del Drive (D3 Relaciones y
 # Conexiones, D4 Salud y Bienestar, D6 Estabilidad Emocional y Material) →
 # código canónico de la app (CP/PR/RE/SA/PI/ES, ver `dimensions.py`).
-_DIMENSION_ALIASES = {"RC": "RE", "SB": "SA", "EM": "ES"}
+_DIMENSION_ALIASES = {"PS": "PR", "RC": "RE", "SB": "SA", "EM": "ES"}
 # Contenido sin división por nivel (D3-D6): se normaliza al primer nivel.
 GENERAL_LEVEL = "GENERAL"
+# Wave 2: el unit.json de D2-D6 declara `level_code: "ALL"` (mismo significado).
+ALL_LEVEL = "ALL"
 _LEVEL_CODE_RE = re.compile(r"^L[1-6]$")
 
 
@@ -54,11 +59,11 @@ def normalize_dimension(segment: str) -> str:
 
 
 def normalize_level(level: str) -> str | None:
-    """``level_code`` canónico: ``L1``..``L6`` se conserva; ``GENERAL`` (dimensiones
+    """``level_code`` canónico: ``L1``..``L6`` se conserva; ``GENERAL``/``ALL`` (dimensiones
     sin división por nivel) → ``L1``. Cualquier otro valor → ``None`` (el caller
     decide si reporta y saltea)."""
     up = level.strip().upper()
-    if up == GENERAL_LEVEL:
+    if up in (GENERAL_LEVEL, ALL_LEVEL):
         return "L1"
     return up if _LEVEL_CODE_RE.match(up) else None
 
@@ -89,6 +94,20 @@ def parse_unit_code(code: str) -> UnitCode | None:
     return UnitCode(
         area=area, dimension=normalize_dimension(m.group(2)), level=int(m.group(3)),
         pillar=normalize_pillar(m.group(4)), number=int(m.group(5)),
+    )
+
+
+def parse_flat_unit_code(code: str) -> UnitCode | None:
+    """Carpeta plana de Wave 2 (D2-D6, sin nivel): ``EM-TRA-003`` →
+    ``UnitCode(dimension="ES", level=1, pillar="TRA", number=3)``; la intro
+    ``PS-000`` → ``pillar=None, number=0``. ``None`` si no respeta la forma."""
+    m = _FLAT_UNIT_CODE_RE.match(code.strip().upper())
+    if not m:
+        return None
+    return UnitCode(
+        dimension=normalize_dimension(m.group(1)), level=1,
+        pillar=normalize_pillar(m.group(2)) if m.group(2) else None,
+        number=int(m.group(3)),
     )
 
 

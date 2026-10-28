@@ -22,9 +22,9 @@ import { dimensionStyle, subPillarName } from "@/lib/dimension-styles";
 import type { DimensionResult, LearningUnitFeedItem, MyBadge } from "@/lib/types";
 import { formatRelativeTime } from "@/lib/utils";
 
-/** El pilar AI (Foundation) siempre va último; el resto por orden natural. */
+/** Los pilares Foundation (AI, FND*) siempre van últimos; el resto por orden natural. */
 function pillarRank(code: string): number {
-  return code === "AI" ? 1 : 0;
+  return code === "AI" || code.startsWith("FND") ? 1 : 0;
 }
 
 export function DimensionDetail({ dimension }: { dimension: Dimension }) {

@@ -76,6 +76,19 @@ const reflectionBlock: Block = {
   example: null,
 };
 
+const practiceBody =
+  "Elegí tu práctica de esta semana.\n- [ ] Notar cuándo aparece la preocupación.\n- [ ] Anotarla para mi momento de decidir.\nAl terminar la semana, preguntate: ¿qué reconociste?";
+
+const practiceBlock: Block = {
+  ...textBlock,
+  id: "b5",
+  block_type: "text_reflection",
+  variant: "reflection",
+  eyebrow: "TU PRÁCTICA",
+  body: practiceBody,
+  required: false,
+} as Block;
+
 describe("BlockRenderer", () => {
   it("renders VideoBlockView for video_intro/video_teaching/video_closing as a native <video>, not <iframe>", () => {
     render(<BlockRenderer block={videoBlock} {...handlers} />);
@@ -103,5 +116,19 @@ describe("BlockRenderer", () => {
     render(<BlockRenderer block={reflectionBlock} {...handlers} />);
     expect(screen.getByText("¿Qué vas a hacer?")).toBeTruthy();
     expect(screen.getByPlaceholderText("Escribí tu reflexión…")).toBeTruthy();
+  });
+
+  it("renders text_reflection (classic look) as an interactive practice checklist", () => {
+    render(<BlockRenderer block={practiceBlock} {...handlers} />);
+    expect(screen.getByText("TU PRÁCTICA")).toBeTruthy();
+    expect(screen.getByText("Notar cuándo aparece la preocupación.")).toBeTruthy();
+    expect(screen.getByText("Anotarla para mi momento de decidir.")).toBeTruthy();
+    expect(screen.getByText(/preguntate: ¿qué reconociste\?/)).toBeTruthy();
+  });
+
+  it("renders text_reflection with a tip template (como viene del Drive) con el mismo checklist", () => {
+    const withTip = { ...practiceBlock, presentation: { template: "tip", tone: "green" } } as Block;
+    render(<BlockRenderer block={withTip} {...handlers} />);
+    expect(screen.getByText("Notar cuándo aparece la preocupación.")).toBeTruthy();
   });
 });

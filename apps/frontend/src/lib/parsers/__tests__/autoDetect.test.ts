@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { detectChecklistItems, detectHeroStat } from "../autoDetect";
+import { detectChecklistItems, detectHeroStat, parsePracticeBody } from "../autoDetect";
 
 describe("detectHeroStat", () => {
   it("detects a percentage", () => {
@@ -95,5 +95,21 @@ describe("detectChecklistItems", () => {
     const r = detectChecklistItems("1. **Pausá** un momento 2. Escribí lo *clave*");
     expect(r?.[0].title).toBe("Pausá un momento");
     expect(r?.[1].title).toBe("Escribí lo clave");
+  });
+});
+
+describe("parsePracticeBody", () => {
+  it("separa intro, ítems `- [ ]` y pregunta de cierre", () => {
+    const r = parsePracticeBody("Elegí tu práctica.\n- [ ] Uno **claro**.\n- [ ] Dos.\nCierre: ¿qué viste?");
+    expect(r).toEqual({ intro: "Elegí tu práctica.", items: ["Uno claro.", "Dos."], outro: "Cierre: ¿qué viste?" });
+  });
+  it("devuelve null con menos de 2 ítems o sin checklist", () => {
+    expect(parsePracticeBody("Solo texto.")).toBeNull();
+    expect(parsePracticeBody("Intro\n- [ ] único")).toBeNull();
+    expect(parsePracticeBody("")).toBeNull();
+  });
+  it("tope de 5 ítems", () => {
+    const body = Array.from({ length: 7 }, (_, i) => `- [ ] p${i}`).join("\n");
+    expect(parsePracticeBody(body)?.items).toHaveLength(5);
   });
 });

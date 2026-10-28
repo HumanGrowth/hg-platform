@@ -436,7 +436,10 @@ def update_block_content(
             "video_url", "poster_url", "duration_seconds", "subtitle_url",
             "transcript_text", "eyebrow_label",
         }
-    elif parsed_type in (UnitBlockType.text_context, UnitBlockType.text_evidence, UnitBlockType.text_solution):
+    elif parsed_type in (
+        UnitBlockType.text_context, UnitBlockType.text_evidence,
+        UnitBlockType.text_solution, UnitBlockType.text_reflection,
+    ):
         obj = db.get(TextBlock, block_id)
         allowed = {"eyebrow", "body", "citation", "applies_to", "requires_evidence_block_id"}
     elif parsed_type == UnitBlockType.quiz_recall:
@@ -486,7 +489,7 @@ def delete_block(
         UnitBlockType.video_intro: VideoBlock, UnitBlockType.video_teaching: VideoBlock,
         UnitBlockType.video_closing: VideoBlock,
         UnitBlockType.text_context: TextBlock, UnitBlockType.text_evidence: TextBlock,
-        UnitBlockType.text_solution: TextBlock,
+        UnitBlockType.text_solution: TextBlock, UnitBlockType.text_reflection: TextBlock,
         UnitBlockType.quiz_recall: QuizBlock,
         UnitBlockType.reflection_write: ReflectionBlock,
     }[unit_block.block_type]

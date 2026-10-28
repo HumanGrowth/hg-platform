@@ -1,4 +1,5 @@
 import { MarkdownBody } from "@/components/modulos/blocks/MarkdownBody";
+import { PracticeChecklist } from "@/components/modulos/blocks/PracticeChecklist";
 import { PencilCircle } from "@/components/ui/brand";
 import { HexIcon } from "@/components/ui/hex-icon";
 import { cn } from "@/lib/utils";
@@ -22,10 +23,17 @@ export function TipTemplate({ block, body, dimensionCode, p }: TemplateProps) {
     );
   const text = (
     <>
-      <MarkdownBody variant={p.t.md} emphasis={p.emphasis} fluid className={size.body}>
-        {body}
-      </MarkdownBody>
-      <TemplateSaveTip block={block} dimensionCode={dimensionCode} prefillText={body} p={p} />
+      {block.variant === "reflection" ? (
+        // "Tu práctica": checklist interactivo; ya trae su propio "guardar en mi cuaderno".
+        <PracticeChecklist body={body} blockId={block.id} dimensionCode={dimensionCode} />
+      ) : (
+        <>
+          <MarkdownBody variant={p.t.md} emphasis={p.emphasis} fluid className={size.body}>
+            {body}
+          </MarkdownBody>
+          <TemplateSaveTip block={block} dimensionCode={dimensionCode} prefillText={body} p={p} />
+        </>
+      )}
       <SourceLine block={block} p={p} />
       <TemplateDots p={p} />
     </>

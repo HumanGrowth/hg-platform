@@ -29,6 +29,9 @@ PILLAR_NAMES: dict[str, dict[str, str]] = {
         "P4": "Comunicación e influencia",
         "P5": "Inteligencia emocional y social",
         "AI": "Inteligencia artificial aplicada",
+        "FNDAI": "Fundamentos de IA",
+        "FNDESP": "Fundamentos por Función",
+        "FNDETH": "Fundamentos Ética",
     },
 }
 
@@ -45,7 +48,8 @@ def pillar_rank(pillar_code: str | None) -> int:
     primero en `path_engine.build_path` porque alfabéticamente "AI" < "P1",
     y el motor de ruta terminaba RECOMENDANDO módulos de IA antes que el resto
     de los pilares de Carrera."""
-    return 1 if (pillar_code or "").upper() == "AI" else 0
+    up = (pillar_code or "").upper()
+    return 1 if up == "AI" or up.startswith("FND") else 0
 
 
 def pillar_display_name(dimension_code: str, pillar_code: str) -> str:

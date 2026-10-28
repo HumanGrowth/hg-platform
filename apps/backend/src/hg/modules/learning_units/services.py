@@ -112,6 +112,7 @@ _TEXT_VARIANT_AND_EYEBROW: dict[str, tuple[str, str]] = {
     "text_context": ("context", "SITUACIÓN"),
     "text_evidence": ("evidence", "EVIDENCIA"),
     "text_solution": ("solution", "PROBÁ ESTO"),
+    "text_reflection": ("reflection", "TU PRÁCTICA"),
 }
 
 

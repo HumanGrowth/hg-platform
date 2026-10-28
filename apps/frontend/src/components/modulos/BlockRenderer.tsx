@@ -71,6 +71,7 @@ function BlockRendererInner({
     case "text_context":
     case "text_evidence":
     case "text_solution":
+    case "text_reflection":
       if (hasPresentation(block)) {
         return (
           <TemplatedTextBlock

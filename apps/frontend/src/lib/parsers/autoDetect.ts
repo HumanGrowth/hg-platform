@@ -136,3 +136,43 @@ export function numberedListStart(body: string): number {
   const m = /(^|\n|\s)(?:\(?1[.)]|\([A-Za-z]\))\s/.exec(body);
   return m ? m.index + (m[1] ? m[1].length : 0) : -1;
 }
+
+export interface PracticeBody {
+  /** Texto antes de la lista (ej. "Elegí tu práctica de esta semana."). */
+  intro: string;
+  /** Prácticas a elegir (`- [ ] …`), máx 5. */
+  items: string[];
+  /** Texto después de la lista (la pregunta de cierre). */
+  outro: string;
+}
+
+const PRACTICE_ITEM_RE = /^\s*[-*]\s+\[[ xX]\]\s+(.+?)\s*$/;
+
+/**
+ * Cuerpo de un `text_reflection` ("Tu práctica"): intro + checklist markdown
+ * `- [ ] …` + pregunta de cierre. `null` si no hay al menos 2 ítems, para que el
+ * caller caiga al render markdown normal.
+ */
+export function parsePracticeBody(body: string): PracticeBody | null {
+  if (!body) return null;
+  const lines = body.split("\n");
+  const first = lines.findIndex((l) => PRACTICE_ITEM_RE.test(l));
+  if (first === -1) return null;
+  let last = first;
+  const items: string[] = [];
+  for (let i = first; i < lines.length; i++) {
+    const m = PRACTICE_ITEM_RE.exec(lines[i]);
+    if (m) {
+      items.push(stripMarkdown(m[1]).trim());
+      last = i;
+    } else if (lines[i].trim() !== "") {
+      break;
+    }
+  }
+  if (items.length < 2) return null;
+  return {
+    intro: lines.slice(0, first).join("\n").trim(),
+    items: items.slice(0, 5),
+    outro: lines.slice(last + 1).join("\n").trim(),
+  };
+}

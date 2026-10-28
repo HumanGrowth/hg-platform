@@ -49,6 +49,7 @@ class UnitBlockType(str, enum.Enum):
     text_context = "text_context"
     text_evidence = "text_evidence"
     text_solution = "text_solution"
+    text_reflection = "text_reflection"
     quiz_recall = "quiz_recall"
     reflection_write = "reflection_write"
 
@@ -57,6 +58,7 @@ class TextBlockVariant(str, enum.Enum):
     context = "context"
     evidence = "evidence"
     solution = "solution"
+    reflection = "reflection"
 
 
 class QuizQuestionType(str, enum.Enum):
@@ -602,6 +604,7 @@ BLOCK_TYPE_TO_MODEL: dict[UnitBlockType, type] = {
     UnitBlockType.text_context: TextBlock,
     UnitBlockType.text_evidence: TextBlock,
     UnitBlockType.text_solution: TextBlock,
+    UnitBlockType.text_reflection: TextBlock,
     UnitBlockType.quiz_recall: QuizBlock,
     UnitBlockType.reflection_write: ReflectionBlock,
 }
