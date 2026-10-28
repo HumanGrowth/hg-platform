@@ -481,8 +481,8 @@ export interface VideoBlock extends BlockBase {
 }
 
 export interface TextBlock extends BlockBase {
-  block_type: "text_context" | "text_evidence" | "text_solution";
-  variant: "context" | "evidence" | "solution";
+  block_type: "text_context" | "text_evidence" | "text_solution" | "text_reflection";
+  variant: "context" | "evidence" | "solution" | "reflection";
   eyebrow: string;
   body: string;
   citation: CitationOut | null;

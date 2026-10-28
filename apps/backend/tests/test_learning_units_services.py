@@ -187,3 +187,22 @@ def test_assemble_then_upsert_keeps_evidence_link(db: Session) -> None:
     assert solution_tb is not None
     assert solution_tb.requires_evidence_block_id == evidence_ub.block_id
     assert unit.published_at is not None
+
+
+def test_upsert_supports_optional_text_reflection_block(db: Session) -> None:
+    """Wave 2: bloque opcional "Tu práctica" (variante `reflection`, no obligatorio)."""
+    data = _valid_unit_dict("hg-p2-l1-998-practica")
+    data["blocks"].insert(
+        4,
+        {"type": "text_reflection", "required": False,
+         "body": "Elegí.\n- [ ] Uno.\n- [ ] Dos.\nCierre."},
+    )
+    unit = upsert_unit_from_dict(db, data, publish=True)
+    assert unit.published_at is not None  # el bloque opcional no afecta el publish
+    blocks = _blocks_ordered(db, unit.id)
+    refl = next(b for b in blocks if b.block_type == UnitBlockType.text_reflection)
+    assert refl.required is False
+    text = db.get(TextBlock, refl.block_id)
+    assert text is not None
+    assert text.variant.value == "reflection"
+    assert text.eyebrow == "TU PRÁCTICA"  # default cuando el JSON no trae eyebrow

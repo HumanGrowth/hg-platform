@@ -19,9 +19,9 @@ import {
 import type { LearningUnitFeedItem, PathDimensionProgress } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-/** El pilar AI (Foundation) siempre va último; el resto por orden natural. */
+/** Los pilares Foundation (AI, FND*) siempre van últimos; el resto por orden natural. */
 function pillarRank(code: string): number {
-  return code === "AI" ? 1 : 0;
+  return code === "AI" || code.startsWith("FND") ? 1 : 0;
 }
 
 /** Niveles del modelo (L1–L3): se muestran todos, los que aún no tienen contenido

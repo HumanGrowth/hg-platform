@@ -76,6 +76,8 @@ function detectTextTemplate(block: TextBlock): TextTemplate {
       if (plainLength(body) <= TIP_MAX_CHARS) return "tip";
       return "editorial";
     }
+    case "reflection":
+      return "tip";
     case "context":
     default:
       return "editorial";
@@ -100,6 +102,7 @@ export function templateFor(block: Block): TemplateKind {
     case "text_context":
     case "text_evidence":
     case "text_solution":
+    case "text_reflection":
       return block.presentation?.template ?? detectTextTemplate(block);
   }
 }

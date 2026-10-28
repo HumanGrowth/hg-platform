@@ -117,8 +117,8 @@ class CitationOut(BaseModel):
 
 
 class TextBlockRead(BlockRead):
-    block_type: Literal["text_context", "text_evidence", "text_solution"]
-    variant: Literal["context", "evidence", "solution"]
+    block_type: Literal["text_context", "text_evidence", "text_solution", "text_reflection"]
+    variant: Literal["context", "evidence", "solution", "reflection"]
     eyebrow: str
     body: str
     citation: CitationOut | None
@@ -515,10 +515,10 @@ class VideoBlockCreate(BaseModel):
 
 
 class TextBlockCreate(BaseModel):
-    block_type: Literal["text_context", "text_evidence", "text_solution"]
+    block_type: Literal["text_context", "text_evidence", "text_solution", "text_reflection"]
     position: int
     required: bool = True
-    variant: Literal["context", "evidence", "solution"]
+    variant: Literal["context", "evidence", "solution", "reflection"]
     eyebrow: str = Field(min_length=1)
     body: str = Field(min_length=1)
     citation: CitationOut | None = None

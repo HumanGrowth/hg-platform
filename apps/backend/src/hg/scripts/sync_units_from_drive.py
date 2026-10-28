@@ -69,6 +69,7 @@ from hg.modules.learning_units.unit_code import (
     normalize_dimension,
     normalize_level,
     normalize_pillar,
+    parse_flat_unit_code,
     parse_unit_code,
 )
 
@@ -104,7 +105,7 @@ _VALID_COMPETENCY_CODES = frozenset({"C1", "C2", "C3", "C4", "C5"})
 # sufijo después del seq (ej. `CP-L1-P1-001 - algo`).
 # Prefijo de Área opcional (Capa Empresa · TASK 8): `[<AREA>-]<DIM>-L<n>-P<n>-<seq>`.
 _FOLDER_NAME_RE = re.compile(
-    r"^(?:([A-Z]{2,3})-)?([A-Z]{2,3})-L(\d{1,2})-([A-Z]{1,4}\d{0,2})-(\d{1,4})\b"
+    r"^(?:([A-Z]{2,3})-)?([A-Z]{2,3})-L(\d{1,2})-([A-Z]{1,6}\d{0,2})-(\d{1,4})\b"
 )
 # Sufijo que algunos MP4 agregan al código (`… - VID1`, `… VID 2`). Se recorta
 # antes de parsear el nombre del archivo como código de unidad.
@@ -176,6 +177,9 @@ def derive_unit_code(folder_name: str, mp4_names: list[str]) -> UnitCode | None:
     Relaciones: folder ``V0-001`` + video ``PR-L1-V0-001.mp4``). ``None`` si
     ninguna fuente parsea — el caller reporta y saltea."""
     code = parse_folder_name(folder_name)
+    if code is not None:
+        return code
+    code = parse_flat_unit_code(folder_name)  # Wave 2 D2-D6: `EM-TRA-003`, `PS-000`
     if code is not None:
         return code
     for name in mp4_names:

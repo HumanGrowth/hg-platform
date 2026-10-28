@@ -26,6 +26,7 @@ const BLOCK_TYPE_LABEL: Record<string, string> = {
   text_context: "Contexto",
   text_evidence: "Evidencia",
   text_solution: "Solución",
+  text_reflection: "Práctica",
   quiz_recall: "Quiz",
   reflection_write: "Reflexión",
 };

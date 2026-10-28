@@ -145,6 +145,9 @@ export const SUB_PILLAR_NAMES: Record<string, Record<string, string>> = {
     P3: "Experticia y pensamiento estratégico",
     P4: "Comunicación e influencia",
     P5: "Inteligencia emocional y social",
+    FNDAI: "Fundamentos de IA",
+    FNDESP: "Fundamentos por Función",
+    FNDETH: "Fundamentos Ética",
   },
 };
 

@@ -1,13 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BookOpen, ExternalLink, Lightbulb, MessageCircle, type LucideIcon } from "lucide-react";
+import { BookOpen, ExternalLink, Lightbulb, ListChecks, MessageCircle, type LucideIcon } from "lucide-react";
 import * as React from "react";
 
 import { BlockScreenLayout } from "@/components/modulos/blocks/BlockScreenLayout";
 import { HeroDataPoint } from "@/components/modulos/blocks/HeroDataPoint";
 import { InteractiveChecklist, type ChecklistEntry } from "@/components/modulos/blocks/InteractiveChecklist";
 import { MarkdownBody } from "@/components/modulos/blocks/MarkdownBody";
+import { PracticeChecklist } from "@/components/modulos/blocks/PracticeChecklist";
 import { useAutoCompleteBlock } from "@/components/modulos/blocks/useAutoCompleteBlock";
 import { Badge } from "@/components/ui/badge";
 import { useShouldAnimate } from "@/lib/motion/useShouldAnimate";
@@ -30,6 +31,7 @@ const EYEBROW_COLOR: Record<TextBlock["variant"], string> = {
   context: "text-fg-muted",
   evidence: "text-hg-amber",
   solution: "text-primary",
+  reflection: "text-primary",
 };
 
 /** Icono lateral por variante (TASK polish-03) — situación / evidencia / acción. */
@@ -37,6 +39,7 @@ const VARIANT_ICON: Record<TextBlock["variant"], LucideIcon> = {
   context: MessageCircle,
   evidence: BookOpen,
   solution: Lightbulb,
+  reflection: ListChecks,
 };
 
 /**
@@ -80,6 +83,14 @@ export function TextBlockView({
     inner = <ContextBody block={block} style={style} eyebrow={eyebrow} citation={citation} />;
   } else if (block.variant === "evidence") {
     inner = <EvidenceBody block={block} dimensionCode={dimensionCode} eyebrow={eyebrow} citation={citation} />;
+  } else if (block.variant === "reflection") {
+    inner = (
+      <div className="flex flex-col gap-4">
+        {eyebrow}
+        <PracticeChecklist body={stripCitationMarkers(block.body)} blockId={block.id} dimensionCode={dimensionCode} />
+        {citation}
+      </div>
+    );
   } else {
     inner = (
       <SolutionBody

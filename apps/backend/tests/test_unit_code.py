@@ -12,6 +12,7 @@ from hg.modules.learning_units.unit_code import (
     is_valid_unit_code,
     normalize_dimension,
     normalize_level,
+    parse_flat_unit_code,
     parse_unit_code,
 )
 
@@ -82,7 +83,7 @@ def test_normalize_dimension_maps_drive_codes_to_app_codes(raw: str, expected: s
 
 @pytest.mark.parametrize(
     "raw,expected",
-    [("GENERAL", "L1"), ("general", "L1"), ("L2", "L2"), ("l3", "L3"), ("V0", None), ("L9", None), ("", None)],
+    [("GENERAL", "L1"), ("general", "L1"), ("ALL", "L1"), ("L2", "L2"), ("l3", "L3"), ("V0", None), ("L9", None), ("", None)],
 )
 def test_normalize_level(raw: str, expected: str | None) -> None:
     assert normalize_level(raw) == expected
@@ -94,3 +95,26 @@ def test_parse_unit_code_normalizes_dimension() -> None:
 
 def test_format_without_pillar_omits_segment() -> None:
     assert format_unit_code(UnitCode("SA", 1, None, 0)) == "SA-L1-000"
+
+
+def test_parses_long_foundation_pillar() -> None:
+    # Wave 2: pilares Foundation de Carrera con 5-6 letras.
+    assert parse_unit_code("CP-L2-FNDAI-015") == UnitCode("CP", 2, "FNDAI", 15)
+    assert parse_unit_code("CP-L3-FNDESP-003") == UnitCode("CP", 3, "FNDESP", 3)
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("EM-TRA-003", UnitCode("ES", 1, "TRA", 3)),
+        ("PS-SOS-001", UnitCode("PR", 1, "SOS", 1)),
+        ("RC-INI-001", UnitCode("RE", 1, "INI", 1)),
+        ("SB-NUT-003", UnitCode("SA", 1, "NUT", 3)),
+        ("PI-AVA-004", UnitCode("PI", 1, "AVA", 4)),
+        ("PS-000", UnitCode("PR", 1, None, 0)),  # unidad introductoria sin pilar
+        ("CP-L1-P1-001", None),
+        ("EM-TRA", None),
+    ],
+)
+def test_parse_flat_unit_code(raw: str, expected: UnitCode | None) -> None:
+    assert parse_flat_unit_code(raw) == expected
