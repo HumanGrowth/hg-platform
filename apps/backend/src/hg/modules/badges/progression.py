@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from hg.modules.assessment.models import DimensionResult
@@ -44,7 +44,8 @@ from hg.modules.badges.models import (
 from hg.modules.feedback.models import BehaviorEvaluation, PillarBehavior
 from hg.modules.feedback.scoring import DEMOSTRANDO, rating_to_value
 from hg.modules.identity.models import User
-from hg.modules.learning_units.models import LearningUnit, LearningUnitAttempt
+from hg.modules.learning_units.completion import completed_unit_ids
+from hg.modules.learning_units.models import LearningUnit
 from hg.modules.learning_units.pillars import pillar_display_name
 
 # Ícono neutro para los badges cuyo arte definitivo todavía no existe. Vive en
@@ -79,16 +80,7 @@ def _learning_pct(db: Session, user_id: UUID, dimension_code: str, level_code: s
     )
     if not unit_ids:
         return 0.0
-    completed = (
-        db.scalar(
-            select(func.count(func.distinct(LearningUnitAttempt.unit_id))).where(
-                LearningUnitAttempt.user_id == user_id,
-                LearningUnitAttempt.unit_id.in_(unit_ids),
-                LearningUnitAttempt.completed_at.isnot(None),
-            )
-        )
-        or 0
-    )
+    completed = len(completed_unit_ids(db, user_id).intersection(unit_ids))
     return round(100.0 * completed / len(unit_ids), 1)
 
 
@@ -347,16 +339,7 @@ def _award_pillar_badges(db: Session, user: User, dimension_code: str) -> None:
         )
         if not unit_ids:
             continue
-        completed = (
-            db.scalar(
-                select(func.count(func.distinct(LearningUnitAttempt.unit_id))).where(
-                    LearningUnitAttempt.user_id == user.id,
-                    LearningUnitAttempt.unit_id.in_(unit_ids),
-                    LearningUnitAttempt.completed_at.isnot(None),
-                )
-            )
-            or 0
-        )
+        completed = len(completed_unit_ids(db, user.id).intersection(unit_ids))
         if completed == len(unit_ids):  # pilar completo
             _award_badge(db, user, pillar_badge_code(dimension_code, pillar))
 

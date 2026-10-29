@@ -42,6 +42,7 @@ from hg.modules.assessment.service import latest_dimension_results
 from hg.modules.identity.models import User, UserRole
 from hg.modules.learning.models import CareerPath, Enrollment
 from hg.modules.learning_units.area_access import visible_units_predicate
+from hg.modules.learning_units.completion import completed_unit_ids
 from hg.modules.learning_units.dimensions import dimensions_for_career_paths
 from hg.modules.learning_units.models import (
     LearningUnit,
@@ -183,7 +184,7 @@ def build_sequence(db: Session, user: User) -> UnitSequence:
         select(LearningUnitAttempt.unit_id, LearningUnitAttempt.completed_at, LearningUnitAttempt.started_at)
         .where(LearningUnitAttempt.user_id == user.id)
     ).all()
-    completed = {uid for uid, done, _ in attempts if done is not None}
+    completed = completed_unit_ids(db, user.id)  # legacy completada ⇒ su reemplazo también
     in_progress = {uid for uid, done, started in attempts if done is None and started is not None}
 
     # Nivel de partida por dimensión (solo Carrera tiene escala de nivel en el assessment).
