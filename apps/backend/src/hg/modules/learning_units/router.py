@@ -303,10 +303,14 @@ def _select_feed_units(
     path = path_engine.build_path(db, user.id, upcoming_n=limit, plan=plan)
     in_progress = db.scalar(
         select(LearningUnitAttempt)
+        .join(LearningUnit, LearningUnit.id == LearningUnitAttempt.unit_id)
         .where(
             LearningUnitAttempt.user_id == user.id,
             LearningUnitAttempt.started_at.isnot(None),
             LearningUnitAttempt.completed_at.is_(None),
+            # Un intento abierto sobre una unit reemplazada (legacy) no cuenta: la
+            # ruta ya no la recorre y retomarla no avanza nada.
+            LearningUnit.superseded_by_unit_id.is_(None),
         )
         .order_by(LearningUnitAttempt.started_at.desc())
     )
@@ -425,6 +429,11 @@ def start_attempt(
         )
         db.add(attempt)
         db.flush()
+    elif attempt.completed_at is None:
+        # El contenido pudo cambiar bajo un intento abierto (sync in-place: bloque
+        # removido o pasado a opcional). Si ya cumple los requeridos, el player no
+        # llamará a ningún endpoint de bloque (figuran completos): se cierra acá.
+        _maybe_complete_unit(db, unit, attempt, current_user)
     # Si ya existe: idempotente, se devuelve tal cual. En particular, repetir una
     # unit YA completada es un repaso (H3): NO se borra progreso ni se toca
     # completed_at — "completado" nunca retrocede, así los contadores, la racha y

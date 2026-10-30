@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 
 from hg.db import SessionLocal
 from hg.modules.badges.models import DimensionLevelProgress
@@ -16,6 +16,7 @@ from hg.modules.identity.models import UserRole
 from hg.modules.learning.models import CareerPath
 from hg.modules.learning_units.models import (
     LearningUnit,
+    LearningUnitAttempt,
     ModuleAssignment,
     QuizBlock,
     QuizOption,
@@ -751,3 +752,99 @@ def test_review_resubmission_keeps_original_dates_and_completion(
         assert dates(after) == dates(before)
     finally:
         _cleanup(unit_id)
+
+
+def test_feed_hero_ignores_in_progress_attempt_on_superseded_unit(
+    client: TestClient, factory, auth_headers
+) -> None:
+    """Un intento abierto sobre una unidad legacy (reemplazada) no puede ser el
+    "módulo en curso": la ruta ya no la recorre y el usuario quedaría atado a un
+    paso que no avanza su ruta."""
+    slug_new = f"bp-test-{uuid.uuid4().hex[:8]}"
+    slug_old = f"bp-test-{uuid.uuid4().hex[:8]}"
+    new_id = _make_minimal_unit(slug_new, dimension_code="CP", level_code="L1", pillar_code="P1", unit_number=1)
+    old_id = _make_minimal_unit(
+        slug_old, dimension_code="CP", level_code="L1", pillar_code="P1", unit_number=1, superseded_by=new_id
+    )
+    user, headers = _auth(factory, auth_headers, unlock_unit_id=new_id)
+    try:
+        s = SessionLocal()
+        s.add(LearningUnitAttempt(
+            user_id=user.id, unit_id=old_id, org_id=user.org_id, started_at=datetime.now(UTC)
+        ))
+        s.commit()
+        s.close()
+
+        body = client.get("/api/v1/modulos/feed", headers=headers).json()
+        assert body["hero"] is not None
+        assert body["hero"]["slug"] == slug_new
+    finally:
+        _cleanup(new_id)
+        _cleanup(old_id)
+
+
+def test_reopening_unit_completes_attempt_whose_required_blocks_are_all_done(
+    client: TestClient, factory, auth_headers
+) -> None:
+    """Si tras un cambio de contenido (bloque removido o pasado a opcional) el
+    intento ya cumple todos los requeridos pero quedó sin ``completed_at``, el
+    player no vuelve a llamar a ningún endpoint de bloque (los bloques ya figuran
+    completos) y el módulo quedaría pendiente para siempre. Reabrirlo lo cierra."""
+    slug = f"test-unit-{uuid.uuid4().hex[:8]}"
+    unit_id, text_block_id, quiz_block_id, refl_block_id = _make_unit(slug)
+    _, headers = _auth(factory, auth_headers, unlock_unit_id=unit_id)
+    try:
+        client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
+        client.post(f"/api/v1/modulos/{slug}/blocks/{text_block_id}/complete", headers=headers)
+        detail = client.get(f"/api/v1/modulos/{slug}", headers=headers).json()
+        quiz_block = next(b for b in detail["blocks"] if b["block_type"] == "quiz_recall")
+        question = quiz_block["questions"][0]
+        client.post(
+            f"/api/v1/modulos/{slug}/blocks/{quiz_block_id}/quiz/submit", headers=headers,
+            json={"responses": [{
+                "question_id": question["id"], "question_type": "single_choice",
+                "selected_option_ids": [question["options"][0]["id"]],
+            }]},
+        )
+        assert client.get(f"/api/v1/modulos/{slug}/attempt", headers=headers).json()["completed_at"] is None
+
+        # Contenido actualizado: la reflexión deja de ser requerida.
+        s = SessionLocal()
+        s.execute(update(UnitBlock).where(UnitBlock.id == refl_block_id).values(required=False))
+        s.commit()
+        s.close()
+
+        reopened = client.post(f"/api/v1/modulos/{slug}/attempts/start", headers=headers)
+        assert reopened.status_code == 200
+        assert reopened.json()["completed_at"] is not None
+    finally:
+        _cleanup(unit_id)
+
+
+def test_completed_legacy_unit_counts_as_completed_replacement(
+    client: TestClient, factory, auth_headers
+) -> None:
+    """Haber completado la unit legacy cuenta como completada la que la reemplaza:
+    el usuario no repite el módulo y la ruta avanza a la siguiente."""
+    new_1 = _make_minimal_unit(f"bp-test-{uuid.uuid4().hex[:8]}", dimension_code="CP", level_code="L1",
+                               pillar_code="P1", unit_number=1)
+    new_2_slug = f"bp-test-{uuid.uuid4().hex[:8]}"
+    new_2 = _make_minimal_unit(new_2_slug, dimension_code="CP", level_code="L1", pillar_code="P1", unit_number=2)
+    old_1 = _make_minimal_unit(f"bp-test-{uuid.uuid4().hex[:8]}", dimension_code="CP", level_code="L1",
+                               pillar_code="P1", unit_number=1, superseded_by=new_1)
+    user, headers = _auth(factory, auth_headers, unlock_unit_id=new_1)
+    try:
+        s = SessionLocal()
+        now = datetime.now(UTC)
+        s.add(LearningUnitAttempt(user_id=user.id, unit_id=old_1, org_id=user.org_id,
+                                  started_at=now, completed_at=now))
+        s.commit()
+        s.close()
+
+        res = client.get("/api/v1/me/path", headers=headers)
+        assert res.status_code == 200, res.text
+        path = res.json()
+        assert path["next_step"]["slug"] == new_2_slug
+    finally:
+        for uid in (old_1, new_1, new_2):
+            _cleanup(uid)
