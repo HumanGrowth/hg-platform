@@ -329,6 +329,7 @@ def stalled_units(db: Session, user_ids: list[UUID]) -> StalledOut:
             LearningUnitAttempt.started_at.is_not(None),
             LearningUnitAttempt.completed_at.is_(None),
             LearningUnit.dimension_code != ONBOARDING_DIMENSION_CODE,
+            LearningUnit.superseded_by_unit_id.is_(None),  # legacy reemplazada: no es un módulo vigente
         )
         .group_by(
             LearningUnitAttempt.id,

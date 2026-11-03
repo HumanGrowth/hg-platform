@@ -23,6 +23,11 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from hg.modules.learning.models import CareerPath, Enrollment
+from hg.modules.learning_units.completion import (
+    canonical_unit_id,
+    completed_canonical_by_users,
+    unit_successors,
+)
 from hg.modules.learning_units.dimensions import (
     DRIVE_TO_CAREER_PATH,
 )
@@ -190,25 +195,22 @@ def assigned_units_by_users(db: Session, user_ids: list[UUID]) -> dict[UUID, set
         path = resolve_custom_path(db, user)
         if path is not None:
             assigned_by_user[uid].update(custom_path_unit_order(db, path.id))
-    return assigned_by_user
+    # Legacy y reemplazo son el mismo módulo: una asignación sobre una unit
+    # reemplazada cuenta contra la vigente (y no se duplica si ya tenía ambas).
+    successors = unit_successors(db)
+    return {
+        uid: {canonical_unit_id(successors, unit_id) for unit_id in units}
+        for uid, units in assigned_by_user.items()
+    }
 
 
 def completed_units_by_users(
     db: Session, user_ids: list[UUID], unit_ids: set[UUID]
 ) -> dict[UUID, set[UUID]]:
-    """Units (de ``unit_ids``) con attempt completado, por user."""
-    completed_by_user: dict[UUID, set[UUID]] = {uid: set() for uid in user_ids}
-    if not user_ids or not unit_ids:
-        return completed_by_user
-    for uid, unit_id in db.execute(
-        select(LearningUnitAttempt.user_id, LearningUnitAttempt.unit_id).where(
-            LearningUnitAttempt.user_id.in_(user_ids),
-            LearningUnitAttempt.unit_id.in_(unit_ids),
-            LearningUnitAttempt.completed_at.is_not(None),
-        )
-    ).all():
-        completed_by_user[uid].add(unit_id)
-    return completed_by_user
+    """Units (de ``unit_ids``, ya canónicas) con attempt completado, por user. Una
+    legacy completada cuenta como completada su reemplazo."""
+    done = completed_canonical_by_users(db, user_ids)
+    return {uid: units & unit_ids for uid, units in done.items()}
 
 
 def assigned_modules_progress(db: Session, user_ids: list[UUID]) -> dict[UUID, tuple[int, int]]:
@@ -284,20 +286,24 @@ def activity_by_users(db: Session, user_ids: list[UUID]) -> dict[UUID, ActivityA
                     LearningUnitAttempt.completed_at, LearningUnitAttempt.started_at
                 )
             ),
+            # En progreso: una unit reemplazada (legacy) ya no es un módulo vigente.
             func.count().filter(
                 LearningUnitAttempt.completed_at.is_(None),
                 LearningUnitAttempt.started_at.is_not(None),
+                LearningUnit.superseded_by_unit_id.is_(None),
             ),
-            func.count().filter(LearningUnitAttempt.completed_at.is_not(None)),
         )
+        .join(LearningUnit, LearningUnit.id == LearningUnitAttempt.unit_id)
         .where(LearningUnitAttempt.user_id.in_(user_ids))
         .group_by(LearningUnitAttempt.user_id)
     ).all()
-    for uid, last_active, in_prog, completed in rows:
+    for uid, last_active, in_prog in rows:
         a = aggs[uid]
         a.last_active_at = last_active
         a.courses_in_progress = int(in_prog)
-        a.courses_completed = int(completed)
+    # Completados: unidades distintas, legacy y reemplazo cuentan como una.
+    for uid, units in completed_canonical_by_users(db, user_ids).items():
+        aggs[uid].courses_completed = len(units)
 
     # bloques completados: total (= "watch_minutes") + refinar last_active con
     # el submitted_at más reciente (más granular que el timestamp del attempt).
@@ -344,37 +350,51 @@ def org_dimension_metrics(
 
     Agrupa los attempts por la ``dimension_code`` de la unit y la mapea al
     career_path (CP→P1, …). Varias dimensiones pueden caer en el mismo path.
-    started = attempts iniciados; active_users = usuarios distintos con
-    actividad en la ventana de 30d.
+    started/completed = pares (usuario, unit) DISTINTOS, con la legacy y su
+    reemplazo contados como una sola unit (misma definición que
+    ``activity_by_users``); active_users = usuarios distintos con actividad en la
+    ventana de 30d.
     """
     if not user_ids:
         return {}
     cutoff = now_utc() - timedelta(days=ACTIVE_WINDOW_DAYS)
-    rows = db.execute(
+    successors = unit_successors(db)
+    unit_dim: dict[UUID, str] = {
+        uid: (dim or "") for uid, dim in db.execute(select(LearningUnit.id, LearningUnit.dimension_code)).all()
+    }
+    started: dict[str, set[tuple[UUID, UUID]]] = {}
+    completed: dict[str, set[tuple[UUID, UUID]]] = {}
+    active: dict[str, set[UUID]] = {}
+    for user_id, unit_id, started_at, completed_at in db.execute(
         select(
-            LearningUnit.dimension_code,
-            func.count().filter(LearningUnitAttempt.started_at.is_not(None)),
-            func.count().filter(LearningUnitAttempt.completed_at.is_not(None)),
-            func.count(func.distinct(LearningUnitAttempt.user_id)).filter(
-                func.coalesce(
-                    LearningUnitAttempt.completed_at, LearningUnitAttempt.started_at
-                )
-                >= cutoff
-            ),
-        )
-        .join(LearningUnit, LearningUnit.id == LearningUnitAttempt.unit_id)
-        .where(LearningUnitAttempt.user_id.in_(user_ids))
-        .group_by(LearningUnit.dimension_code)
-    ).all()
+            LearningUnitAttempt.user_id,
+            LearningUnitAttempt.unit_id,
+            LearningUnitAttempt.started_at,
+            LearningUnitAttempt.completed_at,
+        ).where(LearningUnitAttempt.user_id.in_(user_ids))
+    ).all():
+        canonical = canonical_unit_id(successors, unit_id)
+        dim = unit_dim.get(canonical, unit_dim.get(unit_id, ""))
+        if started_at is not None:
+            started.setdefault(dim, set()).add((user_id, canonical))
+        if completed_at is not None:
+            completed.setdefault(dim, set()).add((user_id, canonical))
+        last = completed_at or started_at
+        if last is not None and last >= cutoff:
+            active.setdefault(dim, set()).add(user_id)
     code_to_id = _career_path_id_by_code(db)
     out: dict[UUID, tuple[int, int, int]] = {}
-    for dim, started, completed, active in rows:
-        cp_code = DRIVE_TO_CAREER_PATH.get((dim or "").upper())
+    for dim in set(started) | set(completed) | set(active):
+        cp_code = DRIVE_TO_CAREER_PATH.get(dim.upper())
         pid = code_to_id.get(cp_code) if cp_code else None
         if pid is None:
             continue
-        s, c, a = out.get(pid, (0, 0, 0))
-        out[pid] = (s + int(started), c + int(completed), a + int(active))
+        s_, c_, a_ = out.get(pid, (0, 0, 0))
+        out[pid] = (
+            s_ + len(started.get(dim, ())),
+            c_ + len(completed.get(dim, ())),
+            a_ + len(active.get(dim, ())),
+        )
     return out
 
 
