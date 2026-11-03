@@ -66,7 +66,7 @@ def test_legacy_and_replacement_count_once_everywhere(client, factory, auth_head
 
         accounts = client.get("/api/v1/admin/org/insights", headers=h).json()["accounts"]
         row = next(a for a in accounts if a["user_id"] == str(collab.id))
-        assert (row["modules_completed"], row["modules_assigned"]) == (1, 2)
+        assert (row["modules_completed"], row["modules_assigned"], row["modules_assigned_completed"]) == (1, 2, 1)
 
         rows = list(csv.DictReader(io.StringIO(client.get(
             "/api/v1/admin/org/users/export.csv", headers=h

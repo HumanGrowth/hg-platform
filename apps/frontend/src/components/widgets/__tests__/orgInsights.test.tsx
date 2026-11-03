@@ -59,22 +59,30 @@ describe("AccountProgressTable", () => {
     is_inactive: false,
     modules_completed: 0,
     modules_assigned: 0,
+    modules_assigned_completed: 0,
     ...over,
   });
   const accounts = [
-    acc({ user_id: "1", full_name: "Ana Pérez", email: "ana@x.test", modules_completed: 2, modules_assigned: 3 }),
+    acc({ user_id: "1", full_name: "Ana Pérez", email: "ana@x.test", modules_completed: 4, modules_assigned: 3, modules_assigned_completed: 2 }),
     acc({ user_id: "2", full_name: "José Soto", email: "jose@x.test", org_id: "o2", org_name: "Org B", manager_id: "m2", manager_name: "Rita", is_inactive: true }),
     acc({ user_id: "3", full_name: "Sin Jefe", email: "sj@x.test", org_id: "o2", org_name: "Org B", manager_id: null, manager_name: null }),
   ];
 
   it("shows the renamed columns and every account", () => {
     render(<AccountProgressTable accounts={accounts} />);
-    for (const h of ["Último login", "Completadas", "Asignadas"]) {
+    for (const h of ["Último login", "Asignados completados", "Completados en total"]) {
       expect(screen.getByText(h)).toBeTruthy();
     }
     expect(screen.getByText("Ana Pérez")).toBeTruthy();
     expect(screen.getAllByText("Nunca").length).toBe(3);
     expect(screen.getByText("Inactivo")).toBeTruthy();
+  });
+
+  it("shows assigned progress and the total, flagging completions outside the assignment", () => {
+    render(<AccountProgressTable accounts={accounts} />);
+    // 2 de 3 asignados, 4 en total => 2 completados que no son de lo asignado.
+    expect(screen.getByText("(+2 no asignados)")).toBeTruthy();
+    expect(screen.getAllByText("/ 3").length).toBe(1);
   });
 
   it("searches by name ignoring accents, and by email", () => {

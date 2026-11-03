@@ -293,8 +293,8 @@ export function AccountProgressTable({ accounts }: { accounts: AccountProgress[]
                 <th className="py-2 pr-4 font-semibold">Organización</th>
                 <th className="py-2 pr-4 font-semibold">Manager</th>
                 <th className="py-2 pr-4 font-semibold">Último login</th>
-                <th className="py-2 pr-4 text-right font-semibold">Completadas</th>
-                <th className="py-2 text-right font-semibold">Asignadas</th>
+                <th className="py-2 pr-4 text-right font-semibold">Asignados completados</th>
+                <th className="py-2 text-right font-semibold">Completados en total</th>
               </tr>
             </thead>
             <tbody>
@@ -320,10 +320,19 @@ export function AccountProgressTable({ accounts }: { accounts: AccountProgress[]
                     </span>
                   </td>
                   <td className="py-2.5 pr-4 text-right font-mono text-xs text-fg">
-                    {a.modules_completed}
+                    {a.modules_assigned_completed}
+                    <span className="text-fg-muted"> / {a.modules_assigned}</span>
                   </td>
-                  <td className="py-2.5 text-right font-mono text-xs text-fg-muted">
-                    {a.modules_assigned}
+                  <td className="py-2.5 text-right font-mono text-xs text-fg">
+                    {a.modules_completed}
+                    {a.modules_completed > a.modules_assigned_completed && (
+                      <span
+                        title="Completados que no forman parte de lo asignado"
+                        className="ml-1.5 text-fg-muted"
+                      >
+                        (+{a.modules_completed - a.modules_assigned_completed} no asignados)
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}

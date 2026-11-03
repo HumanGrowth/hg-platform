@@ -342,8 +342,9 @@ class AccountProgressOut(BaseModel):
     manager_name: str | None
     last_login_at: datetime | None  # None = nunca ingresó
     is_inactive: bool  # sin actividad > 21d (o nunca)
-    modules_completed: int  # asignados completados
+    modules_completed: int  # total completados: mismo número que ve el colaborador en su perfil
     modules_assigned: int
+    modules_assigned_completed: int  # de los asignados, cuántos completó
 
 
 class AssessmentStateCount(BaseModel):

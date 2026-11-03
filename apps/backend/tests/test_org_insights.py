@@ -74,10 +74,11 @@ def test_insights_accounts_progress(client, manager_with_reports, factory, auth_
     assert len(accounts) == 3  # solo colaboradores: r1, r2, r3 (sin manager ni admin)
     by_name = {a["full_name"]: a for a in accounts}
     r1 = by_name["Active Report"]
-    assert (r1["modules_completed"], r1["modules_assigned"]) == (2, 2)
+    # modules_completed es el total (como el perfil: r1 completó 5); lo asignado va aparte.
+    assert (r1["modules_completed"], r1["modules_assigned"], r1["modules_assigned_completed"]) == (5, 2, 2)
     assert r1["last_login_at"] is not None and r1["is_inactive"] is False
     r2 = by_name["Inactive Report"]
-    assert (r2["modules_completed"], r2["modules_assigned"]) == (0, 1)
+    assert (r2["modules_completed"], r2["modules_assigned"], r2["modules_assigned_completed"]) == (0, 1, 0)
     assert r2["is_inactive"] is True and r2["manager_name"] == "Manager One"
     assert by_name["Never Active"]["last_login_at"] is None
     # Orden: quienes nunca ingresaron primero; r1 (login más reciente) al final.
