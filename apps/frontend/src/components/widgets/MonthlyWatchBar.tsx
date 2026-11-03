@@ -12,7 +12,7 @@ const GOLD = "#C8A76E";
 
 interface TooltipProps {
   active?: boolean;
-  payload?: { payload: { label: string; blocks: number } }[];
+  payload?: { payload: { label: string; blocks: number; perUser: number } }[];
 }
 
 function WatchTooltip({ active, payload }: TooltipProps) {
@@ -24,6 +24,7 @@ function WatchTooltip({ active, payload }: TooltipProps) {
       <p className="text-fg-muted">
         {p.blocks} {p.blocks === 1 ? "bloque" : "bloques"}
       </p>
+      {p.perUser > 0 && <p className="text-fg-muted">{p.perUser} por persona activa</p>}
     </div>
   );
 }
@@ -36,6 +37,7 @@ export function MonthlyWatchBar({ data }: { data: MonthlyWatchPoint[] }) {
   const rows = data.map((p) => ({
     label: formatMonthShort(p.month),
     blocks: p.minutes,
+    perUser: p.per_active_user,
   }));
   const total = data.reduce((s, p) => s + p.minutes, 0);
 
@@ -57,8 +59,8 @@ export function MonthlyWatchBar({ data }: { data: MonthlyWatchPoint[] }) {
       </div>
       <WidgetSrTable
         caption="Bloques completados por mes"
-        columns={["Mes", "Bloques"]}
-        rows={rows.map((r) => [r.label, r.blocks])}
+        columns={["Mes", "Bloques", "Por persona activa"]}
+        rows={rows.map((r) => [r.label, r.blocks, r.perUser])}
       />
     </div>
   );

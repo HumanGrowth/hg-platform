@@ -49,6 +49,7 @@ import type {
   MyBadge,
   TimelineEvent,
   Org,
+  OrgInsights,
   OrgMetrics,
   OrgWidgets,
   PaginatedUsers,
@@ -339,6 +340,16 @@ export const apiGetOrgWidgets = async (
   companyId?: string,
 ): Promise<OrgWidgets> => {
   const res = await backend.get<OrgWidgets>("/api/v1/admin/org/widgets", {
+    params: { ...(orgId ? { org_id: orgId } : {}), ...(companyId ? { company_id: companyId } : {}) },
+  });
+  return res.data;
+};
+
+export const apiGetOrgInsights = async (
+  orgId?: string,
+  companyId?: string,
+): Promise<OrgInsights> => {
+  const res = await backend.get<OrgInsights>("/api/v1/admin/org/insights", {
     params: { ...(orgId ? { org_id: orgId } : {}), ...(companyId ? { company_id: companyId } : {}) },
   });
   return res.data;

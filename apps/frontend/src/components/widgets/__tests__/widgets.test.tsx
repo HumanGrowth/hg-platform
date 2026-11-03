@@ -75,7 +75,7 @@ describe("InactivityFunnel", () => {
 
 describe("AdoptionCurve", () => {
   const months = (vals: number[]): AdoptionMonthPoint[] =>
-    vals.map((v, i) => ({ month: `2026-${String(i + 1).padStart(2, "0")}`, active_users: v }));
+    vals.map((v, i) => ({ month: `2026-${String(i + 1).padStart(2, "0")}`, active_users: v, total_users: 10 }));
 
   it("shows empty state with fewer than 2 meaningful points", () => {
     render(<AdoptionCurve data={months([0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0])} />);
@@ -88,6 +88,8 @@ describe("AdoptionCurve", () => {
     );
     expect(container.querySelector("table")).not.toBeNull();
     expect(container.querySelector('[role="img"]')).not.toBeNull();
+    // La tabla accesible trae el % sobre la base, no solo el conteo.
+    expect(within(container.querySelector("table")!).getAllByText("10%").length).toBeGreaterThan(0);
   });
 });
 
@@ -110,7 +112,7 @@ describe("OnboardingFunnelChart", () => {
 describe("MonthlyWatchBar", () => {
   it("shows completed blocks in the sr-only table", () => {
     // El campo `minutes` del wire ahora transporta bloques completados.
-    const data: MonthlyWatchPoint[] = [{ month: "2026-06", minutes: 7 }];
+    const data: MonthlyWatchPoint[] = [{ month: "2026-06", minutes: 7, per_active_user: 3.5 }];
     const { container } = render(<MonthlyWatchBar data={data} />);
     expect(within(container.querySelector("table")!).getByText("7")).toBeTruthy();
   });

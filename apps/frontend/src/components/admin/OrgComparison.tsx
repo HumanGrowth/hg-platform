@@ -13,8 +13,8 @@ function Bar({ value, tone }: { value: number; tone: string }) {
 }
 
 /**
- * Comparativa por organización (empresa con varias orgs): adopción y completion
- * lado a lado + inactivos, para ver de un vistazo qué org va mejor/peor.
+ * Comparativa por organización (empresa con varias orgs): adopción y módulos asignados
+ * completados lado a lado + inactivos, para ver de un vistazo qué org va mejor/peor.
  */
 export function OrgComparison({ orgs }: { orgs: OrgBreakdown[] }) {
   if (orgs.length === 0) return null;
@@ -28,7 +28,7 @@ export function OrgComparison({ orgs }: { orgs: OrgBreakdown[] }) {
           <tr className="font-sans text-micro uppercase tracking-meta text-fg-muted">
             <th className="px-5 py-3 font-semibold">Organización</th>
             <th className="px-5 py-3 font-semibold">Adopción</th>
-            <th className="px-5 py-3 font-semibold">Completion</th>
+            <th className="px-5 py-3 font-semibold">Módulos asignados completados</th>
             <th className="px-5 py-3 text-right font-semibold">Inactivos</th>
           </tr>
         </thead>
@@ -59,12 +59,21 @@ export function OrgComparison({ orgs }: { orgs: OrgBreakdown[] }) {
                   </div>
                 </td>
                 <td className="px-5 py-3">
-                  <div className="flex items-center gap-2">
-                    <Bar value={o.completion_rate} tone="bg-hg-amber" />
-                    <span className="w-9 shrink-0 text-right font-mono text-xs text-fg-muted">
-                      {pct(o.completion_rate)}
-                    </span>
-                  </div>
+                  {o.assigned_completion_rate === null ? (
+                    <span className="text-xs text-fg-muted">Sin módulos asignados</span>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Bar value={o.assigned_completion_rate} tone="bg-hg-amber" />
+                        <span className="w-9 shrink-0 text-right font-mono text-xs text-fg-muted">
+                          {pct(o.assigned_completion_rate)}
+                        </span>
+                      </div>
+                      <span className="text-xs text-fg-muted">
+                        {o.assigned_completed}/{o.assigned_total} completados
+                      </span>
+                    </>
+                  )}
                 </td>
                 <td className="px-5 py-3 text-right">
                   <span

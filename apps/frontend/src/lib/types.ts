@@ -194,7 +194,11 @@ export interface OrgBreakdown {
   total_users: number;
   active_users: number;
   adoption_rate: number;
-  completion_rate: number;
+  /** Módulos asignados vs completados de la organización. */
+  assigned_total: number;
+  assigned_completed: number;
+  /** null = sin módulos asignados. */
+  assigned_completion_rate: number | null;
   inactive_users: number;
 }
 
@@ -211,6 +215,109 @@ export interface OrgMetrics {
   inactive_users_count: number;
   inactivity: InactivityBuckets;
   by_org: OrgBreakdown[];
+  // Dashboard v2
+  assigned_total: number;
+  assigned_completed: number;
+  /** null = no hay módulos asignados en el alcance. */
+  assigned_completion_rate: number | null;
+  /** Misma métrica en los 21 días previos (null = sin base de comparación). */
+  previous: PreviousPeriod | null;
+  licenses: LicenseUsage | null;
+}
+
+export interface PreviousPeriod {
+  adoption_rate: number;
+  active_users: number;
+  inactive_users_count: number;
+}
+
+export interface LicenseOrgUsage {
+  org_id: string;
+  org_name: string;
+  quota: number;
+  used: number;
+}
+
+export interface LicenseUsage {
+  scope: "company" | "org";
+  /** 0 = sin cupo definido. */
+  total: number;
+  used: number;
+  pending_invites: number;
+  by_org: LicenseOrgUsage[];
+}
+
+// ─────────────── Insights RRHH v2 (GET /admin/org/insights) ───────────────
+
+export interface AssignmentOrgCompliance {
+  org_id: string;
+  org_name: string;
+  total: number;
+  completed: number;
+  overdue: number;
+  due_soon: number;
+  open: number;
+}
+
+export interface AssignmentCompliance {
+  total: number;
+  completed: number;
+  overdue: number;
+  due_soon: number;
+  open: number;
+  users_with_overdue: number;
+  /** Una entrada por organización del alcance. */
+  by_org: AssignmentOrgCompliance[];
+}
+
+export interface AccountProgress {
+  user_id: string;
+  full_name: string;
+  email: string;
+  org_id: string;
+  org_name: string;
+  manager_id: string | null;
+  manager_name: string | null;
+  /** null = nunca ingresó. */
+  last_login_at: string | null;
+  /** Sin actividad en más de 21 días (o nunca). */
+  is_inactive: boolean;
+  /** Módulos asignados ya completados. */
+  modules_completed: number;
+  modules_assigned: number;
+}
+
+export interface AssessmentStateCount {
+  state_label: string;
+  count: number;
+}
+
+export interface DimensionAssessment {
+  code: AssessmentDimensionCode;
+  n: number;
+  suppressed: boolean;
+  states: AssessmentStateCount[];
+}
+
+export interface AssessmentOverview {
+  total_users: number;
+  with_results: number;
+  min_group: number;
+  dimensions: DimensionAssessment[];
+}
+
+export interface StalledSummary {
+  stale_days: number;
+  total: number;
+  users: number;
+  by_dimension: Record<string, number>;
+}
+
+export interface OrgInsights {
+  assignments: AssignmentCompliance;
+  accounts: AccountProgress[];
+  assessment: AssessmentOverview;
+  stalled: StalledSummary;
 }
 
 // ─────────────── Home colaborador (B3-04) ───────────────
@@ -312,6 +419,8 @@ export interface ManagerWidgets {
 export interface AdoptionMonthPoint {
   month: string;
   active_users: number;
+  /** Usuarios existentes a fin de ese mes (denominador del %). */
+  total_users: number;
 }
 
 export interface OnboardingFunnel {
@@ -324,7 +433,9 @@ export interface OnboardingFunnel {
 
 export interface MonthlyWatchPoint {
   month: string;
+  /** Bloques completados (nombre de wire histórico). */
   minutes: number;
+  per_active_user: number;
 }
 
 export interface OrgWidgets {

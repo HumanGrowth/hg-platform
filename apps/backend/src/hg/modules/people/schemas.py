@@ -106,16 +106,19 @@ class OrgBreakdownOut(BaseModel):
     org_id: UUID
     org_name: str
     total_users: int
-    active_users: int  # last_active en últimos 30d
+    active_users: int  # last_active en la ventana de 21d
     adoption_rate: float
-    completion_rate: float
+    # Módulos asignados vs completados de la organización (None = sin asignaciones).
+    assigned_total: int = 0
+    assigned_completed: int = 0
+    assigned_completion_rate: float | None = None
     inactive_users: int  # > umbral de inactividad (21d)
 
 
 class OrgMetricsOut(BaseModel):
     # Adopción
     total_licenses: int
-    active_licenses: int  # users con last_active en últimos 30d
+    active_licenses: int  # users con last_active en la ventana de 21d (== umbral de inactividad)
     adoption_rate: float
     # Engagement
     avg_watch_minutes_per_user: float
@@ -131,6 +134,13 @@ class OrgMetricsOut(BaseModel):
     inactivity: InactivityBuckets
     # Comparativa por organización (solo cuando el scope abarca varias orgs).
     by_org: list[OrgBreakdownOut]
+    # Dashboard v2: completion sobre lo ASIGNADO (None si no hay asignaciones),
+    # período anterior para deltas y uso de licencias.
+    assigned_total: int = 0
+    assigned_completed: int = 0
+    assigned_completion_rate: float | None = None
+    previous: PreviousPeriodOut | None = None
+    licenses: LicenseUsageOut | None = None
 
 
 # ─────────────── Home colaborador (B3-04) ───────────────
@@ -209,7 +219,30 @@ class InactivityBuckets(BaseModel):
     never_active: int  # nunca activo
 
 
-# OrgMetricsOut referencia InactivityBuckets (definido acá abajo) por forward ref.
+class PreviousPeriodOut(BaseModel):
+    """Misma métrica en la ventana inmediatamente anterior (21d previos)."""
+
+    adoption_rate: float
+    active_users: int
+    inactive_users_count: int
+
+
+class LicenseOrgUsageOut(BaseModel):
+    org_id: UUID
+    org_name: str
+    quota: int
+    used: int
+
+
+class LicenseUsageOut(BaseModel):
+    scope: str  # "company" (pool de la Empresa) | "org" (cupo de una org)
+    total: int  # 0 = sin cupo definido
+    used: int  # usuarios activos
+    pending_invites: int
+    by_org: list[LicenseOrgUsageOut]
+
+
+# OrgMetricsOut referencia tipos definidos acá abajo por forward ref.
 OrgMetricsOut.model_rebuild()
 
 
@@ -247,6 +280,9 @@ class ManagerWidgetsOut(BaseModel):
 class AdoptionMonthPoint(BaseModel):
     month: str  # "YYYY-MM"
     active_users: int
+    # Usuarios existentes a fin de ese mes → permite % y que la curva no suba
+    # solo porque creció la base.
+    total_users: int = 0
 
 
 class OnboardingFunnel(BaseModel):
@@ -259,10 +295,91 @@ class OnboardingFunnel(BaseModel):
 
 class MonthlyWatchPoint(BaseModel):
     month: str  # "YYYY-MM"
-    minutes: int
+    minutes: int  # bloques completados (nombre de wire histórico)
+    per_active_user: float = 0.0  # bloques / usuarios activos del mes
 
 
 class OrgWidgetsOut(BaseModel):
     adoption_curve: list[AdoptionMonthPoint]  # 12 meses oldest first
     onboarding_funnel: OnboardingFunnel
     monthly_watch: list[MonthlyWatchPoint]  # 12 meses oldest first
+
+
+# ─────────────── Insights RRHH v2 (GET /admin/org/insights) ───────────────
+
+
+class AssignmentOrgOut(BaseModel):
+    """Cumplimiento de asignaciones de UNA organización (chips del widget)."""
+
+    org_id: UUID
+    org_name: str
+    total: int
+    completed: int
+    overdue: int
+    due_soon: int
+    open: int
+
+
+class AssignmentComplianceOut(BaseModel):
+    total: int
+    completed: int
+    overdue: int
+    due_soon: int  # vencen en ≤7d
+    open: int  # en curso, sin vencer pronto
+    users_with_overdue: int
+    by_org: list[AssignmentOrgOut] = []  # una por organización del alcance
+
+
+class AccountProgressOut(BaseModel):
+    """Una cuenta (persona) del alcance: acceso y avance sobre lo asignado."""
+
+    user_id: UUID
+    full_name: str
+    email: str
+    org_id: UUID
+    org_name: str
+    manager_id: UUID | None
+    manager_name: str | None
+    last_login_at: datetime | None  # None = nunca ingresó
+    is_inactive: bool  # sin actividad > 21d (o nunca)
+    modules_completed: int  # asignados completados
+    modules_assigned: int
+
+
+class AssessmentStateCount(BaseModel):
+    state_label: str
+    count: int
+
+
+class DimensionAssessmentOut(BaseModel):
+    code: str  # P1..P5, P6A, P6B
+    n: int
+    suppressed: bool  # n < min_group → sin distribución
+    states: list[AssessmentStateCount]
+
+
+class AssessmentOverviewOut(BaseModel):
+    total_users: int
+    with_results: int  # personas con ≥1 resultado
+    min_group: int
+    dimensions: list[DimensionAssessmentOut]
+
+
+
+
+class StalledOut(BaseModel):
+    stale_days: int
+    total: int  # units estancadas
+    users: int
+    by_dimension: dict[str, int]  # P1..P6 → units estancadas
+
+
+
+
+
+
+class OrgInsightsOut(BaseModel):
+    assignments: AssignmentComplianceOut
+    accounts: list[AccountProgressOut]
+    assessment: AssessmentOverviewOut
+    stalled: StalledOut
