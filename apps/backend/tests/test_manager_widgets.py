@@ -73,8 +73,8 @@ def test_manager_widgets_admin_sees_all_managers_of_org(client, manager_with_rep
     body = client.get("/api/v1/manager/me/widgets", headers=auth_headers(admin)).json()
     b = body["inactivity_buckets"]
     total = sum(b.values())
-    # admin ve toda la org como equipo extendido: manager + r1 + r2 + r3 (>= 4)
-    assert total >= 4
+    # admin ve toda la org como equipo extendido, solo colaboradores: r1 + r2 + r3
+    assert total == 3
     cell_ids = {c["user_id"] for c in body["team_activity"]}
     assert str(mw.r1.id) in cell_ids  # r1 tuvo actividad reciente
 

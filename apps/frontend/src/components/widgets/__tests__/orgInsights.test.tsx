@@ -1,13 +1,19 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import type { AccountProgress, AssessmentOverview, AssignmentCompliance } from "@/lib/types";
+import type {
+  AccountProgress,
+  AssessmentOverview,
+  AssignmentCompliance,
+  ManagerEngagement,
+} from "@/lib/types";
 
 import { computeDelta, DeltaPill } from "../DeltaPill";
 import {
   AssessmentOverviewWidget,
   AssignmentComplianceWidget,
   AccountProgressTable,
+  ManagerEngagementWidget,
 } from "../OrgInsightWidgets";
 
 describe("DeltaPill", () => {
@@ -162,5 +168,43 @@ describe("AssessmentOverviewWidget", () => {
       />,
     );
     expect(screen.getByText(/Todavía nadie completó el assessment/)).toBeTruthy();
+  });
+});
+
+describe("ManagerEngagementWidget", () => {
+  const data: ManagerEngagement = {
+    window_days: 21,
+    managers_with_team: 2,
+    engaged: 1,
+    engagement_rate: 0.5,
+    managers: [
+      {
+        user_id: "m1", full_name: "Mara Idle", org_id: "o", org_name: "Org", team_size: 4,
+        team_active: 1, reviewed_members: 0, assignments_made: 0, last_login_at: null,
+        status: "no_follow_up",
+      },
+      {
+        user_id: "m2", full_name: "Leo Activo", org_id: "o", org_name: "Org", team_size: 3,
+        team_active: 3, reviewed_members: 2, assignments_made: 5, last_login_at: null,
+        status: "engaged",
+      },
+    ],
+  };
+
+  it("shows the engagement rate and each manager's status", () => {
+    render(<ManagerEngagementWidget data={data} />);
+    expect(screen.getByText("50%")).toBeTruthy();
+    expect(screen.getByText("Sin seguimiento")).toBeTruthy();
+    expect(screen.getByText("Con seguimiento")).toBeTruthy();
+    expect(screen.getByText("2/3")).toBeTruthy();
+  });
+
+  it("shows an empty message without managers", () => {
+    render(
+      <ManagerEngagementWidget
+        data={{ ...data, managers: [], managers_with_team: 0, engaged: 0, engagement_rate: null }}
+      />,
+    );
+    expect(screen.getByText("No hay managers en este alcance.")).toBeTruthy();
   });
 });

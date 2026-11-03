@@ -29,12 +29,20 @@ Además RRHH no veía cumplimiento de asignaciones, necesidades agregadas del as
 - **Sin filtro por consentimiento en estos widgets.** Decisión de producto (2026-10-27): al ingresar a la
   plataforma el colaborador habilita a RRHH a ver su avance, así que la lista de seguimiento y el
   panorama de assessment incluyen a todas las personas del alcance. Por eso no hay widget de
-  consentimiento. Esto **no cambia** el roster de Empresa (`company/service.py`) ni el gate del
-  manager, que siguen usando `consent_hr` / `consent_manager`.
+  consentimiento. El roster de Empresa (`company/service.py`) tampoco filtra ya por `consent_hr`
+  (se retiró después, "por ahora"); `consent_status` queda como dato informativo. El gate del
+  manager sigue usando `consent_manager`.
 - **Privacidad que se mantiene (invariante 3).** Nunca respuestas ítem por ítem. El panorama de
   assessment es agregado por dimensión (último `DimensionResult` por usuario) y se **suprime con menos
   de 5 personas** (`ASSESSMENT_MIN_GROUP`): no es un filtro de consentimiento, evita re-identificar en
   grupos chicos.
+- **Solo colaboradores en las estadísticas (2026-11-03).** `_resolve_scope` filtra por rol
+  `collaborator`: managers y admins no cuentan en adopción, avance, inactivos, assessment ni listas del
+  dashboard RRHH y del manager (el export CSV conserva todos los roles; el uso de licencias sigue
+  contando todas las cuentas activas porque consumen cupo). Para ellos, `/org/insights` suma
+  `managers`: seguimiento del manager en los últimos 21 d = reportes distintos cuyo avance consultó
+  (`data_access_log`) + módulos que asignó (`module_assignments.assigned_by_user_id`); "con
+  seguimiento" = al menos una de las dos. Sin migraciones.
 - **Retención por cohorte: descartada** tras evaluarla; no aportaba valor de seguimiento.
 
 ## Alternativas consideradas

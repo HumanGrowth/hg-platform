@@ -16,6 +16,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from hg.modules.assessment.models import DimensionResult
+from hg.modules.consent.models import DataAccessLog
 from hg.modules.identity.models import Company, Organization, User
 from hg.modules.learning_units.assignment_status import assignment_completed_clause
 from hg.modules.learning_units.dimensions import DRIVE_TO_CAREER_PATH
@@ -36,9 +37,12 @@ from hg.modules.people.schemas import (
     DimensionAssessmentOut,
     LicenseOrgUsageOut,
     LicenseUsageOut,
+    ManagerEngagementOut,
+    ManagerEngagementRowOut,
     StalledOut,
 )
 from hg.modules.people.service import (
+    ACTIVE_WINDOW_DAYS,
     ASSIGNMENT_DUE_SOON_DAYS,
     ActivityAgg,
     assigned_modules_progress,
@@ -121,7 +125,17 @@ def account_progress(
     El colaborador autoriza a RRHH al ingresar, así que no se filtra por
     consentimiento. Orden: nunca ingresaron primero, luego login más antiguo."""
     progress = assigned_modules_progress(db, [u.id for u in users])
-    names = {u.id: u.full_name for u in users}
+    # Los managers no están en ``users`` (solo colaboradores): se resuelven aparte.
+    manager_ids = {u.manager_id for u in users if u.manager_id}
+    names: dict[UUID, str] = (
+        dict(
+            db.execute(select(User.id, User.full_name).where(User.id.in_(manager_ids)))
+            .tuples()
+            .all()
+        )
+        if manager_ids
+        else {}
+    )
 
     def _key(u: User) -> tuple[int, float]:
         return (0, 0.0) if u.last_login_at is None else (1, u.last_login_at.timestamp())
@@ -142,6 +156,96 @@ def account_progress(
         )
         for u in sorted(users, key=_key)
     ]
+
+
+# ─────────────────────────── Seguimiento de managers ───────────────────────────
+
+
+def manager_engagement(
+    db: Session,
+    managers: list[User],
+    collaborators: list[User],
+    aggs: dict[UUID, ActivityAgg],
+    org_names: dict[UUID, str],
+) -> ManagerEngagementOut:
+    """Qué tan enganchado está cada manager con el seguimiento de su equipo, en la
+    ventana de actividad (21 d): a cuántos de sus reportes consultó el avance
+    (``data_access_log``) y cuántos módulos asignó. "Con seguimiento" = hizo al menos
+    una de las dos. Los managers sin reportes en el alcance no cuentan en la tasa."""
+    now = now_utc()
+    cutoff = now - timedelta(days=ACTIVE_WINDOW_DAYS)
+    team: dict[UUID, list[UUID]] = defaultdict(list)
+    for c in collaborators:
+        if c.manager_id:
+            team[c.manager_id].append(c.id)
+
+    team_sets = {k: set(v) for k, v in team.items()}
+    mids = [m.id for m in managers]
+    reviewed: dict[UUID, set[UUID]] = defaultdict(set)
+    assigned: Counter[UUID] = Counter()
+    if mids:
+        for actor, target in db.execute(
+            select(DataAccessLog.actor_user_id, DataAccessLog.target_user_id)
+            .where(
+                DataAccessLog.actor_user_id.in_(mids),
+                DataAccessLog.target_user_id.is_not(None),
+                DataAccessLog.accessed_at >= cutoff,
+            )
+            .distinct()
+        ).all():
+            if target in team_sets.get(actor, ()):
+                reviewed[actor].add(target)
+        for by, n in db.execute(
+            select(ModuleAssignment.assigned_by_user_id, func.count())
+            .where(
+                ModuleAssignment.assigned_by_user_id.in_(mids),
+                ModuleAssignment.assigned_at >= cutoff,
+            )
+            .group_by(ModuleAssignment.assigned_by_user_id)
+        ).all():
+            if by is not None:
+                assigned[by] = n
+
+    rows: list[ManagerEngagementRowOut] = []
+    for m in managers:
+        members = team.get(m.id, [])
+        n_rev = len(reviewed.get(m.id, ()))
+        n_asg = assigned.get(m.id, 0)
+        if not members:
+            status = "no_team"
+        elif n_rev > 0 or n_asg > 0:
+            status = "engaged"
+        else:
+            status = "no_follow_up"
+        rows.append(
+            ManagerEngagementRowOut(
+                user_id=m.id,
+                full_name=m.full_name,
+                org_id=m.org_id,
+                org_name=org_names.get(m.org_id, "—"),
+                team_size=len(members),
+                team_active=sum(
+                    1
+                    for uid in members
+                    if (la := aggs[uid].last_active_at) is not None and la >= cutoff
+                ),
+                reviewed_members=n_rev,
+                assignments_made=n_asg,
+                last_login_at=m.last_login_at,
+                status=status,
+            )
+        )
+    order = {"no_follow_up": 0, "engaged": 1, "no_team": 2}
+    rows.sort(key=lambda r: (order[r.status], r.full_name))
+    with_team = sum(1 for r in rows if r.status != "no_team")
+    engaged = sum(1 for r in rows if r.status == "engaged")
+    return ManagerEngagementOut(
+        window_days=ACTIVE_WINDOW_DAYS,
+        managers_with_team=with_team,
+        engaged=engaged,
+        engagement_rate=round(engaged / with_team, 4) if with_team else None,
+        managers=rows,
+    )
 
 
 # ─────────────────────────── Assessment agregado por pilar ───────────────────────────

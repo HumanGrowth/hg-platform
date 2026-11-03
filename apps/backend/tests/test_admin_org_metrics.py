@@ -18,8 +18,8 @@ def test_org_metrics_admin_sees_own_org(client, manager_with_reports, factory, a
     res = client.get("/api/v1/admin/org/metrics", headers=auth_headers(admin))
     assert res.status_code == 200, res.text
     body = res.json()
-    # manager + r1 + r2 + r3 + admin = 5 usuarios
-    assert body["total_licenses"] >= 5
+    # Solo colaboradores (r1, r2, r3): manager y admin no cuentan en las estadísticas.
+    assert body["total_licenses"] == 3
     assert body["total_courses_completed"] >= 5  # r1 completó 5
     assert "P1" in body["by_dimension"]
     assert any(tp["courses_completed"] == 5 for tp in body["top_performers"])
@@ -47,9 +47,9 @@ def test_org_metrics_admin_cannot_inspect_other_org(client, manager_with_reports
     )
     assert res.status_code == 200, res.text
     body = res.json()
-    # Ve su propia org (solo el admin), no la de mw (que tiene 5 completados).
+    # Ve su propia org (solo el admin, que no cuenta), no la de mw (5 completados).
     assert body["total_courses_completed"] == 0
-    assert body["total_licenses"] == 1
+    assert body["total_licenses"] == 0
 
 
 def test_org_metrics_csv_export_has_headers(client, manager_with_reports, factory, auth_headers) -> None:

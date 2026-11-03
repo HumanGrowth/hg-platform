@@ -2,9 +2,9 @@
 
 - El colaborador decide en ``/me/consent`` dos autorizaciones independientes
   (jefe directo + RRHH); "Ahora no" = ambos False.
-- RRHH (roster) ve el estado individual solo con ``consent_hr``; el manager
-  (detalle) solo con ``consent_manager``. Sin autorización → vacío + un
-  ``consent_status`` de 4 valores (pending/declined/…).
+- RRHH (roster) ve el estado individual sin gate (ADR-0013) y un
+  ``consent_status`` informativo de 4 valores; el manager (detalle) solo con
+  ``consent_manager``.
 - Cada consulta de RRHH/manager escribe en ``data_access_log``.
 """
 from __future__ import annotations
@@ -83,7 +83,7 @@ def test_consent_status_and_set_granular(client: TestClient, factory, auth_heade
 # ─────────────────────────── Gate RRHH (roster) ───────────────────────────
 
 
-def test_roster_gate_and_consent_status(client: TestClient, factory, auth_headers) -> None:
+def test_roster_without_gate_and_consent_status(client: TestClient, factory, auth_headers) -> None:
     org = factory.make_org()
     ca = factory.make_user(org=org, role=UserRole.company_admin)
     member = factory.make_user(org=org, full_name="Colaborador Uno")
@@ -94,12 +94,12 @@ def test_roster_gate_and_consent_status(client: TestClient, factory, auth_header
         assert res.status_code == 200, res.text
         return next(m for m in res.json() if m["id"] == str(member.id))
 
-    # Sin fila de consentimiento → pending, estados vacíos.
+    # Sin fila de consentimiento → pending, pero el estado es visible para RRHH.
     row = _row()
     assert row["consent_status"] == "pending"
-    assert row["dimension_states"] == {}
+    assert row["dimension_states"] != {}
 
-    # Autoriza a RRHH → estado visible; status authorized_no_activity (sin cursos).
+    # Autoriza a RRHH → status authorized_no_activity (sin cursos).
     _set_consent(factory, member, manager=None, hr=True)
     row = _row()
     assert row["consent_status"] == "authorized_no_activity"
@@ -115,7 +115,7 @@ def test_roster_declined_status(client: TestClient, factory, auth_headers) -> No
     res = client.get(f"{API}/company/members", headers=auth_headers(ca))
     row = next(m for m in res.json() if m["id"] == str(member.id))
     assert row["consent_status"] == "declined"
-    assert row["dimension_states"] == {}
+    assert row["dimension_states"] != {}
 
 
 def test_roster_access_is_audited(client: TestClient, factory, auth_headers) -> None:

@@ -313,11 +313,37 @@ export interface StalledSummary {
   by_dimension: Record<string, number>;
 }
 
+export interface ManagerEngagementRow {
+  user_id: string;
+  full_name: string;
+  org_id: string;
+  org_name: string;
+  team_size: number;
+  /** Reportes con actividad en la ventana. */
+  team_active: number;
+  /** Reportes distintos cuyo avance consultó el manager en la ventana. */
+  reviewed_members: number;
+  /** Módulos que asignó en la ventana. */
+  assignments_made: number;
+  last_login_at: string | null;
+  status: "engaged" | "no_follow_up" | "no_team";
+}
+
+export interface ManagerEngagement {
+  window_days: number;
+  managers_with_team: number;
+  engaged: number;
+  /** null = ningún manager con equipo. */
+  engagement_rate: number | null;
+  managers: ManagerEngagementRow[];
+}
+
 export interface OrgInsights {
   assignments: AssignmentCompliance;
   accounts: AccountProgress[];
   assessment: AssessmentOverview;
   stalled: StalledSummary;
+  managers: ManagerEngagement;
 }
 
 // ─────────────── Home colaborador (B3-04) ───────────────

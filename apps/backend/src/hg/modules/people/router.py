@@ -645,10 +645,29 @@ _CSV_HEADERS = [
 ]
 
 
+_COLLABORATORS = (UserRole.collaborator,)
+
+
 def _resolve_scope(
+    db: Session,
+    current_user: User,
+    org_id: UUID | None,
+    company_id: UUID | None,
+    roles: tuple[UserRole, ...] | None = _COLLABORATORS,
+) -> tuple[list[User], list[UUID]]:
+    """Usuarios del alcance filtrados por rol (por defecto solo colaboradores:
+    managers y admins no cuentan en las estadísticas de avance) + org_ids.
+    ``roles=None`` devuelve a todos (export CSV)."""
+    users, org_ids = _resolve_scope_all(db, current_user, org_id, company_id)
+    if roles is not None:
+        users = [u for u in users if u.role in roles]
+    return users, org_ids
+
+
+def _resolve_scope_all(
     db: Session, current_user: User, org_id: UUID | None, company_id: UUID | None
 ) -> tuple[list[User], list[UUID]]:
-    """Usuarios + org_ids del alcance del dashboard.
+    """Usuarios + org_ids del alcance del dashboard (todos los roles).
 
     - superadmin/admin con ``org_id`` → esa org (drill-down; el admin solo dentro
       de SU empresa).
@@ -848,11 +867,15 @@ def org_insights_endpoint(
             select(Organization.id, Organization.name).where(Organization.id.in_(org_ids))
         ).tuples().all()
     )
+    managers, _ = _resolve_scope(
+        db, current_user, org_id, company_id, roles=(UserRole.manager,)
+    )
     return OrgInsightsOut(
         assignments=org_insights.assignment_compliance(db, users, org_names),
         accounts=org_insights.account_progress(db, users, aggs, org_names),
         assessment=org_insights.assessment_overview(db, users),
         stalled=org_insights.stalled_units(db, uids),
+        managers=org_insights.manager_engagement(db, managers, users, aggs, org_names),
     )
 
 
@@ -863,7 +886,7 @@ def export_users_csv(
     db: Session = Depends(get_db_as_superadmin),
     current_user: User = Depends(require_role("admin", "superadmin")),
 ) -> Response:
-    users, _org_ids = _resolve_scope(db, current_user, org_id, company_id)
+    users, _org_ids = _resolve_scope(db, current_user, org_id, company_id, roles=None)
     aggs = activity_by_users(db, [u.id for u in users])
     by_id = {u.id: u for u in users}
 
@@ -1059,7 +1082,7 @@ def get_manager_widgets(
     current_user: User = Depends(get_current_user),
 ) -> ManagerWidgetsOut:
     response.headers["Cache-Control"] = _WIDGET_CACHE
-    members = _team_members(db, current_user)
+    members = [m for m in _team_members(db, current_user) if m.role == UserRole.collaborator]
     names = {m.id: m.full_name for m in members}
     member_ids = list(names)
     today = now_utc().date()
@@ -1096,7 +1119,11 @@ def get_manager_widgets(
     if member_ids:
         org_uids = list(
             db.scalars(
-                select(User.id).where(User.org_id == current_user.org_id, User.is_invited.is_(False))
+                select(User.id).where(
+                    User.org_id == current_user.org_id,
+                    User.is_invited.is_(False),
+                    User.role == UserRole.collaborator,
+                )
             ).all()
         )
         cutoff = now_utc() - timedelta(days=ACTIVE_WINDOW_DAYS)

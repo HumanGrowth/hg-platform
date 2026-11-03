@@ -71,7 +71,7 @@ def test_insights_accounts_progress(client, manager_with_reports, factory, auth_
     s.execute(update(User).where(User.id == mw.r1.id).values(last_login_at=datetime.now(UTC)))
     s.commit()
     accounts = client.get("/api/v1/admin/org/insights", headers=auth_headers(admin)).json()["accounts"]
-    assert len(accounts) == 5  # manager, r1, r2, r3, admin
+    assert len(accounts) == 3  # solo colaboradores: r1, r2, r3 (sin manager ni admin)
     by_name = {a["full_name"]: a for a in accounts}
     r1 = by_name["Active Report"]
     assert (r1["modules_completed"], r1["modules_assigned"]) == (2, 2)
@@ -112,7 +112,7 @@ def test_insights_stalled_assignments_assessment(client, manager_with_reports, f
 
     # Assessment: nadie tiene resultados → nada que mostrar, sin romper.
     asm = body["assessment"]
-    assert asm["total_users"] == 5 and asm["with_results"] == 0 and asm["dimensions"] == []
+    assert asm["total_users"] == 3 and asm["with_results"] == 0 and asm["dimensions"] == []
     assert asm["min_group"] == 5
 
     # Los widgets de consentimiento y retención ya no existen.
@@ -124,7 +124,7 @@ def test_org_widgets_adoption_pct_and_per_user(client, manager_with_reports, fac
     admin = _admin(factory, mw)
     body = client.get("/api/v1/admin/org/widgets", headers=auth_headers(admin)).json()
     last = body["adoption_curve"][-1]
-    assert last["total_users"] >= 5 and last["active_users"] >= 1
+    assert last["total_users"] >= 3 and last["active_users"] >= 1
     assert body["monthly_watch"][-1]["per_active_user"] >= 0
 
 
@@ -166,3 +166,54 @@ def test_assignment_compliance_by_org_chips(client, manager_with_reports, factor
     assert (by_name["Test Org"]["total"], by_name["Test Org"]["completed"]) == (1, 1)
     assert (by_name["Otra Org"]["total"], by_name["Otra Org"]["overdue"]) == (1, 1)
     assert a["total"] == 2 and a["overdue"] == 1
+
+
+def test_stats_exclude_managers_and_admins(client, manager_with_reports, factory, auth_headers) -> None:
+    """Las estadísticas de avance cuentan solo colaboradores."""
+    mw = manager_with_reports
+    admin = _admin(factory, mw)
+    h = auth_headers(admin)
+    metrics = client.get("/api/v1/admin/org/metrics", headers=h).json()
+    assert metrics["total_licenses"] == 3
+    accounts = client.get("/api/v1/admin/org/insights", headers=h).json()["accounts"]
+    names = {a["full_name"] for a in accounts}
+    assert "Manager One" not in names and "Admin RRHH" not in names
+    # El nombre del manager sigue resolviéndose aunque no esté en la lista.
+    assert {a["manager_name"] for a in accounts} == {"Manager One"}
+    # El export CSV conserva a todos los roles.
+    csv_rows = client.get("/api/v1/admin/org/users/export.csv", headers=h).text.splitlines()
+    assert len(csv_rows) - 1 == 5
+
+
+def test_manager_engagement(client, manager_with_reports, factory, auth_headers) -> None:
+    from hg.modules.consent.models import DataAccessLog
+
+    mw = manager_with_reports
+    admin = _admin(factory, mw)
+    idle = factory.make_user(org=mw.org, role=UserRole.manager, full_name="Manager Idle")
+    factory.make_user(org=mw.org, role=UserRole.manager, full_name="Manager Alone")  # sin equipo
+    factory.make_user(org=mw.org, manager_id=idle.id, full_name="Idle Report")
+    s = factory.session
+    now = datetime.now(UTC)
+    s.add(DataAccessLog(  # consultó a r1 hace poco
+        org_id=mw.org.id, actor_user_id=mw.manager.id, target_user_id=mw.r1.id,
+        resource="progress", accessed_at=now - timedelta(days=2),
+    ))
+    s.add(DataAccessLog(  # consulta fuera de ventana: no cuenta
+        org_id=mw.org.id, actor_user_id=idle.id, target_user_id=mw.r2.id,
+        resource="progress", accessed_at=now - timedelta(days=40),
+    ))
+    s.add(ModuleAssignment(
+        org_id=mw.org.id, user_id=mw.r2.id, learning_unit_id=mw.units[2].id,
+        assigned_by_user_id=mw.manager.id,
+    ))
+    s.commit()
+    m = client.get("/api/v1/admin/org/insights", headers=auth_headers(admin)).json()["managers"]
+    assert (m["managers_with_team"], m["engaged"], m["engagement_rate"]) == (2, 1, 0.5)
+    rows = {r["full_name"]: r for r in m["managers"]}
+    one = rows["Manager One"]
+    assert (one["team_size"], one["team_active"], one["reviewed_members"]) == (3, 1, 1)
+    assert one["assignments_made"] == 1 and one["status"] == "engaged"
+    assert rows["Manager Idle"]["status"] == "no_follow_up"
+    assert rows["Manager Alone"]["status"] == "no_team"
+    assert m["managers"][0]["status"] == "no_follow_up"  # los que requieren atención, primero

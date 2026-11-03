@@ -7,6 +7,7 @@ import {
   AccountProgressTable,
   AssessmentOverviewWidget,
   AssignmentComplianceWidget,
+  ManagerEngagementWidget,
   StalledWidget,
 } from "@/components/widgets/OrgInsightWidgets";
 import { WidgetCard } from "@/components/widgets/WidgetCard";
@@ -61,6 +62,17 @@ export default function OrgInsightsSection({
           onRetry={load}
         >
           {data ? <AssignmentComplianceWidget data={data.assignments} /> : null}
+        </WidgetCard>
+      </section>
+
+      <section className="mt-6">
+        <WidgetCard
+          title="Seguimiento de managers"
+          description="Qué tan enganchado está cada manager con su equipo en los últimos 21 días: cuántos de sus reportes consultó (Revisó), cuántos módulos asignó y cuántos de su equipo estuvieron activos. Con seguimiento = revisó o asignó al menos una vez."
+          state={state}
+          onRetry={load}
+        >
+          {data ? <ManagerEngagementWidget data={data.managers} /> : null}
         </WidgetCard>
       </section>
 
