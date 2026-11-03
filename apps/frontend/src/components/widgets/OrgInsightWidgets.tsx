@@ -9,6 +9,8 @@ import type {
   AssignmentCompliance,
   AssignmentOrgCompliance,
   LicenseOrgUsage,
+  ManagerEngagement,
+  ManagerEngagementRow,
   StalledSummary,
 } from "@/lib/types";
 
@@ -454,6 +456,78 @@ export function StalledWidget({ data }: { data: StalledSummary }) {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+// ─────────────────────────── Seguimiento de managers ───────────────────────────
+
+const MANAGER_STATUS: Record<ManagerEngagementRow["status"], { label: string; cls: string }> = {
+  engaged: { label: "Con seguimiento", cls: "bg-primary/10 text-primary" },
+  no_follow_up: { label: "Sin seguimiento", cls: "bg-danger-bg text-danger" },
+  no_team: { label: "Sin equipo", cls: "bg-bg-sunken text-fg-muted" },
+};
+
+export function ManagerEngagementWidget({ data }: { data: ManagerEngagement }) {
+  if (data.managers.length === 0) {
+    return (
+      <p className="flex h-40 items-center justify-center px-4 text-center text-sm text-fg-muted">
+        No hay managers en este alcance.
+      </p>
+    );
+  }
+  return (
+    <div>
+      <p className="text-sm text-fg-muted">
+        <span className="font-mono text-2xl font-semibold text-fg">
+          {data.engagement_rate === null ? "—" : `${Math.round(data.engagement_rate * 100)}%`}
+        </span>{" "}
+        de los managers con equipo hizo seguimiento en los últimos {data.window_days} días (
+        {data.engaged} de {data.managers_with_team}).
+      </p>
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full min-w-[40rem] text-left">
+          <thead className="border-b border-border">
+            <tr className="font-sans text-micro uppercase tracking-meta text-fg-muted">
+              <th className="py-2 pr-4 font-semibold">Manager</th>
+              <th className="py-2 pr-4 font-semibold">Organización</th>
+              <th className="py-2 pr-4 text-right font-semibold">Equipo activo</th>
+              <th className="py-2 pr-4 text-right font-semibold">Revisó</th>
+              <th className="py-2 pr-4 text-right font-semibold">Asignó</th>
+              <th className="py-2 pr-4 font-semibold">Último login</th>
+              <th className="py-2 font-semibold">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.managers.map((m) => {
+              const st = MANAGER_STATUS[m.status];
+              return (
+                <tr key={m.user_id} className="border-b border-border last:border-0">
+                  <td className="py-2.5 pr-4 text-sm font-semibold text-fg">{m.full_name}</td>
+                  <td className="py-2.5 pr-4 text-sm text-fg-muted">{m.org_name}</td>
+                  <td className="py-2.5 pr-4 text-right font-mono text-xs text-fg">
+                    {m.team_active}/{m.team_size}
+                  </td>
+                  <td className="py-2.5 pr-4 text-right font-mono text-xs text-fg">
+                    {m.reviewed_members}/{m.team_size}
+                  </td>
+                  <td className="py-2.5 pr-4 text-right font-mono text-xs text-fg">
+                    {m.assignments_made}
+                  </td>
+                  <td className="py-2.5 pr-4 text-sm text-fg">{formatLogin(m.last_login_at)}</td>
+                  <td className="py-2.5">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${st.cls}`}
+                    >
+                      {st.label}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

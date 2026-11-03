@@ -34,7 +34,11 @@ export function WidgetCard({
     <Card className={`flex flex-col gap-3 bg-bg-raised ${className ?? ""}`}>
       <div className="flex items-start justify-between gap-2">
         <Eyebrow>{title}</Eyebrow>
-        {description ? <InfoTip text={description} label={title} /> : null}
+        {description ? (
+          <span className="ml-auto">
+            <InfoTip text={description} label={title} />
+          </span>
+        ) : null}
       </div>
 
       {state === "loading" && (

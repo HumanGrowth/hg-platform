@@ -18,13 +18,15 @@ export interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
 /** StatCard (DS v2 · data): métrica destacada — número display + label + sub. */
 export function StatCard({ value, label, sub, icon, info, footer, className, ...props }: StatCardProps) {
   return (
-    <Card glass="strong" className={cn("flex flex-col gap-1 bg-bg-raised", className)} {...props}>
+    <Card glass="strong" className={cn("relative flex flex-col gap-1 bg-bg-raised", className)} {...props}>
+      {info ? (
+        <span className="absolute right-3 top-3">
+          <InfoTip text={info} label={label} />
+        </span>
+      ) : null}
       {icon && <div className="mb-1 text-primary">{icon}</div>}
       <span className="font-display text-4xl leading-none text-fg">{value}</span>
-      <div className="flex items-center gap-1.5">
-        <span className="font-heading text-sm font-semibold text-fg">{label}</span>
-        {info ? <InfoTip text={info} label={label} /> : null}
-      </div>
+      <span className="font-heading text-sm font-semibold text-fg">{label}</span>
       {sub && <span className="text-xs text-fg-muted">{sub}</span>}
       {footer}
     </Card>

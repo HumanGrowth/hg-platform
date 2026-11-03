@@ -378,8 +378,31 @@ class StalledOut(BaseModel):
 
 
 
+class ManagerEngagementRowOut(BaseModel):
+    user_id: UUID
+    full_name: str
+    org_id: UUID
+    org_name: str
+    team_size: int
+    team_active: int
+    reviewed_members: int
+    assignments_made: int
+    last_login_at: datetime | None
+    # "engaged" | "no_follow_up" | "no_team"
+    status: str
+
+
+class ManagerEngagementOut(BaseModel):
+    window_days: int
+    managers_with_team: int
+    engaged: int
+    engagement_rate: float | None
+    managers: list[ManagerEngagementRowOut]
+
+
 class OrgInsightsOut(BaseModel):
     assignments: AssignmentComplianceOut
     accounts: list[AccountProgressOut]
     assessment: AssessmentOverviewOut
     stalled: StalledOut
+    managers: ManagerEngagementOut
