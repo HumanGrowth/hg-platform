@@ -15,7 +15,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import delete as sa_delete
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from hg.core.deps import get_current_user, get_db_as_superadmin, require_role
 from hg.db import get_db
@@ -314,7 +314,21 @@ def _completion_pct(completed_blocks: int, total_blocks: int) -> float:
 def _course_progress_list(
     db: Session, user_id: UUID, *, completed: bool, limit: int = 10
 ) -> list[CourseProgressDetailOut]:
-    """Units en progreso / completadas de un user (modelo nuevo), top-N recientes."""
+    """Units en progreso / completadas de un user (modelo nuevo), top-N recientes.
+
+    Misma definición que ``activity_by_users``: legacy y reemplazo son un solo
+    módulo. Una legacy completada no se lista si su reemplazo también está
+    completado, y una legacy sin terminar no es "en progreso"."""
+    rep = aliased(LearningUnitAttempt)
+    replacement_done = (
+        select(rep.id)
+        .where(
+            rep.user_id == user_id,
+            rep.unit_id == LearningUnit.superseded_by_unit_id,
+            rep.completed_at.is_not(None),
+        )
+        .exists()
+    )
     rows = db.execute(
         select(LearningUnitAttempt, LearningUnit)
         .join(LearningUnit, LearningUnit.id == LearningUnitAttempt.unit_id)
@@ -323,7 +337,14 @@ def _course_progress_list(
             LearningUnitAttempt.completed_at.is_not(None)
             if completed
             else LearningUnitAttempt.completed_at.is_(None),
-            *([] if completed else [LearningUnitAttempt.started_at.is_not(None)]),
+            *(
+                [~replacement_done]
+                if completed
+                else [
+                    LearningUnitAttempt.started_at.is_not(None),
+                    LearningUnit.superseded_by_unit_id.is_(None),
+                ]
+            ),
         )
         .order_by(
             func.coalesce(

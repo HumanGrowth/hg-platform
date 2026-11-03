@@ -15,20 +15,27 @@ from __future__ import annotations
 from collections.abc import Iterable
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, exists, or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy import ColumnElement, exists, func, or_, select
+from sqlalchemy.orm import Session, aliased
 
-from hg.modules.learning_units.models import LearningUnitAttempt, ModuleAssignment
+from hg.modules.learning_units.models import LearningUnit, LearningUnitAttempt, ModuleAssignment
 
 
 def assignment_completed_clause() -> ColumnElement[bool]:
     """Predicado SQL sobre ``ModuleAssignment``: la asignación está cumplida.
 
-    Correlacionado con la fila de ``module_assignments`` de la query externa."""
+    Correlacionado con la fila de ``module_assignments`` de la query externa.
+    Una unit reemplazada (legacy) y su reemplazo son el mismo módulo: completar
+    cualquiera de las dos cumple la asignación."""
+    assigned = aliased(LearningUnit)
+    attempted = aliased(LearningUnit)
     unit_done = exists().where(
+        assigned.id == ModuleAssignment.learning_unit_id,
         LearningUnitAttempt.user_id == ModuleAssignment.user_id,
-        LearningUnitAttempt.unit_id == ModuleAssignment.learning_unit_id,
         LearningUnitAttempt.completed_at.is_not(None),
+        attempted.id == LearningUnitAttempt.unit_id,
+        func.coalesce(attempted.superseded_by_unit_id, attempted.id)
+        == func.coalesce(assigned.superseded_by_unit_id, assigned.id),
     )
     return or_(ModuleAssignment.status == "completed", unit_done)
 
