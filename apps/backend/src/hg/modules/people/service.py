@@ -36,7 +36,10 @@ from hg.modules.learning_units.models import (
 # Umbral de inactividad ampliado a 21 días (ago-2026): 7 era muy agresivo para
 # dar seguimiento a colaboradores (marcaba inactivo a la semana).
 INACTIVE_DAYS = 21
-ACTIVE_WINDOW_DAYS = 30
+# Una sola ventana para "activo" e "inactivo" (dashboard RRHH v2): antes adopción
+# usaba 30d e inactividad 21d, así que alguien con 25d sin entrar contaba como
+# activo Y como inactivo. Ahora activos + inactivos == total siempre.
+ACTIVE_WINDOW_DAYS = INACTIVE_DAYS
 
 
 def streak_days(activity_dates: set[date], today: date) -> int:
@@ -482,6 +485,42 @@ def inactivity_buckets(
         else:
             buckets["gt_30"] += 1
     return buckets
+
+
+def active_user_ids_between(
+    db: Session, user_ids: list[UUID], start: datetime, end: datetime
+) -> set[UUID]:
+    """Usuarios con alguna actividad en ``(start, end]``: bloque completado o
+    unit iniciada/completada. Misma noción de "actividad" que ``last_active_at``,
+    así el período actual y el anterior son comparables."""
+    if not user_ids:
+        return set()
+    out: set[UUID] = set(
+        db.scalars(
+            select(LearningUnitAttempt.user_id)
+            .join(BlockProgress, BlockProgress.attempt_id == LearningUnitAttempt.id)
+            .where(
+                LearningUnitAttempt.user_id.in_(user_ids),
+                BlockProgress.status == BlockProgressStatus.completed,
+                BlockProgress.submitted_at > start,
+                BlockProgress.submitted_at <= end,
+            )
+            .distinct()
+        ).all()
+    )
+    for ts_col in (LearningUnitAttempt.started_at, LearningUnitAttempt.completed_at):
+        out.update(
+            db.scalars(
+                select(LearningUnitAttempt.user_id)
+                .where(
+                    LearningUnitAttempt.user_id.in_(user_ids),
+                    ts_col > start,
+                    ts_col <= end,
+                )
+                .distinct()
+            ).all()
+        )
+    return out
 
 
 def adoption_curve(

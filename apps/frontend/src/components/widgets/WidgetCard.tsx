@@ -1,9 +1,9 @@
 "use client";
 
-import { Info } from "lucide-react";
 import * as React from "react";
 
 import { Card } from "@/components/ui/card";
+import { InfoTip } from "@/components/ui/info-tip";
 import { Eyebrow } from "@/components/ui/eyebrow";
 
 export type WidgetState = "loading" | "error" | "empty" | "ok";
@@ -34,19 +34,7 @@ export function WidgetCard({
     <Card className={`flex flex-col gap-3 bg-bg-raised ${className ?? ""}`}>
       <div className="flex items-start justify-between gap-2">
         <Eyebrow>{title}</Eyebrow>
-        {description ? (
-          <span
-            className="group relative inline-flex shrink-0 text-fg-subtle"
-            tabIndex={0}
-            role="note"
-            aria-label={description}
-          >
-            <Info size={14} strokeWidth={1.75} aria-hidden />
-            <span className="glass-modal pointer-events-none absolute right-0 top-5 z-10 hidden w-48 p-2 text-xs text-fg-muted group-hover:block group-focus:block">
-              {description}
-            </span>
-          </span>
-        ) : null}
+        {description ? <InfoTip text={description} label={title} /> : null}
       </div>
 
       {state === "loading" && (

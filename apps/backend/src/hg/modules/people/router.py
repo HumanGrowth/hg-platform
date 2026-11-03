@@ -23,6 +23,7 @@ from hg.modules.assessment.router import result_out as assessment_result_out
 from hg.modules.assessment.schemas import DimensionResultOut
 from hg.modules.badges import progression
 from hg.modules.badges.schemas import DimensionProgressionOut
+from hg.modules.consent import service as consent_service
 from hg.modules.identity.models import Organization, User, UserRole
 from hg.modules.learning import enrollments_service
 from hg.modules.learning.enrollments_service import InvalidPathCodeError
@@ -47,7 +48,7 @@ from hg.modules.learning_units.path_router import (
     PathOut,
     PathStepOut,
 )
-from hg.modules.people import service
+from hg.modules.people import org_insights, service
 from hg.modules.people.schemas import (
     AdoptionMonthPoint,
     CourseProgressDetailOut,
@@ -61,8 +62,10 @@ from hg.modules.people.schemas import (
     NextStepOut,
     OnboardingFunnel,
     OrgBreakdownOut,
+    OrgInsightsOut,
     OrgMetricsOut,
     OrgWidgetsOut,
+    PreviousPeriodOut,
     RecentActivityItem,
     StreakDay,
     TeamActivityCell,
@@ -80,8 +83,10 @@ from hg.modules.people.service import (
     ACTIVE_WINDOW_DAYS,
     ActivityAgg,
     AssignmentDueSummary,
+    active_user_ids_between,
     activity_by_users,
     assigned_content_completed_by_users,
+    assigned_modules_progress,
     assignments_due_summary_by_users,
     badges_unlocked_count_by_users,
     now_utc,
@@ -184,8 +189,7 @@ def list_my_team(
     members = _team_members(db, current_user)
     # Auditoría (TASK 5): el manager consultó el roster de su equipo. El listado no
     # expone el estado por dimensión (solo agregados), así que no requiere gate.
-    from hg.modules.consent import service as consent_service
-
+    
     consent_service.log_access(db, actor=current_user, resource=consent_service.RESOURCE_ROSTER)
     member_ids = [m.id for m in members]
     aggs = activity_by_users(db, member_ids)
@@ -247,8 +251,7 @@ def export_my_team_csv(
     """CSV con las métricas del equipo del manager (sus reportes directos; para
     admin/superadmin, toda la org). Se audita el acceso al roster (TASK 5)."""
     members = _team_members(db, current_user)
-    from hg.modules.consent import service as consent_service
-
+    
     consent_service.log_access(db, actor=current_user, resource=consent_service.RESOURCE_ROSTER)
     aggs = activity_by_users(db, [m.id for m in members])
 
@@ -366,8 +369,7 @@ def get_user_detail(
     # snapshot denormalizado — así el manager ve lo mismo que el colaborador
     # en /perfil (Release TASK 2, consistencia cross-role).
     from hg.modules.assessment.service import assessment_states_snapshot, latest_dimension_results
-    from hg.modules.consent import service as consent_service
-
+    
     # Gate de consentimiento granular (TASK 5 · docx): el manager ve el estado
     # individual solo si el colaborador autorizó a su jefe directo (consent_manager).
     # El acceso se audita.
@@ -426,8 +428,7 @@ def get_user_progression(
     El % mezcla aprendizaje + assessment. Sin ``consent_manager`` se devuelve solo
     la parte de aprendizaje (``includes_assessment=false``): el assessment sigue
     gateado por consentimiento. El acceso se audita (``progress``)."""
-    from hg.modules.consent import service as consent_service
-
+    
     target = _authorize_target(db, current_user, user_id)
     include_assessment = consent_service.consent_manager_ok(
         consent_service.get_privacy_consent(db, target.id)
@@ -456,8 +457,7 @@ def get_user_results(
     `/users/{user_id}/detail` — sin eso, lista vacía (no 403: el manager puede
     ver que hay un reporte, solo no sus resultados)."""
     from hg.modules.assessment.service import latest_dimension_results
-    from hg.modules.consent import service as consent_service
-
+    
     target = _authorize_target(db, current_user, user_id)
     if not consent_service.consent_manager_ok(
         consent_service.get_privacy_consent(db, target.id)
@@ -699,18 +699,20 @@ def org_metrics(
     db: Session = Depends(get_db_as_superadmin),
     current_user: User = Depends(require_role("admin", "superadmin")),
 ) -> OrgMetricsOut:
-    users, _org_ids = _resolve_scope(db, current_user, org_id, company_id)
+    users, org_ids = _resolve_scope(db, current_user, org_id, company_id)
     uids = [u.id for u in users]
     aggs = activity_by_users(db, uids)
     total = len(users)
-    cutoff30 = now_utc() - timedelta(days=ACTIVE_WINDOW_DAYS)
+    now = now_utc()
+    cutoff = now - timedelta(days=ACTIVE_WINDOW_DAYS)
 
+    # Activo e inactivo comparten ventana (21d): active + inactive == total.
     active = sum(
         1
         for u in users
-        if (la := aggs[u.id].last_active_at) is not None and la >= cutoff30
+        if (la := aggs[u.id].last_active_at) is not None and la >= cutoff
     )
-    inactive = sum(1 for u in users if aggs[u.id].is_inactive)
+    inactive = total - active
     total_completed = sum(aggs[u.id].courses_completed for u in users)
     total_started = sum(
         aggs[u.id].courses_in_progress + aggs[u.id].courses_completed for u in users
@@ -737,6 +739,11 @@ def org_metrics(
 
     inactivity = InactivityBuckets(**service.inactivity_buckets(db, uids, now_utc()))
 
+    # Completion sobre lo asignado (módulos completados / asignados, agregado).
+    progress = assigned_modules_progress(db, uids)
+    assigned_total = sum(a for _, a in progress.values())
+    assigned_completed = sum(c for c, _ in progress.values())
+
     # Comparativa por organización (solo si el scope abarca varias orgs = empresa).
     by_org: list[OrgBreakdownOut] = []
     present_org_ids = {u.org_id for u in users}
@@ -757,12 +764,10 @@ def org_metrics(
             o_active = sum(
                 1
                 for u in ousers
-                if (la := aggs[u.id].last_active_at) is not None and la >= cutoff30
+                if (la := aggs[u.id].last_active_at) is not None and la >= cutoff
             )
-            o_completed = sum(aggs[u.id].courses_completed for u in ousers)
-            o_started = sum(
-                aggs[u.id].courses_in_progress + aggs[u.id].courses_completed for u in ousers
-            )
+            o_assigned = sum(progress[u.id][1] for u in ousers)
+            o_assigned_done = sum(progress[u.id][0] for u in ousers)
             by_org.append(
                 OrgBreakdownOut(
                     org_id=oid,
@@ -770,11 +775,36 @@ def org_metrics(
                     total_users=o_total,
                     active_users=o_active,
                     adoption_rate=round(o_active / o_total, 4) if o_total else 0.0,
-                    completion_rate=round(o_completed / o_started, 4) if o_started else 0.0,
-                    inactive_users=sum(1 for u in ousers if aggs[u.id].is_inactive),
+                    assigned_total=o_assigned,
+                    assigned_completed=o_assigned_done,
+                    assigned_completion_rate=(
+                        round(o_assigned_done / o_assigned, 4) if o_assigned else None
+                    ),
+                    inactive_users=o_total - o_active,
                 )
             )
         by_org.sort(key=lambda b: b.org_name)
+
+
+    # Período anterior (ventana de 21d inmediatamente previa) para los deltas.
+    prev_end = cutoff
+    prev_active_ids = active_user_ids_between(
+        db, uids, prev_end - timedelta(days=ACTIVE_WINDOW_DAYS), prev_end
+    )
+    prev_total = sum(1 for u in users if u.created_at <= prev_end)
+    prev_active = len(prev_active_ids)
+    previous = (
+        PreviousPeriodOut(
+            adoption_rate=round(prev_active / prev_total, 4),
+            active_users=prev_active,
+            inactive_users_count=max(0, prev_total - prev_active),
+        )
+        if prev_total
+        else None
+    )
+    licenses = org_insights.license_usage(
+        db, org_ids, drilled_org=org_id is not None and org_ids == [org_id]
+    )
 
     return OrgMetricsOut(
         total_licenses=total,
@@ -789,6 +819,40 @@ def org_metrics(
         inactive_users_count=inactive,
         inactivity=inactivity,
         by_org=by_org,
+        assigned_total=assigned_total,
+        assigned_completed=assigned_completed,
+        assigned_completion_rate=(
+            round(assigned_completed / assigned_total, 4) if assigned_total else None
+        ),
+        previous=previous,
+        licenses=licenses,
+    )
+
+
+@admin_router.get("/org/insights", response_model=OrgInsightsOut)
+def org_insights_endpoint(
+    response: Response,
+    org_id: UUID | None = Query(None, description="drill-down a una org"),
+    company_id: UUID | None = Query(None, description="solo superadmin: toda la empresa"),
+    db: Session = Depends(get_db_as_superadmin),
+    current_user: User = Depends(require_role("admin", "superadmin")),
+) -> OrgInsightsOut:
+    """Insights accionables para RRHH (v2). El colaborador autoriza a RRHH al
+    ingresar, por eso no se filtra por consentimiento; nunca respuestas por ítem."""
+    response.headers["Cache-Control"] = _WIDGET_CACHE
+    users, org_ids = _resolve_scope(db, current_user, org_id, company_id)
+    uids = [u.id for u in users]
+    aggs = activity_by_users(db, uids)
+    org_names = dict(
+        db.execute(
+            select(Organization.id, Organization.name).where(Organization.id.in_(org_ids))
+        ).tuples().all()
+    )
+    return OrgInsightsOut(
+        assignments=org_insights.assignment_compliance(db, users, org_names),
+        accounts=org_insights.account_progress(db, users, aggs, org_names),
+        assessment=org_insights.assessment_overview(db, users),
+        stalled=org_insights.stalled_units(db, uids),
     )
 
 
@@ -1073,13 +1137,29 @@ def get_org_widgets(
     users, org_ids = _resolve_scope(db, current_user, org_id, company_id)
     user_ids = [u.id for u in users]
     today = now_utc().date()
+    curve = service.adoption_curve(db, user_ids, today)
+    # Base a fin de cada mes (usuarios ya creados) → % de adopción comparable.
+    def _month_end(key: str) -> datetime:
+        y, mo = int(key[:4]), int(key[5:])
+        nxt = datetime(y + (mo == 12), 1 if mo == 12 else mo + 1, 1, tzinfo=now_utc().tzinfo)
+        return nxt
+
     adoption = [
-        AdoptionMonthPoint(month=m, active_users=c)
-        for m, c in service.adoption_curve(db, user_ids, today)
+        AdoptionMonthPoint(
+            month=m,
+            active_users=c,
+            total_users=sum(1 for u in users if u.created_at < _month_end(m)),
+        )
+        for m, c in curve
     ]
     funnel = OnboardingFunnel(**service.onboarding_funnel(db, org_ids, user_ids))
+    active_by_month = dict(curve)
     watch = [
-        MonthlyWatchPoint(month=m, minutes=mins)
+        MonthlyWatchPoint(
+            month=m,
+            minutes=mins,
+            per_active_user=round(mins / active_by_month[m], 1) if active_by_month.get(m) else 0.0,
+        )
         for m, mins in service.monthly_watch(db, user_ids, today)
     ]
     return OrgWidgetsOut(adoption_curve=adoption, onboarding_funnel=funnel, monthly_watch=watch)

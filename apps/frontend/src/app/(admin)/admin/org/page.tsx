@@ -5,12 +5,19 @@ import * as React from "react";
 
 import { OrgAdminGate } from "@/components/OrgAdminGate";
 import { OrgComparison } from "@/components/admin/OrgComparison";
+import { DeltaPill } from "@/components/widgets/DeltaPill";
 import { InactivityFunnel } from "@/components/widgets/InactivityFunnel";
+import { LicenseByOrg } from "@/components/widgets/OrgInsightWidgets";
+import { WidgetCard } from "@/components/widgets/WidgetCard";
 import { Card } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 
 const OrgWidgetsSection = React.lazy(
   () => import("@/components/widgets/sections/OrgWidgetsSection"),
+);
+
+const OrgInsightsSection = React.lazy(
+  () => import("@/components/widgets/sections/OrgInsightsSection"),
 );
 
 function OrgWidgetsSkeleton() {
@@ -86,7 +93,9 @@ function OrgDashboardContent() {
       <Display variant="display-2" className="mt-2">
         Adopción y progreso
       </Display>
-      <p className="mt-3 text-md text-fg-muted">Métricas en vivo de adopción y progreso.</p>
+      <p className="mt-3 text-md text-fg-muted">
+        Métricas en vivo. «Activo» = con actividad en los últimos 21 días; el resto está inactivo.
+      </p>
 
       {status === "loading" && (
         <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -112,38 +121,99 @@ function OrgDashboardContent() {
       {status === "ok" && m && (
         <>
           <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-            <Kpi value={pct(m.adoption_rate)} label="Adopción" sub={`${m.active_licenses}/${m.total_licenses} activos`} />
-            <Kpi value={pct(m.completion_rate_global)} label="Completion" sub={`${m.total_courses_completed} completados`} />
-            <Kpi value={String(m.active_licenses)} label="Activos" sub="últimos 30 días" />
-            <Kpi value={String(m.inactive_users_count)} label="Inactivos" sub=">21 días sin actividad" />
+            <Kpi
+              value={pct(m.adoption_rate)}
+              label="Adopción"
+              info="Porcentaje de personas con licencia que tuvieron actividad (completaron un bloque o iniciaron o terminaron un módulo) en los últimos 21 días. La flecha compara con los 21 días anteriores; subir es mejor."
+              sub={`${m.active_licenses}/${m.total_licenses} con actividad ≤21 días`}
+              footer={
+                <DeltaPill
+                  current={m.adoption_rate}
+                  previous={m.previous?.adoption_rate}
+                  kind="pp"
+                  goodWhen="up"
+                />
+              }
+            />
+            {m.assigned_completion_rate !== null ? (
+              <Kpi
+                value={pct(m.assigned_completion_rate)}
+                label="Avance de lo asignado"
+                info="Módulos asignados que ya fueron completados ÷ total de módulos asignados a las personas del alcance. Mide cumplimiento de lo que RRHH asignó, no de lo que la gente decidió empezar."
+                sub={`${m.assigned_completed}/${m.assigned_total} módulos asignados completados`}
+              />
+            ) : (
+              <Kpi
+                value={pct(m.completion_rate_global)}
+                label="Completion"
+                info="Como todavía no hay módulos asignados, se muestra unidades terminadas ÷ unidades iniciadas por las personas. En cuanto asignes contenido, esta tarjeta pasa a medir el avance de lo asignado."
+                sub="Sin módulos asignados: terminados ÷ iniciados"
+              />
+            )}
+            <Kpi
+              value={String(m.inactive_users_count)}
+              label="Inactivos"
+              info="Personas sin actividad hace más de 21 días o que nunca entraron. Es el complemento de Adopción (activos + inactivos = total). La flecha compara con los 21 días anteriores; bajar es mejor."
+              sub=">21 días sin actividad o nunca entraron"
+              footer={
+                <DeltaPill
+                  current={m.inactive_users_count}
+                  previous={m.previous?.inactive_users_count}
+                  kind="count"
+                  goodWhen="down"
+                />
+              }
+            />
+            {m.licenses && (
+              <Kpi
+                value={m.licenses.total > 0 ? `${m.licenses.used}/${m.licenses.total}` : String(m.licenses.used)}
+                label={m.licenses.scope === "org" ? "Cupo de la organización" : "Licencias en uso"}
+                info={
+                  m.licenses.scope === "org"
+                    ? "Usuarios activos de esta organización contra el cupo de licencias que se le asignó. Las invitaciones pendientes aún no ocupan licencia."
+                    : "Usuarios activos de la empresa contra el total de licencias contratadas. Las invitaciones pendientes aún no ocupan licencia."
+                }
+                sub={
+                  m.licenses.total > 0
+                    ? `${m.licenses.pending_invites} invitaciones pendientes`
+                    : "Sin cupo definido"
+                }
+              />
+            )}
           </div>
 
-          {/* Inactividad por buckets + seguimiento (alineado a 21d). */}
-          <section className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <Eyebrow className="mb-3">Distribución de actividad</Eyebrow>
-              <div className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-5">
-                <InactivityFunnel buckets={m.inactivity} total={m.total_licenses} />
-              </div>
-            </div>
-            <div>
-              <Eyebrow className="mb-3">Necesitan seguimiento</Eyebrow>
-              <div className="flex h-[calc(100%-2rem)] flex-col justify-center glass-surface-strong rounded-lg border border-border bg-bg-raised p-5 text-center">
-                <span className="font-mono text-4xl font-semibold text-danger">
-                  {m.inactivity.d22_30 + m.inactivity.gt_30 + m.inactivity.never_active}
-                </span>
-                <p className="mt-1 text-sm text-fg-muted">
-                  personas inactivas +21 días o que nunca entraron
-                </p>
-              </div>
+          {/* Distribución de actividad (ventana de 21d: lo verde sigue activo). */}
+          <section className="mt-10">
+            <Eyebrow className="mb-3">Distribución de actividad</Eyebrow>
+            <div className="glass-surface-strong rounded-lg border border-border bg-bg-raised p-5">
+              <InactivityFunnel buckets={m.inactivity} total={m.total_licenses} />
+              <p className="mt-2 text-xs text-fg-muted">
+                Activos = hasta 21 días (verdes). Desde 22 días cuentan como inactivos.
+              </p>
             </div>
           </section>
+
+          {/* Seguimiento accionable, cumplimiento, assessment, consentimiento, etc. */}
+          <React.Suspense fallback={<OrgWidgetsSkeleton />}>
+            <OrgInsightsSection orgId={orgId} companyId={companyId} />
+          </React.Suspense>
 
           {/* Comparativa por organización (solo empresas con varias orgs). */}
           {m.by_org.length > 0 && (
             <section className="mt-10">
               <Eyebrow className="mb-3">Comparativa por organización</Eyebrow>
               <OrgComparison orgs={m.by_org} />
+            </section>
+          )}
+
+          {m.licenses && m.licenses.by_org.length > 0 && (
+            <section className="mt-10">
+              <WidgetCard
+                title="Uso de licencias por organización"
+                description="Usuarios activos contra el cupo asignado a cada organización. En rojo si lo superan."
+              >
+                <LicenseByOrg orgs={m.licenses.by_org} />
+              </WidgetCard>
             </section>
           )}
 
