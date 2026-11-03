@@ -305,10 +305,10 @@ def list_company_members(db: Session, company_id: UUID, actor: User) -> list[Com
     """Roster de toda la Empresa: info + progreso + estados del assessment por
     dimensión. RRHH ve estados/score, NUNCA respuestas item-by-item (privacidad).
 
-    Gate de consentimiento granular (TASK 5 · docx §6.2): el `state` individual
-    solo se expone si el colaborador autorizó a RRHH (``consent_hr``). Además cada
-    miembro trae un ``consent_status`` de 4 valores (pending/declined/
-    authorized_no_activity/data_available) que reemplaza el "sin datos" genérico.
+    Sin gate por ``consent_hr`` (decisión de producto, ADR-0013): el colaborador
+    habilita a RRHH al ingresar, así que el `state` individual siempre se expone.
+    Cada miembro sigue trayendo un ``consent_status`` informativo de 4 valores
+    (pending/declined/authorized_no_activity/data_available).
     El acceso al roster se audita (``data_access_log``)."""
     from hg.modules.assessment.service import (
         assessment_states_snapshot,
@@ -348,12 +348,7 @@ def list_company_members(db: Session, company_id: UUID, actor: User) -> list[Com
         status = consent_service.consent_status(
             consent.consent_hr if consent is not None else None, has_activity
         )
-        # El estado por dimensión solo se muestra con autorización a RRHH.
-        states = (
-            assessment_states_snapshot(latest_dimension_results(db, user.id))
-            if consent_service.consent_hr_ok(consent)
-            else {}
-        )
+        states = assessment_states_snapshot(latest_dimension_results(db, user.id))
         out.append(
             CompanyMemberOut(
                 id=user.id, full_name=user.full_name, email=user.email, role=user.role,
