@@ -121,7 +121,9 @@ def account_progress(
     aggs: dict[UUID, ActivityAgg],
     org_names: dict[UUID, str],
 ) -> list[AccountProgressOut]:
-    """Todas las cuentas del alcance con último login y avance sobre lo asignado.
+    """Todas las cuentas del alcance con último login y avance: total completado
+    (misma definición que el perfil del colaborador) y, aparte, lo asignado y cuánto
+    de eso completó.
     El colaborador autoriza a RRHH al ingresar, así que no se filtra por
     consentimiento. Orden: nunca ingresaron primero, luego login más antiguo."""
     progress = assigned_modules_progress(db, [u.id for u in users])
@@ -151,8 +153,9 @@ def account_progress(
             manager_name=names.get(u.manager_id) if u.manager_id else None,
             last_login_at=u.last_login_at,
             is_inactive=aggs[u.id].is_inactive,
-            modules_completed=progress[u.id][0],
+            modules_completed=aggs[u.id].courses_completed,
             modules_assigned=progress[u.id][1],
+            modules_assigned_completed=progress[u.id][0],
         )
         for u in sorted(users, key=_key)
     ]

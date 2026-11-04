@@ -282,9 +282,11 @@ export interface AccountProgress {
   last_login_at: string | null;
   /** Sin actividad en más de 21 días (o nunca). */
   is_inactive: boolean;
-  /** Módulos asignados ya completados. */
+  /** Total de módulos completados (mismo número que ve el colaborador en su perfil). */
   modules_completed: number;
   modules_assigned: number;
+  /** De los asignados, cuántos completó. */
+  modules_assigned_completed: number;
 }
 
 export interface AssessmentStateCount {
