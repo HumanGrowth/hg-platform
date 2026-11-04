@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -40,6 +41,29 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
     user: UserOut
+
+
+# ─────────────────────────── Preferencias de dashboard (RH-02) ───────────────────────────
+
+# Dashboards personalizables. Se amplía al sumar otro (p. ej. "manager").
+DashboardKey = Literal["org"]
+WidgetId = Annotated[str, Field(min_length=1, max_length=40, pattern=r"^[a-z0-9_]+$")]
+MAX_WIDGETS = 60
+
+
+class DashboardLayout(BaseModel):
+    """Orden y widgets ocultos de un dashboard. Los ids los define el frontend;
+    el backend solo los guarda (sin duplicados, en orden) y el cliente ignora los
+    que ya no existen y agrega al final los nuevos."""
+
+    order: list[WidgetId] = Field(default_factory=list, max_length=MAX_WIDGETS)
+    hidden: list[WidgetId] = Field(default_factory=list, max_length=MAX_WIDGETS)
+
+    @model_validator(mode="after")
+    def _dedupe(self) -> DashboardLayout:
+        self.order = list(dict.fromkeys(self.order))
+        self.hidden = list(dict.fromkeys(self.hidden))
+        return self
 
 
 class MeResponse(UserOut):

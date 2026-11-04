@@ -154,6 +154,19 @@
   --shadow-md: 0 6px 18px rgba(42, 40, 38, 0.10);
   --shadow-lg: 0 16px 40px rgba(42, 40, 38, 0.14);
   --shadow-focus: 0 0 0 3px rgba(232, 160, 48, 0.45);
+
+  /* Tonos de estado para dashboards (chips, barras, pills). Valores propios por
+     tema: los pasteles de la paleta (hg-green-100, danger-bg) no funcionan sobre
+     fondo oscuro. Contraste verificado (WCAG): texto >= 4.5:1, barras >= 3:1. */
+  --tone-done: #4a7a54;
+  --tone-open: #5b7083;
+  --tone-warn: #ce8a1f;
+  --tone-late: #b83a1a;
+  --tone-late-fg: #b83a1a;
+  --tone-late-bg: rgba(184, 58, 26, 0.1);
+  --tone-sel-bg: rgba(74, 122, 84, 0.14);
+  --tone-sel-border: #4a7a54;
+  --tone-ok-fg: #3c6444;
 }
 
 [data-theme="dark"] {
@@ -176,6 +189,16 @@
   --text-body: #b3b0a8;
   --text-muted: var(--hg-gray);
   --border-subtle: rgba(250, 243, 232, 0.1);
+
+  --tone-done: #6fa57b;
+  --tone-open: #8fa3b8;
+  --tone-warn: #e8a030;
+  --tone-late: #e8765a;
+  --tone-late-fg: #f4a08a;
+  --tone-late-bg: rgba(232, 118, 90, 0.2);
+  --tone-sel-bg: rgba(111, 165, 123, 0.22);
+  --tone-sel-border: #6fa57b;
+  --tone-ok-fg: #8cc197;
 }
 
 @layer base {

@@ -31,7 +31,7 @@ export function DeltaPill({
   }
   const improved = goodWhen === "up" ? d > 0 : d < 0;
   return (
-    <span className={`text-xs font-semibold ${improved ? "text-primary" : "text-danger"}`}>
+    <span className={`text-xs font-semibold ${improved ? "text-tone-ok-fg" : "text-tone-late-fg"}`}>
       {d > 0 ? "▲" : "▼"} {d > 0 ? "+" : ""}
       {d}
       {unit} <span className="font-normal text-fg-muted">vs 21d previos</span>

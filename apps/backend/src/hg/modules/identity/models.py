@@ -160,6 +160,10 @@ class User(Base):
         Enum(CareerLevel, name="career_level")
     )
     job_title: Mapped[str | None] = mapped_column(String(255))
+    # Personalización del dashboard por usuario (RH-02): {"<dashboard>": {"order": [...], "hidden": [...]}}.
+    dashboard_prefs: Mapped[dict] = mapped_column(
+        JSONB, nullable=False, default=dict, server_default=text("'{}'::jsonb")
+    )
     department: Mapped[str | None] = mapped_column(String(255))
     hire_date: Mapped[date | None] = mapped_column(Date)
     manager_id: Mapped[uuid.UUID | None] = mapped_column(

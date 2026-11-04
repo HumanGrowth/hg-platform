@@ -11,7 +11,6 @@ import type {
   LicenseOrgUsage,
   ManagerEngagement,
   ManagerEngagementRow,
-  StalledSummary,
 } from "@/lib/types";
 
 import { WidgetSrTable } from "./WidgetSrTable";
@@ -39,10 +38,10 @@ const ASSIGNMENT_SEGMENTS: {
   label: string;
   tone: string;
 }[] = [
-  { key: "completed", label: "Cumplidas", tone: "bg-primary" },
-  { key: "open", label: "En curso", tone: "bg-hg-green-100" },
-  { key: "due_soon", label: "Vencen en ≤7 días", tone: "bg-hg-amber" },
-  { key: "overdue", label: "Vencidas", tone: "bg-danger" },
+  { key: "completed", label: "Cumplidas", tone: "bg-tone-done" },
+  { key: "open", label: "En curso", tone: "bg-tone-open" },
+  { key: "due_soon", label: "Vencen en ≤7 días", tone: "bg-tone-warn" },
+  { key: "overdue", label: "Vencidas", tone: "bg-tone-late" },
 ];
 
 const ALL_ORGS = "all";
@@ -153,14 +152,14 @@ function OrgChip({
       onClick={onClick}
       className={`flex flex-col items-start rounded-lg border px-3 py-1.5 text-left transition-colors ${
         active
-          ? "border-primary bg-hg-green-100 text-fg"
+          ? "border-tone-sel-border bg-tone-sel-bg text-fg"
           : "border-border bg-bg-raised text-fg-muted hover:bg-bg-sunken"
       }`}
     >
       <span className="flex items-center gap-2 text-sm font-semibold">
         {label}
         {overdue > 0 && (
-          <span className="rounded-full bg-danger-bg px-1.5 py-0.5 font-mono text-[10px] font-semibold text-danger">
+          <span className="rounded-full bg-tone-late-bg px-1.5 py-0.5 font-mono text-[10px] font-semibold text-tone-late-fg">
             {overdue} {overdue === 1 ? "vencida" : "vencidas"}
           </span>
         )}
@@ -312,7 +311,7 @@ export function AccountProgressTable({ accounts }: { accounts: AccountProgress[]
                       {a.is_inactive && (
                         <span
                           title="Sin actividad en más de 21 días"
-                          className="rounded-full bg-danger-bg px-1.5 py-0.5 text-[10px] font-semibold text-danger"
+                          className="rounded-full bg-tone-late-bg px-1.5 py-0.5 text-[10px] font-semibold text-tone-late-fg"
                         >
                           Inactivo
                         </span>
@@ -413,8 +412,9 @@ export function AssessmentOverviewWidget({ data }: { data: AssessmentOverview })
                         {s.state_label}
                       </span>
                       <MeterBar value={s.count} max={top} tone="bg-primary" />
-                      <span className="w-14 text-right font-mono text-fg-muted">
-                        {s.count} · {pct(s.count, d.n)}
+                      <span className="w-24 shrink-0 whitespace-nowrap text-right font-mono tabular-nums">
+                        <span className="text-fg">{s.count}</span>
+                        <span className="text-fg-muted"> · {pct(s.count, d.n)}</span>
                       </span>
                     </li>
                   ))}
@@ -437,43 +437,11 @@ export function AssessmentOverviewWidget({ data }: { data: AssessmentOverview })
   );
 }
 
-// ─────────────────────────── Estancados ───────────────────────────
-
-export function StalledWidget({ data }: { data: StalledSummary }) {
-  if (data.total === 0) {
-    return (
-      <p className="flex h-40 items-center justify-center px-4 text-center text-sm text-fg-muted">
-        Ningún módulo lleva más de {data.stale_days} días sin avance.
-      </p>
-    );
-  }
-  const entries = Object.entries(data.by_dimension).sort(([a], [b]) => a.localeCompare(b));
-  const max = Math.max(1, ...entries.map(([, n]) => n));
-  return (
-    <div>
-      <p className="text-sm text-fg-muted">
-        <span className="font-mono text-2xl font-semibold text-fg">{data.total}</span>{" "}
-        {data.total === 1 ? "módulo iniciado" : "módulos iniciados"} sin avance hace más de{" "}
-        {data.stale_days} días ({data.users} {data.users === 1 ? "persona" : "personas"}).
-      </p>
-      <ul className="mt-4 flex flex-col gap-2">
-        {entries.map(([code, n]) => (
-          <li key={code} className="flex items-center gap-3 text-xs">
-            <span className="w-24 shrink-0 text-fg-muted">{dimensionShortName(code)}</span>
-            <MeterBar value={n} max={max} tone="bg-hg-amber" />
-            <span className="w-6 text-right font-mono text-fg-muted">{n}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 // ─────────────────────────── Seguimiento de managers ───────────────────────────
 
 const MANAGER_STATUS: Record<ManagerEngagementRow["status"], { label: string; cls: string }> = {
-  engaged: { label: "Con seguimiento", cls: "bg-primary/10 text-primary" },
-  no_follow_up: { label: "Sin seguimiento", cls: "bg-danger-bg text-danger" },
+  engaged: { label: "Con seguimiento", cls: "bg-tone-sel-bg text-tone-ok-fg" },
+  no_follow_up: { label: "Sin seguimiento", cls: "bg-tone-late-bg text-tone-late-fg" },
   no_team: { label: "Sin equipo", cls: "bg-bg-sunken text-fg-muted" },
 };
 

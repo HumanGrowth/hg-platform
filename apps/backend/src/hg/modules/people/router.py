@@ -895,7 +895,6 @@ def org_insights_endpoint(
         assignments=org_insights.assignment_compliance(db, users, org_names),
         accounts=org_insights.account_progress(db, users, aggs, org_names),
         assessment=org_insights.assessment_overview(db, users),
-        stalled=org_insights.stalled_units(db, uids),
         managers=org_insights.manager_engagement(db, managers, users, aggs, org_names),
     )
 

@@ -181,14 +181,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </aside>
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <ActingAsBanner />
-            {/* Chip de usuario: se mantiene en modo admin (tema, perfil, logout). */}
-            <div className="flex shrink-0 justify-end px-3 py-2 md:px-0 md:pb-3 md:pt-0">
-              <UserMenu adminMode />
+            {/* Área de contenido: el scroll ocupa TODO el alto y la barra del chip
+                de usuario flota encima, difuminada, para que no parezca que corta
+                el contenido (antes era una fila opaca sobre el <main>). */}
+            <div className="relative flex min-h-0 flex-1 flex-col">
+              {/* Capa de desenfoque con máscara: se desvanece hacia abajo. Sin
+                  eventos de puntero para no bloquear lo que hay debajo. */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-bg/40 backdrop-blur-md [mask-image:linear-gradient(to_bottom,black_40%,transparent)]"
+              />
+              {/* Chip de usuario: se mantiene en modo admin (tema, perfil, logout). */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-end px-3 py-2 md:px-4">
+                <div className="pointer-events-auto">
+                  <UserMenu adminMode />
+                </div>
+              </div>
+              {/* `relative`: main es el containing block → cualquier elemento
+                  position:absolute queda contenido y clippeado por su scroll, y no
+                  extiende <html> (evita que un sr-only rebelde rompa el sticky).
+                  `pt-14` deja libre la franja de la barra al inicio del scroll. */}
+              <main className="relative flex-1 overflow-y-auto pb-20 pt-14 md:pb-0">{children}</main>
             </div>
-            {/* `relative`: main es el containing block → cualquier elemento
-                position:absolute queda contenido y clippeado por su scroll, y no
-                extiende <html> (evita que un sr-only rebelde rompa el sticky). */}
-            <main className="relative flex-1 overflow-y-auto pb-20 md:pb-0">{children}</main>
             <AdminBottomNav role={user?.role} className="md:hidden" />
           </div>
         </div>
