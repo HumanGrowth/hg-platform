@@ -5,7 +5,7 @@ Endpoints públicos: login, refresh, accept-invite (NO existe /register).
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from hg.core.deps import get_current_user, get_db_as_superadmin
@@ -14,6 +14,8 @@ from hg.modules.identity import service
 from hg.modules.identity.models import Organization, User
 from hg.modules.identity.schemas import (
     AcceptInviteRequest,
+    DashboardKey,
+    DashboardLayout,
     ForgotPasswordRequest,
     InviteInfoResponse,
     LoginRequest,
@@ -141,6 +143,45 @@ def me(
         content_restricted_to_onboarding=_content_restricted_to_onboarding(db, user),
         **_consent_fields(db, user.id),
     )
+
+
+@router.get("/me/dashboard-prefs/{dashboard}", response_model=DashboardLayout)
+def get_dashboard_prefs(
+    dashboard: DashboardKey,
+    user: User = Depends(get_current_user),
+) -> DashboardLayout:
+    """Layout personal (orden + ocultos) del dashboard. Vacío = el por defecto."""
+    return DashboardLayout.model_validate((user.dashboard_prefs or {}).get(dashboard, {}))
+
+
+@router.put("/me/dashboard-prefs/{dashboard}", response_model=DashboardLayout)
+def put_dashboard_prefs(
+    dashboard: DashboardKey,
+    body: DashboardLayout,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> DashboardLayout:
+    db_user = db.get(User, user.id)
+    if db_user is None:  # pragma: no cover - el token garantiza que existe
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+    # Se reasigna el dict completo: SQLAlchemy no detecta mutaciones in-place en JSONB.
+    db_user.dashboard_prefs = {**(db_user.dashboard_prefs or {}), dashboard: body.model_dump()}
+    db.flush()  # nunca commit a mitad del handler (invariante 2)
+    return body
+
+
+@router.delete("/me/dashboard-prefs/{dashboard}", status_code=status.HTTP_204_NO_CONTENT)
+def reset_dashboard_prefs(
+    dashboard: DashboardKey,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    """Restablece al layout por defecto."""
+    db_user = db.get(User, user.id)
+    if db_user is None:  # pragma: no cover
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+    db_user.dashboard_prefs = {k: v for k, v in (db_user.dashboard_prefs or {}).items() if k != dashboard}
+    db.flush()
 
 
 @router.patch("/me", response_model=MeResponse)

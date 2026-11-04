@@ -308,13 +308,6 @@ export interface AssessmentOverview {
   dimensions: DimensionAssessment[];
 }
 
-export interface StalledSummary {
-  stale_days: number;
-  total: number;
-  users: number;
-  by_dimension: Record<string, number>;
-}
-
 export interface ManagerEngagementRow {
   user_id: string;
   full_name: string;
@@ -344,7 +337,6 @@ export interface OrgInsights {
   assignments: AssignmentCompliance;
   accounts: AccountProgress[];
   assessment: AssessmentOverview;
-  stalled: StalledSummary;
   managers: ManagerEngagement;
 }
 

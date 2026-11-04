@@ -1,6 +1,7 @@
 import axios, { type AxiosInstance } from "axios";
 
 import { useAuthStore } from "@/lib/auth-store";
+import type { DashboardLayout } from "@/lib/dashboard-layout";
 import { toast } from "@/lib/toast-store";
 import type {
   OrgModule,
@@ -353,6 +354,26 @@ export const apiGetOrgInsights = async (
     params: { ...(orgId ? { org_id: orgId } : {}), ...(companyId ? { company_id: companyId } : {}) },
   });
   return res.data;
+};
+
+export const apiGetDashboardPrefs = async (dashboard: "org"): Promise<DashboardLayout> => {
+  const res = await backend.get<DashboardLayout>(`/api/v1/auth/me/dashboard-prefs/${dashboard}`);
+  return res.data;
+};
+
+export const apiPutDashboardPrefs = async (
+  dashboard: "org",
+  layout: DashboardLayout,
+): Promise<DashboardLayout> => {
+  const res = await backend.put<DashboardLayout>(
+    `/api/v1/auth/me/dashboard-prefs/${dashboard}`,
+    layout,
+  );
+  return res.data;
+};
+
+export const apiResetDashboardPrefs = async (dashboard: "org"): Promise<void> => {
+  await backend.delete(`/api/v1/auth/me/dashboard-prefs/${dashboard}`);
 };
 
 export const apiGetMyTeam = async (filters?: TeamFilters): Promise<TeamResponse> => {

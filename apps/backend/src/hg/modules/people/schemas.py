@@ -368,13 +368,6 @@ class AssessmentOverviewOut(BaseModel):
 
 
 
-class StalledOut(BaseModel):
-    stale_days: int
-    total: int  # units estancadas
-    users: int
-    by_dimension: dict[str, int]  # P1..P6 → units estancadas
-
-
 
 
 
@@ -405,5 +398,4 @@ class OrgInsightsOut(BaseModel):
     assignments: AssignmentComplianceOut
     accounts: list[AccountProgressOut]
     assessment: AssessmentOverviewOut
-    stalled: StalledOut
     managers: ManagerEngagementOut

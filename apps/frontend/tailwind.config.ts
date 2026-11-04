@@ -82,6 +82,19 @@ const config: Config = {
         danger: { DEFAULT: "var(--color-danger)", bg: "var(--color-danger-bg)" },
         info: { DEFAULT: "var(--color-info)", bg: "var(--color-info-bg)" },
 
+        // Tonos de estado de dashboards (valores por tema en globals.css).
+        tone: {
+          done: "var(--tone-done)",
+          open: "var(--tone-open)",
+          warn: "var(--tone-warn)",
+          late: "var(--tone-late)",
+          "late-fg": "var(--tone-late-fg)",
+          "late-bg": "var(--tone-late-bg)",
+          "sel-bg": "var(--tone-sel-bg)",
+          "sel-border": "var(--tone-sel-border)",
+          "ok-fg": "var(--tone-ok-fg)",
+        },
+
         // ---- Dimension colors (mapping DS v2 · §4.2 delta doc) --------------
         // P6 pasa de gray → amber (más visible en dashboards)
         dimension: {

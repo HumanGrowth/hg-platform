@@ -86,7 +86,7 @@ def test_insights_accounts_progress(client, manager_with_reports, factory, auth_
     assert "follow_up" not in client.get("/api/v1/admin/org/insights", headers=auth_headers(admin)).json()
 
 
-def test_insights_stalled_assignments_assessment(client, manager_with_reports, factory, auth_headers) -> None:
+def test_insights_assignments_assessment(client, manager_with_reports, factory, auth_headers) -> None:
     mw = manager_with_reports
     admin = _admin(factory, mw)
     s = factory.session
@@ -107,9 +107,6 @@ def test_insights_stalled_assignments_assessment(client, manager_with_reports, f
     assert len(a["by_org"]) == 1
     o = a["by_org"][0]
     assert (o["total"], o["completed"], o["overdue"], o["due_soon"], o["open"]) == (2, 1, 1, 0, 0)
-
-    # r2: unit en progreso hace 25d (> 14d) → estancada, en P1 (CP).
-    assert body["stalled"]["total"] >= 1 and body["stalled"]["by_dimension"].get("P1", 0) >= 1
 
     # Assessment: nadie tiene resultados → nada que mostrar, sin romper.
     asm = body["assessment"]

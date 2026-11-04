@@ -19,15 +19,9 @@ from hg.modules.assessment.models import DimensionResult
 from hg.modules.consent.models import DataAccessLog
 from hg.modules.identity.models import Company, Organization, User
 from hg.modules.learning_units.assignment_status import assignment_completed_clause
-from hg.modules.learning_units.dimensions import DRIVE_TO_CAREER_PATH
 from hg.modules.learning_units.models import (
-    BlockProgress,
-    BlockProgressStatus,
-    LearningUnit,
-    LearningUnitAttempt,
     ModuleAssignment,
 )
-from hg.modules.learning_units.onboarding import ONBOARDING_DIMENSION_CODE
 from hg.modules.people.schemas import (
     AccountProgressOut,
     AssessmentOverviewOut,
@@ -39,7 +33,6 @@ from hg.modules.people.schemas import (
     LicenseUsageOut,
     ManagerEngagementOut,
     ManagerEngagementRowOut,
-    StalledOut,
 )
 from hg.modules.people.service import (
     ACTIVE_WINDOW_DAYS,
@@ -50,7 +43,6 @@ from hg.modules.people.service import (
 )
 
 ASSESSMENT_MIN_GROUP = 5
-STALLED_DAYS = 14
 
 
 # ─────────────────────────── Cumplimiento de asignaciones ───────────────────────────
@@ -301,61 +293,6 @@ def assessment_overview(db: Session, users: list[User]) -> AssessmentOverviewOut
         min_group=ASSESSMENT_MIN_GROUP,
         dimensions=dims,
     )
-
-
-# ─────────────────────────── Módulos estancados ───────────────────────────
-
-
-def stalled_units(db: Session, user_ids: list[UUID]) -> StalledOut:
-    """Units iniciadas, sin completar y sin avance hace > ``STALLED_DAYS``,
-    agrupadas por pilar (excluye Onboarding)."""
-    out = StalledOut(stale_days=STALLED_DAYS, total=0, users=0, by_dimension={})
-    if not user_ids:
-        return out
-    cutoff = now_utc() - timedelta(days=STALLED_DAYS)
-    last_block = func.max(BlockProgress.submitted_at)
-    rows = db.execute(
-        select(
-            LearningUnitAttempt.user_id,
-            LearningUnit.dimension_code,
-            LearningUnitAttempt.started_at,
-            last_block,
-        )
-        .join(LearningUnit, LearningUnit.id == LearningUnitAttempt.unit_id)
-        .outerjoin(
-            BlockProgress,
-            (BlockProgress.attempt_id == LearningUnitAttempt.id)
-            & (BlockProgress.status == BlockProgressStatus.completed),
-        )
-        .where(
-            LearningUnitAttempt.user_id.in_(user_ids),
-            LearningUnitAttempt.started_at.is_not(None),
-            LearningUnitAttempt.completed_at.is_(None),
-            LearningUnit.dimension_code != ONBOARDING_DIMENSION_CODE,
-            LearningUnit.superseded_by_unit_id.is_(None),  # legacy reemplazada: no es un módulo vigente
-        )
-        .group_by(
-            LearningUnitAttempt.id,
-            LearningUnitAttempt.user_id,
-            LearningUnit.dimension_code,
-            LearningUnitAttempt.started_at,
-        )
-    ).all()
-    stalled_users: set[UUID] = set()
-    by_dim: Counter[str] = Counter()
-    for uid, dim, started, last in rows:
-        last_ts = max(started, last) if last is not None else started
-        if last_ts >= cutoff:
-            continue
-        cp = DRIVE_TO_CAREER_PATH.get((dim or "").upper())
-        if cp is None:
-            continue
-        out.total += 1
-        stalled_users.add(uid)
-        by_dim[cp] += 1
-    out.users = len(stalled_users)
-    out.by_dimension = dict(by_dim)
-    return out
 
 
 # ─────────────────────────── Uso de licencias ───────────────────────────

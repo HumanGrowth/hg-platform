@@ -34,14 +34,14 @@ describe("DeltaPill", () => {
       <DeltaPill current={8} previous={5} kind="count" goodWhen="down" />,
     );
     expect(container.textContent).toContain("▲ +3");
-    expect(container.querySelector(".text-danger")).not.toBeNull();
+    expect(container.querySelector(".text-tone-late-fg")).not.toBeNull();
   });
 
   it("marks higher adoption as an improvement", () => {
     const { container } = render(
       <DeltaPill current={0.6} previous={0.5} kind="pp" goodWhen="up" />,
     );
-    expect(container.querySelector(".text-primary")).not.toBeNull();
+    expect(container.querySelector(".text-tone-ok-fg")).not.toBeNull();
     expect(container.textContent).toContain("+10 pp");
   });
 });
