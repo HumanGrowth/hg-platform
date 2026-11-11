@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<p style="margin:0 0 16px 0;"><strong style="color:#1A1A1A;">Nuevo ticket {{ code }}</strong></p>
+<p style="margin:0 0 6px 0;"><strong>Asunto:</strong> {{ subject }}</p>
+<p style="margin:0 0 6px 0;"><strong>De:</strong> {{ reporter_name or "—" }} &lt;{{ reporter_email }}&gt;</p>
+<p style="margin:0 0 6px 0;"><strong>Origen:</strong> {{ source }} · <strong>Categoría:</strong> {{ category }}</p>
+<p style="margin:0 0 6px 0;"><strong>Página:</strong> {{ page_url or "—" }}</p>
+<p style="margin:0 0 6px 0;"><strong>Versión:</strong> {{ app_version or "—" }}</p>
+<p style="margin:16px 0 6px 0;"><strong>Detalle:</strong></p>
+<p style="margin:0; white-space:pre-wrap; color:#1A1A1A;">{{ body }}</p>
+{% endblock %}
