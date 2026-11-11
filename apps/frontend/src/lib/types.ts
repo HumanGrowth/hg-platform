@@ -1390,3 +1390,111 @@ export interface DimensionProgression {
   includes_assessment?: boolean;
   levels: LevelProgress[];
 }
+
+// ─────────────────────────── Soporte (ADR-0015) ───────────────────────────
+
+export type SupportCategory = "bug" | "question" | "access" | "suggestion" | "other";
+export type SupportStatus =
+  | "new"
+  | "triaged"
+  | "needs_info"
+  | "answered"
+  | "fix_proposed"
+  | "resolved"
+  | "wontfix";
+export type SupportSeverity = "low" | "medium" | "high";
+
+/** Evento visible para el usuario (sin notas internas ni datos técnicos). */
+export interface SupportEvent {
+  id: string;
+  event_type: string;
+  actor_kind: "user" | "admin" | "ai" | "system";
+  body: string | null;
+  created_at: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  code: string;
+  subject: string;
+  body: string;
+  category: SupportCategory;
+  status: SupportStatus;
+  created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
+}
+
+export interface SupportTicketDetail extends SupportTicket {
+  events: SupportEvent[];
+}
+
+export interface SupportTicketList {
+  items: SupportTicket[];
+  total: number;
+}
+
+export interface SupportTicketCreate {
+  subject: string;
+  body: string;
+  category: SupportCategory;
+  page_url?: string;
+  locale?: string;
+}
+
+export interface PublicSupportTicketCreate {
+  name: string;
+  email: string;
+  subject: string;
+  body: string;
+  category: SupportCategory;
+  page_url?: string;
+  locale?: string;
+  /** Honeypot: siempre vacío en un humano. */
+  website?: string;
+}
+
+export interface AdminSupportEvent extends SupportEvent {
+  actor_user_id: string | null;
+  data: Record<string, unknown> | null;
+  is_internal: boolean;
+}
+
+export interface AdminSupportTicket {
+  id: string;
+  code: string;
+  org_id: string | null;
+  user_id: string | null;
+  reporter_email: string;
+  reporter_name: string | null;
+  subject: string;
+  body: string;
+  category: SupportCategory;
+  severity: SupportSeverity;
+  status: SupportStatus;
+  source: "app" | "public";
+  page_url: string | null;
+  user_agent: string | null;
+  app_version: string | null;
+  reporter_role: string | null;
+  locale: string | null;
+  first_response_at: string | null;
+  resolved_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminSupportTicketDetail extends AdminSupportTicket {
+  events: AdminSupportEvent[];
+}
+
+export interface AdminSupportTicketList {
+  items: AdminSupportTicket[];
+  total: number;
+}
+
+export interface AdminSupportTicketPatch {
+  status?: SupportStatus;
+  category?: SupportCategory;
+  severity?: SupportSeverity;
+}

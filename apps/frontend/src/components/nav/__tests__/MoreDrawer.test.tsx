@@ -25,10 +25,11 @@ describe("MoreDrawer (TASK polish-07)", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it("collaborator: Eventos + Editar + Cerrar sesión, sin Mi equipo/Modo admin", () => {
+  it("collaborator: Eventos + Soporte + Editar + Cerrar sesión, sin Mi equipo/Modo admin", () => {
     state.user = { role: "collaborator", reports_count: 0 };
     open();
     expect(screen.getByText(/Eventos/)).toBeTruthy();
+    expect(screen.getByText("Soporte")).toBeTruthy();
     expect(screen.getByText(/Editar mi información/)).toBeTruthy();
     expect(screen.getByText(/Cerrar sesión/)).toBeTruthy();
     expect(screen.queryByText("Mi equipo")).toBeNull();

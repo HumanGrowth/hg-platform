@@ -2,6 +2,7 @@ import {
   Calendar,
   ClipboardList,
   Home,
+  LifeBuoy,
   Menu,
   Route as RouteIcon,
   ShieldCheck,
@@ -45,6 +46,7 @@ export const SIDE_NAV_ITEMS: NavItem[] = [
   { href: "/modulos", label: "Módulos", icon: Sparkles },
   { href: "/plan-accion", label: "Plan de Acción", icon: ClipboardList },
   { href: "/eventos", label: "Eventos", icon: Calendar },
+  { href: "/soporte", label: "Soporte", icon: LifeBuoy },
   { href: "/perfil", label: "Mi Perfil", icon: User },
   { href: "/team", label: "Mi equipo", icon: Users, roles: MANAGER_ROLES },
   // "Empresa" ya no vive en el menú del colaborador: la gestión de empresa vive

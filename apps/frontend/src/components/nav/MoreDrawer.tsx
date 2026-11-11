@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, ClipboardList, LogOut, ShieldCheck, UserCog, Users } from "lucide-react";
+import { Calendar, ClipboardList, LifeBuoy, LogOut, ShieldCheck, UserCog, Users } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -47,6 +47,13 @@ export function MoreDrawer({ open, onClose }: { open: boolean; onClose: () => vo
           className="flex items-center gap-3 rounded-md px-3 py-3 text-fg hover:bg-bg-sunken"
         >
           <Calendar size={18} strokeWidth={1.75} /> Eventos (live)
+        </Link>
+        <Link
+          href={"/soporte" as Route}
+          onClick={onClose}
+          className="flex items-center gap-3 rounded-md px-3 py-3 text-fg hover:bg-bg-sunken"
+        >
+          <LifeBuoy size={18} strokeWidth={1.75} /> Soporte
         </Link>
         {showTeam(user) && (
           <Link
