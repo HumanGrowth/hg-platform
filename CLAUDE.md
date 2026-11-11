@@ -95,7 +95,7 @@ Si un test ya fallaba antes del cambio, decirlo explícitamente; no "arreglarlo"
 - **Commits:** Conventional Commits con prefijo de bloque (`feat(CE-05): …`). Una tarea = un commit;
   nunca mezclar refactor con cambio de comportamiento.
 - **ADRs:** cualquier decisión que cambie arquitectura, modelo de datos, seguridad o dónde entra AI
-  requiere ADR en `docs/adrs/` (plantilla `docs/ADR-template.md`). Hoy existen 0001–0003 y 0006–0014.
+  requiere ADR en `docs/adrs/` (plantilla `docs/ADR-template.md`). Hoy existen 0001–0003 y 0006–0015.
 - **Docs:** si un cambio altera lo que describe `docs/ARCHITECTURE.md` o este archivo, actualizarlos
   en el mismo PR.
 - **Prompts largos de Claude Code** viven en `docs/prompts/` con el resume protocol; al cerrar se
