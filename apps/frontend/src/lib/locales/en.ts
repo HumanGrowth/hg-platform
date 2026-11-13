@@ -518,6 +518,18 @@ export const en = {
       body: "Details *",
       bodyPlaceholder:
         "Tell us what you were doing and what you expected to happen. Please don't include passwords.",
+      attachments: {
+        label: "Supporting files (optional)",
+        hint: "Up to 3 files of 5 MB: screenshots (PNG, JPG, WebP, GIF), PDF or text. You can also paste a screenshot into the details.",
+        add: "Attach files",
+        remove: "Remove",
+        errors: {
+          tooMany: "You can attach up to 3 files.",
+          tooLarge: "Each file can be up to 5 MB.",
+          type: "That file type isn't allowed (use PNG, JPG, WebP, GIF, PDF or text).",
+        },
+        rejected: "We couldn't accept the attached files. Check their type and size.",
+      },
       submit: "Send request",
       sending: "Sending…",
       errors: {

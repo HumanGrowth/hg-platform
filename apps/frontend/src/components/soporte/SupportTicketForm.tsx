@@ -4,10 +4,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 
+import { AttachmentPicker } from "@/components/soporte/AttachmentPicker";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { apiCreateSupportTicket, apiErrorMessage } from "@/lib/api";
-import { SUPPORT_CATEGORIES_LIST, SUPPORT_CATEGORY_LABELS } from "@/lib/support";
+import {
+  SUPPORT_CATEGORIES_LIST,
+  SUPPORT_CATEGORY_LABELS,
+  addSupportFiles,
+  filesFromClipboard,
+} from "@/lib/support";
 import { toast } from "@/lib/toast-store";
 import type { SupportTicketDetail } from "@/lib/types";
 import { supportTicketSchema, type SupportTicketValues } from "@/lib/validation";
@@ -28,6 +34,7 @@ export function SupportTicketForm({
 }: {
   onCreated: (ticket: SupportTicketDetail) => void;
 }) {
+  const [files, setFiles] = React.useState<File[]>([]);
   const {
     register,
     handleSubmit,
@@ -40,13 +47,13 @@ export function SupportTicketForm({
 
   async function onSubmit(values: SupportTicketValues) {
     try {
-      const ticket = await apiCreateSupportTicket({
-        ...values,
-        page_url: referrerPath(),
-        locale: navigator.language.slice(0, 2),
-      });
+      const ticket = await apiCreateSupportTicket(
+        { ...values, page_url: referrerPath(), locale: navigator.language.slice(0, 2) },
+        files,
+      );
       toast(`Recibimos tu solicitud ${ticket.code}.`, "success");
       reset({ category: "question", subject: "", body: "" });
+      setFiles([]);
       onCreated(ticket);
     } catch (err) {
       toast(apiErrorMessage(err, "No pudimos enviar tu solicitud. Probá de nuevo."), "danger");
@@ -82,11 +89,16 @@ export function SupportTicketForm({
           maxLength={5000}
           aria-invalid={!!errors.body}
           {...register("body")}
+          onPaste={(e) => {
+            const pasted = filesFromClipboard(e);
+            if (pasted.length > 0) setFiles((cur) => addSupportFiles(cur, pasted).files);
+          }}
           className="w-full resize-y rounded-md border border-border bg-bg-raised px-3 py-2 text-sm text-fg"
           placeholder="Contanos qué estabas haciendo y qué esperabas que pasara."
         />
         {errors.body && <p className="mt-1 text-sm text-danger">{errors.body.message}</p>}
       </div>
+      <AttachmentPicker files={files} onChange={setFiles} disabled={isSubmitting} />
       <p className="text-xs text-fg-muted">
         Incluimos automáticamente tu rol, la versión de la plataforma y tu navegador para
         ayudarnos a entender el problema. No incluyas contraseñas.

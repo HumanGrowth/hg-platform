@@ -2,6 +2,7 @@
 aislamiento por RLS y limitador de tasa."""
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import Callable, Generator
 from types import SimpleNamespace
@@ -16,7 +17,11 @@ from sqlalchemy.orm import Session
 from hg.core import rate_limit
 from hg.db import SessionLocal
 from hg.modules.identity.models import Company, Organization, User, UserRole
-from hg.modules.support.models import SupportTicket, SupportTicketEvent
+from hg.modules.support.models import (
+    SupportTicket,
+    SupportTicketAttachment,
+    SupportTicketEvent,
+)
 
 API = "/api/v1"
 PUBLIC_EMAIL_DOMAIN = "@sptest.test"
@@ -61,7 +66,20 @@ def ctx(factory: SimpleNamespace) -> SimpleNamespace:
     )
 
 
-def _create(client: TestClient, headers: dict[str, str], **over: object) -> dict:  # type: ignore[type-arg]
+def _mp(payload: dict, files: list | None = None) -> dict:  # type: ignore[type-arg]
+    """Los endpoints de creación son multipart: JSON en ``payload`` + archivos en ``files``."""
+    kw: dict = {"data": {"payload": json.dumps(payload)}}  # type: ignore[type-arg]
+    if files:
+        kw["files"] = [("files", f) for f in files]
+    return kw
+
+
+PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 32
+
+
+def _create(  # type: ignore[no-untyped-def]
+    client: TestClient, headers: dict[str, str], files=None, **over: object
+) -> dict:  # type: ignore[type-arg]
     body = {
         "subject": "No me carga el video",
         "body": "El módulo se queda en negro al darle play.",
@@ -70,7 +88,7 @@ def _create(client: TestClient, headers: dict[str, str], **over: object) -> dict
         "locale": "es",
     }
     body.update(over)
-    res = client.post(f"{API}/me/support/tickets", json=body, headers=headers)
+    res = client.post(f"{API}/me/support/tickets", **_mp(body, files), headers=headers)
     assert res.status_code == 201, res.text
     return res.json()
 
@@ -87,10 +105,12 @@ def _public_payload(**over: object) -> dict:  # type: ignore[type-arg]
     return payload
 
 
-def _post_public(client: TestClient, payload: dict) -> object:  # type: ignore[type-arg]
+def _post_public(client: TestClient, payload: dict, files: list | None = None) -> object:  # type: ignore[type-arg]
     # IP única por llamada para no chocar con el límite por IP entre tests/corridas.
     ip = f"10.{uuid4().int % 250}.{uuid4().int % 250}.{uuid4().int % 250}"
-    return client.post(f"{API}/support/tickets", json=payload, headers={"X-Forwarded-For": ip})
+    return client.post(
+        f"{API}/support/tickets", **_mp(payload, files), headers={"X-Forwarded-For": ip}
+    )
 
 
 def _db_row(sql: str, **params: object):  # type: ignore[no-untyped-def]
@@ -149,11 +169,11 @@ def test_ticket_validation(
     client: TestClient, ctx: SimpleNamespace, auth_headers: Callable[[User], dict[str, str]],
 ) -> None:
     h = auth_headers(ctx.user)
-    res = client.post(f"{API}/me/support/tickets", json={"subject": "x", "body": "y"}, headers=h)
+    res = client.post(f"{API}/me/support/tickets", **_mp({"subject": "x", "body": "y"}), headers=h)
     assert res.status_code == 422
-    res = client.post(f"{API}/me/support/tickets", json={"subject": "Asunto válido", "body": "Detalle válido", "category": "nope"}, headers=h)
+    res = client.post(f"{API}/me/support/tickets", **_mp({"subject": "Asunto válido", "body": "Detalle válido", "category": "nope"}), headers=h)
     assert res.status_code == 422
-    assert client.post(f"{API}/me/support/tickets", json={}).status_code in (401, 403)
+    assert client.post(f"{API}/me/support/tickets", **_mp({})).status_code in (401, 403)
 
 
 def test_admin_reply_user_reply_and_internal_notes(
@@ -367,3 +387,109 @@ def test_events_are_append_only_for_the_app_role(db: Session) -> None:
         db.execute(text("UPDATE support_ticket_events SET body = 'editado'"))
     with pytest.raises(DBAPIError), db.begin_nested():
         db.execute(text("DELETE FROM support_ticket_events"))
+
+
+# ─────────────────────────── Adjuntos (SP-03) ───────────────────────────
+
+
+def test_attachments_are_listed_and_downloadable_by_owner_and_admin(
+    client: TestClient, ctx: SimpleNamespace, auth_headers: Callable[[User], dict[str, str]],
+) -> None:
+    created = _create(
+        client, auth_headers(ctx.user),
+        files=[("captura.png", PNG, "image/png"), ("log.txt", b"error 500 en /home\n", "text/plain")],
+    )
+    assert len(created["attachments"]) == 2
+    png = next(a for a in created["attachments"] if a["filename"] == "captura.png")
+    assert png["content_type"] == "image/png" and png["size_bytes"] == len(PNG)
+
+    res = client.get(
+        f"{API}/me/support/tickets/{created['id']}/attachments/{png['id']}",
+        headers=auth_headers(ctx.user),
+    )
+    assert res.status_code == 200 and res.content == PNG
+    assert res.headers["x-content-type-options"] == "nosniff"
+    assert res.headers["content-disposition"].startswith("inline")
+
+    admin_h = auth_headers(ctx.admin)
+    detail = client.get(f"{API}/admin/support/tickets/{created['id']}", headers=admin_h).json()
+    assert len(detail["attachments"]) == 2
+    txt = next(a for a in detail["attachments"] if a["filename"] == "log.txt")
+    res = client.get(
+        f"{API}/admin/support/tickets/{created['id']}/attachments/{txt['id']}", headers=admin_h
+    )
+    assert res.status_code == 200
+    assert res.headers["content-disposition"].startswith("attachment")
+
+
+def test_attachment_not_downloadable_by_another_user(
+    client: TestClient, ctx: SimpleNamespace, auth_headers: Callable[[User], dict[str, str]],
+) -> None:
+    created = _create(client, auth_headers(ctx.user), files=[("a.png", PNG, "image/png")])
+    aid = created["attachments"][0]["id"]
+    url = f"{API}/me/support/tickets/{created['id']}/attachments/{aid}"
+    # Ni un colega de la misma org ni alguien de otra org pueden bajarlo.
+    assert client.get(url, headers=auth_headers(ctx.colleague)).status_code == 404
+    assert client.get(url, headers=auth_headers(ctx.outsider)).status_code == 404
+
+
+def test_attachment_validation_by_content_not_by_declared_type(
+    client: TestClient, ctx: SimpleNamespace, auth_headers: Callable[[User], dict[str, str]],
+) -> None:
+    h = auth_headers(ctx.user)
+    body = {"subject": "Con adjunto malo", "body": "Detalle del problema", "category": "bug"}
+
+    def post(files: list) -> int:  # type: ignore[type-arg]
+        return client.post(f"{API}/me/support/tickets", **_mp(body, files), headers=h).status_code
+
+    # Ejecutable/HTML disfrazado de imagen: se decide por el contenido, no por Content-Type.
+    assert post([("virus.png", b"MZ\x90\x00" + b"\x00" * 20, "image/png")]) == 415
+    assert post([("x.html", b"<script>alert(1)</script>", "text/html")]) == 415
+    assert post([("x.svg", b"<svg onload=alert(1)/>", "image/svg+xml")]) == 415
+    assert post([("grande.png", PNG + b"\x00" * (5 * 1024 * 1024), "image/png")]) == 413
+    assert post([(f"{i}.png", PNG, "image/png") for i in range(4)]) == 422
+    assert post([("ok.png", PNG, "image/png")]) == 201
+
+
+def test_public_ticket_attachments_visible_only_to_superadmin(
+    client: TestClient, ctx: SimpleNamespace, auth_headers: Callable[[User], dict[str, str]],
+) -> None:
+    res = _post_public(client, _public_payload(), [("c.png", PNG, "image/png")])
+    assert res.status_code == 201  # type: ignore[attr-defined]
+    row = _db_row(
+        "SELECT a.id AS aid, a.ticket_id AS tid, a.org_id AS org FROM support_ticket_attachments a "
+        "ORDER BY a.created_at DESC LIMIT 1"
+    )
+    assert row is not None and row["org"] is None
+    res = client.get(
+        f"{API}/admin/support/tickets/{row['tid']}/attachments/{row['aid']}",
+        headers=auth_headers(ctx.admin),
+    )
+    assert res.status_code == 200 and res.content == PNG
+    # Un usuario común no ve el ticket público ni su adjunto.
+    res = client.get(
+        f"{API}/me/support/tickets/{row['tid']}/attachments/{row['aid']}",
+        headers=auth_headers(ctx.user),
+    )
+    assert res.status_code == 404
+
+
+def test_attachments_are_append_only_for_the_app_role(db: Session) -> None:
+    org, _ = _bootstrap(db)
+    t = _ticket(org.id)
+    db.add(t)
+    db.flush()
+    db.add(
+        SupportTicketAttachment(
+            ticket_id=t.id, org_id=org.id, filename="a.png", content_type="image/png",
+            size_bytes=len(PNG), data=PNG,
+        )
+    )
+    db.flush()
+
+    db.execute(text("SET LOCAL ROLE hg_app"))
+    _set_org(db, org.id)
+    with pytest.raises(DBAPIError), db.begin_nested():
+        db.execute(text("UPDATE support_ticket_attachments SET filename = 'x'"))
+    with pytest.raises(DBAPIError), db.begin_nested():
+        db.execute(text("DELETE FROM support_ticket_attachments"))

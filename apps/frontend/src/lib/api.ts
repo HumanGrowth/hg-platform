@@ -1260,11 +1260,12 @@ export const apiGetTeamMemberProgression = async (
 /** Ticket del formulario público (sin auth): POST directo al backend. 429 = límite de tasa. */
 export const apiSubmitPublicSupportTicket = async (
   payload: PublicSupportTicketCreate,
+  files: File[] = [],
 ): Promise<void> => {
+  // multipart: el JSON va en `payload` y los adjuntos en `files` (el navegador pone el boundary).
   const res = await fetch(`${BACKEND}/api/v1/support/tickets`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: supportFormData(payload, files),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => null);
@@ -1272,10 +1273,36 @@ export const apiSubmitPublicSupportTicket = async (
   }
 };
 
+function supportFormData(payload: object, files: File[]): FormData {
+  const form = new FormData();
+  form.append("payload", JSON.stringify(payload));
+  for (const f of files) form.append("files", f, f.name);
+  return form;
+}
+
 export const apiCreateSupportTicket = async (
   payload: SupportTicketCreate,
+  files: File[] = [],
 ): Promise<SupportTicketDetail> => {
-  const res = await backend.post<SupportTicketDetail>("/api/v1/me/support/tickets", payload);
+  const res = await backend.post<SupportTicketDetail>(
+    "/api/v1/me/support/tickets",
+    supportFormData(payload, files),
+    { timeout: 60_000 },
+  );
+  return res.data;
+};
+
+/** Descarga un adjunto con el Bearer de la sesión (no existe URL pública). */
+export const apiDownloadSupportAttachment = async (
+  scope: "me" | "admin",
+  ticketId: string,
+  attachmentId: string,
+): Promise<Blob> => {
+  const base = scope === "admin" ? "/api/v1/admin/support/tickets" : "/api/v1/me/support/tickets";
+  const res = await backend.get<Blob>(`${base}/${ticketId}/attachments/${attachmentId}`, {
+    responseType: "blob",
+    timeout: 60_000,
+  });
   return res.data;
 };
 

@@ -1425,8 +1425,17 @@ export interface SupportTicket {
   resolved_at: string | null;
 }
 
+/** Metadatos de un adjunto; el contenido se baja con apiDownloadSupportAttachment. */
+export interface SupportAttachment {
+  id: string;
+  filename: string;
+  content_type: string;
+  size_bytes: number;
+}
+
 export interface SupportTicketDetail extends SupportTicket {
   events: SupportEvent[];
+  attachments: SupportAttachment[];
 }
 
 export interface SupportTicketList {
@@ -1486,6 +1495,7 @@ export interface AdminSupportTicket {
 
 export interface AdminSupportTicketDetail extends AdminSupportTicket {
   events: AdminSupportEvent[];
+  attachments: SupportAttachment[];
 }
 
 export interface AdminSupportTicketList {

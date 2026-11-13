@@ -133,3 +133,53 @@ describe("TicketThread", () => {
     expect(screen.getByText(/Todavía no hay mensajes/)).toBeTruthy();
   });
 });
+
+describe("adjuntos", () => {
+  const png = () => new File([new Uint8Array(10)], "captura.png", { type: "image/png" });
+
+  it("el formulario de la app manda los archivos elegidos", async () => {
+    mocks.createTicket.mockResolvedValue({ id: "t1", code: "SP-0002", attachments: [] });
+    const { container } = render(<SupportTicketForm onCreated={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("Asunto"), { target: { value: "No me carga el video" } });
+    fireEvent.change(screen.getByLabelText("Detalle"), { target: { value: "Se queda en negro al dar play" } });
+    const input = container.querySelector<HTMLInputElement>("input[type=file]")!;
+    fireEvent.change(input, { target: { files: [png()] } });
+    await screen.findByText(/captura\.png/);
+    fireEvent.click(screen.getByRole("button", { name: "Enviar solicitud" }));
+
+    await waitFor(() => expect(mocks.createTicket).toHaveBeenCalled());
+    const files = mocks.createTicket.mock.calls[0][1] as File[];
+    expect(files.map((f) => f.name)).toEqual(["captura.png"]);
+  });
+
+  it("se puede quitar un archivo antes de enviar", async () => {
+    const { container } = render(<SupportTicketForm onCreated={vi.fn()} />);
+    const input = container.querySelector<HTMLInputElement>("input[type=file]")!;
+    fireEvent.change(input, { target: { files: [png()] } });
+    fireEvent.click(await screen.findByRole("button", { name: "Quitar captura.png" }));
+    expect(screen.queryByText(/captura\.png/)).toBeNull();
+  });
+
+  it("avisa si el archivo no está permitido y no lo agrega", async () => {
+    const { container } = render(<SupportTicketForm onCreated={vi.fn()} />);
+    const input = container.querySelector<HTMLInputElement>("input[type=file]")!;
+    fireEvent.change(input, { target: { files: [new File(["<svg/>"], "x.svg", { type: "image/svg+xml" })] } });
+    await screen.findByText(/no está permitido/);
+    expect(screen.queryByText(/x\.svg/)).toBeNull();
+  });
+
+  it("el formulario público manda los archivos y avisa si el backend los rechaza", async () => {
+    mocks.submitPublic.mockRejectedValue(new ApiError("attachment type not allowed", 415));
+    const { container } = renderPublic();
+    fillPublic();
+    fireEvent.change(container.querySelector<HTMLInputElement>("input[type=file]")!, {
+      target: { files: [png()] },
+    });
+    await screen.findByText(/captura\.png/);
+    fireEvent.click(screen.getByRole("button", { name: "Enviar solicitud" }));
+    await waitFor(() =>
+      expect(mocks.toast).toHaveBeenCalledWith(expect.stringContaining("archivos adjuntos"), "danger"),
+    );
+    expect((mocks.submitPublic.mock.calls[0][1] as File[]).map((f) => f.name)).toEqual(["captura.png"]);
+  });
+});

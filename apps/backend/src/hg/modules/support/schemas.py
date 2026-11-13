@@ -100,8 +100,20 @@ class MyTicketOut(BaseModel):
     resolved_at: datetime | None
 
 
+class AttachmentOut(BaseModel):
+    """Metadatos de un adjunto; el contenido se baja por el endpoint de descarga."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    filename: str
+    content_type: str
+    size_bytes: int
+
+
 class MyTicketDetailOut(MyTicketOut):
     events: list[MyEventOut]
+    attachments: list[AttachmentOut] = []
 
 
 class MyTicketListResponse(BaseModel):
@@ -153,6 +165,7 @@ class AdminTicketOut(BaseModel):
 
 class AdminTicketDetailOut(AdminTicketOut):
     events: list[AdminEventOut]
+    attachments: list[AttachmentOut] = []
 
 
 class AdminTicketListResponse(BaseModel):

@@ -518,6 +518,18 @@ export const es = {
       body: "Detalle *",
       bodyPlaceholder:
         "Contanos qué estabas haciendo y qué esperabas que pasara. No incluyas contraseñas.",
+      attachments: {
+        label: "Archivos de respaldo (opcional)",
+        hint: "Hasta 3 archivos de 5 MB: capturas (PNG, JPG, WebP, GIF), PDF o texto. También podés pegar una captura en el detalle.",
+        add: "Adjuntar archivos",
+        remove: "Quitar",
+        errors: {
+          tooMany: "Podés adjuntar hasta 3 archivos.",
+          tooLarge: "Cada archivo puede pesar hasta 5 MB.",
+          type: "Ese tipo de archivo no está permitido (usá PNG, JPG, WebP, GIF, PDF o texto).",
+        },
+        rejected: "No pudimos aceptar los archivos adjuntos. Revisá el tipo y el tamaño.",
+      },
       submit: "Enviar solicitud",
       sending: "Enviando…",
       errors: {

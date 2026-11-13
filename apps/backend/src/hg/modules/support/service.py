@@ -18,11 +18,13 @@ from hg import __version__
 from hg.config import get_settings
 from hg.modules.identity.models import User
 from hg.modules.notifications.email_service import email_service
+from hg.modules.support.attachments import ValidatedFile
 from hg.modules.support.models import (
     CLOSED_STATUSES,
     ActorKind,
     EventType,
     SupportTicket,
+    SupportTicketAttachment,
     SupportTicketEvent,
     TicketCategory,
     TicketSeverity,
@@ -152,6 +154,50 @@ def create_public_ticket(
     db.flush()
     add_event(db, ticket, event_type=EventType.created, actor_kind=ActorKind.user)
     return ticket
+
+
+# ─────────────────────────── Adjuntos ───────────────────────────
+
+
+def add_attachments(
+    db: Session, ticket: SupportTicket, files: list[ValidatedFile]
+) -> list[SupportTicketAttachment]:
+    rows = [
+        SupportTicketAttachment(
+            ticket_id=ticket.id,
+            org_id=ticket.org_id,
+            filename=f.filename,
+            content_type=f.content_type,
+            size_bytes=len(f.data),
+            data=f.data,
+        )
+        for f in files
+    ]
+    db.add_all(rows)
+    db.flush()
+    return rows
+
+
+def attachments_for(db: Session, ticket_id: uuid.UUID) -> list[SupportTicketAttachment]:
+    """Metadatos (``data`` es ``deferred``: no se carga el binario al listar)."""
+    return list(
+        db.scalars(
+            select(SupportTicketAttachment)
+            .where(SupportTicketAttachment.ticket_id == ticket_id)
+            .order_by(SupportTicketAttachment.created_at.asc(), SupportTicketAttachment.filename)
+        ).all()
+    )
+
+
+def get_attachment(
+    db: Session, ticket_id: uuid.UUID, attachment_id: uuid.UUID
+) -> SupportTicketAttachment | None:
+    return db.scalar(
+        select(SupportTicketAttachment).where(
+            SupportTicketAttachment.id == attachment_id,
+            SupportTicketAttachment.ticket_id == ticket_id,
+        )
+    )
 
 
 # ─────────────────────────── Cambios de estado ───────────────────────────
@@ -344,7 +390,7 @@ def send_ack_email(ticket: SupportTicket) -> None:
     )
 
 
-def send_internal_notification(ticket: SupportTicket) -> None:
+def send_internal_notification(ticket: SupportTicket, attachment_count: int = 0) -> None:
     email_service.send(
         to=get_settings().support_inbox,
         subject=f"[Soporte] {ticket.code} · {_subject_line(ticket.subject)}",
@@ -359,6 +405,7 @@ def send_internal_notification(ticket: SupportTicket) -> None:
             "body": ticket.body,
             "page_url": ticket.page_url,
             "app_version": ticket.app_version,
+            "attachment_count": attachment_count,
         },
     )
 

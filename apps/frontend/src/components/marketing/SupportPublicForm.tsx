@@ -7,10 +7,12 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
+import { AttachmentPicker } from "@/components/soporte/AttachmentPicker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { ApiError, apiSubmitPublicSupportTicket } from "@/lib/api";
+import { addSupportFiles, filesFromClipboard } from "@/lib/support";
 import { toast } from "@/lib/toast-store";
 import type { SupportCategory } from "@/lib/types";
 import { publicSupportSchema, type PublicSupportValues } from "@/lib/validation";
@@ -21,6 +23,7 @@ const CATEGORIES: SupportCategory[] = ["access", "bug", "question", "suggestion"
 export default function SupportPublicForm() {
   const f = useMarketingCopy().support.form;
   const [sent, setSent] = React.useState(false);
+  const [files, setFiles] = React.useState<File[]>([]);
   const honeypot = React.useRef<HTMLInputElement>(null);
   const {
     register,
@@ -33,15 +36,26 @@ export default function SupportPublicForm() {
 
   async function onSubmit(values: PublicSupportValues) {
     try {
-      await apiSubmitPublicSupportTicket({
-        ...values,
-        website: honeypot.current?.value || undefined,
-        page_url: document.referrer ? safePath(document.referrer) : undefined,
-        locale: navigator.language.slice(0, 2),
-      });
+      await apiSubmitPublicSupportTicket(
+        {
+          ...values,
+          website: honeypot.current?.value || undefined,
+          page_url: document.referrer ? safePath(document.referrer) : undefined,
+          locale: navigator.language.slice(0, 2),
+        },
+        files,
+      );
       setSent(true);
     } catch (err) {
-      toast(err instanceof ApiError && err.status === 429 ? f.rateLimited : f.errorToast, "danger");
+      const status = err instanceof ApiError ? err.status : 0;
+      toast(
+        status === 429
+          ? f.rateLimited
+          : status === 413 || status === 415 || status === 422
+            ? f.attachments.rejected
+            : f.errorToast,
+        "danger",
+      );
     }
   }
 
@@ -111,11 +125,22 @@ export default function SupportPublicForm() {
           maxLength={5000}
           aria-invalid={!!errors.body}
           {...register("body")}
+          onPaste={(e) => {
+            const pasted = filesFromClipboard(e);
+            if (pasted.length > 0) setFiles((cur) => addSupportFiles(cur, pasted).files);
+          }}
           className="w-full resize-y rounded-md border border-border bg-bg-raised px-3 py-2 text-sm text-fg"
           placeholder={f.bodyPlaceholder}
         />
         {errors.body && <p className="mt-1 text-sm text-danger">{f.errors.body}</p>}
       </div>
+      <AttachmentPicker
+        id="sp-files"
+        files={files}
+        onChange={setFiles}
+        disabled={isSubmitting}
+        labels={f.attachments}
+      />
       {/* Honeypot: fuera de pantalla, sin foco ni lectura por lector de pantalla. */}
       <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
         <label htmlFor="sp-website">Website</label>

@@ -72,3 +72,24 @@ sin dependencias de AWS).
   métricas (tiempo a primera respuesta, a resolución) en PostHog cuando se instrumente.
 - **Numeración.** El Project de Claude contiene un `ADR-0013-assessment-conversacional…` distinto del
   `ADR-0013-rrhh-dashboard-v2` de este repo. Conviene renumerar uno de los dos para no tener dos 0013.
+
+## Addendum SP-03 — adjuntos de respaldo (2026-11-12)
+
+Los tickets aceptan hasta 3 archivos de 5 MB (capturas PNG/JPG/WebP/GIF, PDF y texto) para dar
+evidencia del problema.
+
+- **Almacenamiento en Postgres (`support_ticket_attachments.data`, bytea), no en R2.** El bucket R2 del
+  repo se sirve por URL pública (`r2_public_base_url`) y una captura puede contener datos personales de
+  otras personas. En la base heredan RLS (`tenant_isolation`, `org_id` NULL = ticket público solo para
+  `hg_superadmin`), son append-only (se revoca UPDATE/DELETE/TRUNCATE de forma explícita por el
+  `ALTER DEFAULT PRIVILEGES` de B1-04) y se bajan solo con sesión: el dueño del ticket o el superadmin.
+  El volumen esperado (tickets de una beta) lo hace viable; si crece, migrar a un bucket **privado** con
+  URLs firmadas sin cambiar la API.
+- **Validación por contenido (magic bytes), no por `Content-Type` ni extensión.** SVG, HTML y
+  ejecutables se rechazan (415); más de 3 archivos o vacíos, 422; más de 5 MB, 413. Las descargas
+  salen con `X-Content-Type-Options: nosniff`, CSP `sandbox` y `Cache-Control: private, no-store`;
+  solo las imágenes validadas van inline.
+- **Endpoints de creación pasan a `multipart/form-data`** (`payload` = JSON del ticket, `files` = archivos).
+  Es un cambio de contrato respecto de SP-01/SP-02, aún no desplegados, por lo que no rompe a ningún cliente.
+- **Fases 2–3:** los adjuntos **no** se envían a un LLM mientras el consentimiento de la Fase 2 siga
+  pendiente; las capturas son el vector más probable de datos personales.

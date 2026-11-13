@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { SuperadminGate } from "@/components/SuperadminGate";
+import { AttachmentList } from "@/components/soporte/AttachmentList";
 import { TicketStatusBadge } from "@/components/soporte/TicketStatusBadge";
 import { TicketThread, type ThreadItem } from "@/components/soporte/TicketThread";
 import { Badge } from "@/components/ui/badge";
@@ -196,6 +197,7 @@ function TicketAdminDetail({
         </div>
       </div>
 
+      <AttachmentList scope="admin" ticketId={ticket.id} attachments={ticket.attachments} />
       <TicketThread items={toThread(ticket)} viewer="admin" />
 
       <div>

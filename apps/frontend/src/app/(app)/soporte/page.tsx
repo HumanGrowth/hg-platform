@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
+import { AttachmentList } from "@/components/soporte/AttachmentList";
 import { SupportTicketForm } from "@/components/soporte/SupportTicketForm";
 import { TicketStatusBadge } from "@/components/soporte/TicketStatusBadge";
 import { TicketThread, type ThreadItem } from "@/components/soporte/TicketThread";
@@ -85,6 +86,7 @@ function TicketDetail({
         <span>{SUPPORT_CATEGORY_LABELS[ticket.category]}</span>
         <span>· {formatSupportDate(ticket.created_at)}</span>
       </div>
+      <AttachmentList scope="me" ticketId={ticket.id} attachments={ticket.attachments} />
       <TicketThread items={toThread(ticket)} viewer="user" />
       <div>
         <label htmlFor="support-reply" className="mb-1 block text-sm font-medium text-fg">
