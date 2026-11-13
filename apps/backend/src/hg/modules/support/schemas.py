@@ -165,6 +165,7 @@ class AdminTicketOut(BaseModel):
 
 class AdminTicketDetailOut(AdminTicketOut):
     events: list[AdminEventOut]
+    org_name: str | None = None  # nombre legible de la organización (None = ticket público)
     attachments: list[AttachmentOut] = []
 
 

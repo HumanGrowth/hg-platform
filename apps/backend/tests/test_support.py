@@ -414,6 +414,7 @@ def test_attachments_are_listed_and_downloadable_by_owner_and_admin(
     admin_h = auth_headers(ctx.admin)
     detail = client.get(f"{API}/admin/support/tickets/{created['id']}", headers=admin_h).json()
     assert len(detail["attachments"]) == 2
+    assert detail["org_name"] == ctx.org.name  # el panel muestra el nombre, no el UUID
     txt = next(a for a in detail["attachments"] if a["filename"] == "log.txt")
     res = client.get(
         f"{API}/admin/support/tickets/{created['id']}/attachments/{txt['id']}", headers=admin_h
@@ -466,6 +467,8 @@ def test_public_ticket_attachments_visible_only_to_superadmin(
         headers=auth_headers(ctx.admin),
     )
     assert res.status_code == 200 and res.content == PNG
+    detail = client.get(f"{API}/admin/support/tickets/{row['tid']}", headers=auth_headers(ctx.admin)).json()
+    assert detail["org_name"] is None
     # Un usuario común no ve el ticket público ni su adjunto.
     res = client.get(
         f"{API}/me/support/tickets/{row['tid']}/attachments/{row['aid']}",

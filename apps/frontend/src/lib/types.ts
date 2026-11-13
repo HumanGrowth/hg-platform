@@ -1496,6 +1496,7 @@ export interface AdminSupportTicket {
 export interface AdminSupportTicketDetail extends AdminSupportTicket {
   events: AdminSupportEvent[];
   attachments: SupportAttachment[];
+  org_name: string | null;
 }
 
 export interface AdminSupportTicketList {

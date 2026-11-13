@@ -133,7 +133,7 @@ function TicketAdminDetail({
         <div><dt className="inline text-fg-muted">Página: </dt><dd className="inline">{ticket.page_url ?? "—"}</dd></div>
         <div><dt className="inline text-fg-muted">Versión: </dt><dd className="inline">{ticket.app_version ?? "—"}</dd></div>
         <div className="sm:col-span-2"><dt className="inline text-fg-muted">Navegador: </dt><dd className="inline break-words">{ticket.user_agent ?? "—"}</dd></div>
-        <div><dt className="inline text-fg-muted">Org: </dt><dd className="inline">{ticket.org_id ?? "Sin org (público)"}</dd></div>
+        <div><dt className="inline text-fg-muted">Org: </dt><dd className="inline">{ticket.org_id ? (ticket.org_name ?? "Organización") : "Sin org (público)"}</dd></div>
         <div><dt className="inline text-fg-muted">Creado: </dt><dd className="inline">{formatSupportDate(ticket.created_at)}</dd></div>
       </dl>
 

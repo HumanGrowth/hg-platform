@@ -262,7 +262,10 @@ def _admin_detail(db: Session, ticket: SupportTicket) -> AdminTicketDetailOut:
         for e in service.events_for(db, ticket.id, include_internal=True)
     ]
     files = [AttachmentOut.model_validate(a) for a in service.attachments_for(db, ticket.id)]
-    return AdminTicketDetailOut(**base.model_dump(), events=events, attachments=files)
+    return AdminTicketDetailOut(
+        **base.model_dump(), events=events, attachments=files,
+        org_name=service.org_name(db, ticket.org_id),
+    )
 
 
 def _admin_ticket_or_404(db: Session, ticket_id: uuid.UUID) -> SupportTicket:

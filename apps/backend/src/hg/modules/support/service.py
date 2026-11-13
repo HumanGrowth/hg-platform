@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from hg import __version__
 from hg.config import get_settings
-from hg.modules.identity.models import User
+from hg.modules.identity.models import Organization, User
 from hg.modules.notifications.email_service import email_service
 from hg.modules.support.attachments import ValidatedFile
 from hg.modules.support.models import (
@@ -313,6 +313,13 @@ def list_tickets(
         stmt.order_by(SupportTicket.created_at.desc()).limit(limit).offset(offset)
     ).all()
     return list(rows), total
+
+
+def org_name(db: Session, org_id: uuid.UUID | None) -> str | None:
+    """Nombre de la organización del ticket (solo para el panel admin, que corre cross-tenant)."""
+    if org_id is None:
+        return None
+    return db.scalar(select(Organization.name).where(Organization.id == org_id))
 
 
 def get_ticket(db: Session, ticket_id: uuid.UUID) -> SupportTicket | None:
