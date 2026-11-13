@@ -56,6 +56,13 @@ class Settings(BaseSettings):
     leads_inbox: str = "admin@humangrowth.io"  # notificaciones internas (contact form)
     ai_recommendations_enabled: bool = False  # Plan de Acción · sugerencias AI (TASK 5.4)
 
+    # Soporte (ADR-0015)
+    support_inbox: str = "admin@humangrowth.io"  # notificación interna de tickets nuevos
+    support_public_rate_per_ip_hour: int = 5  # tickets públicos por IP y hora
+    support_public_rate_per_email_hour: int = 3  # tickets públicos por email y hora
+    support_public_rate_global_hour: int = 300  # tope global de tickets públicos por hora
+    git_sha: str = ""  # SHA desplegado (lo inyecta el deploy); se guarda en cada ticket
+
     # Observability
     sentry_dsn: str = ""
     posthog_key: str = ""

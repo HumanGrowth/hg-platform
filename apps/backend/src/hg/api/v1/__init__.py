@@ -31,6 +31,9 @@ from hg.modules.people.router import admin_router as people_admin_router
 from hg.modules.people.router import manager_router, me_router
 from hg.modules.perspectives.router import admin_router as perspectives_admin_router
 from hg.modules.perspectives.router import public_router as perspectives_public_router
+from hg.modules.support.router import admin_router as support_admin_router
+from hg.modules.support.router import me_router as support_me_router
+from hg.modules.support.router import public_router as support_public_router
 
 router = APIRouter()
 
@@ -93,3 +96,8 @@ router.include_router(feedback_me_router, prefix="/me", tags=["feedback"])
 router.include_router(scoring_admin_router, prefix="/admin", tags=["admin", "scoring"])
 # Rutas customizables por Empresa/Org (FASE 2.2): /admin/custom-paths + /admin/users/{id}/custom-path.
 router.include_router(custom_paths_router, prefix="/admin", tags=["admin", "paths"])
+# Soporte (ADR-0015): /me/support/tickets (usuario) · /support/tickets (público, rate-limited) ·
+# /admin/support/tickets (superadmin)
+router.include_router(support_me_router, prefix="/me", tags=["support"])
+router.include_router(support_public_router, tags=["support"])
+router.include_router(support_admin_router, prefix="/admin", tags=["admin", "support"])

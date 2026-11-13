@@ -323,6 +323,7 @@ export const es = {
       { title: "Método", href: "/metodo" },
       { title: "Perspectivas", href: "/perspectivas" },
       { title: "Contacto", href: "/contacto" },
+      { title: "Ayuda", href: "/ayuda" },
     ],
     tagline: "Un sistema de crecimiento en 6 dimensiones para profesionales de LatAm.",
     rights: "© 2026 HumanGrowth. Hecho desde LatAm, para LatAm.",
@@ -467,6 +468,7 @@ export const es = {
     forTeams: "Para Equipos — Human Growth",
     pricing: "Precios — Human Growth",
     platform: "Plataforma · Human Growth",
+    support: "Ayuda — Human Growth",
   },
   contact: {
     eyebrow: "Contacto",
@@ -493,6 +495,56 @@ export const es = {
       },
       thanksTitle: "¡Gracias por escribirnos!",
       thanksBody: "Pronto nos pondremos en contacto contigo.",
+      backHome: "Volver al inicio →",
+    },
+  },
+  support: {
+    eyebrow: "Ayuda",
+    title: "¿Tenés un problema con la plataforma?",
+    subtitle:
+      "Contanos qué pasa y te respondemos por correo. Si podés entrar a tu cuenta, usá Soporte dentro de la app: así vemos tu contexto y resolvemos más rápido.",
+    form: {
+      name: "Nombre *",
+      email: "Email *",
+      category: "¿Qué pasa?",
+      categories: {
+        access: "No puedo entrar o no me llegó la invitación",
+        bug: "Algo no funciona",
+        question: "Tengo una pregunta",
+        suggestion: "Sugerencia",
+        other: "Otro",
+      },
+      subject: "Asunto *",
+      body: "Detalle *",
+      bodyPlaceholder:
+        "Contanos qué estabas haciendo y qué esperabas que pasara. No incluyas contraseñas.",
+      attachments: {
+        label: "Archivos de respaldo (opcional)",
+        hint: "Hasta 3 archivos de 5 MB: capturas (PNG, JPG, WebP, GIF), PDF o texto. También podés pegar una captura en el detalle.",
+        add: "Adjuntar archivos",
+        remove: "Quitar",
+        errors: {
+          tooMany: "Podés adjuntar hasta 3 archivos.",
+          tooLarge: "Cada archivo puede pesar hasta 5 MB.",
+          type: "Ese tipo de archivo no está permitido (usá PNG, JPG, WebP, GIF, PDF o texto).",
+        },
+        rejected: "No pudimos aceptar los archivos adjuntos. Revisá el tipo y el tamaño.",
+      },
+      submit: "Enviar solicitud",
+      sending: "Enviando…",
+      errors: {
+        name: "Ingresá tu nombre",
+        emailRequired: "Ingresá tu email",
+        emailInvalid: "Email inválido",
+        subject: "Contanos el tema en pocas palabras",
+        body: "Describí qué pasó o qué necesitás",
+      },
+      errorToast: "No pudimos enviar tu solicitud. Probá de nuevo en un momento.",
+      rateLimited:
+        "Enviaste varias solicitudes seguidas. Probá de nuevo en un rato o escribinos a admin@humangrowth.io.",
+      thanksTitle: "Recibimos tu solicitud",
+      thanksBody:
+        "Te enviamos un correo de confirmación; si no lo ves, revisá el spam. Te vamos a responder a ese mismo correo.",
       backHome: "Volver al inicio →",
     },
   },

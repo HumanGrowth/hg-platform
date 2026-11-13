@@ -7,7 +7,7 @@ const THEME_VALUES = new Set(["light", "dark"]);
 
 // Rutas autenticadas (route groups (app)/(admin) no aparecen en la URL).
 const PROTECTED = [
-  "/home", "/dimensiones", "/eventos", "/modulos", "/perfil", "/profile", "/path", "/radar", "/team", "/onboarding", "/admin",
+  "/home", "/dimensiones", "/eventos", "/modulos", "/perfil", "/profile", "/path", "/radar", "/team", "/soporte", "/onboarding", "/admin",
 ];
 const AUTH_PAGES = ["/login", "/accept-invite"];
 

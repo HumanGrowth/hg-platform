@@ -15,9 +15,15 @@ function hrefs(u: Parameters<typeof sideNavItemsForRole>[0]): string[] {
 describe("sideNavItemsForRole (TASK polish-04)", () => {
   it("collaborator sees the base items + Eventos, but not team/admin", () => {
     const items = hrefs(user({ role: "collaborator" }));
-    expect(items).toEqual(["/home", "/path", "/modulos", "/plan-accion", "/eventos", "/perfil"]);
+    expect(items).toEqual(["/home", "/path", "/modulos", "/plan-accion", "/eventos", "/soporte", "/perfil"]);
     expect(items).not.toContain("/team");
     expect(items).not.toContain("/admin/org");
+  });
+
+  it("includes Soporte in the desktop sidebar for every role", () => {
+    for (const role of ["collaborator", "manager", "admin", "superadmin"] as const) {
+      expect(hrefs(user({ role }))).toContain("/soporte");
+    }
   });
 
   it("includes Eventos in the desktop sidebar for every role", () => {

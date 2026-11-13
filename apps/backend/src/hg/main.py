@@ -55,6 +55,15 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok", "version": __version__, "env": settings.app_env}
 
+    @app.get("/version", tags=["meta"])
+    def version() -> dict[str, str | None]:
+        """Versión y SHA desplegados (``GIT_SHA`` lo inyecta el deploy). Sin datos sensibles."""
+        return {
+            "version": __version__,
+            "git_sha": settings.git_sha or None,
+            "env": settings.app_env,
+        }
+
     return app
 
 

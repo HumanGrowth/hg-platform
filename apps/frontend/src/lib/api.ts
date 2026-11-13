@@ -66,6 +66,15 @@ import type {
   UserCustomPath,
   UserMetrics,
   UserRole,
+  AdminSupportTicketDetail,
+  AdminSupportTicketList,
+  AdminSupportTicketPatch,
+  PublicSupportTicketCreate,
+  SupportCategory,
+  SupportStatus,
+  SupportTicketCreate,
+  SupportTicketDetail,
+  SupportTicketList,
 } from "@/lib/types";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
@@ -1242,6 +1251,131 @@ export const apiGetTeamMemberProgression = async (
 ): Promise<DimensionProgression[]> => {
   const res = await backend.get<DimensionProgression[]>(
     `/api/v1/manager/users/${userId}/progression`,
+  );
+  return res.data;
+};
+
+// ─────────────── Soporte (ADR-0015) ───────────────
+
+/** Ticket del formulario público (sin auth): POST directo al backend. 429 = límite de tasa. */
+export const apiSubmitPublicSupportTicket = async (
+  payload: PublicSupportTicketCreate,
+  files: File[] = [],
+): Promise<void> => {
+  // multipart: el JSON va en `payload` y los adjuntos en `files` (el navegador pone el boundary).
+  const res = await fetch(`${BACKEND}/api/v1/support/tickets`, {
+    method: "POST",
+    body: supportFormData(payload, files),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new ApiError(typeof data?.detail === "string" ? data.detail : "request failed", res.status);
+  }
+};
+
+function supportFormData(payload: object, files: File[]): FormData {
+  const form = new FormData();
+  form.append("payload", JSON.stringify(payload));
+  for (const f of files) form.append("files", f, f.name);
+  return form;
+}
+
+export const apiCreateSupportTicket = async (
+  payload: SupportTicketCreate,
+  files: File[] = [],
+): Promise<SupportTicketDetail> => {
+  const res = await backend.post<SupportTicketDetail>(
+    "/api/v1/me/support/tickets",
+    supportFormData(payload, files),
+    { timeout: 60_000 },
+  );
+  return res.data;
+};
+
+/** Descarga un adjunto con el Bearer de la sesión (no existe URL pública). */
+export const apiDownloadSupportAttachment = async (
+  scope: "me" | "admin",
+  ticketId: string,
+  attachmentId: string,
+): Promise<Blob> => {
+  const base = scope === "admin" ? "/api/v1/admin/support/tickets" : "/api/v1/me/support/tickets";
+  const res = await backend.get<Blob>(`${base}/${ticketId}/attachments/${attachmentId}`, {
+    responseType: "blob",
+    timeout: 60_000,
+  });
+  return res.data;
+};
+
+export const apiListMySupportTickets = async (): Promise<SupportTicketList> => {
+  const res = await backend.get<SupportTicketList>("/api/v1/me/support/tickets");
+  return res.data;
+};
+
+export const apiGetMySupportTicket = async (id: string): Promise<SupportTicketDetail> => {
+  const res = await backend.get<SupportTicketDetail>(`/api/v1/me/support/tickets/${id}`);
+  return res.data;
+};
+
+export const apiReplyMySupportTicket = async (
+  id: string,
+  body: string,
+): Promise<SupportTicketDetail> => {
+  const res = await backend.post<SupportTicketDetail>(`/api/v1/me/support/tickets/${id}/reply`, {
+    body,
+  });
+  return res.data;
+};
+
+export interface AdminSupportFilters {
+  status?: SupportStatus;
+  category?: SupportCategory;
+  q?: string;
+}
+
+export const apiAdminListSupportTickets = async (
+  filters: AdminSupportFilters = {},
+): Promise<AdminSupportTicketList> => {
+  const res = await backend.get<AdminSupportTicketList>("/api/v1/admin/support/tickets", {
+    params: { ...filters, limit: 100 },
+  });
+  return res.data;
+};
+
+export const apiAdminGetSupportTicket = async (id: string): Promise<AdminSupportTicketDetail> => {
+  const res = await backend.get<AdminSupportTicketDetail>(`/api/v1/admin/support/tickets/${id}`);
+  return res.data;
+};
+
+export const apiAdminReplySupportTicket = async (
+  id: string,
+  body: string,
+  sendEmail: boolean,
+): Promise<AdminSupportTicketDetail> => {
+  const res = await backend.post<AdminSupportTicketDetail>(
+    `/api/v1/admin/support/tickets/${id}/reply`,
+    { body, send_email: sendEmail },
+  );
+  return res.data;
+};
+
+export const apiAdminNoteSupportTicket = async (
+  id: string,
+  body: string,
+): Promise<AdminSupportTicketDetail> => {
+  const res = await backend.post<AdminSupportTicketDetail>(
+    `/api/v1/admin/support/tickets/${id}/note`,
+    { body },
+  );
+  return res.data;
+};
+
+export const apiAdminPatchSupportTicket = async (
+  id: string,
+  patch: AdminSupportTicketPatch,
+): Promise<AdminSupportTicketDetail> => {
+  const res = await backend.patch<AdminSupportTicketDetail>(
+    `/api/v1/admin/support/tickets/${id}`,
+    patch,
   );
   return res.data;
 };

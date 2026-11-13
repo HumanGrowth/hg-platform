@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, ShieldCheck, UserCog } from "lucide-react";
+import { LifeBuoy, LogOut, ShieldCheck, UserCog } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -62,6 +62,15 @@ export function UserMenu({ adminMode = false }: { adminMode?: boolean }) {
             >
               <UserCog size={16} strokeWidth={1.75} />
               Editar mi información
+            </Link>
+            <Link
+              href={"/soporte" as Route}
+              role="menuitem"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2 rounded-md px-3 py-2 font-sans text-sm text-fg glass-hover-bg"
+            >
+              <LifeBuoy size={16} strokeWidth={1.75} />
+              Soporte
             </Link>
             {adminMode ? (
               <Link

@@ -23,6 +23,7 @@ import hg.modules.marketing.models  # noqa: F401
 import hg.modules.notifications.models  # noqa: F401
 import hg.modules.paths.models  # noqa: F401
 import hg.modules.people.models  # noqa: F401
+import hg.modules.support.models  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

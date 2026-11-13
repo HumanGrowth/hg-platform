@@ -323,6 +323,7 @@ export const en = {
       { title: "Method", href: "/metodo" },
       { title: "Insights", href: "/perspectivas" },
       { title: "Contact", href: "/contacto" },
+      { title: "Help", href: "/ayuda" },
     ],
     tagline: "A 6-dimension growth system for professionals across LatAm.",
     rights: "© 2026 HumanGrowth. Made from LatAm, for LatAm.",
@@ -467,6 +468,7 @@ export const en = {
     forTeams: "For Teams — Human Growth",
     pricing: "Pricing — Human Growth",
     platform: "Platform · Human Growth",
+    support: "Help — Human Growth",
   },
   contact: {
     eyebrow: "Contact",
@@ -493,6 +495,56 @@ export const en = {
       },
       thanksTitle: "Thanks for reaching out!",
       thanksBody: "We'll be in touch soon.",
+      backHome: "Back to home →",
+    },
+  },
+  support: {
+    eyebrow: "Help",
+    title: "Having trouble with the platform?",
+    subtitle:
+      "Tell us what's going on and we'll reply by email. If you can sign in, use Support inside the app: we get your context and fix things faster.",
+    form: {
+      name: "Name *",
+      email: "Email *",
+      category: "What's going on?",
+      categories: {
+        access: "I can't sign in or my invitation never arrived",
+        bug: "Something isn't working",
+        question: "I have a question",
+        suggestion: "Suggestion",
+        other: "Other",
+      },
+      subject: "Subject *",
+      body: "Details *",
+      bodyPlaceholder:
+        "Tell us what you were doing and what you expected to happen. Please don't include passwords.",
+      attachments: {
+        label: "Supporting files (optional)",
+        hint: "Up to 3 files of 5 MB: screenshots (PNG, JPG, WebP, GIF), PDF or text. You can also paste a screenshot into the details.",
+        add: "Attach files",
+        remove: "Remove",
+        errors: {
+          tooMany: "You can attach up to 3 files.",
+          tooLarge: "Each file can be up to 5 MB.",
+          type: "That file type isn't allowed (use PNG, JPG, WebP, GIF, PDF or text).",
+        },
+        rejected: "We couldn't accept the attached files. Check their type and size.",
+      },
+      submit: "Send request",
+      sending: "Sending…",
+      errors: {
+        name: "Enter your name",
+        emailRequired: "Enter your email",
+        emailInvalid: "Invalid email",
+        subject: "Tell us the topic in a few words",
+        body: "Describe what happened or what you need",
+      },
+      errorToast: "We couldn't send your request. Please try again in a moment.",
+      rateLimited:
+        "You sent several requests in a row. Try again in a while or write to admin@humangrowth.io.",
+      thanksTitle: "We got your request",
+      thanksBody:
+        "We sent you a confirmation email; if you don't see it, check spam. We'll reply to that same address.",
       backHome: "Back to home →",
     },
   },

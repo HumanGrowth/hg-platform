@@ -66,3 +66,20 @@ export const contactSchema = z.object({
   message: z.string().max(2000).optional().or(z.literal("")),
 });
 export type ContactValues = z.infer<typeof contactSchema>;
+
+// ─────────────── Soporte (ADR-0015) ───────────────
+
+export const SUPPORT_CATEGORIES = ["bug", "question", "access", "suggestion", "other"] as const;
+
+export const supportTicketSchema = z.object({
+  subject: z.string().trim().min(3, "Contanos el tema en pocas palabras").max(200),
+  body: z.string().trim().min(5, "Describí qué pasó o qué necesitás").max(5000),
+  category: z.enum(SUPPORT_CATEGORIES),
+});
+export type SupportTicketValues = z.infer<typeof supportTicketSchema>;
+
+export const publicSupportSchema = supportTicketSchema.extend({
+  name: z.string().trim().min(1, "required").max(255),
+  email: z.string().trim().min(1, "required").email("invalid"),
+});
+export type PublicSupportValues = z.infer<typeof publicSupportSchema>;

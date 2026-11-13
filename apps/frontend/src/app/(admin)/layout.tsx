@@ -6,6 +6,7 @@ import {
   Boxes,
   Building2,
   Calendar,
+  LifeBuoy,
   ChevronDown,
   Layers,
   LineChart,
@@ -40,6 +41,7 @@ const SUPERADMIN_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin/areas", label: "Áreas de contenido", icon: Layers },
   { href: "/admin/events", label: "Eventos", icon: Calendar },
   { href: "/admin/perspectivas", label: "Perspectivas", icon: Newspaper },
+  { href: "/admin/soporte", label: "Soporte", icon: LifeBuoy },
 ];
 
 /**

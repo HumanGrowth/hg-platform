@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   Building2,
   Calendar,
+  LifeBuoy,
   Layers,
   LineChart,
   Map,
@@ -51,6 +52,7 @@ function itemsForRole(role: UserRole | undefined, managingCompany: boolean): Adm
       { href: "/admin/companies", label: "Empresas", icon: Building2 },
       { href: "/admin/events", label: "Eventos", icon: Calendar },
       { href: "/admin/perspectivas", label: "Contenido", icon: Newspaper },
+      { href: "/admin/soporte", label: "Soporte", icon: LifeBuoy },
     ];
   }
   if (role === "admin") {
