@@ -1,4 +1,5 @@
 import { BetaBanner } from "@/components/BetaBanner";
+import { CompanyGraceBanner } from "@/components/company/CompanyGraceBanner";
 import { AppShell } from "@/components/nav/AppShell";
 import { SessionGate } from "@/components/SessionGate";
 
@@ -11,6 +12,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex h-dvh flex-col overflow-hidden">
       <BetaBanner />
       <SessionGate requireOnboarding>
+        <CompanyGraceBanner />
         <AppShell>{children}</AppShell>
       </SessionGate>
     </div>

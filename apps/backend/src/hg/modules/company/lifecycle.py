@@ -139,7 +139,8 @@ def transition_company(
     """Único escritor de ``companies.status``. Devuelve el preview (también al aplicar).
 
     ``actor=None`` = proceso automático (job LC-09). Errores: 404 empresa
-    inexistente, 409 transición inválida / último superadmin, 422 motivo faltante.
+    inexistente, 409 transición inválida / último superadmin, 422 motivo faltante
+    (salvo ``dry_run``).
     """
     company = db.scalar(select(Company).where(Company.id == company_id).with_for_update())
     if company is None:
@@ -155,7 +156,8 @@ def transition_company(
             f"Transición no permitida: {from_status} → {to_status}.",
         )
     clean_reason = (reason or "").strip()
-    if to_status in REASON_REQUIRED and not clean_reason:
+    # La vista previa no exige motivo: la UI lo pide DESPUÉS de mostrar los números.
+    if to_status in REASON_REQUIRED and not clean_reason and not dry_run:
         raise _error(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
             "reason_required",

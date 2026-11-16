@@ -81,6 +81,11 @@ class MeResponse(UserOut):
     # Onboarding ("ON"). Se recomputa en cada /me — no es una columna, ver
     # `learning_units/onboarding.py`.
     content_restricted_to_onboarding: bool = False
+    # Ciclo de vida de la Empresa (ADR-0016): el frontend muestra el banner de gracia
+    # y el bloqueo con esto. `company_status` ya es el estado EFECTIVO (una gracia
+    # vencida se informa como `suspended`).
+    company_status: str = "active"
+    grace_ends_at: datetime | None = None
     # Consentimiento de privacidad granular (TASK 5 v2). null = pendiente → el
     # SessionGate redirige a /consentimiento antes del onboarding.
     consent_manager: bool | None = None

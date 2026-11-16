@@ -1,10 +1,12 @@
 "use client";
 
-import { KeyRound, LogIn, Pencil, Plus } from "lucide-react";
+import { History, KeyRound, LogIn, Pencil, Plus, Power } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
+import { CompanyEventsDialog } from "@/components/company/CompanyEventsDialog";
+import { CompanyStatusDialog } from "@/components/company/CompanyStatusDialog";
 import { SuperadminGate } from "@/components/SuperadminGate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,7 +26,9 @@ import {
   apiErrorMessage,
 } from "@/lib/api";
 import { setActingCompany } from "@/lib/acting-company";
+import { fill, formatLongDate, STATUS_BADGE } from "@/lib/company-lifecycle";
 import { DIMENSIONS } from "@/lib/dimensions";
+import { getCopy } from "@/lib/i18n";
 import { toast } from "@/lib/toast-store";
 import type { Area, Company, DimensionAccess } from "@/lib/types";
 
@@ -40,6 +44,11 @@ function CompaniesContent() {
   const [licFor, setLicFor] = React.useState<Company | null>(null);
   const [licValue, setLicValue] = React.useState("0");
   const [savingLic, setSavingLic] = React.useState(false);
+
+  // Ciclo de vida (ADR-0016)
+  const lc = getCopy().companyLifecycle;
+  const [statusFor, setStatusFor] = React.useState<Company | null>(null);
+  const [eventsFor, setEventsFor] = React.useState<Company | null>(null);
 
   // Access editor
   const [accessFor, setAccessFor] = React.useState<Company | null>(null);
@@ -159,6 +168,7 @@ function CompaniesContent() {
             <tr className="font-sans text-micro uppercase tracking-meta text-fg-muted">
               <th className="px-5 py-3 font-semibold">Nombre</th>
               <th className="px-5 py-3 font-semibold">Slug</th>
+              <th className="px-5 py-3 font-semibold">{lc.admin.statusColumn}</th>
               <th className="px-5 py-3 font-semibold">Orgs</th>
               <th className="px-5 py-3 font-semibold">Licencias (pool)</th>
               <th className="px-5 py-3 font-semibold">Áreas</th>
@@ -169,6 +179,14 @@ function CompaniesContent() {
               <tr key={c.id} className="border-b border-border last:border-0">
                 <td className="px-5 py-3 font-sans text-sm font-semibold text-fg">{c.name}</td>
                 <td className="px-5 py-3 font-mono text-xs text-fg-muted">{c.slug}</td>
+                <td className="px-5 py-3">
+                  <Badge variant={STATUS_BADGE[c.status]}>{lc.statusLabels[c.status]}</Badge>
+                  {c.status === "grace" && c.grace_ends_at ? (
+                    <p className="mt-1 text-xs text-fg-muted">
+                      {fill(lc.admin.graceUntil, { date: formatLongDate(c.grace_ends_at) })}
+                    </p>
+                  ) : null}
+                </td>
                 <td className="px-5 py-3 font-mono text-sm text-fg">{c.org_count}</td>
                 <td className="px-5 py-3 font-mono text-sm text-fg">
                   <div className="flex items-center gap-2">
@@ -207,6 +225,14 @@ function CompaniesContent() {
                       <KeyRound size={14} strokeWidth={1.75} />
                       Acceso
                     </Button>
+                    <Button variant="secondary" size="sm" onClick={() => setStatusFor(c)}>
+                      <Power size={14} strokeWidth={1.75} />
+                      {lc.admin.changeStatus}
+                    </Button>
+                    <Button variant="secondary" size="sm" onClick={() => setEventsFor(c)}>
+                      <History size={14} strokeWidth={1.75} />
+                      {lc.admin.history}
+                    </Button>
                   </div>
                 </td>
               </tr>
@@ -220,6 +246,18 @@ function CompaniesContent() {
           <p className="px-5 py-10 text-center text-sm text-fg-muted">Cargando…</p>
         ) : null}
       </Card>
+
+      {statusFor ? (
+        <CompanyStatusDialog
+          company={statusFor}
+          open
+          onClose={() => setStatusFor(null)}
+          onChanged={() => load()}
+        />
+      ) : null}
+      {eventsFor ? (
+        <CompanyEventsDialog company={eventsFor} open onClose={() => setEventsFor(null)} />
+      ) : null}
 
       <Dialog
         open={openCreate}

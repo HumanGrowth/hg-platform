@@ -4,7 +4,7 @@
 > Política en `apps/backend/src/hg/modules/company/grace_policy.py`; el test `test_grace_policy_covers_all_routes` impide rutas sin clasificar.
 > Superadmin está exento en todos los estados. `trial`/`active`: todo permitido. `suspended`/`terminated`: todo 403 salvo `POST /auth/logout`.
 
-Total: 173 rutas·método — 38 permitidas en gracia, 119 denegadas, 16 sin sesión.
+Total: 175 rutas·método — 38 permitidas en gracia, 121 denegadas, 16 sin sesión.
 
 | Ruta | Método | ¿Requiere sesión? | Decisión en gracia |
 |---|---|---|---|
@@ -25,7 +25,9 @@ Total: 173 rutas·método — 38 permitidas en gracia, 119 denegadas, 16 sin ses
 | `/admin/companies` | POST | sí | ⛔ 403 `company_read_only` |
 | `/admin/companies/{company_id}/access` | GET | sí | ⛔ 403 `company_read_only` |
 | `/admin/companies/{company_id}/access` | PUT | sí | ⛔ 403 `company_read_only` |
+| `/admin/companies/{company_id}/events` | GET | sí | ⛔ 403 `company_read_only` |
 | `/admin/companies/{company_id}/licenses` | PATCH | sí | ⛔ 403 `company_read_only` |
+| `/admin/companies/{company_id}/status` | POST | sí | ⛔ 403 `company_read_only` |
 | `/admin/contact/inquiries` | GET | sí | ⛔ 403 `company_read_only` |
 | `/admin/custom-paths` | GET | sí | ⛔ 403 `company_read_only` |
 | `/admin/custom-paths` | POST | sí | ⛔ 403 `company_read_only` |

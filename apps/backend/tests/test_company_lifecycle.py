@@ -235,3 +235,12 @@ def test_inactive_superadmin_does_not_block(db: Session) -> None:
     _go(db, c, "suspended")
     db.refresh(c)
     assert c.status == "suspended"
+
+
+def test_dry_run_does_not_require_reason(db: Session) -> None:
+    c = _company(db, status="active")
+    p = _go(db, c, "suspended", reason=None, dry_run=True)
+    assert (p.from_status, p.to_status) == ("active", "suspended")
+    db.refresh(c)
+    assert c.status == "active"
+    assert _events(db, c) == []

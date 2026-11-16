@@ -119,6 +119,17 @@ def _content_restricted_to_onboarding(db: Session, user: User) -> bool:
     return is_content_restricted(db, user)
 
 
+def _company_fields(db: Session, user: User) -> dict[str, object]:
+    """Estado de acceso de la Empresa para MeResponse (ADR-0016)."""
+    from hg.modules.company.access import effective_status
+    from hg.modules.identity.models import Company
+
+    company = db.get(Company, user.company_id)
+    if company is None:  # pragma: no cover - FK NOT NULL
+        return {}
+    return {"company_status": effective_status(company), "grace_ends_at": company.grace_ends_at}
+
+
 def _consent_fields(db: Session, user_id: object) -> dict[str, bool | None]:
     """Consentimiento granular del user para MeResponse (TASK 5 v2). null=pendiente."""
     from hg.modules.consent import service as consent_service
@@ -142,6 +153,7 @@ def me(
         has_completed_onboarding=_has_completed_onboarding(db, user.id),
         content_restricted_to_onboarding=_content_restricted_to_onboarding(db, user),
         **_consent_fields(db, user.id),
+        **_company_fields(db, user),
     )
 
 
@@ -212,6 +224,7 @@ def update_me(
         has_completed_onboarding=_has_completed_onboarding(db, db_user.id),
         content_restricted_to_onboarding=_content_restricted_to_onboarding(db, db_user),
         **_consent_fields(db, db_user.id),
+        **_company_fields(db, db_user),
     )
 
 
@@ -241,6 +254,7 @@ def set_onboarding_seen(
         has_completed_onboarding=_has_completed_onboarding(db, db_user.id),
         content_restricted_to_onboarding=_content_restricted_to_onboarding(db, db_user),
         **_consent_fields(db, db_user.id),
+        **_company_fields(db, db_user),
     )
 
 

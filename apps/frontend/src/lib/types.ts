@@ -1,3 +1,6 @@
+/** Ciclo de vida de la Empresa (ADR-0016). */
+export type CompanyStatus = "trial" | "active" | "grace" | "suspended" | "terminated";
+
 export type UserRole = "superadmin" | "company_admin" | "admin" | "manager" | "collaborator";
 export type CareerLevel = "L1" | "L2" | "L3" | "L4a" | "L4b";
 
@@ -27,6 +30,11 @@ export interface User {
    * manda a /consentimiento antes del onboarding. `undefined` = aún no cargado. */
   consent_manager?: boolean | null;
   consent_hr?: boolean | null;
+  /** Estado de acceso de la Empresa (ADR-0016, de /auth/me). Ya es el estado
+   * EFECTIVO: una gracia vencida llega como "suspended". `undefined` = aún no cargado. */
+  company_status?: CompanyStatus;
+  /** Fin de la gracia (ISO) cuando `company_status === "grace"`. */
+  grace_ends_at?: string | null;
 }
 
 /** /api/v1/auth/me = User + org_name. */
@@ -1247,9 +1255,59 @@ export interface Company {
   licenses_total: number; // pool
   licenses_used: number;
   org_count: number;
+  /** @deprecated (ADR-0016) usar `status`. */
   is_active: boolean;
   created_at: string;
+  status: CompanyStatus;
+  status_changed_at: string;
+  grace_ends_at: string | null;
+  grace_days: number;
 }
+
+/** Vista previa de una transición (dry-run) — espejo de `LifecyclePreviewOut`. */
+export interface LifecyclePreview {
+  company_id: string;
+  from_status: CompanyStatus;
+  to_status: CompanyStatus;
+  active_users_by_role: Record<string, number>;
+  active_users_total: number;
+  pending_invitations: number;
+  admins: number;
+  grace_ends_at: string | null;
+}
+
+export interface CompanyStatusChange {
+  to_status: CompanyStatus;
+  reason?: string | null;
+  dry_run?: boolean;
+  confirm_slug?: string | null;
+}
+
+export interface CompanyStatusChangeResult {
+  applied: boolean;
+  preview: LifecyclePreview;
+  company: Company;
+}
+
+export interface CompanyLifecycleEvent {
+  id: string;
+  event_type: string;
+  from_status: CompanyStatus | null;
+  to_status: CompanyStatus | null;
+  actor_user_id: string | null;
+  actor_name: string | null;
+  reason: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface CompanyLifecycleEventsPage {
+  items: CompanyLifecycleEvent[];
+  total: number;
+}
+
+/** Códigos de error 403 del enforcement de empresa (ADR-0016). */
+export type CompanyAccessCode = "company_read_only" | "company_suspended" | "company_terminated";
 
 export interface CompanyOrg {
   // CE-06: la org es la unidad operativa; el pool vive en la Empresa.

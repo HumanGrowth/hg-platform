@@ -11,7 +11,8 @@ import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Input, Label } from "@/components/ui/input";
-import { ApiError, apiLogin } from "@/lib/api";
+import { ApiError, apiLogin, companyAccessError } from "@/lib/api";
+import { getCopy } from "@/lib/i18n";
 import { homeRouteFor } from "@/lib/home-route";
 import { useAuthStore } from "@/lib/auth-store";
 import { toast } from "@/lib/toast-store";
@@ -45,6 +46,12 @@ function LoginInner() {
       setSession(user, accessToken);
       router.replace(homeRouteFor(user.role) as never);
     } catch (err) {
+      // Empresa sin acceso (ADR-0016): el backend lo informa solo con credenciales válidas.
+      const blocked = companyAccessError(err);
+      if (blocked) {
+        setFormError(blocked.message || getCopy().companyLifecycle.blocked.message);
+        return;
+      }
       setFormError(
         err instanceof ApiError && err.status === 401
           ? "Email o contraseña incorrectos."

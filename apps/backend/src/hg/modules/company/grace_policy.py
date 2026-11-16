@@ -80,6 +80,8 @@ GRACE_ALLOW: Final[frozenset[Route]] = frozenset(
 # (Generada desde las rutas registradas y revisada a mano; ver tabla del PR.)
 GRACE_DENY_REVIEWED: Final[frozenset[Route]] = frozenset(
     {
+        ("GET", "/admin/companies/{company_id}/events"),
+        ("POST", "/admin/companies/{company_id}/status"),
         ("GET", "/admin/areas"),
         ("POST", "/admin/areas"),
         ("PATCH", "/admin/areas/{code}"),

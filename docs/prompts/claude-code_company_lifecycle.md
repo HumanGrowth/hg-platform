@@ -190,7 +190,7 @@ Reglas (ver matriz arriba):
   - El 403 con `detail` dict aún no lo interpreta `lib/api.ts` → se adapta en LC-05 (mismo PR/rama).
 - **Aceptación:** todos los tests nuevos + suite completa verdes.
 
-## TASK LC-05 · Endpoints superadmin + UI de administración · `[ ]`
+## TASK LC-05 · Endpoints superadmin + UI de administración · `✅ DONE` (2026-11-16)
 
 Backend (`company/router.py`, `admin_router`, solo `superadmin`):
 - `POST /admin/companies/{id}/status` body `{to_status, reason, dry_run?, confirm_slug?}`. Para `suspended`/`terminated`
@@ -206,6 +206,13 @@ Frontend (`apps/frontend/src/app/(admin)/admin/companies/page.tsx` y `lib/types.
   está pausado. Contacta a tu administrador de RRHH."; en login, mismo mensaje). Banner persistente en gracia:
   "Tu empresa ya no tiene licencia activa. Puedes ver tu progreso hasta el {fecha}." Tono cercano, sin jerga, es-first
   con paridad en en. Respetá el design system (tokens en `apps/frontend`).
+- [x] `POST /admin/companies/{id}/status` + `GET .../events` · [x] `CompanyOut` y `/auth/me` con estado · [x] chip + diálogo dry-run→motivo→slug→aplicar + historial · [x] banner de gracia · [x] pantalla `/acceso-pausado` · [x] copy es/en · [x] `lib/api.ts` entiende `detail` objeto (ApiError.code, `companyAccessError`)
+- Notas:
+  - **Ajuste a LC-03:** `dry_run` ya no exige motivo (la UI lo pide después de mostrar los números; si no, la vista previa de suspender sería imposible). Test agregado.
+  - Empresas nuevas arrancan en `trial` si `billing_status='trial'` (mismo criterio que el backfill), si no `active`.
+  - Al recibir 403 `company_suspended/terminated` el interceptor limpia la sesión y manda a `/acceso-pausado`; en gracia, una escritura bloqueada muestra toast y los GET bloqueados no (evita spam).
+  - Los 2 endpoints nuevos se clasificaron como denegados en la allowlist de gracia (solo superadmin, que está exento); el test de cobertura los detectó.
+  - Frontend: 26 tests nuevos; siguen fallando los 3 previos de `acceptInviteSchema`.
 - **Aceptación:** tests de componentes (vitest) para el diálogo de cambio de estado, el banner y la pantalla de bloqueo;
   `pnpm build` verde.
 
