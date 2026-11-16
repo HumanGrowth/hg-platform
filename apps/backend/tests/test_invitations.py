@@ -84,7 +84,7 @@ def test_accept_invite_creates_user_and_consumes_license(
 
     res = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": inv["invite_token"], "password": "Brand0New!!", "full_name": "Fresh Hire"},
+        json={"token": inv["invite_token"], "password": "Brand0New!!", "accepted_terms": True, "full_name": "Fresh Hire"},
     )
     assert res.status_code == 200, res.text
     body = res.json()
@@ -100,7 +100,7 @@ def test_accept_invite_creates_user_and_consumes_license(
     # No reutilizable -> 410.
     again = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": inv["invite_token"], "password": "Brand0New!!", "full_name": "Fresh Hire"},
+        json={"token": inv["invite_token"], "password": "Brand0New!!", "accepted_terms": True, "full_name": "Fresh Hire"},
     )
     assert again.status_code == 410
 
@@ -127,7 +127,7 @@ def test_accept_invite_expired_410(client: TestClient, factory) -> None:
     token = _seed_invitation(factory, org=org, expires_at=datetime.now(UTC) - timedelta(days=1))
     res = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": token, "password": "Whatever!!12", "full_name": "Late"},
+        json={"token": token, "password": "Whatever!!12", "accepted_terms": True, "full_name": "Late"},
     )
     assert res.status_code == 410
 
@@ -141,7 +141,7 @@ def test_accept_invite_already_used_410(client: TestClient, factory) -> None:
     )
     res = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": token, "password": "Whatever!!12", "full_name": "Dup"},
+        json={"token": token, "password": "Whatever!!12", "accepted_terms": True, "full_name": "Dup"},
     )
     assert res.status_code == 410
 
@@ -155,6 +155,6 @@ def test_accept_invite_revoked_410(client: TestClient, factory) -> None:
     )
     res = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": token, "password": "Whatever!!12", "full_name": "Revoked"},
+        json={"token": token, "password": "Whatever!!12", "accepted_terms": True, "full_name": "Revoked"},
     )
     assert res.status_code == 410

@@ -35,6 +35,8 @@ export const acceptInviteSchema = z.object({
       "Usá tu correo, o un usuario de 3-30 caracteres (letras, números, . _ -).",
     ),
   password: z.string().min(6, "Mínimo 6 caracteres"),
+  // El mensaje localizado lo pinta la página; acá solo se exige el literal true.
+  acceptedTerms: z.literal(true, { errorMap: () => ({ message: "terms" }) }),
 });
 export type AcceptInviteValues = z.infer<typeof acceptInviteSchema>;
 

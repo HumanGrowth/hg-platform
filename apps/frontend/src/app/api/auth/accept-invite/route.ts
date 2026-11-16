@@ -10,6 +10,7 @@ export async function POST(req: Request) {
       token: body.token,
       password: body.password,
       username_or_email: body.usernameOrEmail,
+      accepted_terms: body.acceptedTerms === true,
     }),
   });
   const data = await res.json();

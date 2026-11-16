@@ -118,8 +118,18 @@ export function apiErrorMessage(err: unknown, fallback: string): string {
 export const apiLogin = (email: string, password: string, orgSlug?: string) =>
   postJson<AuthResult>("/api/auth/login", { email, password, orgSlug });
 
-export const apiAcceptInvite = (token: string, password: string, usernameOrEmail: string) =>
-  postJson<AuthResult>("/api/auth/accept-invite", { token, password, usernameOrEmail });
+export const apiAcceptInvite = (
+  token: string,
+  password: string,
+  usernameOrEmail: string,
+  acceptedTerms: boolean,
+) =>
+  postJson<AuthResult>("/api/auth/accept-invite", {
+    token,
+    password,
+    usernameOrEmail,
+    acceptedTerms,
+  });
 
 export const apiForgotPassword = (email: string) =>
   postJson<{ status: string }>("/api/auth/forgot-password", { email });

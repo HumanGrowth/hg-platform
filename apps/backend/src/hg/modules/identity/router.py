@@ -263,5 +263,6 @@ def accept_invite(
         password=body.password,
         username_or_email=body.username_or_email,
         full_name=body.full_name,
+        accepted_terms=body.accepted_terms,
     )
     return TokenResponse(access_token=access, refresh_token=refresh, user=UserOut.model_validate(user))

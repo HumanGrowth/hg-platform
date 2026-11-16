@@ -22,7 +22,7 @@ def test_accept_with_username(client: TestClient, factory, auth_headers) -> None
     token = _invite(client, factory, auth_headers, org, "u1@hgtest.test")
     res = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": token, "password": "Brand0New!!", "username_or_email": "cool_user"},
+        json={"token": token, "password": "Brand0New!!", "accepted_terms": True, "username_or_email": "cool_user"},
     )
     assert res.status_code == 200, res.text
     user = res.json()["user"]
@@ -36,7 +36,7 @@ def test_accept_with_matching_email(client: TestClient, factory, auth_headers) -
     token = _invite(client, factory, auth_headers, org, "maria.perez@hgtest.test")
     res = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": token, "password": "Brand0New!!", "username_or_email": "maria.perez@hgtest.test"},
+        json={"token": token, "password": "Brand0New!!", "accepted_terms": True, "username_or_email": "maria.perez@hgtest.test"},
     )
     assert res.status_code == 200, res.text
     user = res.json()["user"]
@@ -49,7 +49,7 @@ def test_accept_with_non_matching_email_400(client: TestClient, factory, auth_he
     token = _invite(client, factory, auth_headers, org, "invited@hgtest.test")
     res = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": token, "password": "Brand0New!!", "username_or_email": "someone.else@x.test"},
+        json={"token": token, "password": "Brand0New!!", "accepted_terms": True, "username_or_email": "someone.else@x.test"},
     )
     assert res.status_code == 400
 
@@ -60,12 +60,12 @@ def test_duplicate_username_in_org_409(client: TestClient, factory, auth_headers
     t2 = _invite(client, factory, auth_headers, org, "b@hgtest.test")
     first = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": t1, "password": "Brand0New!!", "username_or_email": "samename"},
+        json={"token": t1, "password": "Brand0New!!", "accepted_terms": True, "username_or_email": "samename"},
     )
     assert first.status_code == 200, first.text
     second = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": t2, "password": "Brand0New!!", "username_or_email": "samename"},
+        json={"token": t2, "password": "Brand0New!!", "accepted_terms": True, "username_or_email": "samename"},
     )
     assert second.status_code == 409
 
@@ -75,7 +75,7 @@ def test_backward_compat_full_name(client: TestClient, factory, auth_headers) ->
     token = _invite(client, factory, auth_headers, org, "legacy@hgtest.test")
     res = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": token, "password": "Brand0New!!", "full_name": "Legacy Name"},
+        json={"token": token, "password": "Brand0New!!", "accepted_terms": True, "full_name": "Legacy Name"},
     )
     assert res.status_code == 200, res.text
     assert res.json()["user"]["full_name"] == "Legacy Name"
@@ -87,7 +87,7 @@ def test_accept_allows_6_char_password(client: TestClient, factory, auth_headers
     token = _invite(client, factory, auth_headers, org, "sixchars@hgtest.test")
     res = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": token, "password": "abc123", "username_or_email": "six_user"},
+        json={"token": token, "password": "abc123", "username_or_email": "six_user", "accepted_terms": True},
     )
     assert res.status_code == 200, res.text
 
@@ -100,3 +100,45 @@ def test_accept_rejects_5_char_password_422(client: TestClient, factory, auth_he
         json={"token": token, "password": "abc12", "username_or_email": "five_user"},
     )
     assert res.status_code == 422, res.text
+
+
+def test_accept_requires_terms(client: TestClient, factory, auth_headers) -> None:
+    org = factory.make_org(licenses_total=10)
+    token = _invite(client, factory, auth_headers, org, "noterms@hgtest.test")
+    res = client.post(
+        "/api/v1/auth/accept-invite",
+        json={"token": token, "password": "Brand0New!!", "username_or_email": "noterms"},
+    )
+    assert res.status_code == 422, res.text
+    res = client.post(
+        "/api/v1/auth/accept-invite",
+        json={
+            "token": token,
+            "password": "Brand0New!!",
+            "username_or_email": "noterms",
+            "accepted_terms": False,
+        },
+    )
+    assert res.status_code == 422, res.text
+
+
+def test_accept_persists_terms_acceptance(client: TestClient, factory, auth_headers) -> None:
+    from hg.modules.identity.service import TERMS_VERSION, find_user_by_email
+
+    org = factory.make_org(licenses_total=10)
+    token = _invite(client, factory, auth_headers, org, "terms@hgtest.test")
+    res = client.post(
+        "/api/v1/auth/accept-invite",
+        json={
+            "token": token,
+            "password": "Brand0New!!",
+            "username_or_email": "terms",
+            "accepted_terms": True,
+        },
+    )
+    assert res.status_code == 200, res.text
+    factory.session.expire_all()
+    user = find_user_by_email(factory.session, org.id, "terms@hgtest.test")
+    assert user is not None
+    assert user.terms_accepted_at is not None
+    assert user.terms_version == TERMS_VERSION

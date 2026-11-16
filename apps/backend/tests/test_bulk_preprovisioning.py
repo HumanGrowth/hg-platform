@@ -225,7 +225,7 @@ def test_modules_sheet_assigns_to_org_and_invited_receive_them_on_accept(
         factory.session.commit()
         acc = client.post(
             "/api/v1/auth/accept-invite",
-            json={"token": plain, "password": "Brand0New!!", "username_or_email": "nuevo" + uuid4().hex[:4]},
+            json={"token": plain, "password": "Brand0New!!", "accepted_terms": True, "username_or_email": "nuevo" + uuid4().hex[:4]},
         )
         assert acc.status_code == 200, acc.text
         factory.session.expire_all()

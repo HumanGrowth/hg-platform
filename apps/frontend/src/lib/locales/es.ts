@@ -335,6 +335,15 @@ export const es = {
     linkedin: "https://www.linkedin.com/company/humangrowthlatam",
     instagram: "https://www.instagram.com/humangrowth.io",
   },
+  signupTerms: {
+    prefix: "He leído y acepto los",
+    terms: "Términos de Servicio",
+    and: "y la",
+    privacy: "Política de Privacidad",
+    termsHref: "/legal/terminos.html",
+    privacyHref: "/legal/privacidad.html",
+    error: "Debes aceptar los términos para continuar.",
+  },
   method: {
     meta: {
       title: "El Método — Human Growth",

@@ -188,7 +188,7 @@ PROCHASKA_B = [
 
 
 def _prochaska() -> list[tuple]:
-    out = []
+    out: list[tuple] = []
     order = 1
     for (ca, dom, pa, labels), (cb, _dom, pb) in zip(PROCHASKA_A, PROCHASKA_B, strict=True):
         a_opts = [(lab, i, None) for i, lab in enumerate(labels)]  # value 0..4

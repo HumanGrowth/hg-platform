@@ -335,6 +335,15 @@ export const en = {
     linkedin: "https://www.linkedin.com/company/humangrowthlatam",
     instagram: "https://www.instagram.com/humangrowth.io",
   },
+  signupTerms: {
+    prefix: "I have read and accept the",
+    terms: "Terms of Service",
+    and: "and the",
+    privacy: "Privacy Policy",
+    termsHref: "/legal/terms.html",
+    privacyHref: "/legal/privacy.html",
+    error: "You must accept the terms to continue.",
+  },
   method: {
     meta: {
       title: "The Method — Human Growth",

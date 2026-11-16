@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 
+import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
@@ -23,6 +24,7 @@ function AcceptInviteInner() {
   const params = useSearchParams();
   const token = params.get("token") ?? "";
   const setSession = useAuthStore((s) => s.setSession);
+  const legal = useMarketingCopy().signupTerms;
 
   const [info, setInfo] = React.useState<InviteInfo | null>(null);
   const [loadError, setLoadError] = React.useState<string | null>(null);
@@ -50,6 +52,7 @@ function AcceptInviteInner() {
         token,
         values.password,
         values.usernameOrEmail,
+        values.acceptedTerms,
       );
       setSession(user, accessToken);
       router.replace(homeRouteFor(user.role) as never);
@@ -119,6 +122,44 @@ function AcceptInviteInner() {
             ) : (
               <p className="mt-1 text-xs text-fg-subtle">Mínimo 6 caracteres.</p>
             )}
+          </div>
+
+          <div>
+            <label htmlFor="acceptedTerms" className="flex items-start gap-2 text-sm text-fg-muted">
+              <input
+                id="acceptedTerms"
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 shrink-0"
+                aria-invalid={errors.acceptedTerms ? true : undefined}
+                {...register("acceptedTerms")}
+              />
+              <span>
+                {legal.prefix}{" "}
+                <a
+                  href={legal.termsHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-fg underline"
+                >
+                  {legal.terms}
+                </a>{" "}
+                {legal.and}{" "}
+                <a
+                  href={legal.privacyHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-fg underline"
+                >
+                  {legal.privacy}
+                </a>
+                .
+              </span>
+            </label>
+            {errors.acceptedTerms ? (
+              <p role="alert" className="mt-1 text-xs text-danger">
+                {legal.error}
+              </p>
+            ) : null}
           </div>
 
           {formError ? (
