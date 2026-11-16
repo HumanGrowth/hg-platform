@@ -139,7 +139,7 @@ Una sola migración, con `downgrade`:
 - Notas: revision `lc01companylifecycle` (archivo `LC-01_company_lifecycle.py`); también se agregó `CHECK grace_days` y el import de `company.models` en `migrations/env.py`. Probado en la DB local (upgrade/downgrade/upgrade); `make migrate` usa el contenedor, se corrió `alembic` del venv del host.
 - **Aceptación:** `make migrate` y `alembic downgrade -1` funcionan; un solo head; test de grants pasa.
 
-## TASK LC-03 · Servicio único de transiciones · `[ ]`
+## TASK LC-03 · Servicio único de transiciones · `✅ DONE` (2026-11-16)
 
 - Nuevo módulo `apps/backend/src/hg/modules/company/lifecycle.py` con `transition_company(db, *, company_id, to_status,
   actor, reason, dry_run=False)` como **único** escritor de `status`. Valida la matriz de transiciones, exige `reason`
@@ -149,6 +149,8 @@ Una sola migración, con `downgrade`:
   pendientes, admins/company_admin, fecha de fin de gracia resultante.
 - **Superadmin nunca queda bloqueado**: la lógica de enforcement (LC-04) lo exime; este servicio impide suspender la
   empresa a la que pertenece el último superadmin activo (409).
+- [x] `transition_company` único escritor · [x] `dry_run` → `LifecyclePreview` · [x] guardia del último superadmin
+- Notas: errores como `HTTPException` con `detail={code,message}` (404 `company_not_found`, 409 `invalid_transition`/`last_superadmin`, 422 `reason_required`/`invalid_status`). Motivo exigido para `suspended`/`terminated`. `actor=None` = proceso automático (LC-09). "Último superadmin" = la empresa aloja a un superadmin activo y no hay otro superadmin activo en otra empresa.
 - **Aceptación:** tests unitarios de la matriz completa (cada transición válida e inválida), de que el evento se
   escribe, de que `dry_run` no escribe, y del límite del último superadmin.
 
