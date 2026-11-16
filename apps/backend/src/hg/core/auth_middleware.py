@@ -16,7 +16,7 @@ from __future__ import annotations
 from collections.abc import Generator
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 from hg.core.security import decode_token
 from hg.core.tenancy import set_org_context
 from hg.db import SessionLocal, get_db
-from hg.modules.identity.models import User
+from hg.modules.identity.models import Company, User, UserRole
 
 bearer = HTTPBearer(auto_error=True)
 
@@ -50,6 +50,7 @@ def get_db_as_superadmin() -> Generator[Session, None, None]:
 
 
 def get_current_user(
+    request: Request,
     creds: HTTPAuthorizationCredentials = Depends(bearer),
     db: Session = Depends(get_db),
 ) -> User:
@@ -84,7 +85,17 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="user not found or inactive"
         )
 
-    # 3. last_active_at best-effort, no bloqueante (ver hg.modules.identity.tasks).
+    # 3. Ciclo de vida de la Empresa (ADR-0016): el token emitido antes de suspender
+    #    muere en el siguiente request. Una lectura por PK a `companies` (sin RLS);
+    #    superadmin está exento y no la paga. Se identifica la ruta por su plantilla.
+    if user.role != UserRole.superadmin:
+        from hg.modules.company.access import assert_company_allows
+
+        route = request.scope.get("route")
+        template = getattr(route, "path", None) or request.url.path
+        assert_company_allows(request.method, template, user, db.get(Company, user.company_id))
+
+    # 4. last_active_at best-effort, no bloqueante (ver hg.modules.identity.tasks).
     _touch_last_active(user_id, org_id)
     return user
 

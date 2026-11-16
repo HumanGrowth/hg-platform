@@ -154,7 +154,7 @@ Una sola migración, con `downgrade`:
 - **Aceptación:** tests unitarios de la matriz completa (cada transición válida e inválida), de que el evento se
   escribe, de que `dry_run` no escribe, y del límite del último superadmin.
 
-## TASK LC-04 · Enforcement único · `[ ]`
+## TASK LC-04 · Enforcement único · `✅ DONE` (2026-11-16)
 
 Una función `assert_company_allows(request_method, request_path, user, company)` usada desde:
 `get_current_user` (agregá `request: Request`), `identity.service.login`, `refresh_tokens`, y el flujo de **aceptar
@@ -180,6 +180,14 @@ Reglas (ver matriz arriba):
   suspender muere en el siguiente request; en gracia GET de progreso pasa y POST de contenido/assessment da 403;
   company_admin en gracia puede exportar pero no invitar; aceptar invitación bloqueado en gracia/suspendida;
   superadmin de una empresa suspendida entra; **aislamiento**: suspender empresa A no afecta a B; reactivar restaura todo.
+- [x] `assert_company_allows` (`company/access.py`) en `get_current_user`, `authenticate`, `refresh_tokens` · [x] accept-invite bloqueado fuera de trial/active · [x] allowlist deny-por-defecto (`company/grace_policy.py`) · [x] tabla de rutas (`docs/audits/LC-04-grace-route-table.md`) · [x] tests (`test_company_enforcement.py`, 24)
+- Notas / hallazgos:
+  - Rutas por **plantilla + método**; test `test_grace_policy_covers_all_routes` falla ante rutas autenticadas sin clasificar.
+  - Costo medido en local: lectura de `companies` por PK p50 0.40 ms / p95 0.50 ms → **sin caché Redis** (no optimizar antes de medir en Neon/Railway; superadmin no la paga).
+  - **Plan vs. código:** el plan dice "company_admin en gracia puede exportar", pero el único export CSV de RRHH (`/admin/org/users/export.csv`) exige rol `admin`/`superadmin`, no `company_admin`. El test cubre `admin` (export OK) y `company_admin` (lee `/company/members`, no invita). No se cambió el RBAC.
+  - **Criterio a confirmar por Andy:** en gracia `POST /me/consent` queda denegado (regla "nada de escrituras"), lo que impide retirar un consentimiento durante la gracia. Revisar con legal; si debe poder retirarse, mover esa ruta a `GRACE_ALLOW`.
+  - Rutas sin sesión (`/courses`, `/paths/{code}/courses`, `/perspectives*`) no pasan por `get_current_user` y no se pueden bloquear por empresa.
+  - El 403 con `detail` dict aún no lo interpreta `lib/api.ts` → se adapta en LC-05 (mismo PR/rama).
 - **Aceptación:** todos los tests nuevos + suite completa verdes.
 
 ## TASK LC-05 · Endpoints superadmin + UI de administración · `[ ]`

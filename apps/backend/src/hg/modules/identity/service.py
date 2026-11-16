@@ -27,6 +27,7 @@ from hg.core.security import (
     hash_password,
     verify_password,
 )
+from hg.modules.company.access import assert_company_accepts_invitations, assert_company_allows
 from hg.modules.identity.invitations import Invitation
 from hg.modules.identity.models import (
     Company,
@@ -188,6 +189,10 @@ def authenticate(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=_INVALID_CREDENTIALS
         )
 
+    # Solo DESPUÉS de verificar la contraseña se revela el estado de la empresa
+    # (así el 403 no filtra qué emails existen). Ver ADR-0016.
+    assert_company_allows("POST", "/auth/login", user, db.get(Company, user.company_id))
+
     user.last_login_at = _now()
     access, refresh = _issue_session(db, user)
     return user, access, refresh
@@ -216,6 +221,8 @@ def refresh_tokens(db: Session, *, refresh_token: str) -> tuple[User, str, str]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="user not found or inactive"
         )
+
+    assert_company_allows("POST", "/auth/refresh", user, db.get(Company, user.company_id))
 
     # Rotación: revoca la vieja, emite una nueva.
     session.revoked_at = _now()
@@ -378,6 +385,8 @@ def accept_invite(
     org = db.get(Organization, invitation.org_id)
     if org is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="organization not found")
+    # Empresa en gracia/suspendida/terminada: no se aceptan invitaciones (ADR-0016).
+    assert_company_accepts_invitations(db.get(Company, org.company_id))
     check_license_available(db, org)
 
     # Release TASK 3.4: el form pide "usuario o correo" único. Si es email, debe
