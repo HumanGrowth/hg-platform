@@ -342,6 +342,11 @@ def invitation_info(db: Session, *, token: str) -> dict:
     }
 
 
+# Versión vigente de Términos + Privacidad (public/legal/*). Subirla al publicar
+# un cambio legal; cada usuario conserva la versión que aceptó.
+TERMS_VERSION = "2026-09"
+
+
 def accept_invite(
     db: Session,
     *,
@@ -349,7 +354,13 @@ def accept_invite(
     password: str,
     username_or_email: str | None = None,
     full_name: str | None = None,
+    accepted_terms: bool = False,
 ) -> tuple[User, str, str]:
+    if not accepted_terms:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="debes aceptar los términos y la política de privacidad",
+        )
     token_hash = hash_opaque_token(token)
     invitation = db.execute(
         select(Invitation).where(Invitation.token_hash == token_hash)
@@ -405,6 +416,8 @@ def accept_invite(
             "is_invited": False,
             "hashed_password": hash_password(password),
             "last_login_at": _now(),
+            "terms_accepted_at": _now(),
+            "terms_version": TERMS_VERSION,
         }
         if username is not None:
             values["username"] = username
@@ -443,6 +456,8 @@ def accept_invite(
             username=username,
             role=invitation.role,
             last_login_at=_now(),
+            terms_accepted_at=_now(),
+            terms_version=TERMS_VERSION,
         )
         db.add(user)
         try:

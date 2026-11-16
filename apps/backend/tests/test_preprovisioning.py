@@ -68,7 +68,7 @@ def test_accept_activates_invited_user_and_keeps_configuration(
 
     res = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": inv["invite_token"], "password": "Brand0New!!", "username_or_email": "anap"},
+        json={"token": inv["invite_token"], "password": "Brand0New!!", "accepted_terms": True, "username_or_email": "anap"},
     )
     assert res.status_code == 200, res.text
 
@@ -84,7 +84,7 @@ def test_accept_activates_invited_user_and_keeps_configuration(
     assert company_active_users(factory.session, org.company_id) == 3
 
     # La contraseña nueva funciona.
-    login = client.post("/api/v1/auth/login", json={"email": email, "password": "Brand0New!!"})
+    login = client.post("/api/v1/auth/login", json={"email": email, "password": "Brand0New!!", "accepted_terms": True})
     assert login.status_code == 200, login.text
 
 
@@ -92,7 +92,7 @@ def test_accept_twice_is_rejected(client: TestClient, factory, auth_headers) -> 
     org = factory.make_org(licenses_total=10)
     admin = factory.make_user(org=org, role=UserRole.admin)
     inv = _invite(client, auth_headers(admin), org, _email())
-    body = {"token": inv["invite_token"], "password": "Brand0New!!", "username_or_email": "dup1"}
+    body = {"token": inv["invite_token"], "password": "Brand0New!!", "accepted_terms": True, "username_or_email": "dup1"}
     assert client.post("/api/v1/auth/accept-invite", json=body).status_code == 200
     assert client.post("/api/v1/auth/accept-invite", json=body).status_code == 410
 
@@ -117,7 +117,7 @@ def test_legacy_invitation_without_user_row_still_creates_user(
     factory.session.commit()
     res = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": plain, "password": "Brand0New!!", "username_or_email": "legacy1"},
+        json={"token": plain, "password": "Brand0New!!", "accepted_terms": True, "username_or_email": "legacy1"},
     )
     assert res.status_code == 200, res.text
     factory.session.expire_all()
@@ -198,12 +198,12 @@ def test_reinvite_revokes_previous_token(client: TestClient, factory, auth_heade
 
     old = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": first["invite_token"], "password": "Brand0New!!", "username_or_email": "reinv1"},
+        json={"token": first["invite_token"], "password": "Brand0New!!", "accepted_terms": True, "username_or_email": "reinv1"},
     )
     assert old.status_code == 410  # revocada
     new = client.post(
         "/api/v1/auth/accept-invite",
-        json={"token": second["invite_token"], "password": "Brand0New!!", "username_or_email": "reinv1"},
+        json={"token": second["invite_token"], "password": "Brand0New!!", "accepted_terms": True, "username_or_email": "reinv1"},
     )
     assert new.status_code == 200, new.text
     factory.session.expire_all()

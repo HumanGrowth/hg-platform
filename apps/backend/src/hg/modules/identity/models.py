@@ -180,6 +180,10 @@ class User(Base):
     )
     # Tour de features post-primer-login (Release TASK 6). False = mostrar el tour.
     has_seen_onboarding: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Aceptación de Términos + Privacidad al crear la cuenta. NULL = cuenta previa
+    # a este requisito (no se les pide retroactivamente).
+    terms_accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    terms_version: Mapped[str | None] = mapped_column(String(20))
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_active_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

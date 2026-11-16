@@ -115,6 +115,8 @@ class AcceptInviteRequest(BaseModel):
     # mantiene opcional para backward-compat con el frontend viejo.
     username_or_email: str | None = Field(default=None, min_length=1, max_length=254)
     full_name: str | None = Field(default=None, min_length=1, max_length=255)
+    # Aceptación de Términos + Privacidad: obligatoria para crear la cuenta.
+    accepted_terms: bool = False
 
     @model_validator(mode="after")
     def _require_identifier(self) -> AcceptInviteRequest:

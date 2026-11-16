@@ -102,7 +102,9 @@ def _find_local_videos(content_dir: Path | None, slug: str) -> list[Path]:
     return sorted(content_dir.glob(f"CP-{level}-{dimension}-{seq}*.mp4"))
 
 
-def _fallback_event_video_url(db: Session, dimension_code: str) -> str | None:
+def _fallback_event_video_url(db: Session, dimension_code: str | None) -> str | None:
+    if dimension_code is None:  # dimensión sin career path mapeado → sin evento que reusar
+        return None
     return db.scalar(
         select(Event.video_url)
         .join(CareerPath, Event.career_path_id == CareerPath.id)
@@ -111,7 +113,9 @@ def _fallback_event_video_url(db: Session, dimension_code: str) -> str | None:
     )
 
 
-def _build_video_specs(db: Session, content_dir: Path | None, slug: str, dimension_code: str) -> list[dict[str, Any]]:
+def _build_video_specs(
+    db: Session, content_dir: Path | None, slug: str, dimension_code: str | None
+) -> list[dict[str, Any]]:
     """Uno o más specs de video_teaching — video_url siempre es un placeholder
     http(s) reproducible (evento existente del pilar, o genérico); el MP4
     local (si existe) solo se documenta en eyebrow_label para el upload a R2
