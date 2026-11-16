@@ -116,7 +116,7 @@ Revisá cómo `lib/api.ts` hoy interpreta `detail` (en otros endpoints es string
   Nota: el Project de Claude tiene otro `ADR-0013-assessment-conversacional-y-memoria-hugie` que choca con
   `ADR-0013-rrhh-dashboard-v2` del repo; **no lo renumeres tú**, solo anótalo en el PR para que Andy decida.
 
-## TASK LC-02 · Migración `LC-01_company_lifecycle` · `[ ]`
+## TASK LC-02 · Migración `LC-01_company_lifecycle` · `✅ DONE` (2026-11-16)
 
 Una sola migración, con `downgrade`:
 
@@ -135,6 +135,8 @@ Una sola migración, con `downgrade`:
      Verificá con un test que `UPDATE`/`DELETE` fallan con `permission denied`.
 4. **Dejar `companies.is_active` en su lugar pero deprecado** (comentario en el modelo): no se renombra ni se borra en
    este bloque. `billing_status` sigue siendo dato comercial libre hasta una fase de facturación.
+- [x] columnas + backfill + CHECK · [x] `company_lifecycle_events` append-only con REVOKE · [x] `is_active` deprecado en el modelo
+- Notas: revision `lc01companylifecycle` (archivo `LC-01_company_lifecycle.py`); también se agregó `CHECK grace_days` y el import de `company.models` en `migrations/env.py`. Probado en la DB local (upgrade/downgrade/upgrade); `make migrate` usa el contenedor, se corrió `alembic` del venv del host.
 - **Aceptación:** `make migrate` y `alembic downgrade -1` funcionan; un solo head; test de grants pasa.
 
 ## TASK LC-03 · Servicio único de transiciones · `[ ]`
