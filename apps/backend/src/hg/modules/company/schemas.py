@@ -230,6 +230,14 @@ class BulkImportModuleRowOut(BaseModel):
     motivo: str | None = None
 
 
+class LicenseUsageOut(BaseModel):
+    active: int
+    invited: int
+    to_invite: int
+    pool: int
+    overage: int
+
+
 class BulkImportResponse(BaseModel):
     # Resumen de la hoja de miembros (contrato original del importador).
     total: int
@@ -243,6 +251,8 @@ class BulkImportResponse(BaseModel):
     advertencias: list[str] = []
     solo_validar: bool = False
     invitaciones_enviadas: int = 0
+    # Uso proyectado de licencias (LC-06). Solo informa; el envío lo frena el 409.
+    licencias: LicenseUsageOut | None = None
 
 
 class SendInvitationsRequest(BaseModel):
@@ -250,6 +260,8 @@ class SendInvitationsRequest(BaseModel):
     org_id: UUID | None = None
     user_ids: list[UUID] | None = None
     include_expired: bool = True
+    # LC-06: reconocer explícitamente que el envío supera las licencias de la empresa.
+    acknowledge_overage: bool = False
 
 
 class SendInvitationsResponse(BaseModel):

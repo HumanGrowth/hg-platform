@@ -22,6 +22,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
+from hg.modules.company import license_guard
 from hg.modules.company import service as company_service
 from hg.modules.identity import service as identity_service
 from hg.modules.identity.invitations import Invitation
@@ -109,6 +110,7 @@ def send_invitations(
     org_id: UUID | None = None,
     user_ids: list[UUID] | None = None,
     include_expired: bool = True,
+    acknowledge_overage: bool = False,
 ) -> SendResult:
     """Envío en lote.
 
@@ -134,6 +136,13 @@ def send_invitations(
     result = SendResult()
     batch, rest = targets[:MAX_SEND_PER_CALL], targets[MAX_SEND_PER_CALL:]
     result.remaining = len(rest)
+    # LC-06: ANTES de mandar cualquier correo. Solo cuentan los que recibirían una
+    # invitación nueva (los de invitación vigente ya están en `invited`).
+    license_guard.enforce_overage_guard(
+        db, company_id=company_id, actor=actor,
+        to_invite=len(license_guard.unsent_invited_ids(db, company_id, [u.id for u in batch])),
+        acknowledge_overage=acknowledge_overage, source="send_invitations",
+    )
     sent, failed = send_to_users(
         db, actor=actor, user_ids=[u.id for u in batch], only_unsent=False
     )

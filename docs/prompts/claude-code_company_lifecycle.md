@@ -216,7 +216,7 @@ Frontend (`apps/frontend/src/app/(admin)/admin/companies/page.tsx` y `lib/types.
 - **Aceptación:** tests de componentes (vitest) para el diálogo de cambio de estado, el banner y la pantalla de bloqueo;
   `pnpm build` verde.
 
-## TASK LC-06 · Guardia de sobrecupo en bulk e invitaciones · `[ ]`
+## TASK LC-06 · Guardia de sobrecupo en bulk e invitaciones · `✅ DONE` (2026-11-16)
 
 Regla: **no se puede enviar invitaciones si el uso proyectado supera el pool, salvo reconocimiento explícito.**
 Uso proyectado = `activos + invitados vigentes + los que se están por invitar` frente a `licenses_total`
@@ -235,6 +235,14 @@ Uso proyectado = `activos + invitados vigentes + los que se están por invitar` 
   tu administrador."), y notificá al `company_admin` (reusá `notifications`/email existente; rate-limit para no spamear).
 - **Frontend** (`(admin)/admin/empresa/importar/page.tsx` y el paso de envío): modal con los números y dos salidas
   ("Ajustar licencias" / "Enviar de todos modos"), antes de enviar.
+- [x] `projected_license_usage` (`company/license_guard.py`) reusada por bulk, envío y advertencia estructurada (`licencias` en la respuesta del bulk) · [x] 409 `license_overage` antes de cualquier correo · [x] `acknowledge_overage` + evento `overage_acknowledged` · [x] accept-invite sin cupo → `license_pool_exhausted` + aviso rate-limited (1/día/empresa, Redis) al `company_admin` (fallback `admin`) · [x] modal con dos salidas · [x] tests (22 backend, 12 frontend)
+- Notas / hallazgos:
+  - **El bulk ya limitaba filas contra el pool al cargar** (`reserve()`: activos + creados en la carrera → fila con error "se excede el pool"). Eso NO cambió. El sobrecupo que ahora frena es el que se arma por acumulación: invitados vigentes previos + los nuevos. Los tests lo reflejan.
+  - Un 409 en el bulk con envío **revierte la carga completa** (la dependencia hace rollback): no queda nada escrito ni sale ningún correo; el cliente reintenta el mismo archivo con `acknowledge_overage=true`.
+  - Definiciones: `invited` = invitados con invitación vigente (sin aceptar, sin revocar, no vencida); `to_invite` = los que recibirían un correo nuevo en esta operación (reenviar a uno de invitación vigente no suma). La advertencia textual existente se conserva idéntica.
+  - Solo accept-invite cambió de contrato (`detail` = `{code, message}`). Los otros 400 `company license pool exhausted` (invitar desde admin, reactivar) siguen siendo string: sus tests y callers no se tocaron.
+  - **Huecos fuera del alcance del plan** (no cambiados): `POST /company/members/{id}/resend-invite` y las invitaciones individuales (`/admin/orgs/{id}/invite`, `/company/organizations/{id}/invite`) no pasan por la guardia de sobrecupo; `issue_invitation` mantiene su chequeo duro `activos >= pool`.
+  - Nueva plantilla de email `license_pool_exhausted.html`; el correo no incluye datos de la persona que lo intentó.
 - **Aceptación:** tests: sin sobrecupo envía normal; con sobrecupo → 409 y **cero correos enviados**; con
   `acknowledge_overage` envía y deja evento; accept-invite sin cupo devuelve el código nuevo.
 

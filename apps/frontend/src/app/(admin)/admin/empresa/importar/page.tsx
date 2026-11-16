@@ -6,6 +6,7 @@ import Link from "next/link";
 import * as React from "react";
 
 import { CompanyAdminGate } from "@/components/CompanyAdminGate";
+import { LicenseOverageDialog } from "@/components/company/LicenseOverageDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,10 +17,12 @@ import {
   apiBulkImport,
   apiBulkImportTemplate,
   apiErrorMessage,
+  licenseOverageError,
   apiSendInvitations,
 } from "@/lib/api";
+import { getCopy } from "@/lib/i18n";
 import { toast } from "@/lib/toast-store";
-import type { BulkImportResponse } from "@/lib/types";
+import type { BulkImportResponse, LicenseProjection } from "@/lib/types";
 
 type Step = "upload" | "preview" | "done";
 
@@ -144,6 +147,11 @@ function ImportContent() {
   const [step, setStep] = React.useState<Step>("upload");
   const [busy, setBusy] = React.useState(false);
   const [report, setReport] = React.useState<BulkImportResponse | null>(null);
+  // LC-06: el backend frena el envío (409) si supera las licencias; se pide reconocerlo.
+  const [overage, setOverage] = React.useState<{
+    usage: LicenseProjection;
+    retry: () => Promise<void>;
+  } | null>(null);
 
   async function downloadTemplate() {
     try {
@@ -174,11 +182,16 @@ function ImportContent() {
   }
 
   /** Paso 2 → 3: carga real. Las invitaciones se envían aparte salvo que se pida. */
-  async function apply(sendInvitations: boolean) {
+  async function apply(sendInvitations: boolean, acknowledgeOverage = false) {
     if (!file) return;
     setBusy(true);
     try {
-      const res = await apiBulkImport(file, companyId, { sendInvitations });
+      const res = await apiBulkImport(
+        file,
+        companyId,
+        acknowledgeOverage ? { sendInvitations, acknowledgeOverage: true } : { sendInvitations },
+      );
+      setOverage(null);
       setReport(res);
       setStep("done");
       toast(
@@ -188,16 +201,26 @@ function ImportContent() {
         res.errores > 0 ? "danger" : "success",
       );
     } catch (err) {
-      toast(apiErrorMessage(err, "No se pudo cargar el archivo."), "danger");
+      const usage = licenseOverageError(err);
+      if (usage) {
+        // Nada se cargó ni se envió: se pide reconocer el sobrecupo antes de reintentar.
+        setOverage({ usage, retry: () => apply(sendInvitations, true) });
+      } else {
+        toast(apiErrorMessage(err, "No se pudo cargar el archivo."), "danger");
+      }
     } finally {
       setBusy(false);
     }
   }
 
-  async function sendAll() {
+  async function sendAll(acknowledgeOverage = false) {
     setBusy(true);
     try {
-      const res = await apiSendInvitations({}, companyId);
+      const res = await apiSendInvitations(
+        acknowledgeOverage ? { acknowledge_overage: true } : {},
+        companyId,
+      );
+      setOverage(null);
       const failed = Object.keys(res.errores).length;
       toast(
         `${res.enviadas} invitaciones enviadas${failed ? `, ${failed} con error` : ""}${
@@ -206,7 +229,12 @@ function ImportContent() {
         failed ? "danger" : "success",
       );
     } catch (err) {
-      toast(apiErrorMessage(err, "No se pudieron enviar las invitaciones."), "danger");
+      const usage = licenseOverageError(err);
+      if (usage) {
+        setOverage({ usage, retry: () => sendAll(true) });
+      } else {
+        toast(apiErrorMessage(err, "No se pudieron enviar las invitaciones."), "danger");
+      }
     } finally {
       setBusy(false);
     }
@@ -325,7 +353,7 @@ function ImportContent() {
             </p>
             <div className="flex flex-wrap gap-3">
               {report.invitaciones_enviadas === 0 ? (
-                <Button onClick={sendAll} disabled={busy}>
+                <Button onClick={() => void sendAll()} disabled={busy}>
                   <Send size={16} strokeWidth={1.75} />
                   {busy ? "Enviando…" : "Enviar invitaciones ahora"}
                 </Button>
@@ -342,6 +370,18 @@ function ImportContent() {
             <ReportTables report={report} />
           </div>
         </>
+      ) : null}
+      {overage ? (
+        <LicenseOverageDialog
+          usage={overage.usage}
+          open
+          busy={busy}
+          onAdjust={() => {
+            setOverage(null);
+            toast(getCopy().companyLifecycle.licenseOverage.adjustHint, "default");
+          }}
+          onSendAnyway={() => void overage.retry()}
+        />
       ) : null}
     </main>
   );

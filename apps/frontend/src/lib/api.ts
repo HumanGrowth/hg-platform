@@ -29,6 +29,7 @@ import type {
   CompanyLifecycleEventsPage,
   CompanyStatusChange,
   CompanyStatusChangeResult,
+  LicenseProjection,
   CompanyMember,
   CompanyOrg,
   AdminUser,
@@ -124,6 +125,23 @@ export interface CompanyAccessError {
   code: CompanyAccessCode;
   message: string;
   graceEndsAt: string | null;
+}
+
+/** ¿El error es el 409 `license_overage` del envío de invitaciones (LC-06)? Devuelve los
+ * números del sobrecupo, o null si es cualquier otro error. */
+export function licenseOverageError(err: unknown): LicenseProjection | null {
+  if (!axios.isAxiosError(err) || err.response?.status !== 409) return null;
+  const d = (err.response.data as { detail?: unknown } | undefined)?.detail;
+  if (!d || typeof d !== "object") return null;
+  const o = d as Partial<LicenseProjection> & { code?: string };
+  if (o.code !== "license_overage") return null;
+  return {
+    active: Number(o.active ?? 0),
+    invited: Number(o.invited ?? 0),
+    to_invite: Number(o.to_invite ?? 0),
+    pool: Number(o.pool ?? 0),
+    overage: Number(o.overage ?? 0),
+  };
 }
 
 /** ¿El error es un 403 de ciclo de vida de empresa? (ApiError de las rutas de
@@ -1225,7 +1243,7 @@ export const apiBulkImportTemplate = async (): Promise<Blob> => {
 export const apiBulkImport = async (
   file: File,
   companyId?: string,
-  opts: { validateOnly?: boolean; sendInvitations?: boolean } = {},
+  opts: { validateOnly?: boolean; sendInvitations?: boolean; acknowledgeOverage?: boolean } = {},
 ): Promise<BulkImportResponse> => {
   const fd = new FormData();
   fd.append("file", file);
@@ -1234,6 +1252,7 @@ export const apiBulkImport = async (
       ...(companyId ? { company_id: companyId } : {}),
       ...(opts.validateOnly ? { validate_only: true } : {}),
       ...(opts.sendInvitations ? { send_invitations: true } : {}),
+      ...(opts.acknowledgeOverage ? { acknowledge_overage: true } : {}),
     },
   });
   return res.data;
@@ -1242,7 +1261,13 @@ export const apiBulkImport = async (
 /** Manda las invitaciones de los invitados ya configurados (sin filtros: todos los que
  * no tienen correo enviado + los de invitación vencida). */
 export const apiSendInvitations = async (
-  body: { org_id?: string; user_ids?: string[]; include_expired?: boolean } = {},
+  body: {
+    org_id?: string;
+    user_ids?: string[];
+    include_expired?: boolean;
+    /** Reconoce que el envío supera las licencias (si no, el backend responde 409). */
+    acknowledge_overage?: boolean;
+  } = {},
   companyId?: string,
 ): Promise<SendInvitationsResponse> => {
   const res = await backend.post<SendInvitationsResponse>("/api/v1/company/invitations/send", body, {

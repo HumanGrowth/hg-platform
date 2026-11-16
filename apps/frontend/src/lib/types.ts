@@ -1418,6 +1418,17 @@ export interface BulkImportResponse {
   /** true = vista previa: no se escribió nada ni se mandó ningún correo. */
   solo_validar: boolean;
   invitaciones_enviadas: number;
+  /** Uso proyectado de licencias (LC-06). Solo informa; el envío lo frena el 409. */
+  licencias?: LicenseProjection | null;
+}
+
+/** Uso proyectado de licencias = activos + invitados vigentes + por invitar vs pool. */
+export interface LicenseProjection {
+  active: number;
+  invited: number;
+  to_invite: number;
+  pool: number;
+  overage: number;
 }
 
 export interface SendInvitationsResponse {

@@ -27,6 +27,7 @@ from hg.core.security import (
     hash_password,
     verify_password,
 )
+from hg.modules.company import license_alerts
 from hg.modules.company.access import assert_company_accepts_invitations, assert_company_allows
 from hg.modules.identity.invitations import Invitation
 from hg.modules.identity.models import (
@@ -122,6 +123,12 @@ def get_or_create_invited_user(
     db.add(user)
     db.flush()
     return user
+
+
+def license_available(db: Session, org: Organization) -> bool:
+    """¿Queda cupo en el pool de la Empresa para sumar un user activo?"""
+    company = db.get(Company, org.company_id)
+    return company is None or company_active_users(db, company.id) < company.licenses_total
 
 
 def check_license_available(db: Session, org: Organization) -> None:
@@ -387,7 +394,19 @@ def accept_invite(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="organization not found")
     # Empresa en gracia/suspendida/terminada: no se aceptan invitaciones (ADR-0016).
     assert_company_accepts_invitations(db.get(Company, org.company_id))
-    check_license_available(db, org)
+    if not license_available(db, org):
+        # LC-06: error con código y mensaje para la PERSONA (no un 400 críptico) + aviso
+        # rate-limited al administrador de la Empresa.
+        license_alerts.notify_pool_exhausted(db, org.company_id)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "code": "license_pool_exhausted",
+                "message": (
+                    "Tu empresa alcanzó su límite de licencias. Avisamos a tu administrador."
+                ),
+            },
+        )
 
     # Release TASK 3.4: el form pide "usuario o correo" único. Si es email, debe
     # coincidir con el invitado; si es username, se guarda como username (único

@@ -40,6 +40,7 @@ from fastapi import HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from hg.modules.company import license_guard
 from hg.modules.company import service as company_service
 from hg.modules.company.schemas import CreateCompanyOrgRequest
 from hg.modules.identity import service as identity_service
@@ -109,6 +110,7 @@ class BulkOutcome:
     warnings: list[str] = field(default_factory=list)
     validate_only: bool = False
     invitations_sent: int = 0
+    license_usage: license_guard.LicenseUsage | None = None
 
 
 class BulkImportError(Exception):
@@ -214,6 +216,7 @@ def bulk_import(
     content: bytes,
     validate_only: bool = False,
     send_invitations: bool = False,
+    acknowledge_overage: bool = False,
 ) -> BulkOutcome:
     """Procesa el `.xlsx` y devuelve el reporte. Cada fila es un SAVEPOINT
     independiente; el commit final lo hace la dependencia del router. Con
@@ -224,7 +227,8 @@ def bulk_import(
     outer = db.begin_nested() if validate_only else None
     try:
         outcome = _apply(
-            db, company_id=company_id, actor=actor, book=book, send_invitations=send_invitations
+            db, company_id=company_id, actor=actor, book=book,
+            send_invitations=send_invitations, acknowledge_overage=acknowledge_overage,
         )
         outcome.validate_only = validate_only
     finally:
@@ -234,7 +238,8 @@ def bulk_import(
 
 
 def _apply(
-    db: Session, *, company_id: UUID, actor: User, book: _Workbook, send_invitations: bool
+    db: Session, *, company_id: UUID, actor: User, book: _Workbook, send_invitations: bool,
+    acknowledge_overage: bool = False,
 ) -> BulkOutcome:
     company = company_service._get_company(db, company_id)
     outcome = BulkOutcome()
@@ -327,11 +332,24 @@ def _apply(
             )
 
     outcome.warnings = _license_warnings(db, company_id, company.licenses_total)
+    ids = [uid for uid, _m, _r in touched.values()]
+    # Advertencia estructurada: uso proyectado si se enviara a las personas de este archivo
+    # que todavía no tienen invitación vigente. Solo informa (no bloquea) sin envío.
+    outcome.license_usage = license_guard.projected_license_usage(
+        db, company_id, len(license_guard.unsent_invited_ids(db, company_id, ids))
+    )
 
     if send_invitations:
         from hg.modules.company import invite_service
 
-        ids = [uid for uid, _m, _r in touched.values()]
+        # LC-06: ANTES de mandar cualquier correo. Si hay sobrecupo sin reconocer se
+        # levanta 409 y la dependencia revierte el import completo (nada queda escrito,
+        # ningún correo salió); el cliente reintenta el mismo archivo con el reconocimiento.
+        license_guard.enforce_overage_guard(
+            db, company_id=company_id, actor=actor,
+            to_invite=len(license_guard.unsent_invited_ids(db, company_id, ids)),
+            acknowledge_overage=acknowledge_overage, source="bulk_import",
+        )
         sent, failed = invite_service.send_to_users(
             db, actor=actor, user_ids=ids, only_unsent=True
         )
@@ -603,20 +621,17 @@ def _process_module(
 
 def _license_warnings(db: Session, company_id: UUID, licenses_total: int) -> list[str]:
     """Avisos (no bloquean) sobre el uso proyectado de licencias: los invitados no
-    consumen cupo hasta aceptar, así que se puede invitar a más gente que licencias."""
+    consumen cupo hasta aceptar, así que se puede invitar a más gente que licencias.
+    El cálculo es el de ``license_guard.projected_license_usage`` (suponiendo que se
+    invita a todos los que aún no tienen invitación vigente)."""
     warnings: list[str] = []
-    invited = int(
-        db.scalar(
-            select(func.count()).select_from(User).where(
-                User.company_id == company_id, User.is_invited.is_(True)
-            )
-        )
-        or 0
+    usage = license_guard.projected_license_usage(
+        db, company_id, len(license_guard.unsent_invited_ids(db, company_id))
     )
-    active = identity_service.company_active_users(db, company_id)
-    if active + invited > licenses_total:
+    invited = usage.invited + usage.to_invite
+    if usage.active + invited > licenses_total:
         warnings.append(
-            f"Entre activos ({active}) e invitados ({invited}) superan las licencias de la "
+            f"Entre activos ({usage.active}) e invitados ({invited}) superan las licencias de la "
             f"empresa ({licenses_total}): quienes acepten al final podrían quedar sin cupo."
         )
     rows = db.execute(
