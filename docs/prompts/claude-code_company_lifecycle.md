@@ -246,13 +246,18 @@ Uso proyectado = `activos + invitados vigentes + los que se están por invitar` 
 - **Aceptación:** tests: sin sobrecupo envía normal; con sobrecupo → 409 y **cero correos enviados**; con
   `acknowledge_overage` envía y deja evento; accept-invite sin cupo devuelve el código nuevo.
 
-## TASK LC-07 · Consistencia de acceso a contenido · `[ ]`
+## TASK LC-07 · Consistencia de acceso a contenido · `✅ DONE` (2026-11-16)
 
 - Que `user_can_see_unit` (acceso directo por slug) aplique **también** dimensión habilitada y pilar deshabilitado
   (hoy solo área), reusando `company_content_access`. Una sola regla compartida entre listado y detalle; sin romper la
   invariante #6 de CLAUDE.md.
 - Auditá y listá (sin cambiar) otros accesos a contenido que no pasen por `visible_units_predicate`: paths, assignments,
   assessment, home/widgets. Cada hallazgo va como fila en el PR y, si es un hueco real, como issue aparte.
+- [x] regla única `unit_allowed` / `user_can_see_unit` ≡ `visible_units_predicate` (test de paridad sobre la matriz área×dimensión×pilar) · [x] auditoría (`docs/audits/LC-07-content-access-audit.md`) · [x] hueco del hero del feed corregido en commit aparte `fix(LC-07)` (aprobado por Andy)
+- Notas / hallazgos:
+  - **La premisa del plan era falsa**: el acceso por slug YA respetaba dimensión y pilar (`_published_unit_or_404` usa el predicado). `user_can_see_unit` era código muerto y solo revisaba el área. Verificado con tests contra el código sin tocar. Andy lo confirmó y eligió cerrar + arreglar el hueco del feed.
+  - Issues a abrir (no cambiados): `/me/assignments`, `/me/home` (`next_step`) y `/me/tips` aún pueden mostrar título/slug de una unit que dejó de ser visible (ver auditoría).
+  - Una corrida completa de la suite dio 4 fallos (`test_behavior_matrix_endpoints` ×3, `test_custom_paths` ×1) que NO se reprodujeron: pasan aislados y en una segunda corrida completa (784 passed). Atribuible a datos residuales en la DB local tras corridas fallidas previas al reinicio de Docker.
 - **Aceptación:** test que demuestra que una empresa con dimensión deshabilitada recibe 404/403 al pedir por slug una
   unit de esa dimensión (hoy la recibe).
 
