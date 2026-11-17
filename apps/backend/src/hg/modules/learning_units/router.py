@@ -311,6 +311,9 @@ def _select_feed_units(
             # Un intento abierto sobre una unit reemplazada (legacy) no cuenta: la
             # ruta ya no la recorre y retomarla no avanza nada.
             LearningUnit.superseded_by_unit_id.is_(None),
+            # LC-07: si la empresa deshabilitó la dimensión/pilar/área DESPUÉS de que
+            # empezó la unit, no se ofrece como hero (abrirla daría 404).
+            visible_units_predicate(user),
         )
         .order_by(LearningUnitAttempt.started_at.desc())
     )
