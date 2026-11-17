@@ -57,3 +57,17 @@ docker compose exec backend uv run python -m hg.scripts.seed_catalog   # (si hay
 DATABASE_URL=postgresql+psycopg://hg:hg@localhost:5432/hg_dev \
   .venv/bin/python -m hg.scripts.seed_catalog                          # desde host venv
 ```
+
+
+## `lc_migrate_company.py` — ciclo de vida de una Empresa (LC-08 · ADR-0016)
+
+Inspecciona una empresa (estado, licencias, usuarios activos/inactivos/invitados) y, con `--apply`, la pasa a
+`grace` o `suspended` usando `transition_company`. **Dry-run por defecto**, imprime la base a la que se conecta y
+**nunca reactiva ni modifica usuarios** (solo lista los inactivos). Detalle y casos en
+[`docs/runbooks/cierre-de-piloto.md`](../../../docs/runbooks/cierre-de-piloto.md).
+
+```bash
+uv run python scripts/lc_migrate_company.py --slug <slug>                # estado actual (solo lectura)
+uv run python scripts/lc_migrate_company.py --slug <slug> --to grace     # vista previa
+uv run python scripts/lc_migrate_company.py --slug <slug> --to grace --apply --reason "..." --actor-email <superadmin>
+```

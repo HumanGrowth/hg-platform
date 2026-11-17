@@ -261,7 +261,7 @@ Uso proyectado = `activos + invitados vigentes + los que se están por invitar` 
 - **Aceptación:** test que demuestra que una empresa con dimensión deshabilitada recibe 404/403 al pedir por slug una
   unit de esa dimensión (hoy la recibe).
 
-## TASK LC-08 · Runbook de cierre + script de migración de CESA · `[ ]`
+## TASK LC-08 · Runbook de cierre + script de migración de CESA · `✅ DONE` (2026-11-16)
 
 - `docs/runbooks/cierre-de-piloto.md`: pasos para cerrar una empresa con el modelo nuevo — (1) exportar reporte final
   (CSV de RRHH), (2) confirmar backup de Neon reciente, (3) `dry-run` de la transición, (4) avisar al contacto de la
@@ -273,6 +273,14 @@ Uso proyectado = `activos + invitados vigentes + los que se están por invitar` 
   el script solo lista los inactivos para que Andy decida a cuáles restaurar (no se puede saber cuáles desactivó el
   cierre y cuáles ya estaban inactivos).
 - **No lo ejecutes contra producción.** Entregá el comando exacto en el PR.
+- [x] `docs/runbooks/cierre-de-piloto.md` (8 pasos + caso CESA + mensaje tipo + reversión) · [x] `apps/backend/scripts/lc_migrate_company.py` (dry-run por defecto, imprime la base destino, no toca usuarios, `--inactive-csv`) · [x] 11 tests · [x] nada ejecutado contra producción
+- Comando exacto para Andy (dry-run, no escribe; reemplazar `<slug-de-cesa>` por el slug en Admin → Empresas):
+  ```bash
+  cd apps/backend
+  DATABASE_URL='<url de producción>' uv run python scripts/lc_migrate_company.py --slug <slug-de-cesa>
+  DATABASE_URL='<url de producción>' uv run python scripts/lc_migrate_company.py --slug <slug-de-cesa> --inactive-csv inactivos-cesa.csv
+  ```
+  Solo con `--apply` escribe (y `suspended` exige `--reason` y `--confirm-slug`). El script nunca reactiva usuarios.
 
 ---
 
@@ -317,10 +325,10 @@ dimensiones habilitadas y tope de asientos al crear la empresa. Precio base vige
 
 ## ✅ Definición de terminado de LC-1
 
-- [ ] Una empresa puede pasar `active → grace → suspended → active` desde la UI de superadmin con vista previa, motivo
-      y registro en `company_lifecycle_events`, sin tocar a sus usuarios.
-- [ ] En gracia, un usuario ve su progreso y nada más; suspendida, nadie de la empresa entra (superadmin sí).
-- [ ] El bulk/envío de invitaciones frena ante sobrecupo y exige reconocimiento explícito.
-- [ ] Acceso directo por slug respeta dimensión y pilar.
-- [ ] ADR-0016, runbook y script de migración listos; **nada ejecutado en producción**.
-- [ ] Suite backend + frontend verde (comandos de "Reglas duras").
+- [x] Una empresa puede pasar `active → grace → suspended → active` desde la UI de superadmin con vista previa, motivo
+      y registro en `company_lifecycle_events`, sin tocar a sus usuarios. _(verificado con tests de API y de componentes; no probado a mano en navegador)_
+- [x] En gracia, un usuario ve su progreso y nada más; suspendida, nadie de la empresa entra (superadmin sí).
+- [x] El bulk/envío de invitaciones frena ante sobrecupo y exige reconocimiento explícito.
+- [x] Acceso directo por slug respeta dimensión y pilar. _(ya lo hacía; ahora con regla única y tests de regresión)_
+- [x] ADR-0016, runbook y script de migración listos; **nada ejecutado en producción**.
+- [ ] Suite backend + frontend verde (comandos de "Reglas duras"). _Backend: ruff, mypy y pytest verdes (795 passed). Frontend: lint, typecheck y build verdes; vitest con 3 fallos PREVIOS a este bloque (`acceptInviteSchema`, `validation.test.ts`), sin tocar._
