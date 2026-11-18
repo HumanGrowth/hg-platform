@@ -30,7 +30,8 @@ Uso (desde ``apps/backend``; la conexión sale de ``DATABASE_URL``):
   # Exportar los usuarios inactivos para decidir cuáles restaurar:
   uv run python scripts/lc_migrate_company.py --slug <slug> --inactive-csv inactivos.csv
 
-Códigos de salida: 0 ok · 2 empresa no encontrada · 3 argumentos inválidos · 4 transición rechazada.
+Códigos de salida: 0 ok · 2 empresa no encontrada · 3 argumentos inválidos · 4 transición rechazada ·
+5 la base no tiene la migración LC-01 (aplicarla antes: `alembic upgrade head`).
 """
 from __future__ import annotations
 
@@ -57,7 +58,7 @@ from hg.modules.identity.models import Company, Organization, User
 TARGETS = ("grace", "suspended")
 REASON_PREFIX = "script:lc_migrate_company"
 
-EXIT_OK, EXIT_NOT_FOUND, EXIT_BAD_ARGS, EXIT_REJECTED = 0, 2, 3, 4
+EXIT_OK, EXIT_NOT_FOUND, EXIT_BAD_ARGS, EXIT_REJECTED, EXIT_NO_MIGRATION = 0, 2, 3, 4, 5
 
 
 @dataclass
@@ -172,7 +173,28 @@ def describe_target(url: str) -> str:
     return f"{u.host or 'local'}:{u.port or ''}/{u.database}"
 
 
+def schema_ready(db: Session) -> bool:
+    """¿La base ya tiene la migración LC-01 (`companies.status`)? Sin ella ni siquiera se puede
+    leer el modelo `Company`: se avisa con un mensaje claro en vez de un traceback."""
+    return bool(
+        db.scalar(
+            text(
+                "SELECT 1 FROM information_schema.columns "
+                "WHERE table_schema = current_schema() AND table_name = 'companies' AND column_name = 'status'"
+            )
+        )
+    )
+
+
 def run(db: Session, args: argparse.Namespace, out: TextIO) -> int:
+    if not schema_ready(db):
+        print(
+            "Esta base de datos NO tiene la migración LC-01 (falta companies.status).\n"
+            "No se leyó ni se escribió nada. Aplicá primero la migración (`alembic upgrade head`, por el\n"
+            "flujo normal de despliegue) y volvé a correr este script.",
+            file=out,
+        )
+        return EXIT_NO_MIGRATION
     report = inspect_company(db, args.slug)
     if report is None:
         print(f"No existe una empresa con slug '{args.slug}'.", file=out)

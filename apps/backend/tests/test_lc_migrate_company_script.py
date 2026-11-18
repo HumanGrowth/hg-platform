@@ -179,3 +179,17 @@ def test_only_closing_targets_are_allowed() -> None:
         cli.build_parser().parse_args(["--slug", "x", "--to", "active"])
     with pytest.raises(SystemExit):
         cli.build_parser().parse_args(["--slug", "x", "--to", "terminated"])
+
+
+def test_missing_lc01_migration_gives_a_clear_message_and_touches_nothing(factory, co, monkeypatch) -> None:
+    monkeypatch.setattr(cli, "schema_ready", lambda db: False)
+    code, out = _run("--slug", co.company.slug, "--to", "grace", "--apply", "--reason", "x")
+    assert code == 5
+    assert "NO tiene la migración LC-01" in out and "alembic upgrade head" in out
+    assert "Traceback" not in out
+    assert _fresh(factory, co.company).status == "active"
+    assert _events(factory, co.company) == []
+
+
+def test_schema_ready_is_true_on_a_migrated_db(factory) -> None:
+    assert cli.schema_ready(factory.session) is True

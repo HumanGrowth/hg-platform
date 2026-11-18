@@ -22,6 +22,9 @@ Transiciones permitidas: `trial→active`, `trial→grace`, `active→grace`, `g
 
 ## Antes de empezar
 
+- [ ] **La migración `LC-01_company_lifecycle` está aplicada en la base de producción** (agrega `companies.status` y
+      `company_lifecycle_events`). Sin ella ni el script ni la app pueden leer empresas con el modelo nuevo; el script
+      lo detecta y avisa (código de salida 5) sin tocar nada. Se aplica por el flujo normal de despliegue (`alembic upgrade head`).
 - [ ] Tenés rol `superadmin` y sabés el **slug** de la empresa (Admin → Empresas).
 - [ ] Hay acuerdo comercial con el contacto de la empresa sobre fecha de cierre y plazo de gracia.
 - [ ] Definido `grace_days` (por defecto **30**; es configurable por empresa, 0–180; el valor por defecto está pendiente de
