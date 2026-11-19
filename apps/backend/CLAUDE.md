@@ -54,6 +54,10 @@ Features de AI: `ai_<feature>_enabled` y el cliente de LLM único en `modules/ai
 - Archivos a R2: `core/storage.py` (`upload_file`, `upload_bytes`, `r2_configured`).
 - Email: `modules/notifications/email_service.py` + `templates/`. `invitation.html` es copia fiel de
   `HG/Design/Invitacion Beta.html`: cambiar ambos o ninguno.
+- Avisos por email de aprendizaje y el resumen del líder: todo pasa por `NotificationGate`
+  (`modules/notifications/service.py`, ADR-0018): estado de la empresa → preferencia de la persona →
+  tope de 1 aviso por semana. Los transaccionales (invitación, contraseña, soporte, licencias) no pasan
+  por la compuerta. Un aviso nuevo de aprendizaje debe agregar su `kind` a `LEARNING_KINDS`.
 - Agregaciones de manager/RRHH: on-demand en `modules/people/service.py` (ADR-0009). Si una consulta
   escala mal, proponer snapshot materializado, no cache en memoria.
 - Scoring de assessment: `modules/assessment/scorers/` con registry por pilar (ADR-0012). Umbrales

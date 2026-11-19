@@ -43,5 +43,10 @@ celery_app.conf.update(
             "task": "notifications.send_content_unlocked",
             "schedule": crontab(minute="*/15"),
         },
+        # Resumen semanal del líder (ADR-0018): lunes 08:00 hora Costa Rica.
+        "send-leader-weekly-digest": {
+            "task": "notifications.send_leader_weekly_digest",
+            "schedule": crontab(day_of_week="mon", hour=8, minute=0),
+        },
     },
 )
