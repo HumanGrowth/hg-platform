@@ -102,6 +102,8 @@ self-service; ver [ADR-0002](adrs/ADR-0002-invitation-based-registration.md)).
 | POST | `/api/v1/auth/accept-invite` | pública | — |
 | POST | `/api/v1/auth/logout` | refresh token | — |
 | GET | `/api/v1/auth/me` | Bearer | cualquiera |
+| POST | `/api/v1/auth/me/change-password` | Bearer | cualquiera (NT-02: exige contraseña actual, revoca todas las sesiones, rate limit 10/h por persona) |
+| GET/PUT | `/api/v1/me/notification-preferences` | Bearer | cualquiera (NT-01/NT-02, ADR-0018) |
 | POST | `/api/v1/admin/orgs` | Bearer | superadmin |
 | GET | `/api/v1/admin/orgs` | Bearer | superadmin |
 | POST | `/api/v1/admin/orgs/{id}/invite` | Bearer | superadmin · admin (su org) |
@@ -240,6 +242,7 @@ público; `middleware.ts` redirige a `/home` si hay sesión.
 | Mi Ruta | `/path` (Biblioteca como sub-vista) | Route |
 | Mi Radar | `/radar` (+ `/radar/[pillar]`) | Hexagon |
 | Perfil | `/profile` | User |
+| Editar perfil | `/perfil/editar` | User — datos personales, **Notificaciones** (preferencias de aviso por email) y **Contraseña** (cambio con la actual o link por email) |
 
 `SideNav` (desktop, colapsable 240/64, localStorage) · `BottomNav` (mobile, 4 ítems)
 · `TopBar` (avatar, logout, toggle admin para superadmin).

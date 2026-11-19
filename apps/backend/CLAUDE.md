@@ -58,6 +58,11 @@ Features de AI: `ai_<feature>_enabled` y el cliente de LLM único en `modules/ai
   (`modules/notifications/service.py`, ADR-0018): estado de la empresa → preferencia de la persona →
   tope de 1 aviso por semana. Los transaccionales (invitación, contraseña, soporte, licencias) no pasan
   por la compuerta. Un aviso nuevo de aprendizaje debe agregar su `kind` a `LEARNING_KINDS`.
+- Cambio de contraseña autenticado (NT-02): `POST /auth/me/change-password` (`identity/service.change_password`).
+  Verifica la actual con `verify_password`, rechaza igual a la actual, revoca **todas** las `UserSession`
+  (el access token no lleva id de sesión, no se puede salvar "la actual") y limita 10 intentos/h por persona
+  (`core/rate_limit`). Está en `GRACE_ALLOW`: en gracia la persona debe poder asegurar su cuenta.
+  Pendiente: email "Cambiaste tu contraseña" (no hay plantilla aún).
 - Agregaciones de manager/RRHH: on-demand en `modules/people/service.py` (ADR-0009). Si una consulta
   escala mal, proponer snapshot materializado, no cache en memoria.
 - Scoring de assessment: `modules/assessment/scorers/` con registry por pilar (ADR-0012). Umbrales

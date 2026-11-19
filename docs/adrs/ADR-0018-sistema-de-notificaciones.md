@@ -92,9 +92,9 @@ Decisiones de diseño derivadas:
     una corrida. Bien para miles de usuarios; a escala país hay que paginar el recorrido y enviar por cola
     (un mensaje por tarea), lo que ya está previsto en el plan.
   - Sin seguimiento de entrega todavía (rebotes y quejas de Resend): Fase siguiente.
-  - Las plantillas existentes de aprendizaje aún no muestran el enlace "Gestioná tus avisos"; el contexto ya envía
-    `prefs_url`. Solo falta editar la plantilla (`engagement_reminder.html`).
-- Seguimiento: pantalla de preferencias y consentimiento en Perfil (diseño en Claude Design); centro de
+  - `engagement_reminder.html` ya muestra "Gestioná tus avisos" → `/perfil/editar` (NT-02). `leader_weekly_digest.html`
+    enlaza al mismo `prefs_url`, pero sigue autocontenida (tema oscuro propio), sin extender `base.html`.
+- Seguimiento: pantalla de preferencias hecha en `/perfil/editar` (NT-02); consentimiento sigue en `/configuracion/privacidad`; centro de
   notificaciones en la app; webhooks de Resend; renombrar `engagement_reminders`; contenido personalizado por
   pilar y ruta.
 
