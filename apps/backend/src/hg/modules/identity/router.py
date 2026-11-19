@@ -14,6 +14,7 @@ from hg.modules.identity import service
 from hg.modules.identity.models import Organization, User
 from hg.modules.identity.schemas import (
     AcceptInviteRequest,
+    ChangePasswordRequest,
     DashboardKey,
     DashboardLayout,
     ForgotPasswordRequest,
@@ -86,6 +87,18 @@ def reset_password(
     db: Session = Depends(get_db_as_superadmin),
 ) -> None:
     service.reset_password(db, token=body.token, new_password=body.password)
+
+
+@router.post("/me/change-password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+    body: ChangePasswordRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    """Cambia la contraseña de la persona autenticada y cierra todas sus sesiones."""
+    service.change_password(
+        db, user_id=user.id, current_password=body.current_password, new_password=body.new_password
+    )
 
 
 def _reports_count(db: Session, user_id: object) -> int:

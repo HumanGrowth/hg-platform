@@ -36,6 +36,8 @@ GRACE_ALLOW: Final[frozenset[Route]] = frozenset(
         ("POST", "/auth/logout"),
         ("GET", "/auth/me"),  # incluye company_status (LC-05)
         ("GET", "/auth/me/dashboard-prefs/{dashboard}"),
+        # NT-02: en gracia la persona tiene que poder asegurar su cuenta (no toca datos de la empresa).
+        ("POST", "/auth/me/change-password"),
         # Progreso / perfil propios (solo lectura)
         ("GET", "/me/home"),
         ("GET", "/me/metrics"),
