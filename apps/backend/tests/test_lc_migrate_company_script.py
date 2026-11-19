@@ -62,7 +62,8 @@ def test_default_is_dry_run_read_only_and_announces_the_target_db(factory, co) -
     code, out = _run("--slug", co.company.slug)
     assert code == 0
     assert "dry-run (solo lectura)" in out
-    assert "Base de datos: localhost:5432/hg_dev" in out
+    expected_target = cli.describe_target(cli.get_settings().database_url)
+    assert f"Base de datos: {expected_target}" in out
     assert "hg:hg" not in out and "@" not in out.split("\n")[0]  # nunca credenciales
     assert "[dry-run] Solo lectura" in out
     assert _fresh(factory, co.company).status == "active"
