@@ -259,7 +259,17 @@ def test_reminder_context_links_to_preferences(factory, inactive_user, sent_emai
     _, user, _ = inactive_user
     engagement_tasks._run_inactivity_reminders(factory.session)
     (call,) = _to(sent_emails, user)
-    assert call["context"]["prefs_url"].endswith("/perfil")
+    assert call["context"]["prefs_url"].endswith("/perfil/editar")
+
+
+def test_templates_link_to_preferences() -> None:
+    from hg.modules.notifications.email_service import email_service
+
+    url = "https://app.test/perfil/editar"
+    ctx = {"prefs_url": url, "headline": "h", "subtext": "s", "insight": "i",
+           "cta_url": "https://app.test", "cta_label": "Ir", "first_name": "Ana"}
+    html = email_service.render("engagement_reminder", ctx)
+    assert url in html and "Gestioná tus avisos" in html
 
 
 def test_one_notice_per_week_when_due_date_and_inactivity_both_apply(

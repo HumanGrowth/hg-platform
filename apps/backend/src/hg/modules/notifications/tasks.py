@@ -75,8 +75,8 @@ def _active_since(last_active_at: datetime | None, since: datetime) -> bool:
 
 
 def _prefs_url() -> str:
-    """Enlace a la pantalla de preferencias (Perfil)."""
-    return f"{get_settings().app_base_url}/perfil"
+    """Enlace a la sección de notificaciones (Perfil → Editar)."""
+    return f"{get_settings().app_base_url}/perfil/editar"
 
 
 def _already_sent(db: Session, user_id: UUID, kind: str, since: datetime) -> bool:
