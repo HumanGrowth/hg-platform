@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -28,8 +29,13 @@ class CompanyOut(BaseModel):
     licenses_total: int  # pool
     licenses_used: int  # computado: users activos de todas sus orgs
     org_count: int
-    is_active: bool
+    is_active: bool  # DEPRECADO (ADR-0016): usar `status`
     created_at: datetime
+    # Ciclo de vida (ADR-0016)
+    status: str
+    status_changed_at: datetime
+    grace_ends_at: datetime | None = None
+    grace_days: int = 30
 
 
 # ─────────────────────────── company_admin: orgs ───────────────────────────
@@ -224,6 +230,14 @@ class BulkImportModuleRowOut(BaseModel):
     motivo: str | None = None
 
 
+class LicenseUsageOut(BaseModel):
+    active: int
+    invited: int
+    to_invite: int
+    pool: int
+    overage: int
+
+
 class BulkImportResponse(BaseModel):
     # Resumen de la hoja de miembros (contrato original del importador).
     total: int
@@ -237,6 +251,8 @@ class BulkImportResponse(BaseModel):
     advertencias: list[str] = []
     solo_validar: bool = False
     invitaciones_enviadas: int = 0
+    # Uso proyectado de licencias (LC-06). Solo informa; el envío lo frena el 409.
+    licencias: LicenseUsageOut | None = None
 
 
 class SendInvitationsRequest(BaseModel):
@@ -244,6 +260,8 @@ class SendInvitationsRequest(BaseModel):
     org_id: UUID | None = None
     user_ids: list[UUID] | None = None
     include_expired: bool = True
+    # LC-06: reconocer explícitamente que el envío supera las licencias de la empresa.
+    acknowledge_overage: bool = False
 
 
 class SendInvitationsResponse(BaseModel):
@@ -251,3 +269,49 @@ class SendInvitationsResponse(BaseModel):
     omitidas: int
     pendientes: int  # invitados que no entraron en esta llamada (tope por llamada)
     errores: dict[str, str]  # correo → motivo
+
+
+# ─────────────────────────── Superadmin: ciclo de vida (ADR-0016) ───────────────────────────
+
+
+class CompanyStatusChangeRequest(BaseModel):
+    to_status: Literal["trial", "active", "grace", "suspended", "terminated"]
+    reason: str | None = Field(default=None, max_length=2000)
+    dry_run: bool = False
+    # Confirmación tipo "escribí el nombre": obligatoria para suspended/terminated
+    # (salvo dry_run). Debe coincidir con el slug de la empresa.
+    confirm_slug: str | None = Field(default=None, max_length=100)
+
+
+class LifecyclePreviewOut(BaseModel):
+    company_id: UUID
+    from_status: str
+    to_status: str
+    active_users_by_role: dict[str, int]
+    active_users_total: int
+    pending_invitations: int
+    admins: int
+    grace_ends_at: datetime | None = None
+
+
+class CompanyStatusChangeOut(BaseModel):
+    applied: bool  # False = dry_run
+    preview: LifecyclePreviewOut
+    company: CompanyOut
+
+
+class CompanyLifecycleEventOut(BaseModel):
+    id: UUID
+    event_type: str
+    from_status: str | None = None
+    to_status: str | None = None
+    actor_user_id: UUID | None = None
+    actor_name: str | None = None
+    reason: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime
+
+
+class CompanyLifecycleEventsPage(BaseModel):
+    items: list[CompanyLifecycleEventOut]
+    total: int

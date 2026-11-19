@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
 import { EmptyRing } from "@/components/EmptyRing";
-import { apiMe, apiRefresh } from "@/lib/api";
+import { apiMe, apiRefresh, companyAccessError } from "@/lib/api";
 import { useAuthStore } from "@/lib/auth-store";
 import { homeRouteFor, isAdminRole } from "@/lib/home-route";
 
@@ -101,9 +101,15 @@ export function SessionGate({
         setSession(s.user, s.accessToken);
         setReady(true);
       })
-      .catch(() => {
+      .catch((err) => {
         if (!active) return;
         clear();
+        // Empresa suspendida/terminada (ADR-0016): no es una sesión vencida.
+        const blocked = companyAccessError(err);
+        if (blocked && blocked.code !== "company_read_only") {
+          router.replace(`/acceso-pausado?code=${blocked.code}` as never);
+          return;
+        }
         router.replace("/login");
       });
     return () => {

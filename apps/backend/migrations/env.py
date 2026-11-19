@@ -13,6 +13,7 @@ from hg.db import Base
 import hg.modules.ai.models  # noqa: F401
 import hg.modules.assessment.models  # noqa: F401
 import hg.modules.badges.models  # noqa: F401
+import hg.modules.company.models  # noqa: F401
 import hg.modules.feedback.models  # noqa: F401
 import hg.modules.identity.invitations  # noqa: F401
 import hg.modules.identity.password_reset  # noqa: F401

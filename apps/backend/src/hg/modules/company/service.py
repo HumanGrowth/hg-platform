@@ -14,17 +14,23 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from hg.modules.company.models import CompanyAreaAccess
+from hg.modules.company import lifecycle
+from hg.modules.company.models import CompanyAreaAccess, CompanyLifecycleEvent
 from hg.modules.company.schemas import (
     AreaOut,
     CompanyAccessOut,
+    CompanyLifecycleEventOut,
+    CompanyLifecycleEventsPage,
     CompanyMemberOut,
     CompanyOrgOut,
     CompanyOut,
+    CompanyStatusChangeOut,
+    CompanyStatusChangeRequest,
     CreateAreaRequest,
     CreateCompanyOrgRequest,
     CreateCompanyRequest,
     DimensionAccessOut,
+    LifecyclePreviewOut,
     MemberDimensionStateOut,
     PillarAccessOut,
     UpdateAreaRequest,
@@ -104,6 +110,10 @@ def _company_out(db: Session, company: Company) -> CompanyOut:
         org_count=org_count,
         is_active=company.is_active,
         created_at=company.created_at,
+        status=company.status,
+        status_changed_at=company.status_changed_at,
+        grace_ends_at=company.grace_ends_at,
+        grace_days=company.grace_days,
     )
 
 
@@ -122,6 +132,8 @@ def create_company(db: Session, *, data: CreateCompanyRequest) -> CompanyOut:
     company = Company(
         name=data.name, slug=data.slug, tier=data.tier,
         billing_status=data.billing_status, licenses_total=data.licenses_total,
+        # Mismo criterio que el backfill de LC-01: billing_status 'trial' => estado trial.
+        status="trial" if data.billing_status == "trial" else "active",
     )
     db.add(company)
     try:
@@ -608,3 +620,76 @@ def _require_company(db: Session, company_id: UUID) -> Company:
     if company is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="company not found")
     return company
+
+
+# ─────────────────────────── Superadmin: ciclo de vida (ADR-0016) ───────────────────────────
+
+
+def change_company_status(
+    db: Session, *, company_id: UUID, body: CompanyStatusChangeRequest, actor: User
+) -> CompanyStatusChangeOut:
+    """Superadmin: cambia el estado de una Empresa vía ``transition_company`` (único
+    escritor). Suspender/terminar exige ``confirm_slug`` (salvo dry_run)."""
+    company = _get_company(db, company_id)
+    needs_confirm = body.to_status in lifecycle.REASON_REQUIRED and not body.dry_run
+    if needs_confirm and (body.confirm_slug or "").strip() != company.slug:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail={
+                "code": "confirm_slug_mismatch",
+                "message": "Escribe el identificador de la empresa para confirmar.",
+            },
+        )
+    preview = lifecycle.transition_company(
+        db,
+        company_id=company_id,
+        to_status=body.to_status,
+        actor=actor,
+        reason=body.reason,
+        dry_run=body.dry_run,
+    )
+    db.refresh(company)
+    return CompanyStatusChangeOut(
+        applied=not body.dry_run,
+        preview=LifecyclePreviewOut.model_validate(preview.model_dump()),
+        company=_company_out(db, company),
+    )
+
+
+def list_company_events(
+    db: Session, *, company_id: UUID, limit: int, offset: int
+) -> CompanyLifecycleEventsPage:
+    _get_company(db, company_id)
+    total = int(
+        db.scalar(
+            select(func.count())
+            .select_from(CompanyLifecycleEvent)
+            .where(CompanyLifecycleEvent.company_id == company_id)
+        )
+        or 0
+    )
+    rows = db.execute(
+        select(CompanyLifecycleEvent, User.full_name)
+        .outerjoin(User, User.id == CompanyLifecycleEvent.actor_user_id)
+        .where(CompanyLifecycleEvent.company_id == company_id)
+        .order_by(CompanyLifecycleEvent.created_at.desc(), CompanyLifecycleEvent.id)
+        .limit(limit)
+        .offset(offset)
+    ).all()
+    return CompanyLifecycleEventsPage(
+        items=[
+            CompanyLifecycleEventOut(
+                id=e.id,
+                event_type=e.event_type,
+                from_status=e.from_status,
+                to_status=e.to_status,
+                actor_user_id=e.actor_user_id,
+                actor_name=name,
+                reason=e.reason,
+                metadata=e.meta,
+                created_at=e.created_at,
+            )
+            for e, name in rows
+        ],
+        total=total,
+    )

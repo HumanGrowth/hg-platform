@@ -14,6 +14,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Text,
     UniqueConstraint,
     func,
     text,
@@ -80,7 +81,19 @@ class Company(Base):
         default=list,
         server_default=text("ARRAY[]::varchar[]"),
     )
+    # DEPRECADO (ADR-0016): nadie lo valida. El estado de acceso vive en `status`;
+    # no se renombra ni se borra en el bloque LC.
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Ciclo de vida (ADR-0016): trial | active | grace | suspended | terminated.
+    # Único escritor: company/lifecycle.py::transition_company. `billing_status`
+    # sigue siendo dato comercial libre.
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
+    status_changed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    status_reason: Mapped[str | None] = mapped_column(Text)
+    grace_days: Mapped[int] = mapped_column(Integer, nullable=False, default=30, server_default=text("30"))
+    grace_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

@@ -60,12 +60,39 @@ def visible_units_predicate(user: User) -> ColumnElement[bool]:
     )
 
 
-def user_can_see_unit(user: User, unit: LearningUnit, enabled_areas: set[str]) -> bool:
-    """Chequeo in-memory (acceso directo a una unit por slug). ``enabled_areas`` =
-    Áreas habilitadas para la Empresa del user (vacío si ninguna)."""
+def unit_allowed(
+    unit: LearningUnit,
+    enabled_areas: set[str],
+    enabled_dimensions: set[str],
+    disabled_pillars: set[str],
+) -> bool:
+    """Regla ÚNICA de visibilidad (versión in-memory de ``visible_units_predicate``):
+    (general o Área habilitada) Y (dimensión habilitada) Y (pilar no deshabilitado).
+    Las dimensiones fuera de ``DIMENSION_CODES`` (p. ej. "ON") no se gatean."""
+    if unit.area_code is not None and unit.area_code not in enabled_areas:
+        return False
+    return not _dimension_or_pillar_blocked(unit, enabled_dimensions, disabled_pillars)
+
+
+def _dimension_or_pillar_blocked(
+    unit: LearningUnit, enabled_dimensions: set[str], disabled_pillars: set[str]
+) -> bool:
+    if unit.dimension_code not in DIMENSION_CODES:
+        return False
+    if unit.dimension_code not in enabled_dimensions:
+        return True
+    return unit.pillar_code is not None and (
+        pillar_key(unit.dimension_code, unit.pillar_code) in disabled_pillars
+    )
+
+
+def user_can_see_unit(db, user: User, unit: LearningUnit) -> bool:  # type: ignore[no-untyped-def]
+    """Chequeo in-memory para una unit puntual: misma regla que el predicado SQL
+    (Área + dimensión + pilar). Antes solo revisaba el Área (y nadie la llamaba)."""
     if user.role == UserRole.superadmin:
         return True
-    return unit.area_code is None or unit.area_code in enabled_areas
+    dimensions, disabled = company_content_access(db, user.company_id)
+    return unit_allowed(unit, enabled_area_codes(db, user.company_id), dimensions, disabled)
 
 
 def enabled_area_codes(db, company_id) -> set[str]:  # type: ignore[no-untyped-def]
@@ -93,12 +120,4 @@ def blocked_by_content_access(units, access: tuple[set[str], set[str]]) -> list[
     """Slugs de las units cuya dimensión no está habilitada o cuyo pilar está
     deshabilitado (para validar asignaciones)."""
     dimensions, disabled = access
-    return sorted(
-        u.slug
-        for u in units
-        if u.dimension_code in DIMENSION_CODES
-        and (
-            u.dimension_code not in dimensions
-            or (u.pillar_code is not None and pillar_key(u.dimension_code, u.pillar_code) in disabled)
-        )
-    )
+    return sorted(u.slug for u in units if _dimension_or_pillar_blocked(u, dimensions, disabled))

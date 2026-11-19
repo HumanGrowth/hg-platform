@@ -2,6 +2,7 @@ import axios, { type AxiosInstance } from "axios";
 
 import { useAuthStore } from "@/lib/auth-store";
 import type { DashboardLayout } from "@/lib/dashboard-layout";
+import { getCopy } from "@/lib/i18n";
 import { toast } from "@/lib/toast-store";
 import type {
   OrgModule,
@@ -24,6 +25,11 @@ import type {
   SendInvitationsResponse,
   Company,
   CompanyAccess,
+  CompanyAccessCode,
+  CompanyLifecycleEventsPage,
+  CompanyStatusChange,
+  CompanyStatusChangeResult,
+  LicenseProjection,
   CompanyMember,
   CompanyOrg,
   AdminUser,
@@ -88,17 +94,78 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   });
   const data = res.status === 204 ? null : await res.json();
   if (!res.ok) {
-    throw new ApiError(data?.detail ?? "request failed", res.status);
+    const detail = data?.detail;
+    // 403 de empresa (ADR-0016): `detail` es un objeto {code, message, grace_ends_at}.
+    if (detail && typeof detail === "object" && typeof detail.code === "string") {
+      throw new ApiError(detail.message ?? "request failed", res.status, detail.code);
+    }
+    throw new ApiError(detail ?? "request failed", res.status);
   }
   return data as T;
 }
 
 export class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  /** Código del error de empresa (`company_*`), si el backend lo envió. */
+  code?: string;
+  constructor(message: string, status: number, code?: string) {
     super(message);
     this.status = status;
+    this.code = code;
   }
+}
+
+const COMPANY_CODES: readonly CompanyAccessCode[] = [
+  "company_read_only",
+  "company_suspended",
+  "company_terminated",
+];
+
+export interface CompanyAccessError {
+  code: CompanyAccessCode;
+  message: string;
+  graceEndsAt: string | null;
+}
+
+/** ¿El error es el 409 `license_overage` del envío de invitaciones (LC-06)? Devuelve los
+ * números del sobrecupo, o null si es cualquier otro error. */
+export function licenseOverageError(err: unknown): LicenseProjection | null {
+  if (!axios.isAxiosError(err) || err.response?.status !== 409) return null;
+  const d = (err.response.data as { detail?: unknown } | undefined)?.detail;
+  if (!d || typeof d !== "object") return null;
+  const o = d as Partial<LicenseProjection> & { code?: string };
+  if (o.code !== "license_overage") return null;
+  return {
+    active: Number(o.active ?? 0),
+    invited: Number(o.invited ?? 0),
+    to_invite: Number(o.to_invite ?? 0),
+    pool: Number(o.pool ?? 0),
+    overage: Number(o.overage ?? 0),
+  };
+}
+
+/** ¿El error es un 403 de ciclo de vida de empresa? (ApiError de las rutas de
+ * sesión, o error de axios del backend). Devuelve null si es cualquier otro. */
+export function companyAccessError(err: unknown): CompanyAccessError | null {
+  if (err instanceof ApiError) {
+    return COMPANY_CODES.includes(err.code as CompanyAccessCode)
+      ? { code: err.code as CompanyAccessCode, message: err.message, graceEndsAt: null }
+      : null;
+  }
+  if (axios.isAxiosError(err) && err.response?.status === 403) {
+    const d = (err.response.data as { detail?: unknown } | undefined)?.detail;
+    if (d && typeof d === "object") {
+      const o = d as { code?: string; message?: string; grace_ends_at?: string | null };
+      if (COMPANY_CODES.includes(o.code as CompanyAccessCode)) {
+        return {
+          code: o.code as CompanyAccessCode,
+          message: o.message ?? "",
+          graceEndsAt: o.grace_ends_at ?? null,
+        };
+      }
+    }
+  }
+  return null;
 }
 
 /** Mensaje legible de un error de la API: `ApiError` (rutas de sesión) o el
@@ -109,6 +176,11 @@ export function apiErrorMessage(err: unknown, fallback: string): string {
   if (axios.isAxiosError(err)) {
     const detail = (err.response?.data as { detail?: unknown } | undefined)?.detail;
     if (typeof detail === "string" && detail.trim()) return detail;
+    // `detail` como objeto {code, message} (errores de empresa y de ciclo de vida).
+    if (detail && typeof detail === "object") {
+      const msg = (detail as { message?: unknown }).message;
+      if (typeof msg === "string" && msg.trim()) return msg;
+    }
   }
   return fallback;
 }
@@ -187,7 +259,17 @@ backend.interceptors.response.use(
         useAuthStore.getState().setSession(session.user, session.accessToken);
         original.headers = { ...original.headers, Authorization: `Bearer ${session.accessToken}` };
         return backend(original);
-      } catch {
+      } catch (refreshErr) {
+        // Empresa suspendida/terminada: el refresh responde 403 con código de empresa →
+        // pantalla de acceso pausado en vez de "sesión expirada" (ADR-0016).
+        const blocked = companyAccessError(refreshErr);
+        if (blocked && blocked.code !== "company_read_only") {
+          useAuthStore.getState().clear();
+          if (typeof window !== "undefined") {
+            window.location.href = `/acceso-pausado?code=${blocked.code}`;
+          }
+          return Promise.reject(error);
+        }
         // Refresh falló (token revocado/expirado o backend caído): terminar la
         // sesión con feedback y un redirect duro a /login (full reload limpia
         // el estado en memoria de Zustand). Cierra ISSUE-1 (ver FU-03).
@@ -198,6 +280,20 @@ backend.interceptors.response.use(
         if (typeof window !== "undefined") {
           window.location.href = "/login?reason=expired";
         }
+      }
+    }
+    // Ciclo de vida de la empresa (ADR-0016): suspendida/terminada → pantalla de
+    // acceso pausado (la sesión ya no sirve); modo gracia → aviso al intentar una
+    // escritura (los GET bloqueados los maneja cada pantalla, sin spamear toasts).
+    const access = companyAccessError(error);
+    if (access) {
+      if (access.code === "company_read_only") {
+        if (String(original?.method ?? "get").toLowerCase() !== "get") {
+          toast(access.message || getCopy().companyLifecycle.readOnlyToast, "danger");
+        }
+      } else if (typeof window !== "undefined" && window.location.pathname !== "/acceso-pausado") {
+        useAuthStore.getState().clear();
+        window.location.href = `/acceso-pausado?code=${access.code}`;
       }
     }
     // Observabilidad en dev: un 422 trae en `detail` qué campo/regla falló
@@ -1147,7 +1243,7 @@ export const apiBulkImportTemplate = async (): Promise<Blob> => {
 export const apiBulkImport = async (
   file: File,
   companyId?: string,
-  opts: { validateOnly?: boolean; sendInvitations?: boolean } = {},
+  opts: { validateOnly?: boolean; sendInvitations?: boolean; acknowledgeOverage?: boolean } = {},
 ): Promise<BulkImportResponse> => {
   const fd = new FormData();
   fd.append("file", file);
@@ -1156,6 +1252,7 @@ export const apiBulkImport = async (
       ...(companyId ? { company_id: companyId } : {}),
       ...(opts.validateOnly ? { validate_only: true } : {}),
       ...(opts.sendInvitations ? { send_invitations: true } : {}),
+      ...(opts.acknowledgeOverage ? { acknowledge_overage: true } : {}),
     },
   });
   return res.data;
@@ -1164,7 +1261,13 @@ export const apiBulkImport = async (
 /** Manda las invitaciones de los invitados ya configurados (sin filtros: todos los que
  * no tienen correo enviado + los de invitación vencida). */
 export const apiSendInvitations = async (
-  body: { org_id?: string; user_ids?: string[]; include_expired?: boolean } = {},
+  body: {
+    org_id?: string;
+    user_ids?: string[];
+    include_expired?: boolean;
+    /** Reconoce que el envío supera las licencias (si no, el backend responde 409). */
+    acknowledge_overage?: boolean;
+  } = {},
   companyId?: string,
 ): Promise<SendInvitationsResponse> => {
   const res = await backend.post<SendInvitationsResponse>("/api/v1/company/invitations/send", body, {
@@ -1191,6 +1294,30 @@ export const apiDiscardInvite = async (userId: string, companyId?: string): Prom
 
 export const apiListCompanies = async (): Promise<Company[]> => {
   const res = await backend.get<Company[]>("/api/v1/admin/companies");
+  return res.data;
+};
+
+/** Superadmin: cambia el estado de una Empresa (ADR-0016). `dry_run` = vista previa. */
+export const apiChangeCompanyStatus = async (
+  companyId: string,
+  body: CompanyStatusChange,
+): Promise<CompanyStatusChangeResult> => {
+  const res = await backend.post<CompanyStatusChangeResult>(
+    `/api/v1/admin/companies/${companyId}/status`,
+    body,
+  );
+  return res.data;
+};
+
+/** Superadmin: historial de ciclo de vida de una Empresa (más reciente primero). */
+export const apiListCompanyEvents = async (
+  companyId: string,
+  params: { limit?: number; offset?: number } = {},
+): Promise<CompanyLifecycleEventsPage> => {
+  const res = await backend.get<CompanyLifecycleEventsPage>(
+    `/api/v1/admin/companies/${companyId}/events`,
+    { params },
+  );
   return res.data;
 };
 

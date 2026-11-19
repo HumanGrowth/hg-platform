@@ -25,12 +25,16 @@ from hg.modules.company.schemas import (
     CompanyAccessOut,
     CompanyInviteRequest,
     CompanyInviteResponse,
+    CompanyLifecycleEventsPage,
     CompanyMemberOut,
     CompanyOrgOut,
     CompanyOut,
+    CompanyStatusChangeOut,
+    CompanyStatusChangeRequest,
     CreateAreaRequest,
     CreateCompanyOrgRequest,
     CreateCompanyRequest,
+    LicenseUsageOut,
     SendInvitationsRequest,
     SendInvitationsResponse,
     SetCompanyAccessRequest,
@@ -82,6 +86,29 @@ def set_company_licenses(
     return service.set_company_licenses(
         db, company_id=company_id, licenses_total=body.licenses_total
     )
+
+
+@admin_router.post("/companies/{company_id}/status", response_model=CompanyStatusChangeOut)
+def change_company_status(
+    company_id: UUID,
+    body: CompanyStatusChangeRequest,
+    db: Session = Depends(get_db_as_superadmin),
+    actor: User = Depends(require_role("superadmin")),
+) -> CompanyStatusChangeOut:
+    """Cambia el estado de la Empresa (ADR-0016). `dry_run=true` devuelve solo la
+    vista previa. Suspender/terminar exige `reason` y `confirm_slug`."""
+    return service.change_company_status(db, company_id=company_id, body=body, actor=actor)
+
+
+@admin_router.get("/companies/{company_id}/events", response_model=CompanyLifecycleEventsPage)
+def list_company_events(
+    company_id: UUID,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db_as_superadmin),
+    _: User = Depends(require_role("superadmin")),
+) -> CompanyLifecycleEventsPage:
+    return service.list_company_events(db, company_id=company_id, limit=limit, offset=offset)
 
 
 # ─────────────────────────── Superadmin: /admin/areas (catálogo global · TASK 8) ─────────────
@@ -297,6 +324,9 @@ async def bulk_import_members(
     file: UploadFile = File(...),
     validate_only: bool = Query(False, description="vista previa: no escribe ni manda correos"),
     send_invitations: bool = Query(False, description="mandar las invitaciones al cargar"),
+    acknowledge_overage: bool = Query(
+        False, description="reconocer que el envío supera las licencias (si no, 409 license_overage)"
+    ),
     company_id: UUID | None = Query(None, description="solo superadmin"),
     db: Session = Depends(get_db_as_superadmin),
     actor: User = Depends(require_role("admin", "company_admin", "superadmin")),
@@ -315,6 +345,7 @@ async def bulk_import_members(
         outcome = bulk_service.bulk_import(
             db, company_id=service.resolve_company_id(actor, company_id), actor=actor,
             content=content, validate_only=validate_only, send_invitations=send_invitations,
+            acknowledge_overage=acknowledge_overage,
         )
     except BulkImportError as exc:
         raise HTTPException(
@@ -332,6 +363,9 @@ async def bulk_import_members(
         advertencias=outcome.warnings,
         solo_validar=outcome.validate_only,
         invitaciones_enviadas=outcome.invitations_sent,
+        licencias=LicenseUsageOut.model_validate(outcome.license_usage.as_dict())
+        if outcome.license_usage
+        else None,
     )
 
 
@@ -350,6 +384,7 @@ def send_company_invitations(
     result = invite_service.send_invitations(
         db, company_id=service.resolve_company_id(actor, company_id), actor=actor,
         org_id=body.org_id, user_ids=body.user_ids, include_expired=body.include_expired,
+        acknowledge_overage=body.acknowledge_overage,
     )
     return SendInvitationsResponse(
         enviadas=result.sent, omitidas=result.skipped, pendientes=result.remaining,

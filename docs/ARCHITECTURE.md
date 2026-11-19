@@ -56,6 +56,12 @@ están en estado **DRAFT** hasta firmar DEC-01/02/05/07.
 | `users` | ✅ | `org_id NOT NULL` (FK→organizations). Unique `(org_id, email)` = `uq_users_org_email` (el mismo email puede existir en orgs distintas). Campos: `role`, `career_level`, `job_title`, `department`, `hire_date`, `manager_id` (auto-FK), `last_login_at`, `last_active_at`. |
 | `user_sessions` | ✅ | `org_id` + `user_id NOT NULL`. `refresh_token_hash` único, `device_info` (JSONB), `ip_address`, `expires_at`, `revoked_at`. |
 
+> **Nota (ADR-0016):** la descripción de arriba es la de Capa 1 original. Hoy el tenant comercial es `companies`
+> (Empresa → organizaciones) y el estado de acceso vive en `companies.status`
+> (`trial/active/grace/suspended/terminated`), con auditoría en `company_lifecycle_events`. No existe contador
+> `licenses_used`: licencia usada = `users.is_active`, pool = `companies.licenses_total`. Ver
+> `docs/adrs/ADR-0016-ciclo-de-vida-de-empresa.md`.
+
 ### Enums
 
 - `user_role`: `superadmin`, `admin`, `manager`, `collaborator`

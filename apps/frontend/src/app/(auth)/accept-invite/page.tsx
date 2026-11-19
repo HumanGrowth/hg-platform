@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Input, Label } from "@/components/ui/input";
-import { ApiError, apiAcceptInvite, apiInviteInfo } from "@/lib/api";
+import { ApiError, apiAcceptInvite, apiInviteInfo, companyAccessError } from "@/lib/api";
 import { homeRouteFor } from "@/lib/home-route";
 import { useAuthStore } from "@/lib/auth-store";
 import type { InviteInfo } from "@/lib/types";
@@ -57,6 +57,17 @@ function AcceptInviteInner() {
       setSession(user, accessToken);
       router.replace(homeRouteFor(user.role) as never);
     } catch (err) {
+      // Empresa sin licencias o sin acceso (ADR-0016): el backend manda un mensaje
+      // pensado para la persona; se muestra tal cual.
+      const blocked = companyAccessError(err);
+      if (blocked) {
+        setFormError(blocked.message);
+        return;
+      }
+      if (err instanceof ApiError && err.code === "license_pool_exhausted") {
+        setFormError(err.message);
+        return;
+      }
       setFormError(
         err instanceof ApiError && err.status === 410
           ? "Esta invitación expiró o ya fue usada."

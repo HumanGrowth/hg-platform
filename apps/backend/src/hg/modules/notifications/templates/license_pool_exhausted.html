@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+<p style="margin:0 0 16px 0;"><strong style="color:#1A1A1A;">Tu empresa alcanzó su límite de licencias</strong></p>
+<p style="margin:0 0 12px 0;">Hola{% if admin_name %} {{ admin_name }}{% endif %}, una persona de <strong>{{ company_name }}</strong> intentó aceptar su invitación a Human Growth, pero ya no quedan licencias disponibles.</p>
+<p style="margin:0 0 6px 0;"><strong>Licencias en uso:</strong> {{ active }} de {{ pool }}</p>
+<p style="margin:0 0 16px 0;">Para que pueda entrar, libera una licencia o pide ampliar el cupo a tu contacto en Human Growth. Te avisamos como máximo una vez al día.</p>
+{% endblock %}

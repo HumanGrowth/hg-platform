@@ -82,10 +82,13 @@ Si un test ya fallaba antes del cambio, decirlo explícitamente; no "arreglarlo"
 6. **Agrupación de contenido por `pillar_number` (1–6)**, orden `level_code ASC, unit_number ASC`.
    `dimension_code` es organizativo del Drive, no de la app. Nombres de pilares desde
    `apps/frontend/src/lib/dimensions.ts`; nunca hardcodear "Pilar N".
-7. **Decisiones de producto cerradas:** Perspectivas y Eventos solo los gestiona superadmin; reevaluar
+7. **Acceso de la empresa.** El estado de acceso de una empresa vive en `companies.status`
+   (`trial/active/grace/suspended/terminated`) y solo se cambia vía `company/lifecycle.py` (ADR-0016);
+   nunca se corta una empresa desactivando usuarios.
+8. **Decisiones de producto cerradas:** Perspectivas y Eventos solo los gestiona superadmin; reevaluar
    = assessment completo scoped a una dimensión; asignaciones de módulos son aditivas (sin
    asignaciones se ve todo el catálogo publicado); pricing oculto por flag, no borrado.
-8. **Secretos.** Nunca commitear `.env*` (salvo `.env.example`), llaves de service account ni
+9. **Secretos.** Nunca commitear `.env*` (salvo `.env.example`), llaves de service account ni
    credenciales. `docs/dev-credentials.md` está en `.gitignore` a propósito.
 
 ## 5. Cómo trabajamos
@@ -95,7 +98,7 @@ Si un test ya fallaba antes del cambio, decirlo explícitamente; no "arreglarlo"
 - **Commits:** Conventional Commits con prefijo de bloque (`feat(CE-05): …`). Una tarea = un commit;
   nunca mezclar refactor con cambio de comportamiento.
 - **ADRs:** cualquier decisión que cambie arquitectura, modelo de datos, seguridad o dónde entra AI
-  requiere ADR en `docs/adrs/` (plantilla `docs/ADR-template.md`). Hoy existen 0001–0003 y 0006–0015.
+  requiere ADR en `docs/adrs/` (plantilla `docs/ADR-template.md`). Hoy existen 0001–0003 y 0006–0016 (0016 = ciclo de vida de empresa).
 - **Docs:** si un cambio altera lo que describe `docs/ARCHITECTURE.md` o este archivo, actualizarlos
   en el mismo PR.
 - **Prompts largos de Claude Code** viven en `docs/prompts/` con el resume protocol; al cerrar se

@@ -22,6 +22,7 @@ import * as React from "react";
 
 import { ActingAsBanner } from "@/components/admin/ActingAsBanner";
 import { BetaBanner } from "@/components/BetaBanner";
+import { CompanyGraceBanner } from "@/components/company/CompanyGraceBanner";
 import { AdminBottomNav } from "@/components/nav/AdminBottomNav";
 import { isActive } from "@/components/nav/items";
 import { UserMenu } from "@/components/nav/UserMenu";
@@ -103,6 +104,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex h-dvh flex-col overflow-hidden">
       <BetaBanner />
       <SessionGate>
+        <CompanyGraceBanner />
         <div className="flex min-h-0 flex-1 md:gap-3 md:p-3">
           {/* Sidebar flotante glass (mismo lenguaje que el dock de
               SpatialCanvas): panel con radio, borde de luz y sombra, con el

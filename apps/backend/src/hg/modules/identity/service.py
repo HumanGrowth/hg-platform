@@ -27,6 +27,8 @@ from hg.core.security import (
     hash_password,
     verify_password,
 )
+from hg.modules.company import license_alerts
+from hg.modules.company.access import assert_company_accepts_invitations, assert_company_allows
 from hg.modules.identity.invitations import Invitation
 from hg.modules.identity.models import (
     Company,
@@ -123,6 +125,12 @@ def get_or_create_invited_user(
     return user
 
 
+def license_available(db: Session, org: Organization) -> bool:
+    """¿Queda cupo en el pool de la Empresa para sumar un user activo?"""
+    company = db.get(Company, org.company_id)
+    return company is None or company_active_users(db, company.id) < company.licenses_total
+
+
 def check_license_available(db: Session, org: Organization) -> None:
     """Valida, antes de sumar un user activo a ``org``, el **pool de la Empresa**
     (CE-06: el límite es solo el pool de la Empresa; el cap por-org se eliminó).
@@ -188,6 +196,10 @@ def authenticate(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=_INVALID_CREDENTIALS
         )
 
+    # Solo DESPUÉS de verificar la contraseña se revela el estado de la empresa
+    # (así el 403 no filtra qué emails existen). Ver ADR-0016.
+    assert_company_allows("POST", "/auth/login", user, db.get(Company, user.company_id))
+
     user.last_login_at = _now()
     access, refresh = _issue_session(db, user)
     return user, access, refresh
@@ -216,6 +228,8 @@ def refresh_tokens(db: Session, *, refresh_token: str) -> tuple[User, str, str]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="user not found or inactive"
         )
+
+    assert_company_allows("POST", "/auth/refresh", user, db.get(Company, user.company_id))
 
     # Rotación: revoca la vieja, emite una nueva.
     session.revoked_at = _now()
@@ -378,7 +392,21 @@ def accept_invite(
     org = db.get(Organization, invitation.org_id)
     if org is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="organization not found")
-    check_license_available(db, org)
+    # Empresa en gracia/suspendida/terminada: no se aceptan invitaciones (ADR-0016).
+    assert_company_accepts_invitations(db.get(Company, org.company_id))
+    if not license_available(db, org):
+        # LC-06: error con código y mensaje para la PERSONA (no un 400 críptico) + aviso
+        # rate-limited al administrador de la Empresa.
+        license_alerts.notify_pool_exhausted(db, org.company_id)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "code": "license_pool_exhausted",
+                "message": (
+                    "Tu empresa alcanzó su límite de licencias. Avisamos a tu administrador."
+                ),
+            },
+        )
 
     # Release TASK 3.4: el form pide "usuario o correo" único. Si es email, debe
     # coincidir con el invitado; si es username, se guarda como username (único
