@@ -1578,3 +1578,19 @@ export interface AdminSupportTicketPatch {
   category?: SupportCategory;
   severity?: SupportSeverity;
 }
+
+// ─────────────────────────── Preferencias de notificación (NT-01/NT-02) ───────────────────────────
+
+/** `null` = la persona nunca decidió (hoy el backend lo trata como permitido, ADR-0018 §8). */
+export interface NotificationPreferences {
+  learning_reminders: boolean | null;
+  leader_digest: boolean | null;
+  /** true solo para rol manager: define si se muestra el interruptor del resumen semanal. */
+  leader_digest_applicable: boolean;
+  updated_at: string | null;
+}
+
+export interface SetNotificationPreferencesPayload {
+  learning_reminders: boolean;
+  leader_digest: boolean;
+}

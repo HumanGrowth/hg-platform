@@ -24,6 +24,10 @@ axios · TanStack Query · Recharts · framer-motion · hls.js · lucide-react �
   `localStorage`.
 - Toda llamada al backend pasa por `lib/api.ts`; los tipos del contrato viven en `lib/types.ts` y
   deben coincidir con los schemas Pydantic (no usar `packages/shared-types`).
+- `/perfil/editar` (NT-02): datos personales + `NotificationPreferencesSection` (un solo PUT, `null` = nunca
+  decidió, se muestra activo con nota) + `PasswordSection` (cambio con contraseña actual vía
+  `apiChangePassword`; al éxito el backend cierra todas las sesiones, así que se hace logout local y se
+  redirige a `/login`; alternativa por link con `apiForgotPassword`). Switch accesible en `components/ui/switch.tsx`.
 - Descargas con auth (CSV): `fetch` + Bearer + blob, no link directo.
 
 ## Contenido y dominio

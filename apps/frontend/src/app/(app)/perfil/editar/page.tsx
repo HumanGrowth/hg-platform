@@ -4,8 +4,9 @@ import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
+import { NotificationPreferencesSection } from "@/components/perfil/NotificationPreferencesSection";
+import { PasswordSection } from "@/components/perfil/PasswordSection";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Display } from "@/components/ui/display";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Input, Label } from "@/components/ui/input";
@@ -88,19 +89,6 @@ export default function PerfilEditarPage() {
           <p className="mt-1 text-xs text-fg-muted">Lo asigna tu manager.</p>
         </div>
 
-        <Card className="bg-surface-card">
-          <p className="font-sans text-sm font-semibold text-fg">Contraseña</p>
-          <button
-            type="button"
-            disabled
-            title="Funcionalidad próxima"
-            className="mt-2 cursor-not-allowed rounded-md border border-border-strong px-4 py-2 text-sm font-semibold text-fg-muted opacity-60"
-          >
-            Cambiar contraseña
-          </button>
-          <p className="mt-2 text-xs text-fg-muted">Disponible próximamente.</p>
-        </Card>
-
         <div className="mt-2 flex items-center gap-3">
           <Button type="submit" disabled={saving}>
             {saving ? "Guardando…" : "Guardar cambios"}
@@ -114,6 +102,11 @@ export default function PerfilEditarPage() {
           </Button>
         </div>
       </form>
+
+      <div className="mt-8 flex flex-col gap-5">
+        <NotificationPreferencesSection />
+        <PasswordSection />
+      </div>
     </main>
   );
 }

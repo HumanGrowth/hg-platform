@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { acceptInviteSchema, loginSchema } from "@/lib/validation";
+import { acceptInviteSchema, changePasswordSchema, loginSchema } from "@/lib/validation";
 
 describe("loginSchema", () => {
   it("rechaza email y password vacíos", () => {
@@ -37,6 +37,21 @@ describe("acceptInviteSchema", () => {
 
   it("rechaza un username inválido (espacios)", () => {
     const r = acceptInviteSchema.safeParse({ usernameOrEmail: "ana diaz!", password: "Brand0New!!" });
+    expect(r.success).toBe(false);
+  });
+});
+
+describe("changePasswordSchema", () => {
+  const ok = { current_password: "vieja", password: "nueva1", confirm: "nueva1" };
+  it("acepta datos válidos", () => {
+    expect(changePasswordSchema.safeParse(ok).success).toBe(true);
+  });
+  it("exige la contraseña actual", () => {
+    expect(changePasswordSchema.safeParse({ ...ok, current_password: "" }).success).toBe(false);
+  });
+  it("exige mínimo 6 y coincidencia", () => {
+    expect(changePasswordSchema.safeParse({ ...ok, password: "12345", confirm: "12345" }).success).toBe(false);
+    const r = changePasswordSchema.safeParse({ ...ok, confirm: "otra12" });
     expect(r.success).toBe(false);
   });
 });
