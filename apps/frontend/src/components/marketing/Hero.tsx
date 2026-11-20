@@ -51,7 +51,7 @@ export default function Hero() {
       {showHumanize() ? (
         /* Foto de ambientación + captura mobile real (plan v1.2, D1) */
         <Reveal variant="scale" delay={0.6} className="relative mx-auto mt-14 w-full max-w-[1100px] text-left">
-          <div className="relative pb-6 pr-[18%] md:pb-0 md:pr-0">
+          <div className="relative pb-[27%] pr-[18%] md:pb-0 md:pr-0">
             <PhotoFrame
               photo="hero-equipo"
               alt={copy.humanize.hero.photoAlt}
@@ -62,7 +62,7 @@ export default function Hero() {
             <div className="fx-float absolute right-0 top-[14%] w-[30%] md:w-[24%] md:max-w-[250px]">
               <PhoneFrame shot="mob-home" alt={copy.alts.mobHome} eager />
             </div>
-            <div className="glass-surface-strong absolute bottom-0 left-3 flex items-center gap-3 rounded-full px-4 py-2.5 md:bottom-6 md:left-6">
+            <div className="glass-surface-strong absolute bottom-6 left-6 hidden items-center gap-3 rounded-full px-4 py-2.5 md:flex">
               <span className="flex gap-1.5" aria-hidden>
                 {DIM_COLORS.map((c) => (
                   <span key={c} className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />
