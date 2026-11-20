@@ -139,6 +139,13 @@ class ResetPasswordRequest(BaseModel):
     password: str = Field(min_length=6)
 
 
+class ChangePasswordRequest(BaseModel):
+    """Cambio de contraseña autenticado (NT-02). Mismo mínimo que el reset."""
+
+    current_password: str = Field(min_length=1)
+    new_password: str = Field(min_length=6)
+
+
 # ─────────────────────────── Admin / Orgs ───────────────────────────
 
 

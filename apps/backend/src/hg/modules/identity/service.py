@@ -19,6 +19,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from hg.config import get_settings
+from hg.core import rate_limit
 from hg.core.security import (
     create_token,
     decode_token,
@@ -328,6 +329,49 @@ def reset_password(db: Session, *, token: str, new_password: str) -> None:
     ).scalars():
         s.revoked_at = now
     db.flush()
+
+
+# Intentos de cambio de contraseña por persona y hora (cuenta también los fallidos).
+CHANGE_PASSWORD_RATE_PER_HOUR = 10
+
+
+def change_password(
+    db: Session, *, user_id: UUID, current_password: str, new_password: str
+) -> None:
+    """Cambio autenticado: exige la contraseña actual y revoca todas las sesiones.
+
+    El access token no lleva el id de sesión, así que no se puede conservar "la
+    actual": se revocan todas (igual que ``reset_password``) y el frontend cierra
+    la sesión local y pide volver a entrar.
+    """
+    if not rate_limit.allow(
+        "change_password", str(user_id), limit=CHANGE_PASSWORD_RATE_PER_HOUR
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="too many attempts",
+            headers={"Retry-After": "3600"},
+        )
+    user = db.get(User, user_id)
+    if user is None or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=_INVALID_CREDENTIALS)
+    # Genérico: no revela nada más que "no coincide".
+    if not verify_password(current_password, user.hashed_password):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=_INVALID_CREDENTIALS)
+    if verify_password(new_password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="new password must differ from the current one",
+        )
+
+    now = _now()
+    user.hashed_password = hash_password(new_password)
+    for s in db.execute(
+        select(UserSession).where(UserSession.user_id == user.id, UserSession.revoked_at.is_(None))
+    ).scalars():
+        s.revoked_at = now
+    db.flush()
+    # TODO(NT-02): email "Cambiaste tu contraseña" — no existe plantilla equivalente aún.
 
 
 def invitation_info(db: Session, *, token: str) -> dict:

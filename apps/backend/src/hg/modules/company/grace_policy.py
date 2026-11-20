@@ -36,6 +36,8 @@ GRACE_ALLOW: Final[frozenset[Route]] = frozenset(
         ("POST", "/auth/logout"),
         ("GET", "/auth/me"),  # incluye company_status (LC-05)
         ("GET", "/auth/me/dashboard-prefs/{dashboard}"),
+        # NT-02: en gracia la persona tiene que poder asegurar su cuenta (no toca datos de la empresa).
+        ("POST", "/auth/me/change-password"),
         # Progreso / perfil propios (solo lectura)
         ("GET", "/me/home"),
         ("GET", "/me/metrics"),
@@ -44,6 +46,7 @@ GRACE_ALLOW: Final[frozenset[Route]] = frozenset(
         ("GET", "/me/timeline"),
         ("GET", "/me/badges"),
         ("GET", "/me/consent"),
+        ("GET", "/me/notification-preferences"),
         ("GET", "/me/behavior-feedback"),
         ("GET", "/me/pillar-feedback"),
         ("GET", "/assessment/me/radar"),
@@ -181,6 +184,7 @@ GRACE_DENY_REVIEWED: Final[frozenset[Route]] = frozenset(
         ("DELETE", "/manager/users/{user_id}/enroll/{path_code}"),
         ("GET", "/me/assignments"),
         ("POST", "/me/consent"),
+        ("PUT", "/me/notification-preferences"),
         ("GET", "/me/onboarding"),
         ("GET", "/me/path"),
         ("GET", "/me/pillar-tips"),

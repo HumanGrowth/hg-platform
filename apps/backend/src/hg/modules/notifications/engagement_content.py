@@ -62,3 +62,23 @@ def due_subtext(kind: str) -> str:
     if kind == "assignment_due_today":
         return "Todavía estás a tiempo de completarlo hoy."
     return "Te lo asignó tu manager — vale la pena resolverlo antes de la fecha."
+
+
+# ─────────────────────────── Resumen semanal del líder (ADR-0018) ───────────────────────────
+# Solo totales: nunca nombres, estados del assessment ni datos de P4/P5.
+
+
+def digest_subject() -> str:
+    return "Tu equipo esta semana"
+
+
+def digest_headline(active: int, team_size: int) -> str:
+    return f"{active} de {team_size} personas de tu equipo tuvieron actividad esta semana"
+
+
+def digest_inactive_line(inactive: int) -> str:
+    if inactive == 0:
+        return "Nadie en tu equipo lleva más de 21 días sin actividad."
+    if inactive == 1:
+        return "1 persona lleva más de 21 días sin actividad."
+    return f"{inactive} personas llevan más de 21 días sin actividad."

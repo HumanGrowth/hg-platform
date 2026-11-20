@@ -54,6 +54,8 @@ import type {
   Me,
   MeWidgets,
   MyBadge,
+  NotificationPreferences,
+  SetNotificationPreferencesPayload,
   TimelineEvent,
   Org,
   OrgInsights,
@@ -208,6 +210,14 @@ export const apiForgotPassword = (email: string) =>
 
 export const apiResetPassword = (token: string, password: string) =>
   postJson<null>("/api/auth/reset-password", { token, password });
+
+/** Cambio autenticado (NT-02). El backend revoca todas las sesiones al tener éxito. */
+export const apiChangePassword = async (current: string, next: string): Promise<void> => {
+  await backend.post("/api/v1/auth/me/change-password", {
+    current_password: current,
+    new_password: next,
+  });
+};
 
 export const apiValidateResetToken = async (token: string): Promise<void> => {
   await axios.get(`${BACKEND}/api/v1/auth/reset-password/validate`, { params: { token } });
@@ -1119,6 +1129,24 @@ export const apiSetConsent = async (
     consent_manager: consentManager,
     consent_hr: consentHr,
   });
+  return res.data;
+};
+
+// ─────────────────────────── Preferencias de notificación (NT-02) ───────────────────────────
+
+export const apiGetNotificationPreferences = async (): Promise<NotificationPreferences> => {
+  const res = await backend.get<NotificationPreferences>("/api/v1/me/notification-preferences");
+  return res.data;
+};
+
+/** Setea ambas preferencias a la vez (mismo patrón que apiSetConsent). */
+export const apiSetNotificationPreferences = async (
+  payload: SetNotificationPreferencesPayload,
+): Promise<NotificationPreferences> => {
+  const res = await backend.put<NotificationPreferences>(
+    "/api/v1/me/notification-preferences",
+    payload,
+  );
   return res.data;
 };
 

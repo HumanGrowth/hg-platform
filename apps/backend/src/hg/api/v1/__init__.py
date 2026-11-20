@@ -26,6 +26,7 @@ from hg.modules.learning_units.router import router as learning_units_router
 from hg.modules.learning_units.tips_router import router as tips_me_router
 from hg.modules.marketing.router import admin_router as marketing_admin_router
 from hg.modules.marketing.router import public_router as marketing_public_router
+from hg.modules.notifications.router import router as notifications_me_router
 from hg.modules.paths.router import router as custom_paths_router
 from hg.modules.people.router import admin_router as people_admin_router
 from hg.modules.people.router import manager_router, me_router
@@ -50,6 +51,8 @@ router.include_router(company_router, prefix="/company", tags=["company"])
 router.include_router(company_admin_router, prefix="/admin", tags=["admin", "company"])
 # Consentimiento de privacidad (Capa Empresa · TASK 5): GET/POST /me/consent
 router.include_router(consent_me_router, prefix="/me", tags=["consent"])
+# Preferencias de notificación (ADR-0018): GET/PUT /me/notification-preferences
+router.include_router(notifications_me_router, prefix="/me", tags=["notifications"])
 # Upload de imágenes admin → R2: POST /admin/upload/image (superadmin)
 router.include_router(admin_upload_router, prefix="/admin", tags=["admin", "upload"])
 # Marketing: POST /contact/inquiry (público) + GET /admin/contact/inquiries (superadmin)
