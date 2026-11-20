@@ -1,11 +1,16 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// El radar (MarketingRadar en /metodo) usa useRouter.
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
+}));
 vi.mock("next/image", () => ({
   // eslint-disable-next-line @next/next/no-img-element
   default: (props: { alt: string; src: string }) => <img alt={props.alt} src={props.src} />,
 }));
 
+import MetodoPage from "@/app/(marketing)/metodo/page";
 import Hero from "@/components/marketing/Hero";
 import { HugieTeaser } from "@/components/marketing/HugieTeaser";
 import { MarketingLanguageProvider } from "@/components/marketing/LanguageProvider";
@@ -150,5 +155,30 @@ describe("HugieTeaser · orbe oficial v2, estados y chat (D3)", () => {
     // La maqueta no es interactiva: nada enfocable adentro.
     expect(chat.querySelectorAll("button, input, a, [tabindex]")).toHaveLength(0);
     expect(screen.getByText(/Imagen conceptual de Hugie/)).toBeTruthy();
+  });
+});
+
+describe("/metodo · humanize (D7)", () => {
+  it("flag encendido: tres fotos aditivas, el pie nuevo y todo el texto intacto", () => {
+    setFlag(true);
+    renderMk(<MetodoPage />);
+    expect((screen.getByAltText(/pared de post-its/) as HTMLImageElement).getAttribute("src")).toBe(
+      "/marketing/people/equipo-sala-postit.webp",
+    );
+    expect(screen.getByAltText(/frente a una pizarra/)).toBeTruthy();
+    expect(screen.getByAltText(/contrastando ideas/)).toBeTruthy();
+    expect(screen.getByText("Cada etapa se discute y se documenta en equipo.")).toBeTruthy();
+    expect(screen.getByText("Seis pilares, una sola mesa de trabajo")).toBeTruthy();
+    // Texto existente sin cambios
+    expect(screen.getByText("La ciencia nos respalda.")).toBeTruthy();
+    expect(screen.getByText("Los seis pilares son una red, no una lista.")).toBeTruthy();
+    expect(screen.getByText("Correlación vs. causalidad")).toBeTruthy();
+  });
+
+  it("flag apagado: sin fotos", () => {
+    setFlag(false);
+    renderMk(<MetodoPage />);
+    expect(screen.queryByAltText(/pared de post-its/)).toBeNull();
+    expect(screen.queryByText("Cada etapa se discute y se documenta en equipo.")).toBeNull();
   });
 });

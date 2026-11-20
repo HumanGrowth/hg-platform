@@ -577,7 +577,7 @@ export const es = {
     quote: { portraitAlt: "Jorge Araya, fundador de HumanGrowth" },
     method: {
       heroAlt: "Un equipo frente a una pared de post-its, ordenando ideas en una sala de trabajo.",
-      heroChip: "Seis pilares, un sistema",
+      heroChip: "Seis pilares, una sola mesa de trabajo",
       stepsAlt: "Una líder y dos integrantes del equipo conversando frente a una pizarra.",
       stepsCaption: "Cada etapa se discute y se documenta en equipo.",
       rigorAlt: "Dos colegas contrastando ideas frente a una laptop.",
