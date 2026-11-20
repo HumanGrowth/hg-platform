@@ -6,7 +6,10 @@ import { Reveal } from "@/components/marketing/fx/Reveal";
 import { RotatingWord } from "@/components/marketing/fx/RotatingWord";
 import { WordReveal } from "@/components/marketing/fx/WordReveal";
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
+import { DIM_COLORS } from "@/components/marketing/fx/dim-colors";
+import { PhotoFrame } from "@/components/marketing/people/PhotoFrame";
 import { BrowserFrame, PhoneFrame } from "@/components/marketing/platform/DeviceFrames";
+import { showHumanize } from "@/lib/flags";
 
 /**
  * Hero del home. Engagement: titular cinético, palabra rotativa entre las 6
@@ -45,15 +48,42 @@ export default function Hero() {
         <p className="text-sm font-medium text-fg-muted">{c.socialProof}</p>
       </Reveal>
 
-      {/* Mockups flotando */}
-      <Reveal variant="scale" delay={0.6} className="relative mx-auto mt-14 hidden h-[790px] w-full max-w-[1100px] md:block">
-        <div className="fx-float-slow absolute left-0 top-0 w-[90%]">
-          <BrowserFrame shot="desk-home" alt={copy.alts.deskHome} height={1180} />
-        </div>
-        <div className="fx-float absolute right-0 top-[150px] w-[21%] min-w-[190px]">
-          <PhoneFrame shot="mob-modulo" alt={copy.alts.mobModulo} eager />
-        </div>
-      </Reveal>
+      {showHumanize() ? (
+        /* Foto de ambientación + captura mobile real (plan v1.2, D1) */
+        <Reveal variant="scale" delay={0.6} className="relative mx-auto mt-14 w-full max-w-[1100px] text-left">
+          <div className="relative pb-6 pr-[18%] md:pb-0 md:pr-0">
+            <PhotoFrame
+              photo="hero-equipo"
+              alt={copy.humanize.hero.photoAlt}
+              sizes="(min-width: 1100px) 860px, (min-width: 768px) 78vw, 82vw"
+              priority
+              className="aspect-[16/10] md:w-[78%]"
+            />
+            <div className="fx-float absolute right-0 top-[14%] w-[30%] md:w-[24%] md:max-w-[250px]">
+              <PhoneFrame shot="mob-home" alt={copy.alts.mobHome} eager />
+            </div>
+            <div className="glass-surface-strong absolute bottom-0 left-3 flex items-center gap-3 rounded-full px-4 py-2.5 md:bottom-6 md:left-6">
+              <span className="flex gap-1.5" aria-hidden>
+                {DIM_COLORS.map((c) => (
+                  <span key={c} className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />
+                ))}
+              </span>
+              <span className="font-heading text-sm font-semibold text-fg">{copy.humanize.hero.chip}</span>
+            </div>
+          </div>
+          <p className="mt-4 text-xs font-medium text-fg-muted md:mt-3">{copy.humanize.sampleData}</p>
+        </Reveal>
+      ) : (
+        /* Mockups flotando */
+        <Reveal variant="scale" delay={0.6} className="relative mx-auto mt-14 hidden h-[790px] w-full max-w-[1100px] md:block">
+          <div className="fx-float-slow absolute left-0 top-0 w-[90%]">
+            <BrowserFrame shot="desk-home" alt={copy.alts.deskHome} height={1180} />
+          </div>
+          <div className="fx-float absolute right-0 top-[150px] w-[21%] min-w-[190px]">
+            <PhoneFrame shot="mob-modulo" alt={copy.alts.mobModulo} eager />
+          </div>
+        </Reveal>
+      )}
 
       {/* Contadores */}
       <div className="mx-auto mt-12 grid max-w-[900px] gap-4 sm:grid-cols-3 md:mt-16">
