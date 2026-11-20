@@ -11,6 +11,7 @@ import { MarketingLanguageProvider } from "@/components/marketing/LanguageProvid
 import { DayAtWork } from "@/components/marketing/people/DayAtWork";
 import { TeamBehind } from "@/components/marketing/people/TeamBehind";
 import { ThreePeople } from "@/components/marketing/people/ThreePeople";
+import Quote from "@/components/marketing/Quote";
 
 function renderMk(ui: React.ReactElement) {
   return render(<MarketingLanguageProvider>{ui}</MarketingLanguageProvider>);
@@ -102,5 +103,19 @@ describe("TeamBehind", () => {
     expect(screen.getByAltText(/Retrato de Jorge Araya/)).toBeTruthy();
     expect(screen.getByText("Fotos de ambientación, salvo el retrato de Jorge.")).toBeTruthy();
     expect(container.textContent).not.toMatch(/\[[A-ZÁÉÍÓÚ]+\]|Frase del fundador|Hasta ahora/);
+  });
+});
+
+describe("Quote · formato nuevo (D4)", () => {
+  it("mismo copy, con retrato de Jorge", () => {
+    setFlag(true);
+    renderMk(<Quote />);
+    expect(screen.getByText("POR QUÉ CONSTRUIMOS ESTO")).toBeTruthy();
+    expect(screen.getByText(/9 de cada 10 profesionales/)).toBeTruthy();
+    expect(screen.getByText("Hasta ahora.")).toBeTruthy();
+    expect(screen.getByText("Jorge Araya")).toBeTruthy();
+    expect(screen.getByText("Fundador · HumanGrowth")).toBeTruthy();
+    expect(screen.getByText(/Workplace Skills Survey, octubre 2024/)).toBeTruthy();
+    expect(screen.getByAltText("Jorge Araya, fundador de HumanGrowth")).toBeTruthy();
   });
 });
