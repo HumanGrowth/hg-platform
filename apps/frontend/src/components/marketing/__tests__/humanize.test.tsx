@@ -9,6 +9,8 @@ vi.mock("next/image", () => ({
 import Hero from "@/components/marketing/Hero";
 import { MarketingLanguageProvider } from "@/components/marketing/LanguageProvider";
 import { DayAtWork } from "@/components/marketing/people/DayAtWork";
+import { TeamBehind } from "@/components/marketing/people/TeamBehind";
+import { ThreePeople } from "@/components/marketing/people/ThreePeople";
 
 function renderMk(ui: React.ReactElement) {
   return render(<MarketingLanguageProvider>{ui}</MarketingLanguageProvider>);
@@ -82,5 +84,23 @@ describe("DayAtWork", () => {
     fireEvent.click(screen.getAllByRole("tab")[2]);
     const img = screen.getByAltText(/Taller en una sala de oficina/) as HTMLImageElement;
     expect(img.getAttribute("src")).toBe("/marketing/people/dia-3-taller.webp");
+  });
+});
+
+describe("ThreePeople (D2)", () => {
+  it("orden RRHH → Líder → Colaborador, rotulado con datos de ejemplo", () => {
+    renderMk(<ThreePeople />);
+    const roles = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    expect(roles).toEqual(["RRHH", "Líder", "Colaborador"]);
+    expect(screen.getByText("Pantallas con datos de ejemplo.")).toBeTruthy();
+  });
+});
+
+describe("TeamBehind", () => {
+  it("retrato de Jorge sin frase duplicada, fotos rotuladas y sin placeholders", () => {
+    const { container } = renderMk(<TeamBehind />);
+    expect(screen.getByAltText(/Retrato de Jorge Araya/)).toBeTruthy();
+    expect(screen.getByText("Fotos de ambientación, salvo el retrato de Jorge.")).toBeTruthy();
+    expect(container.textContent).not.toMatch(/\[[A-ZÁÉÍÓÚ]+\]|Frase del fundador|Hasta ahora/);
   });
 });
