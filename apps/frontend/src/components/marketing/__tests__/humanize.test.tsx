@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/image", () => ({
@@ -7,6 +7,7 @@ vi.mock("next/image", () => ({
 }));
 
 import Hero from "@/components/marketing/Hero";
+import { HugieTeaser } from "@/components/marketing/HugieTeaser";
 import { MarketingLanguageProvider } from "@/components/marketing/LanguageProvider";
 import { DayAtWork } from "@/components/marketing/people/DayAtWork";
 import { TeamBehind } from "@/components/marketing/people/TeamBehind";
@@ -117,5 +118,37 @@ describe("Quote · formato nuevo (D4)", () => {
     expect(screen.getByText("Fundador · HumanGrowth")).toBeTruthy();
     expect(screen.getByText(/Workplace Skills Survey, octubre 2024/)).toBeTruthy();
     expect(screen.getByAltText("Jorge Araya, fundador de HumanGrowth")).toBeTruthy();
+  });
+});
+
+describe("HugieTeaser · orbe oficial v2, estados y chat (D3)", () => {
+  it("flag apagado: orbes en reposo y celebrando, sin chat", () => {
+    setFlag(false);
+    const { container } = renderMk(<HugieTeaser />);
+    expect(container.querySelectorAll(".hugie")).toHaveLength(2);
+    expect(container.querySelector(".hugie--celebrando")).toBeTruthy();
+    expect(screen.queryByRole("img", { name: /conversación con Hugie/ })).toBeNull();
+  });
+
+  it("flag encendido: 5 estados; elegir uno cambia el orbe del chat y la descripción", () => {
+    setFlag(true);
+    renderMk(<HugieTeaser />);
+    expect(screen.getByText("Conocé a Hugie.")).toBeTruthy();
+    const group = screen.getByRole("group", { name: "Estados de Hugie" });
+    const buttons = within(group).getAllByRole("button");
+    expect(buttons.map((b) => b.textContent)).toEqual(["En reposo", "Escuchando", "Pensando", "Hablando", "Celebrando"]);
+    expect(buttons[0].getAttribute("aria-pressed")).toBe("true");
+
+    const chat = screen.getByRole("img", { name: /conversación con Hugie/ });
+    expect(chat.querySelector(".hugie--reposo")).toBeTruthy();
+
+    fireEvent.click(buttons[2]);
+    expect(buttons[2].getAttribute("aria-pressed")).toBe("true");
+    expect(chat.querySelector(".hugie:not(.hugie--bare).hugie--pensando")).toBeTruthy();
+    expect(screen.getByText("El vórtice se acelera y el núcleo titila.")).toBeTruthy();
+
+    // La maqueta no es interactiva: nada enfocable adentro.
+    expect(chat.querySelectorAll("button, input, a, [tabindex]")).toHaveLength(0);
+    expect(screen.getByText(/Imagen conceptual de Hugie/)).toBeTruthy();
   });
 });
