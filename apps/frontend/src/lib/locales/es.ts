@@ -182,7 +182,7 @@ export const es = {
     subtitle: "No desarrollamos habilidades aisladas. Desarrollamos personas enteras.",
     items: [
       { code: "P1", title: "Carrera e impacto", body: "Crecé profesionalmente con un mapa claro de tu próximo paso." },
-      { code: "P2", title: "Propósito y significado", body: "Conectá tu trabajo con algo que de verdad te importa." },
+      { code: "P2", title: "Propósito y significado", body: "Encontrá qué le da sentido a lo que hacés cada día." },
       { code: "P3", title: "Relaciones y conexión", body: "Construí redes que te sostienen y te empujan." },
       { code: "P4", title: "Salud y bienestar", body: "Sueño, movimiento y energía para sostener el desempeño." },
       { code: "P5", title: "Paz interior y claridad", body: "Regulá tus estados internos en presencia del estrés." },
@@ -235,7 +235,7 @@ export const es = {
     eyebrow: "PRÓXIMAMENTE",
     title: "Conocé a Hugie.",
     tagline: "Piensa, escucha y acompaña contigo.",
-    body: "Hugie es el coach virtual de HG: el conocimiento de la IA hecho materia. Cada color de su luz es una de las 6 dimensiones, y cambia de energía según el momento — en calma mientras escucha, brillante cuando celebrás un avance.",
+    body: "Hugie es el coach virtual de HG: el conocimiento de la IA hecho materia. Cada color de su luz es una de las 6 dimensiones.",
     note: "Lo estamos construyendo. Lo vas a encontrar dentro de la plataforma cuando esté listo.",
     states: { reposo: "En reposo", celebrando: "Celebrando" },
   },
@@ -404,7 +404,7 @@ export const es = {
       },
       {
         code: "P2", name: "Propósito y significado", tag: "4 estados",
-        desc: "Medimos qué tan clara es tu dirección de vida y cuánto la vivís en el día a día. La ruta va de despertar la pregunta del para qué a un propósito vivido, más allá de vos mismo.",
+        desc: "Exploramos qué le da sentido a tu trabajo y cómo se refleja en tu día a día. La ruta va de hacerte la pregunta del para qué a trabajar con más intención en lo que te importa.",
       },
       {
         code: "P3", name: "Relaciones y conexión", tag: "4 niveles × 3 dominios",
@@ -457,7 +457,6 @@ export const es = {
     hero: {
       photoAlt:
         "Cuatro personas en una mesa larga de oficina, con luz natural. Una mira su celular y otra le comenta algo.",
-      chip: "Seis dimensiones, una persona",
     },
     dayAtWork: {
       title: "Así entra Human Growth en un día de trabajo",
@@ -526,7 +525,7 @@ export const es = {
       },
       collaborator: {
         role: "Colaborador",
-        body: "Sabé dónde estás parado y qué hacer esta semana, con una ruta que se ordena sola.",
+        body: "Identificá tu nivel de crecimiento y qué hacer esta semana, con una ruta a tu medida.",
         alt: "Una profesional joven en su escritorio, con el celular en la mano, mirando a cámara.",
         bars: [
           { label: "Carrera", value: 68, dim: 0 },
@@ -537,15 +536,15 @@ export const es = {
       },
     },
     hugie: {
-      statesTitle: "Cambia de energía según el momento",
-      statesLabel: "Estados de Hugie",
-      states: [
-        { key: "reposo", name: "En reposo", desc: "Respira lento. Está disponible, sin pedir atención." },
-        { key: "escuchando", name: "Escuchando", desc: "Ondas suaves salen del borde mientras hablás o escribís." },
-        { key: "pensando", name: "Pensando", desc: "El vórtice se acelera y el núcleo titila." },
-        { key: "hablando", name: "Hablando", desc: "Late con el ritmo de la respuesta." },
-        { key: "celebrando", name: "Celebrando", desc: "Brillo ámbar y verde cuando lográs un objetivo." },
-      ],
+      functions: {
+        title: "Qué va a hacer Hugie en la plataforma",
+        items: [
+          { icon: "diagnostico", title: "Tu diagnóstico, conversando", text: "Te acompaña en la evaluación como una charla y te entrega tu mapa inicial de las 6 dimensiones." },
+          { icon: "plan", title: "Pasos concretos para tu semana", text: "Te sugiere acciones chicas según tu ruta; vos decidís cuáles sumar a tu plan de acción." },
+          { icon: "feedback", title: "Feedback que explica el porqué", text: "Después de cada quiz te cuenta por qué una respuesta funciona para tu situación." },
+          { icon: "sintesis", title: "Síntesis de cada módulo", text: "Al terminar un módulo resume lo que aprendiste y lo conecta con tu dimensión." },
+        ],
+      },
       chat: {
         alt: "Ejemplo de una conversación con Hugie dentro de la plataforma. Hugie le pregunta a Andrés por su dimensión de Salud y bienestar, que marcó más baja esta semana; Andrés cuenta que duerme poco y llega cansado a las reuniones con Seba; Hugie le propone dos pasos chicos para la semana.",
         name: "Hugie",
@@ -562,17 +561,6 @@ export const es = {
         placeholder: "Escribile a Hugie…",
       },
       caption: "Imagen conceptual de Hugie dentro de la plataforma. Conversación con datos de ejemplo.",
-    },
-    teamBehind: {
-      title: "Detrás de la plataforma hay un equipo",
-      body: "Trabajamos cerca de las empresas con las que construimos. Hecho desde LatAm, para LatAm.",
-      photos: {
-        salaPostit: "Una sala de trabajo con una pizarra llena de post-its; dos personas debaten.",
-        demoDay: "Un grupo le muestra una presentación a otras personas en una sala de reuniones.",
-        cafe: "Dos personas conversan con un café en la cocina de una oficina.",
-      },
-      founder: { name: "Jorge Araya", role: "Fundador · HumanGrowth", alt: "Retrato de Jorge Araya, fundador de HumanGrowth" },
-      caption: "Fotos de ambientación, salvo el retrato de Jorge.",
     },
     quote: { portraitAlt: "Jorge Araya, fundador de HumanGrowth" },
     method: {

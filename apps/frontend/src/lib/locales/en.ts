@@ -182,7 +182,7 @@ export const en = {
     subtitle: "We don't develop isolated skills. We develop whole people.",
     items: [
       { code: "P1", title: "Career & impact", body: "Grow professionally with a clear map of your next step." },
-      { code: "P2", title: "Purpose & meaning", body: "Connect your work to something that truly matters to you." },
+      { code: "P2", title: "Purpose & meaning", body: "Find what gives meaning to what you do every day." },
       { code: "P3", title: "Relationships & connection", body: "Build networks that hold you up and push you forward." },
       { code: "P4", title: "Health & wellbeing", body: "Sleep, movement and energy to sustain performance." },
       { code: "P5", title: "Inner peace & clarity", body: "Regulate your internal states in the presence of stress." },
@@ -235,7 +235,7 @@ export const en = {
     eyebrow: "COMING SOON",
     title: "Meet Hugie.",
     tagline: "Thinks, listens and walks with you.",
-    body: "Hugie is HG's virtual coach: the knowledge of AI made matter. Each color of its light is one of the 6 dimensions, and its energy shifts with the moment — calm while it listens, bright when you celebrate progress.",
+    body: "Hugie is HG's virtual coach: the knowledge of AI made matter. Each color of its light is one of the 6 dimensions.",
     note: "We're still building it. You'll find it inside the platform when it's ready.",
     states: { reposo: "At rest", celebrando: "Celebrating" },
   },
@@ -404,7 +404,7 @@ export const en = {
       },
       {
         code: "P2", name: "Purpose & meaning", tag: "4 states",
-        desc: "We measure how clear your life direction is and how much you live it day to day. The path goes from awakening the question of purpose to a lived purpose beyond yourself.",
+        desc: "We explore what gives meaning to your work and how it shows up in your day to day. The path goes from asking yourself what it's for to working with more intention on what matters to you.",
       },
       {
         code: "P3", name: "Relationships & connection", tag: "4 levels × 3 domains",
@@ -455,7 +455,6 @@ export const en = {
     hero: {
       photoAlt:
         "Four people at a long office table in natural light. One looks at their phone while another comments.",
-      chip: "Six dimensions, one person",
     },
     dayAtWork: {
       title: "How Human Growth fits into a workday",
@@ -524,7 +523,7 @@ export const en = {
       },
       collaborator: {
         role: "Employee",
-        body: "Know where you stand and what to do this week, with a path that organizes itself.",
+        body: "Identify your growth level and what to do this week, with a path tailored to you.",
         alt: "A young professional at her desk, phone in hand, looking at the camera.",
         bars: [
           { label: "Career", value: 68, dim: 0 },
@@ -535,15 +534,15 @@ export const en = {
       },
     },
     hugie: {
-      statesTitle: "Its energy shifts with the moment",
-      statesLabel: "Hugie's states",
-      states: [
-        { key: "reposo", name: "At rest", desc: "Breathes slowly. Available, without asking for attention." },
-        { key: "escuchando", name: "Listening", desc: "Soft waves ripple from the edge while you speak or type." },
-        { key: "pensando", name: "Thinking", desc: "The vortex speeds up and the core flickers." },
-        { key: "hablando", name: "Speaking", desc: "Pulses with the rhythm of the answer." },
-        { key: "celebrando", name: "Celebrating", desc: "An amber and green glow when you reach a goal." },
-      ],
+      functions: {
+        title: "What Hugie will do in the platform",
+        items: [
+          { icon: "diagnostico", title: "Your diagnosis, as a conversation", text: "It walks you through the assessment as a chat and hands you your initial map of the 6 dimensions." },
+          { icon: "plan", title: "Concrete steps for your week", text: "It suggests small actions based on your path; you decide which ones go into your action plan." },
+          { icon: "feedback", title: "Feedback that explains why", text: "After each quiz it tells you why an answer works for your situation." },
+          { icon: "sintesis", title: "A synthesis of every module", text: "When you finish a module it sums up what you learned and links it to your dimension." },
+        ],
+      },
       chat: {
         alt: "Example of a conversation with Hugie inside the platform. Hugie asks Andrés about his Health and wellbeing dimension, which he rated lower this week; Andrés says he's sleeping little and arrives tired to his meetings with Seba; Hugie suggests two small steps for the week.",
         name: "Hugie",
@@ -560,17 +559,6 @@ export const en = {
         placeholder: "Write to Hugie…",
       },
       caption: "Concept image of Hugie inside the platform. Conversation with sample data.",
-    },
-    teamBehind: {
-      title: "There's a team behind the platform",
-      body: "We work close to the companies we build with. Made in LatAm, for LatAm.",
-      photos: {
-        salaPostit: "A workroom with a whiteboard full of sticky notes; two people debate.",
-        demoDay: "A group presents to other people in a meeting room.",
-        cafe: "Two people talk over coffee in an office kitchen.",
-      },
-      founder: { name: "Jorge Araya", role: "Founder · HumanGrowth", alt: "Portrait of Jorge Araya, founder of HumanGrowth" },
-      caption: "Stock photos for atmosphere, except Jorge's portrait.",
     },
     quote: { portraitAlt: "Jorge Araya, founder of HumanGrowth" },
     method: {

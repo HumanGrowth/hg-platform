@@ -11,11 +11,13 @@ vi.mock("next/image", () => ({
 }));
 
 import MetodoPage from "@/app/(marketing)/metodo/page";
+import DimensionsRadar from "@/components/marketing/DimensionsRadar";
 import Hero from "@/components/marketing/Hero";
 import { HugieTeaser } from "@/components/marketing/HugieTeaser";
+import { LandingContent } from "@/components/marketing/LandingContent";
 import { MarketingLanguageProvider } from "@/components/marketing/LanguageProvider";
+import { PlatformLanding } from "@/components/marketing/platform/PlatformLanding";
 import { DayAtWork } from "@/components/marketing/people/DayAtWork";
-import { TeamBehind } from "@/components/marketing/people/TeamBehind";
 import { ThreePeople } from "@/components/marketing/people/ThreePeople";
 import Quote from "@/components/marketing/Quote";
 
@@ -52,6 +54,36 @@ describe("Hero · humanize (D1)", () => {
     expect(phone.getAttribute("src")).toBe("/marketing/plataforma/mob-home.webp");
     expect(screen.queryByAltText("Inicio de la app: progreso por dimensión")).toBeNull();
     expect(screen.getByText("Pantallas con datos de ejemplo.")).toBeTruthy();
+    // Los tres datos van en un solo panel sobre la foto
+    const stats = screen.getByText("dimensiones del crecimiento humano").closest("dl")!;
+    expect(within(stats).getByText("por módulo de aprendizaje")).toBeTruthy();
+    expect(within(stats).getByText("vistas: colaborador, líder y RRHH")).toBeTruthy();
+  });
+});
+
+describe("Dimensiones + radar en una sección", () => {
+  it("tres dimensiones a cada lado y el radar en el medio, con el ancla del hero", () => {
+    setFlag(true);
+    const { container } = renderMk(<DimensionsRadar />);
+    expect(container.querySelector("section#dimensiones")).toBeTruthy();
+    const titles = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    expect(titles).toEqual([
+      "Carrera e impacto",
+      "Propósito y significado",
+      "Relaciones y conexión",
+      "Salud y bienestar",
+      "Paz interior y claridad",
+      "Estabilidad emocional y material",
+    ]);
+    expect(screen.getByText(/cada usuario ve su propio radar/)).toBeTruthy();
+    expect(screen.getByText("Encontrá qué le da sentido a lo que hacés cada día.")).toBeTruthy();
+  });
+
+  it("el home ya no incluye 'Detrás de la plataforma'", () => {
+    setFlag(true);
+    const { container } = renderMk(<LandingContent />);
+    expect(container.textContent).not.toMatch(/Detrás de la plataforma/);
+    expect(container.querySelectorAll("#dimensiones")).toHaveLength(1);
   });
 });
 
@@ -100,15 +132,9 @@ describe("ThreePeople (D2)", () => {
     const roles = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
     expect(roles).toEqual(["RRHH", "Líder", "Colaborador"]);
     expect(screen.getByText("Pantallas con datos de ejemplo.")).toBeTruthy();
-  });
-});
-
-describe("TeamBehind", () => {
-  it("retrato de Jorge sin frase duplicada, fotos rotuladas y sin placeholders", () => {
-    const { container } = renderMk(<TeamBehind />);
-    expect(screen.getByAltText(/Retrato de Jorge Araya/)).toBeTruthy();
-    expect(screen.getByText("Fotos de ambientación, salvo el retrato de Jorge.")).toBeTruthy();
-    expect(container.textContent).not.toMatch(/\[[A-ZÁÉÍÓÚ]+\]|Frase del fundador|Hasta ahora/);
+    expect(
+      screen.getByText("Identificá tu nivel de crecimiento y qué hacer esta semana, con una ruta a tu medida."),
+    ).toBeTruthy();
   });
 });
 
@@ -119,10 +145,10 @@ describe("Quote · formato nuevo (D4)", () => {
     expect(screen.getByText("POR QUÉ CONSTRUIMOS ESTO")).toBeTruthy();
     expect(screen.getByText(/9 de cada 10 profesionales/)).toBeTruthy();
     expect(screen.getByText("Hasta ahora.")).toBeTruthy();
-    expect(screen.getByText("Jorge Araya")).toBeTruthy();
-    expect(screen.getByText("Fundador · HumanGrowth")).toBeTruthy();
+    expect(screen.getByText(/Fundador · HumanGrowth/).parentElement?.textContent).toMatch(/^Jorge Araya/);
     expect(screen.getByText(/Workplace Skills Survey, octubre 2024/)).toBeTruthy();
-    expect(screen.getByAltText("Jorge Araya, fundador de HumanGrowth")).toBeTruthy();
+    const portrait = screen.getByAltText("Jorge Araya, fundador de HumanGrowth") as HTMLImageElement;
+    expect(portrait.getAttribute("src")).toBe("/marketing/mentors/jorge-perfil.webp");
   });
 });
 
@@ -135,26 +161,43 @@ describe("HugieTeaser · orbe oficial v2, estados y chat (D3)", () => {
     expect(screen.queryByRole("img", { name: /conversación con Hugie/ })).toBeNull();
   });
 
-  it("flag encendido: 5 estados; elegir uno cambia el orbe del chat y la descripción", () => {
+  it("flag encendido: qué va a hacer Hugie en la plataforma + la vista de chat", () => {
     setFlag(true);
-    renderMk(<HugieTeaser />);
+    const { container } = renderMk(<HugieTeaser />);
     expect(screen.getByText("Conocé a Hugie.")).toBeTruthy();
-    const group = screen.getByRole("group", { name: "Estados de Hugie" });
-    const buttons = within(group).getAllByRole("button");
-    expect(buttons.map((b) => b.textContent)).toEqual(["En reposo", "Escuchando", "Pensando", "Hablando", "Celebrando"]);
-    expect(buttons[0].getAttribute("aria-pressed")).toBe("true");
+    expect(container.textContent).not.toMatch(/Cambia de energía según el momento|cambia de energía/);
+    const fns = screen.getByText("Qué va a hacer Hugie en la plataforma").parentElement!;
+    expect(within(fns).getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual([
+      "Tu diagnóstico, conversando",
+      "Pasos concretos para tu semana",
+      "Feedback que explica el porqué",
+      "Síntesis de cada módulo",
+    ]);
+    expect(screen.queryByRole("group", { name: "Estados de Hugie" })).toBeNull();
 
     const chat = screen.getByRole("img", { name: /conversación con Hugie/ });
-    expect(chat.querySelector(".hugie--reposo")).toBeTruthy();
-
-    fireEvent.click(buttons[2]);
-    expect(buttons[2].getAttribute("aria-pressed")).toBe("true");
-    expect(chat.querySelector(".hugie:not(.hugie--bare).hugie--pensando")).toBeTruthy();
-    expect(screen.getByText("El vórtice se acelera y el núcleo titila.")).toBeTruthy();
-
+    expect(chat.querySelector(".hugie:not(.hugie--bare)")).toBeTruthy();
     // La maqueta no es interactiva: nada enfocable adentro.
     expect(chat.querySelectorAll("button, input, a, [tabindex]")).toHaveLength(0);
     expect(screen.getByText(/Imagen conceptual de Hugie/)).toBeTruthy();
+  });
+});
+
+describe("/plataforma · Hugie con el diseño nuevo", () => {
+  it("flag encendido: orbe v2, chat y funciones en vez de las tres capturas", () => {
+    setFlag(true);
+    const { container } = renderMk(<PlatformLanding />);
+    expect(screen.getByRole("img", { name: /conversación con Hugie/ })).toBeTruthy();
+    expect(screen.getByText("Qué va a hacer Hugie en la plataforma")).toBeTruthy();
+    expect(container.querySelector(".hugie")).toBeTruthy();
+    expect(screen.queryByAltText("Hugie da la bienvenida")).toBeNull();
+  });
+
+  it("flag apagado: las tres capturas de onboarding de siempre", () => {
+    setFlag(false);
+    renderMk(<PlatformLanding />);
+    expect(screen.getByAltText("Hugie da la bienvenida")).toBeTruthy();
+    expect(screen.queryByRole("img", { name: /conversación con Hugie/ })).toBeNull();
   });
 });
 

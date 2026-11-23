@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
-
 import { Reveal } from "@/components/marketing/fx/Reveal";
 import { WordReveal } from "@/components/marketing/fx/WordReveal";
 import { HugieChatPreview } from "@/components/marketing/hugie/HugieChatPreview";
-import { HugieStates } from "@/components/marketing/hugie/HugieStates";
-import { HugieOrb, type HugieState } from "@/components/marketing/HugieOrb";
+import { HugieFunctions } from "@/components/marketing/hugie/HugieFunctions";
+import { HugieOrb } from "@/components/marketing/HugieOrb";
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { showHumanize } from "@/lib/flags";
@@ -15,14 +13,13 @@ import { showHumanize } from "@/lib/flags";
  * Teaser del coach virtual "Hugie" en el home. Solo comunica "próximamente":
  * sin fecha. Arte: orbe oficial v2 (HugieOrb).
  *
- * Con NEXT_PUBLIC_SHOW_HUMANIZE (plan v1.2, D3): el mismo texto + la fila de
- * 5 estados, y a la derecha la vista de chat en la app (imagen conceptual con
+ * Con NEXT_PUBLIC_SHOW_HUMANIZE: el mismo texto + qué va a hacer Hugie en la
+ * plataforma, y a la derecha la vista de chat en la app (imagen conceptual con
  * datos de ejemplo). Sin el flag: orbe en reposo y celebrando, como hasta hoy.
  */
 export function HugieTeaser() {
   const c = useMarketingCopy().hugie;
   const humanize = showHumanize();
-  const [state, setState] = useState<HugieState>("reposo");
 
   return (
     <section id="hugie" className="mx-auto w-full max-w-marketing px-5 py-16 md:px-8 md:py-24">
@@ -39,14 +36,14 @@ export function HugieTeaser() {
           </Reveal>
           {humanize ? (
             <Reveal delay={0.25} className="mt-8">
-              <HugieStates value={state} onChange={setState} />
+              <HugieFunctions />
             </Reveal>
           ) : null}
         </div>
 
         {humanize ? (
           <Reveal variant="scale" delay={0.1} className="min-w-0">
-            <HugieChatPreview headerState={state} />
+            <HugieChatPreview headerState="reposo" />
           </Reveal>
         ) : (
           <Reveal variant="scale" delay={0.1} className="flex items-end justify-center gap-6 sm:gap-10">

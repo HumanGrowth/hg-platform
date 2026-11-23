@@ -1,11 +1,11 @@
 import Hero from "@/components/marketing/Hero";
 import { HomeCTAFinal } from "@/components/marketing/HomeCTAFinal";
+import DimensionsRadar from "@/components/marketing/DimensionsRadar";
 import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
 import { HugieTeaser } from "@/components/marketing/HugieTeaser";
 import LogoCloud from "@/components/marketing/LogoCloud";
 import MarketingRadar from "@/components/marketing/MarketingRadar";
 import { DayAtWork } from "@/components/marketing/people/DayAtWork";
-import { TeamBehind } from "@/components/marketing/people/TeamBehind";
 import { ThreePeople } from "@/components/marketing/people/ThreePeople";
 import { ProductStack } from "@/components/marketing/ProductStack";
 import Quote from "@/components/marketing/Quote";
@@ -26,15 +26,20 @@ export function LandingContent() {
     <div className="landing-flow">
       <Hero />
       <LogoCloud />
-      <SixDimensions />
-      <MarketingRadar />
+      {humanize ? (
+        <DimensionsRadar />
+      ) : (
+        <>
+          <SixDimensions />
+          <MarketingRadar />
+        </>
+      )}
       <WhatIsHg />
       {humanize ? <DayAtWork /> : null}
       <ProductStack />
       {humanize ? <ThreePeople /> : null}
       <HugieTeaser />
       <HowItWorksTimeline />
-      {humanize ? <TeamBehind /> : null}
       <Quote />
       <HomeCTAFinal />
     </div>

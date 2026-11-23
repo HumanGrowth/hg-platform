@@ -9,8 +9,6 @@ Fotos usadas solo como ambientación; no representan al equipo ni a clientes de 
 | dia-2-colegas.webp | https://unsplash.com/photos/pCWMJziO9kk |
 | dia-3-taller.webp | https://unsplash.com/photos/xsQPWxhp2tc |
 | dia-4-pizarra.webp | https://unsplash.com/photos/K0aM-ztA76Q |
-| equipo-cafe.webp | https://unsplash.com/photos/ca9XLQb9M6c |
-| equipo-demo-day.webp | https://unsplash.com/photos/piULICqeV5Y |
 | equipo-sala-postit.webp | https://unsplash.com/photos/TSyD0nGc0Bs |
 | hero-equipo.webp | https://unsplash.com/photos/yd_RKGH_RH4 |
 | persona-colaboradora.webp | https://unsplash.com/photos/QzY81G7dbOo |

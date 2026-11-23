@@ -12,9 +12,7 @@ export type PeoplePhoto =
   | "persona-rrhh"
   | "persona-lider"
   | "persona-colaboradora"
-  | "equipo-sala-postit"
-  | "equipo-demo-day"
-  | "equipo-cafe";
+  | "equipo-sala-postit";
 
 /**
  * Foto con recorte fijo: el contenedor reserva el alto por aspect-ratio (sin
