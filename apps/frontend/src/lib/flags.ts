@@ -22,10 +22,12 @@ export const customPathsEnabled = (): boolean =>
   process.env.NEXT_PUBLIC_CUSTOM_PATHS_ENABLED === "true";
 
 /**
- * Secciones "más humanas" del marketing (home y /metodo, plan v1.2 del
- * 20-nov): fotos de ambientación, DayAtWork, ThreePeople, TeamBehind, Quote
- * con retrato y HugieTeaser con orbe v2 + chat. Default `false`: se ve el
- * marketing actual. Flipear a `"true"` en Vercel para publicarlas.
+ * Secciones "más humanas" del marketing (home, /metodo y /plataforma, plan
+ * v1.2 del 20-nov + ajustes de revisión): fotos de ambientación, hero con
+ * datos integrados, dimensiones + radar en una sección, DayAtWork,
+ * ThreePeople, Quote con foto de perfil y Hugie con orbe v2 + chat +
+ * funciones. Default `false`: se ve el marketing anterior. Flipear a `"true"`
+ * en Vercel (y redeployar: es build-time) para publicarlas.
  */
 export const showHumanize = (): boolean =>
   process.env.NEXT_PUBLIC_SHOW_HUMANIZE === "true";
