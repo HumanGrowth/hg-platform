@@ -11,8 +11,8 @@ export default function NotFound() {
   return (
     <StandaloneShell>
       <div className="mx-auto flex w-full max-w-[900px] flex-col items-center gap-6 px-5 pb-20 text-center md:px-10">
-        <Reveal variant="scale" className="fx-float w-[180px] md:w-[220px]">
-          <HugieOrb state="reposo" className="w-full" />
+        <Reveal variant="scale" className="fx-float">
+          <HugieOrb state="reposo" size="clamp(180px, 22vw, 220px)" />
         </Reveal>
         <Reveal>
           <p className="display m-0 bg-clip-text text-[96px] leading-none text-transparent md:text-[160px]" style={{

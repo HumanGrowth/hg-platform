@@ -182,7 +182,7 @@ export const es = {
     subtitle: "No desarrollamos habilidades aisladas. Desarrollamos personas enteras.",
     items: [
       { code: "P1", title: "Carrera e impacto", body: "Crecé profesionalmente con un mapa claro de tu próximo paso." },
-      { code: "P2", title: "Propósito y significado", body: "Conectá tu trabajo con algo que de verdad te importa." },
+      { code: "P2", title: "Propósito y significado", body: "Encontrá qué le da sentido a lo que hacés cada día." },
       { code: "P3", title: "Relaciones y conexión", body: "Construí redes que te sostienen y te empujan." },
       { code: "P4", title: "Salud y bienestar", body: "Sueño, movimiento y energía para sostener el desempeño." },
       { code: "P5", title: "Paz interior y claridad", body: "Regulá tus estados internos en presencia del estrés." },
@@ -235,7 +235,7 @@ export const es = {
     eyebrow: "PRÓXIMAMENTE",
     title: "Conocé a Hugie.",
     tagline: "Piensa, escucha y acompaña contigo.",
-    body: "Hugie es el coach virtual de HG: el conocimiento de la IA hecho materia. Cada color de su luz es una de las 6 dimensiones, y cambia de energía según el momento — en calma mientras escucha, brillante cuando celebrás un avance.",
+    body: "Hugie es el coach virtual de HG: el conocimiento de la IA hecho materia. Cada color de su luz es una de las 6 dimensiones.",
     note: "Lo estamos construyendo. Lo vas a encontrar dentro de la plataforma cuando esté listo.",
     states: { reposo: "En reposo", celebrando: "Celebrando" },
   },
@@ -404,7 +404,7 @@ export const es = {
       },
       {
         code: "P2", name: "Propósito y significado", tag: "4 estados",
-        desc: "Medimos qué tan clara es tu dirección de vida y cuánto la vivís en el día a día. La ruta va de despertar la pregunta del para qué a un propósito vivido, más allá de vos mismo.",
+        desc: "Exploramos qué le da sentido a tu trabajo y cómo se refleja en tu día a día. La ruta va de hacerte la pregunta del para qué a trabajar con más intención en lo que te importa.",
       },
       {
         code: "P3", name: "Relaciones y conexión", tag: "4 niveles × 3 dominios",
@@ -448,6 +448,128 @@ export const es = {
     closeMenu: "Cerrar menú",
     themeToLight: "Cambiar a tema claro",
     themeToDark: "Cambiar a tema oscuro",
+  },
+  // Marketing más humano (plan v1.2, 20-nov). Todo detrás de showHumanize().
+  // Fotos de Unsplash = ambientación: los alt describen la escena sin decir
+  // que son el equipo o clientes de HG.
+  humanize: {
+    sampleData: "Pantallas con datos de ejemplo.",
+    hero: {
+      photoAlt:
+        "Cuatro personas en una mesa larga de oficina, con luz natural. Una mira su celular y otra le comenta algo.",
+    },
+    dayAtWork: {
+      title: "Así entra Human Growth en un día de trabajo",
+      body: "Sin salir de lo que ya hacés: un módulo antes del primer correo, una charla entre colegas, un líder que ve cómo viene su equipo.",
+      tablistLabel: "Momentos del día",
+      moments: [
+        {
+          time: "Antes de empezar",
+          title: "Cinco minutos antes del primer correo",
+          text: "Cada módulo junta video, contexto, evidencia, quiz y reflexión. Se completa en lo que dura un café.",
+          alt: "Una persona en su escritorio con un café y el celular, a primera hora de la mañana.",
+        },
+        {
+          time: "Media mañana",
+          title: "Una acción concreta para esta semana",
+          text: "Lo aprendido termina en un plan de acción: algo pequeño para probar con tu equipo.",
+          alt: "Dos colegas frente a una laptop conversando; una anota en una libreta.",
+        },
+        {
+          time: "Mediodía",
+          title: "Un taller con otros colegas",
+          text: "Los eventos juntan a personas de distintas áreas a conversar sobre lo que están aprendiendo.",
+          alt: "Taller en una sala de oficina: un grupo de personas en círculo, una de ellas habla.",
+        },
+        {
+          time: "Por la tarde",
+          title: "El líder ve cómo viene su equipo",
+          text: "Mi Equipo le muestra a cada líder quién avanza y a quién conviene acompañar esta semana.",
+          alt: "Una líder y dos integrantes de su equipo conversando frente a una pizarra.",
+        },
+      ],
+      module: { eyebrow: "Escucha activa · paso 4 de 5", title: "Quiz", body: "Video, contexto y evidencia listos. Falta el quiz y la reflexión." },
+      plan: {
+        title: "Tu plan de acción",
+        items: [
+          { label: "Pedir feedback en la reunión del jueves", done: true },
+          { label: "Hacer una pausa antes de responder", done: false },
+          { label: "Anotar una pregunta para mi líder", done: false },
+        ],
+      },
+      event: { eyebrow: "Evento en vivo", title: "Conversaciones difíciles" },
+      team: {
+        eyebrow: "Mi Equipo · 12 personas",
+        value: 92,
+        body: "de adopción en tu equipo. La organización va en 86%.",
+        orgValue: 86,
+      },
+    },
+    threePeople: {
+      title: "Tres personas, una misma plataforma",
+      body: "Cada rol ve lo que necesita para decidir qué hacer esta semana.",
+      hr: {
+        role: "RRHH",
+        body: "La adopción de toda la organización, en tiempo real y por área.",
+        alt: "Una persona frente a una laptop en una sala de reuniones, con dos colegas.",
+        stats: [
+          { value: "86%", label: "adopción" },
+          { value: "72%", label: "módulos completos" },
+        ],
+      },
+      leader: {
+        role: "Líder",
+        body: "Cada líder sabe a quién acompañar, sin pedir reportes ni armar planillas.",
+        alt: "Un líder en una conversación uno a uno, de pie junto a una pizarra.",
+        stat: { value: "92%", label: "de adopción en un equipo de 12 personas" },
+      },
+      collaborator: {
+        role: "Colaborador",
+        body: "Identificá tu nivel de crecimiento y qué hacer esta semana, con una ruta a tu medida.",
+        alt: "Una profesional joven en su escritorio, con el celular en la mano, mirando a cámara.",
+        bars: [
+          { label: "Carrera", value: 68, dim: 0 },
+          { label: "Propósito", value: 54, dim: 1 },
+          { label: "Paz interior", value: 61, dim: 4 },
+        ],
+        more: "y 3 dimensiones más",
+      },
+    },
+    hugie: {
+      functions: {
+        title: "Qué va a hacer Hugie en la plataforma",
+        items: [
+          { icon: "diagnostico", title: "Tu diagnóstico, conversando", text: "Te acompaña en la evaluación como una charla y te entrega tu mapa inicial de las 6 dimensiones." },
+          { icon: "plan", title: "Pasos concretos para tu semana", text: "Te sugiere acciones chicas según tu ruta; vos decidís cuáles sumar a tu plan de acción." },
+          { icon: "feedback", title: "Feedback que explica el porqué", text: "Después de cada quiz te cuenta por qué una respuesta funciona para tu situación." },
+          { icon: "sintesis", title: "Síntesis de cada módulo", text: "Al terminar un módulo resume lo que aprendiste y lo conecta con tu dimensión." },
+        ],
+      },
+      chat: {
+        alt: "Ejemplo de una conversación con Hugie dentro de la plataforma. Hugie le pregunta a Andrés por su dimensión de Salud y bienestar, que marcó más baja esta semana; Andrés cuenta que duerme poco y llega cansado a las reuniones con Seba; Hugie le propone dos pasos chicos para la semana.",
+        name: "Hugie",
+        badge: "Próximamente",
+        subtitle: "Tu coach de IA · conoce tus 6 dimensiones",
+        m1Before: "Hola, Andrés. Vi que esta semana marcaste ",
+        m1Dim: "Salud y bienestar",
+        m1After: " más baja que de costumbre. ¿Querés que lo miremos juntos?",
+        m2: "Sí. Estoy durmiendo poco y llego cansado a las reuniones con Seba.",
+        m3: "Tiene sentido que lo sientas en el trabajo. Te propongo dos pasos chicos para esta semana:",
+        m3Steps: ["Cortá pantallas 30 minutos antes de dormir.", "Pedile a Seba mover la reunión de las 8:00 a media mañana."],
+        thinking: "Hugie está pensando…",
+        suggestions: ["Armá mi plan de la semana", "Contame más de Salud y bienestar"],
+        placeholder: "Escribile a Hugie…",
+      },
+      caption: "Imagen conceptual de Hugie dentro de la plataforma. Conversación con datos de ejemplo.",
+    },
+    quote: { portraitAlt: "Jorge Araya, fundador de HumanGrowth" },
+    method: {
+      heroAlt: "Un equipo frente a una pared de post-its, ordenando ideas en una sala de trabajo.",
+      heroChip: "Seis pilares, una sola mesa de trabajo",
+      stepsAlt: "Una líder y dos integrantes del equipo conversando frente a una pizarra.",
+      stepsCaption: "Cada etapa se discute y se documenta en equipo.",
+      rigorAlt: "Dos colegas contrastando ideas frente a una laptop.",
+    },
   },
   alts: {
     deskHome: "Inicio de la app: progreso por dimensión",

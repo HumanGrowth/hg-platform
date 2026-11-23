@@ -8,7 +8,11 @@ import { Reveal, RevealGroup } from "@/components/marketing/fx/Reveal";
 import { SpotlightCard } from "@/components/marketing/fx/SpotlightCard";
 import { WordReveal } from "@/components/marketing/fx/WordReveal";
 import { useMarketingCopy } from "@/components/marketing/LanguageProvider";
+import { HugieChatPreview } from "@/components/marketing/hugie/HugieChatPreview";
+import { HugieFunctions } from "@/components/marketing/hugie/HugieFunctions";
+import { HugieOrb } from "@/components/marketing/HugieOrb";
 import { BrowserFrame, PhoneFrame } from "@/components/marketing/platform/DeviceFrames";
+import { showHumanize } from "@/lib/flags";
 import { cn } from "@/lib/utils";
 
 const FEATURE_SHOTS: Record<string, { desk: string; deskH: number; mob: string }> = {
@@ -68,6 +72,7 @@ export function PlatformLanding() {
   // (Colaborador / Líder / RRHH) se muestra en las secciones de abajo.
   const [activeRole, setActiveRole] = useState(0);
   const roleFeatures = c.features.filter((f) => f.roleIndex === activeRole);
+  const humanize = showHumanize();
 
   return (
     <div className="flex flex-col">
@@ -122,16 +127,29 @@ export function PlatformLanding() {
           hero, antes de las secciones que agregamos para Colaborador/Líder/RRHH. */}
       <section className="mx-auto w-full max-w-marketing px-5 md:px-8">
         <Reveal variant="scale">
+          {humanize ? (
+            /* Diseño nuevo: orbe oficial v2 + vista de chat en la app + funciones */
+            <div className="glass-surface flex flex-col gap-10 rounded-[32px] border border-hg-amber/35 p-6 md:p-10">
+              <div className="flex flex-col gap-9 md:flex-row md:items-center md:gap-12">
+                <div className="flex flex-col gap-4 md:w-[440px] md:shrink-0 md:gap-[18px]">
+                  <HugieTags tags={c.hugie.tags} />
+                  <HugieOrb state="reposo" size="clamp(72px, 9vw, 104px)" className="fx-float-slow" />
+                  <h2 className="display m-0 text-[40px] leading-[0.98] text-fg md:text-[56px]">
+                    {c.hugie.titlePre} <span className="text-hg-orange">{c.hugie.name}</span>
+                    {c.hugie.titlePost}
+                  </h2>
+                  <p className="m-0 text-base leading-relaxed text-fg-muted md:text-[19px]">{c.hugie.body}</p>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <HugieChatPreview headerState="hablando" />
+                </div>
+              </div>
+              <HugieFunctions wide />
+            </div>
+          ) : (
         <div className="glass-surface flex flex-col gap-9 rounded-[32px] border border-hg-amber/35 p-6 md:flex-row md:items-center md:gap-12 md:p-10">
           <div className="flex flex-col gap-4 md:w-[470px] md:shrink-0 md:gap-[18px]">
-            <div className="flex flex-wrap gap-2">
-              <span className="inline-flex rounded-full bg-hg-amber px-[11px] py-[5px] text-[11px] font-bold uppercase tracking-[0.08em] text-hg-ink">
-                {c.hugie.tags[0]}
-              </span>
-              <span className="glass-fill-strong inline-flex rounded-full px-[11px] py-[5px] text-[11px] font-bold uppercase tracking-[0.08em] text-fg">
-                {c.hugie.tags[1]}
-              </span>
-            </div>
+            <HugieTags tags={c.hugie.tags} />
             <h2 className="display m-0 text-[40px] leading-[0.98] text-fg md:text-[64px]">
               {c.hugie.titlePre} <span className="text-hg-orange">{c.hugie.name}</span>
               {c.hugie.titlePost}
@@ -156,6 +174,7 @@ export function PlatformLanding() {
             </div>
           </div>
         </div>
+          )}
         </Reveal>
       </section>
 
@@ -285,6 +304,19 @@ export function PlatformLanding() {
 
       <p className="mx-auto mt-14 px-5 text-center text-sm text-fg-muted">{c.demoNote}</p>
       <div className="h-16 md:h-24" />
+    </div>
+  );
+}
+
+function HugieTags({ tags }: { tags: readonly string[] }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <span className="inline-flex rounded-full bg-hg-amber px-[11px] py-[5px] text-[11px] font-bold uppercase tracking-[0.08em] text-hg-ink">
+        {tags[0]}
+      </span>
+      <span className="glass-fill-strong inline-flex rounded-full px-[11px] py-[5px] text-[11px] font-bold uppercase tracking-[0.08em] text-fg">
+        {tags[1]}
+      </span>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { customPathsEnabled, showPricing } from "../flags";
+import { customPathsEnabled, showHumanize, showPricing } from "../flags";
 
 describe("showPricing (NEXT_PUBLIC_SHOW_PRICING)", () => {
   const orig = process.env.NEXT_PUBLIC_SHOW_PRICING;
@@ -40,5 +40,25 @@ describe("customPathsEnabled (NEXT_PUBLIC_CUSTOM_PATHS_ENABLED)", () => {
   it("habilitada solo con 'true' exacto", () => {
     process.env.NEXT_PUBLIC_CUSTOM_PATHS_ENABLED = "true";
     expect(customPathsEnabled()).toBe(true);
+  });
+});
+
+describe("showHumanize (NEXT_PUBLIC_SHOW_HUMANIZE)", () => {
+  const orig = process.env.NEXT_PUBLIC_SHOW_HUMANIZE;
+  afterEach(() => {
+    if (orig === undefined) delete process.env.NEXT_PUBLIC_SHOW_HUMANIZE;
+    else process.env.NEXT_PUBLIC_SHOW_HUMANIZE = orig;
+  });
+
+  it("apagado por default", () => {
+    delete process.env.NEXT_PUBLIC_SHOW_HUMANIZE;
+    expect(showHumanize()).toBe(false);
+  });
+
+  it("encendido solo con 'true' exacto", () => {
+    process.env.NEXT_PUBLIC_SHOW_HUMANIZE = "1";
+    expect(showHumanize()).toBe(false);
+    process.env.NEXT_PUBLIC_SHOW_HUMANIZE = "true";
+    expect(showHumanize()).toBe(true);
   });
 });

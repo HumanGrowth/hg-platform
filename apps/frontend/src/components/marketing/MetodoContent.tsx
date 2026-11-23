@@ -1,6 +1,7 @@
 "use client";
 
 import { CtaLink } from "@/components/marketing/fx/CtaLink";
+import { DIM_COLORS } from "@/components/marketing/fx/dim-colors";
 import { PageHero } from "@/components/marketing/fx/PageHero";
 import { Reveal, RevealGroup } from "@/components/marketing/fx/Reveal";
 import { SectionHeader } from "@/components/marketing/fx/SectionHeader";
@@ -11,13 +12,45 @@ import HowItWorksTimeline from "@/components/marketing/HowItWorksTimeline";
 import MarketingRadar from "@/components/marketing/MarketingRadar";
 import { MethodDimensions } from "@/components/marketing/MethodDimensions";
 import { MethodSteps } from "@/components/marketing/MethodSteps";
+import { PhotoFrame } from "@/components/marketing/people/PhotoFrame";
+import { showHumanize } from "@/lib/flags";
+
 const SECTION = "mx-auto w-full max-w-marketing px-5 py-16 md:px-8 md:py-24";
 
 export function MetodoContent() {
-  const c = useMarketingCopy().method;
+  const copy = useMarketingCopy();
+  const c = copy.method;
+  // Plan v1.2 (D7): /metodo se humaniza de forma aditiva; ningún texto cambia.
+  const humanize = showHumanize();
+  const h = copy.humanize.method;
   return (
     <div className="landing-flow">
-      <PageHero eyebrow={c.hero.eyebrow} title={c.hero.title} subtitle={c.hero.subtitle} />
+      <PageHero
+        eyebrow={c.hero.eyebrow}
+        title={c.hero.title}
+        subtitle={c.hero.subtitle}
+        aside={
+          humanize ? (
+            <div className="relative pb-6">
+              <PhotoFrame
+                photo="equipo-sala-postit"
+                alt={h.heroAlt}
+                sizes="(min-width: 768px) 45vw, 92vw"
+                priority
+                className="aspect-[4/3]"
+              />
+              <div className="glass-surface-strong absolute bottom-0 left-4 flex items-center gap-3 rounded-full px-4 py-2.5">
+                <span className="flex gap-1.5" aria-hidden>
+                  {DIM_COLORS.map((col) => (
+                    <span key={col} className="h-2.5 w-2.5 rounded-full" style={{ background: col }} />
+                  ))}
+                </span>
+                <span className="font-heading text-sm font-semibold text-fg">{h.heroChip}</span>
+              </div>
+            </div>
+          ) : undefined
+        }
+      />
 
       {/* Un sistema, no seis módulos */}
       <section className={SECTION}>
@@ -44,7 +77,26 @@ export function MetodoContent() {
 
       {/* Metodología · 5 etapas */}
       <section className={SECTION}>
-        <SectionHeader eyebrow={c.steps.eyebrow} title={c.steps.title} subtitle={c.steps.body} />
+        {humanize ? (
+          <div className="mb-12 grid items-center gap-8 md:grid-cols-2 md:gap-12">
+            <SectionHeader eyebrow={c.steps.eyebrow} title={c.steps.title} subtitle={c.steps.body} className="mb-0" />
+            <Reveal variant="scale" delay={0.1}>
+              <figure className="relative m-0 pb-6">
+                <PhotoFrame
+                  photo="dia-4-pizarra"
+                  alt={h.stepsAlt}
+                  sizes="(min-width: 768px) 45vw, 92vw"
+                  className="aspect-[16/10]"
+                />
+                <figcaption className="glass-surface-strong absolute inset-x-4 bottom-0 px-4 py-3 text-sm font-medium text-fg">
+                  {h.stepsCaption}
+                </figcaption>
+              </figure>
+            </Reveal>
+          </div>
+        ) : (
+          <SectionHeader eyebrow={c.steps.eyebrow} title={c.steps.title} subtitle={c.steps.body} />
+        )}
         <MethodSteps items={c.steps.items} />
       </section>
 
@@ -63,7 +115,21 @@ export function MetodoContent() {
 
       {/* Rigor y límites */}
       <section className={SECTION}>
-        <SectionHeader eyebrow={c.rigor.eyebrow} title={c.rigor.title} subtitle={c.rigor.body} />
+        {humanize ? (
+          <div className="mb-12 grid items-center gap-8 md:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] md:gap-12">
+            <SectionHeader eyebrow={c.rigor.eyebrow} title={c.rigor.title} subtitle={c.rigor.body} className="mb-0" />
+            <Reveal variant="scale" delay={0.1}>
+              <PhotoFrame
+                photo="dia-2-colegas"
+                alt={h.rigorAlt}
+                sizes="(min-width: 768px) 40vw, 92vw"
+                className="aspect-[16/10]"
+              />
+            </Reveal>
+          </div>
+        ) : (
+          <SectionHeader eyebrow={c.rigor.eyebrow} title={c.rigor.title} subtitle={c.rigor.body} />
+        )}
         <RevealGroup className="grid grid-cols-1 gap-5 md:grid-cols-3" step={0.1}>
           {c.rigor.points.map((p) => (
             <SpotlightCard key={p.title} className="h-full p-6">

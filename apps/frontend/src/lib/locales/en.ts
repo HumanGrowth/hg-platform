@@ -182,7 +182,7 @@ export const en = {
     subtitle: "We don't develop isolated skills. We develop whole people.",
     items: [
       { code: "P1", title: "Career & impact", body: "Grow professionally with a clear map of your next step." },
-      { code: "P2", title: "Purpose & meaning", body: "Connect your work to something that truly matters to you." },
+      { code: "P2", title: "Purpose & meaning", body: "Find what gives meaning to what you do every day." },
       { code: "P3", title: "Relationships & connection", body: "Build networks that hold you up and push you forward." },
       { code: "P4", title: "Health & wellbeing", body: "Sleep, movement and energy to sustain performance." },
       { code: "P5", title: "Inner peace & clarity", body: "Regulate your internal states in the presence of stress." },
@@ -235,7 +235,7 @@ export const en = {
     eyebrow: "COMING SOON",
     title: "Meet Hugie.",
     tagline: "Thinks, listens and walks with you.",
-    body: "Hugie is HG's virtual coach: the knowledge of AI made matter. Each color of its light is one of the 6 dimensions, and its energy shifts with the moment — calm while it listens, bright when you celebrate progress.",
+    body: "Hugie is HG's virtual coach: the knowledge of AI made matter. Each color of its light is one of the 6 dimensions.",
     note: "We're still building it. You'll find it inside the platform when it's ready.",
     states: { reposo: "At rest", celebrando: "Celebrating" },
   },
@@ -404,7 +404,7 @@ export const en = {
       },
       {
         code: "P2", name: "Purpose & meaning", tag: "4 states",
-        desc: "We measure how clear your life direction is and how much you live it day to day. The path goes from awakening the question of purpose to a lived purpose beyond yourself.",
+        desc: "We explore what gives meaning to your work and how it shows up in your day to day. The path goes from asking yourself what it's for to working with more intention on what matters to you.",
       },
       {
         code: "P3", name: "Relationships & connection", tag: "4 levels × 3 domains",
@@ -448,6 +448,126 @@ export const en = {
     closeMenu: "Close menu",
     themeToLight: "Switch to light theme",
     themeToDark: "Switch to dark theme",
+  },
+  // More human marketing (plan v1.2, Nov 20). All behind showHumanize().
+  humanize: {
+    sampleData: "Screens with sample data.",
+    hero: {
+      photoAlt:
+        "Four people at a long office table in natural light. One looks at their phone while another comments.",
+    },
+    dayAtWork: {
+      title: "How Human Growth fits into a workday",
+      body: "Without leaving what you already do: a module before the first email, a talk between colleagues, a leader who sees how the team is doing.",
+      tablistLabel: "Moments of the day",
+      moments: [
+        {
+          time: "Before you start",
+          title: "Five minutes before the first email",
+          text: "Each module brings together video, context, evidence, a quiz and a reflection. You finish it in the time a coffee lasts.",
+          alt: "A person at their desk with a coffee and a phone, early in the morning.",
+        },
+        {
+          time: "Mid-morning",
+          title: "One concrete action for this week",
+          text: "What you learn ends in an action plan: something small to try with your team.",
+          alt: "Two colleagues talking in front of a laptop; one takes notes in a notebook.",
+        },
+        {
+          time: "Midday",
+          title: "A workshop with other colleagues",
+          text: "Events bring people from different areas together to talk about what they're learning.",
+          alt: "Workshop in an office room: a group of people in a circle, one of them speaking.",
+        },
+        {
+          time: "In the afternoon",
+          title: "The leader sees how the team is doing",
+          text: "My Team shows each leader who is moving forward and who could use support this week.",
+          alt: "A leader and two team members talking in front of a whiteboard.",
+        },
+      ],
+      module: { eyebrow: "Active listening · step 4 of 5", title: "Quiz", body: "Video, context and evidence done. The quiz and the reflection are left." },
+      plan: {
+        title: "Your action plan",
+        items: [
+          { label: "Ask for feedback at Thursday's meeting", done: true },
+          { label: "Pause before replying", done: false },
+          { label: "Write down a question for my leader", done: false },
+        ],
+      },
+      event: { eyebrow: "Live event", title: "Difficult conversations" },
+      team: {
+        eyebrow: "My Team · 12 people",
+        value: 92,
+        body: "adoption in your team. The organization is at 86%.",
+        orgValue: 86,
+      },
+    },
+    threePeople: {
+      title: "Three people, one platform",
+      body: "Each role sees what it needs to decide what to do this week.",
+      hr: {
+        role: "HR",
+        body: "Adoption across the whole organization, in real time and by area.",
+        alt: "A person at a laptop in a meeting room, with two colleagues.",
+        stats: [
+          { value: "86%", label: "adoption" },
+          { value: "72%", label: "modules completed" },
+        ],
+      },
+      leader: {
+        role: "Leader",
+        body: "Every leader knows who to support, without asking for reports or building spreadsheets.",
+        alt: "A leader in a one-on-one conversation, standing by a whiteboard.",
+        stat: { value: "92%", label: "adoption in a team of 12 people" },
+      },
+      collaborator: {
+        role: "Employee",
+        body: "Identify your growth level and what to do this week, with a path tailored to you.",
+        alt: "A young professional at her desk, phone in hand, looking at the camera.",
+        bars: [
+          { label: "Career", value: 68, dim: 0 },
+          { label: "Purpose", value: 54, dim: 1 },
+          { label: "Inner peace", value: 61, dim: 4 },
+        ],
+        more: "and 3 more dimensions",
+      },
+    },
+    hugie: {
+      functions: {
+        title: "What Hugie will do in the platform",
+        items: [
+          { icon: "diagnostico", title: "Your diagnosis, as a conversation", text: "It walks you through the assessment as a chat and hands you your initial map of the 6 dimensions." },
+          { icon: "plan", title: "Concrete steps for your week", text: "It suggests small actions based on your path; you decide which ones go into your action plan." },
+          { icon: "feedback", title: "Feedback that explains why", text: "After each quiz it tells you why an answer works for your situation." },
+          { icon: "sintesis", title: "A synthesis of every module", text: "When you finish a module it sums up what you learned and links it to your dimension." },
+        ],
+      },
+      chat: {
+        alt: "Example of a conversation with Hugie inside the platform. Hugie asks Andrés about his Health and wellbeing dimension, which he rated lower this week; Andrés says he's sleeping little and arrives tired to his meetings with Seba; Hugie suggests two small steps for the week.",
+        name: "Hugie",
+        badge: "Coming soon",
+        subtitle: "Your AI coach · knows your 6 dimensions",
+        m1Before: "Hi, Andrés. I noticed you rated ",
+        m1Dim: "Health and wellbeing",
+        m1After: " lower than usual this week. Want to look at it together?",
+        m2: "Yes. I'm not sleeping much and I get to my meetings with Seba tired.",
+        m3: "It makes sense that you feel it at work. Here are two small steps for this week:",
+        m3Steps: ["Put screens away 30 minutes before bed.", "Ask Seba to move the 8:00 meeting to mid-morning."],
+        thinking: "Hugie is thinking…",
+        suggestions: ["Build my plan for the week", "Tell me more about Health and wellbeing"],
+        placeholder: "Write to Hugie…",
+      },
+      caption: "Concept image of Hugie inside the platform. Conversation with sample data.",
+    },
+    quote: { portraitAlt: "Jorge Araya, founder of HumanGrowth" },
+    method: {
+      heroAlt: "A team in front of a wall of sticky notes, organizing ideas in a workroom.",
+      heroChip: "Six pillars, one shared worktable",
+      stepsAlt: "A leader and two team members talking in front of a whiteboard.",
+      stepsCaption: "Each stage is discussed and documented as a team.",
+      rigorAlt: "Two colleagues weighing ideas in front of a laptop.",
+    },
   },
   alts: {
     deskHome: "App home: progress by dimension",
