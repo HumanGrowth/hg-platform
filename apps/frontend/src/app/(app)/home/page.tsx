@@ -20,6 +20,7 @@ import { apiGetHomeDashboard, apiGetMyBadges, apiGetMyResults, apiSetOnboardingS
 import { radarValuesFromResults } from "@/lib/assessment-utils";
 import { useAuthStore } from "@/lib/auth-store";
 import { DIMENSIONS } from "@/lib/dimensions";
+import { useDimensionAvailability } from "@/lib/hooks/useDimensionAvailability";
 import type { HomeDashboard, DimensionResult, MyBadge } from "@/lib/types";
 import { cn, greetingName, isFixtureCourse } from "@/lib/utils";
 
@@ -110,6 +111,7 @@ export default function HomePage() {
   // antes caía a un % de módulos completados, que es otra métrica en el mismo
   // eje (el % de aprendizaje por nivel vive en "Tu nivel por dimensión", en /perfil).
   const radarValues = results.length > 0 ? radarValuesFromResults(results) : {};
+  const availability = useDimensionAvailability();
 
   return (
     <main className="mx-auto w-full max-w-app px-6 py-10">
@@ -157,7 +159,12 @@ export default function HomePage() {
             <Eyebrow>Tus 6 dimensiones</Eyebrow>
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
               {DIMENSIONS.map((d) => (
-                <DimensionCard key={d.code} dimension={d} score={radarValues[d.careerPath] ?? 0} />
+                <DimensionCard
+                  key={d.code}
+                  dimension={d}
+                  score={radarValues[d.careerPath] ?? 0}
+                  hasContent={availability[d.code]}
+                />
               ))}
             </div>
           </section>

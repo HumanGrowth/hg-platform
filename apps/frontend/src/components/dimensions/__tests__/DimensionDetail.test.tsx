@@ -77,15 +77,29 @@ describe("DimensionDetail", () => {
     expect(reeval.getAttribute("href")).toBe("/onboarding/detail/P1");
   });
 
-  it("shows 'Contenido próximamente' and does not fetch units for a dimension without content", async () => {
+  it("shows the units of any dimension once its content is published (SA)", async () => {
     getMyResults.mockResolvedValue({ results: [] });
+    listModulosByDimension.mockResolvedValue([
+      { ...unit, id: "u-sa", slug: "sa-l1-v1-001", dimension_code: "SA", pillar_code: "V1", title: "Dormir mejor" },
+    ]);
+
+    render(<DimensionDetail dimension={dimensionByCode("SA")!} />);
+
+    expect(await screen.findByText("Dormir mejor")).toBeTruthy();
+    expect(listModulosByDimension).toHaveBeenCalledWith("P4", undefined, 50);
+    expect(screen.queryByText("Contenido próximamente para esta dimensión")).toBeNull();
+  });
+
+  it("shows 'Contenido próximamente' when the API returns no units for the dimension", async () => {
+    getMyResults.mockResolvedValue({ results: [] });
+    listModulosByDimension.mockResolvedValue([]);
 
     render(<DimensionDetail dimension={dimensionByCode("RE")!} />);
 
     await waitFor(() =>
       expect(screen.getByText("Contenido próximamente para esta dimensión")).toBeTruthy(),
     );
-    expect(listModulosByDimension).not.toHaveBeenCalled();
+    expect(listModulosByDimension).toHaveBeenCalledWith("P3", undefined, 50);
     // Sin evaluación previa → CTA "Evaluar" hacia el careerPath de RE (P3).
     const cta = screen.getByText("Evaluar").closest("a") as HTMLAnchorElement;
     expect(cta.getAttribute("href")).toBe("/onboarding/detail/P3");

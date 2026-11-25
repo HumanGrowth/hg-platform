@@ -1,17 +1,25 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { HomeDashboard } from "@/lib/types";
 
 import HomePage from "../page";
 
-const { getHome, router } = vi.hoisted(() => ({
+const { getHome, listByDimension, router } = vi.hoisted(() => ({
   getHome: vi.fn(),
+  // Solo P3 (Relaciones) sin contenido publicado en este escenario.
+  listByDimension: vi.fn((careerPath: string) =>
+    Promise.resolve(careerPath === "P3" ? [] : [{ id: `u-${careerPath}` }]),
+  ),
   router: { replace: vi.fn(), push: vi.fn() },
 }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
-vi.mock("@/lib/api", () => ({ apiGetHomeDashboard: getHome, apiGetMyBadges: vi.fn().mockResolvedValue([]) }));
+vi.mock("@/lib/api", () => ({
+  apiGetHomeDashboard: getHome,
+  apiGetMyBadges: vi.fn().mockResolvedValue([]),
+  apiListModulosByDimension: listByDimension,
+}));
 vi.mock("@/lib/auth-store", () => ({
   useAuthStore: (sel: (s: { user: { full_name: string } }) => unknown) =>
     sel({ user: { full_name: "Ana López" } }),
@@ -85,5 +93,14 @@ describe("HomePage", () => {
     ]) {
       expect(screen.getByText(name)).toBeTruthy();
     }
+  });
+
+  it("marks only the dimensions without published units as 'Próximamente'", async () => {
+    getHome.mockResolvedValue(base);
+    render(<HomePage />);
+    await screen.findByText("Tus 6 dimensiones");
+    await waitFor(() => expect(screen.getAllByText("Próximamente")).toHaveLength(1));
+    const card = screen.getByText("Relaciones y conexión").closest("a") as HTMLAnchorElement;
+    expect(card.textContent).toContain("Próximamente");
   });
 });

@@ -1,10 +1,12 @@
 import type { Route } from "next";
 
+import { DIMENSIONS as DIMENSION_REGISTRY } from "@/lib/dimensions";
 import type { LearningUnitDetail, LearningUnitFeedItem, LockReason } from "@/lib/types";
 
 /**
- * Dimensiones del Drive para el indexing de /modulos (TASK 1). Hoy solo existe
- * CP (Carrera Profesional); las otras 5 se agregan acá cuando Jorge las cree.
+ * Dimensiones del Drive para el indexing de /modulos (TASK 1): las 6 del registro
+ * canónico. Las que todavía no tienen units publicadas se muestran bloqueadas
+ * ("Próximamente") por el propio catálogo, según lo que devuelve la API.
  * `pillar` = career_path del DS (para colores/labels/filtro by-pillar).
  */
 export interface DimensionMeta {
@@ -13,10 +15,11 @@ export interface DimensionMeta {
   name: string;
 }
 
-export const DIMENSIONS: DimensionMeta[] = [
-  { code: "CP", pillar: "P1", name: "Carrera e impacto" },
-  { code: "PR", pillar: "P2", name: "Propósito y significado" },
-];
+export const DIMENSIONS: DimensionMeta[] = DIMENSION_REGISTRY.map((d) => ({
+  code: d.code,
+  pillar: d.careerPath,
+  name: d.name,
+}));
 
 /** "L2" → 2; null o código no-L (ej. "Integrado", "N1") → null. */
 export function levelNum(code: string | null | undefined): number | null {

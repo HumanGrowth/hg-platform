@@ -8,8 +8,9 @@ import type { AssessmentDimensionCode } from "@/lib/types";
  *  - `careerPath` → career-path del DS (P1..P6) para color/label/ícono.
  *  - `assessmentDimension` → código del assessment para "Reevaluar" (P6 → P6A).
  *
- * Hoy sólo CP tiene contenido publicado; las otras 5 se muestran en estado
- * "Contenido próximamente" (header + reevaluar siguen funcionando).
+ * Si una dimensión tiene contenido NO se declara acá: se deriva de las units
+ * publicadas que devuelve la API (`useDimensionAvailability`). Así una dimensión
+ * se habilita sola cuando su contenido llega a la base, sin tocar código.
  */
 export type DimensionCode = "CP" | "PR" | "RE" | "SA" | "PI" | "ES";
 export type CareerPathCode = "P1" | "P2" | "P3" | "P4" | "P5" | "P6";
@@ -25,8 +26,6 @@ export interface Dimension {
   short: string;
   /** Descripción 2-3 líneas — editable por Andy. */
   description: string;
-  /** ¿Tiene units publicadas hoy? */
-  hasContent: boolean;
 }
 
 export const DIMENSIONS: Dimension[] = [
@@ -38,7 +37,6 @@ export const DIMENSIONS: Dimension[] = [
     short: "Carrera",
     description:
       "Tu desarrollo profesional y la huella que dejás. Cómo crecés en tu trabajo, tomás decisiones de carrera y generás impacto en lo que hacés.",
-    hasContent: true,
   },
   {
     code: "PR",
@@ -48,7 +46,6 @@ export const DIMENSIONS: Dimension[] = [
     short: "Propósito",
     description:
       "El sentido que guía tus días. Qué te mueve, hacia dónde vas y cómo conectás tus acciones con algo más grande que vos.",
-    hasContent: true,
   },
   {
     code: "RE",
@@ -58,7 +55,6 @@ export const DIMENSIONS: Dimension[] = [
     short: "Relaciones",
     description:
       "La calidad de tus vínculos. Cómo construís confianza, cuidás tus relaciones y te sentís parte de una comunidad.",
-    hasContent: false,
   },
   {
     code: "SA",
@@ -68,7 +64,6 @@ export const DIMENSIONS: Dimension[] = [
     short: "Salud",
     description:
       "El cuidado de tu cuerpo y tu energía. Hábitos de sueño, movimiento y descanso que sostienen todo lo demás.",
-    hasContent: false,
   },
   {
     code: "PI",
@@ -78,7 +73,6 @@ export const DIMENSIONS: Dimension[] = [
     short: "Paz",
     description:
       "Tu mundo interno. Cómo gestionás el ruido mental, encontrás calma y ganás claridad para decidir con serenidad.",
-    hasContent: false,
   },
   {
     code: "ES",
@@ -90,7 +84,6 @@ export const DIMENSIONS: Dimension[] = [
     short: "Estabilidad",
     description:
       "Tu base firme. La resiliencia para sostener los golpes y la estabilidad material que te da tranquilidad.",
-    hasContent: false,
   },
 ];
 

@@ -10,31 +10,36 @@ import { cn } from "@/lib/utils";
 /**
  * Card de dimensión compartida entre Inicio (TASK 3) y Mi Perfil (TASK 4).
  * Un solo componente, mismo shape en ambos lados. Metáfora del pilar + nombre +
- * score actual + progreso mini. Las dimensiones sin contenido se atenúan y
- * muestran un micro badge "Próximamente".
+ * score actual + progreso mini. Las dimensiones sin contenido publicado
+ * (`hasContent === false`, dato de la API) se atenúan y muestran un micro badge
+ * "Próximamente"; si todavía no se sabe (`undefined`) se muestra normal.
  */
 export function DimensionCard({
   dimension,
   score,
+  hasContent,
   className,
 }: {
   dimension: Dimension;
   /** Score 0-100 de la dimensión (radarValuesFromResults). */
   score: number;
+  /** ¿Tiene units publicadas? `undefined` = desconocido (no se bloquea). */
+  hasContent?: boolean;
   className?: string;
 }) {
   const style = dimensionStyle(dimension.careerPath);
+  const comingSoon = hasContent === false;
   return (
     <Link
       href={`/dimensiones/${dimension.code}` as Route}
       aria-label={`${dimension.name} · ${score} de 100`}
       className={cn(
         "glass-fill-strong glass-hover group relative flex flex-col gap-3 rounded-lg border border-border bg-surface-card p-4 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hg-amber",
-        !dimension.hasContent && "opacity-60",
+        comingSoon && "opacity-60",
         className,
       )}
     >
-      {!dimension.hasContent && (
+      {comingSoon && (
         <span className="absolute right-3 top-3 rounded-full bg-bg-sunken px-2 py-0.5 text-[10px] font-semibold uppercase tracking-meta text-fg-muted">
           Próximamente
         </span>

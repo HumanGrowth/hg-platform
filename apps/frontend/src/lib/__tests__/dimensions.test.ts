@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { DIMENSIONS, DIMENSION_CODES, dimensionByCode, dimensionByCareerPath } from "@/lib/dimensions";
 import { driveToCareerPath } from "@/lib/dimension-styles";
+import { DIMENSIONS as MODULOS_DIMENSIONS } from "@/lib/modulos";
 
 describe("dimensions registry", () => {
   it("has the 6 canonical dimensions mapped 1:1 to P1..P6", () => {
@@ -9,8 +10,14 @@ describe("dimensions registry", () => {
     expect(DIMENSIONS.map((d) => d.careerPath)).toEqual(["P1", "P2", "P3", "P4", "P5", "P6"]);
   });
 
-  it("CP and PR have content today", () => {
-    expect(DIMENSIONS.filter((d) => d.hasContent).map((d) => d.code)).toEqual(["CP", "PR"]);
+  it("does not hardcode content availability (it comes from the API)", () => {
+    for (const d of DIMENSIONS) expect("hasContent" in d).toBe(false);
+  });
+
+  it("/modulos indexes the same 6 dimensions as the registry", () => {
+    expect(MODULOS_DIMENSIONS.map((d) => [d.code, d.pillar])).toEqual(
+      DIMENSIONS.map((d) => [d.code, d.careerPath]),
+    );
   });
 
   it("resolves by code case-insensitively", () => {
