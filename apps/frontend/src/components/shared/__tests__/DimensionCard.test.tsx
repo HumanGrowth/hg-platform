@@ -13,14 +13,18 @@ describe("DimensionCard", () => {
     expect(screen.getByText("72")).toBeTruthy();
   });
 
-  it("marks dimensions without content as 'Próximamente'", () => {
-    // RE (Relaciones) no tiene contenido aún; PR pasó a hasContent:true.
-    render(<DimensionCard dimension={dimensionByCode("RE")!} score={0} />);
+  it("marks a dimension as 'Próximamente' when the API says it has no content", () => {
+    render(<DimensionCard dimension={dimensionByCode("RE")!} score={0} hasContent={false} />);
     expect(screen.getByText("Próximamente")).toBeTruthy();
   });
 
   it("does not show 'Próximamente' for a dimension with content", () => {
-    render(<DimensionCard dimension={dimensionByCode("CP")!} score={10} />);
+    render(<DimensionCard dimension={dimensionByCode("SA")!} score={10} hasContent />);
+    expect(screen.queryByText("Próximamente")).toBeNull();
+  });
+
+  it("does not block while availability is still unknown", () => {
+    render(<DimensionCard dimension={dimensionByCode("ES")!} score={10} />);
     expect(screen.queryByText("Próximamente")).toBeNull();
   });
 });

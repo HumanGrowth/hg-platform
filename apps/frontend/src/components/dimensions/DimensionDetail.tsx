@@ -39,9 +39,11 @@ export function DimensionDetail({ dimension }: { dimension: Dimension }) {
     try {
       const [res, unitList, myBadges] = await Promise.all([
         apiGetMyResults().then((r) => r.results).catch(() => [] as DimensionResult[]),
-        dimension.hasContent
-          ? apiListModulosByDimension(dimension.careerPath, undefined, 50).catch(() => [])
-          : Promise.resolve([] as LearningUnitFeedItem[]),
+        // Todas las dimensiones consultan su contenido: si hay units publicadas se
+        // muestran; si no, queda el estado "Contenido próximamente".
+        apiListModulosByDimension(dimension.careerPath, undefined, 50).catch(
+          () => [] as LearningUnitFeedItem[],
+        ),
         apiGetMyBadges().catch(() => [] as MyBadge[]),
       ]);
       setResults(res);
@@ -131,7 +133,7 @@ export function DimensionDetail({ dimension }: { dimension: Dimension }) {
             result={result}
           />
 
-          {dimension.hasContent ? (
+          {units.length > 0 ? (
             <AreasSection dimension={dimension} units={units} badges={badges} />
           ) : (
             <Card className="mt-8 flex flex-col items-center gap-2 py-12 text-center">
